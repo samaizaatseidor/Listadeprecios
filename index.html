@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Tarifario Baseline — SEIDOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="confidential-bar">USO INTERNO — CONFIDENCIAL · NO COMPARTIR FUERA DE SEIDOR</div>
+
+<nav class="nav" id="nav">
+  <div class="wrap">
+    <div class="nav-logo"><img src="assets/logo_light.png" alt="SEIDOR" /></div>
+    <div class="nav-links">
+      <a href="#individuales">Servicios individuales</a>
+      <a href="#paquetes">Paquetes SAP Cloud ERP</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <img src="assets/logo_dark.png" alt="SEIDOR" />
+      <span class="hero-updated" id="heroUpdated"></span>
+    </div>
+    <div class="kicker">Tarifario interno · Uso comercial</div>
+    <h1>Precios baseline de servicios</h1>
+    <p class="lede">
+      Referencia rápida de tarifas para armar propuestas: servicios individuales
+      por hora (AMS y consultoría) y paquetes de implementación baseline para
+      SAP Cloud ERP, en sus ediciones Public y Private.
+    </p>
+    <div class="chip-row">
+      <span class="chip accent">USD</span>
+      <span class="chip">Precios de referencia</span>
+      <span class="chip">Sujetos a alcance final</span>
+    </div>
+  </div>
+</header>
+
+<section class="disclaimer">
+  <div class="wrap">
+    <span class="dot"></span>
+    <p>
+      Estos son precios <strong>baseline</strong>, es decir, un punto de partida para
+      cotizar con el cliente. El valor final depende del alcance real, la complejidad
+      del proceso, integraciones y volumen de datos. Ante cualquier duda de scoping,
+      valida con el equipo de Presales antes de comunicar una cifra al cliente.
+    </p>
+  </div>
+</section>
+
+<section class="section-light" id="individuales">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker" style="color:var(--blue)">Tarifas por hora</div>
+      <h2>Servicios individuales</h2>
+      <p>Tarifas de referencia por rol y nivel de seniority, para AMS y para
+        proyectos de implementación cotizados por horas/bolsa de horas.</p>
+    </div>
+
+    <div class="controls" id="controls">
+      <!-- filtros insertados por JS -->
+      <input type="text" class="search-input" id="searchInput" placeholder="Buscar rol…" />
+    </div>
+
+    <div class="rate-table-wrap">
+      <table class="rate-table">
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Rol</th>
+            <th>Nivel</th>
+            <th>Tarifa (USD)</th>
+          </tr>
+        </thead>
+        <tbody id="rateTableBody">
+          <!-- filas insertadas por JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section-dark" id="paquetes">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Baseline de implementación</div>
+      <h2>Paquetes SAP Cloud ERP</h2>
+      <p>Alcance y precio de referencia para un proyecto de implementación baseline,
+        antes de ajustar por los requerimientos específicos del cliente.</p>
+    </div>
+
+    <div class="pkg-grid" id="pkgGrid">
+      <!-- tarjetas insertadas por JS -->
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <img src="assets/logo_dark.png" alt="SEIDOR" />
+    <p>Este tarifario es material interno de SEIDOR para uso del equipo comercial.
+      No debe compartirse con clientes ni terceros sin aprobación de Presales.</p>
+    <p class="fine" id="footerUpdated"></p>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
