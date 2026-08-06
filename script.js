@@ -76,15 +76,18 @@ function renderPackages() {
   PACKAGES.forEach((p) => {
     const card = document.createElement("div");
     card.className = "pkg-card";
+    const priceSuffix = p.priceUnit === "mes" ? "/mes" : "baseline";
+    const priceLabel = p.priceUnit === "mes" ? "Precio de referencia mensual" : "Precio de referencia total";
+    const teamLabel = p.id === "ams" ? "Distribución" : "Equipo típico";
     card.innerHTML = `
       <div class="pkg-badge">${p.badge}</div>
       <h3>${p.title}</h3>
       <p class="pkg-subtitle">${p.subtitle}</p>
-      <div class="pkg-price">${fmtUSD(p.price)}<span>baseline</span></div>
-      <div class="pkg-price-label">Precio de referencia total</div>
+      <div class="pkg-price">${fmtUSD(p.price)}<span>${priceSuffix}</span></div>
+      <div class="pkg-price-label">${priceLabel}</div>
       <div class="pkg-meta">
-        <div><strong>Duración estimada:</strong> ${p.duration}</div>
-        <div><strong>Equipo típico:</strong> ${p.team}</div>
+        <div><strong>Duración:</strong> ${p.duration}</div>
+        <div><strong>${teamLabel}:</strong> ${p.team}</div>
       </div>
       <button class="pkg-toggle" type="button" aria-expanded="false">
         <span class="label">Ver alcance detallado</span>
@@ -98,6 +101,10 @@ function renderPackages() {
           <ul>${p.excludes.map((i) => `<li>${i}</li>`).join("")}</ul>
         </div>
       </div>
+      ${p.pptFile ? `<a class="pkg-download" href="${p.pptFile}" download>
+        <span>Descargar PPT de Alcance</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v13m0 0l-5-5m5 5l5-5M4 21h16"/></svg>
+      </a>` : ""}
     `;
     const toggle = card.querySelector(".pkg-toggle");
     const detail = card.querySelector(".pkg-detail");

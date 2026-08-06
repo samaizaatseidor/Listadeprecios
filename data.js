@@ -96,8 +96,32 @@ const INDIVIDUAL_SERVICES = [
   },
 ];
 
-/* --- Servicios empaquetados (precio baseline total) --- */
+/* --- Servicios empaquetados --- */
 const PACKAGES = [
+  {
+    id: "ams",
+    badge: "AMS Tier 2 — Baseline",
+    title: "Paquete baseline de soporte AMS",
+    subtitle: "40 horas/mes · 3 meses · Metodología ITIL",
+    price: 4076,
+    priceUnit: "mes",
+    duration: "3 meses (renovable)",
+    team: "40 h/mes: 25 h Funcional (FI · CO · MM · SD) · 5 h ABAP · 5 h Basis · 5 h Gestión",
+    pptFile: "decks/SEIDOR_Alcance_AMS_Baseline.pptx",
+    includes: [
+      "Soporte funcional multi-módulo (FI, CO, MM, SD)",
+      "Soporte técnico ABAP (desarrollos Z y workflows)",
+      "Soporte Basis (roles, transportes, monitoreo)",
+      "Gestión y gobierno del servicio (SLA, reporting)",
+      "Gestión de incidentes bajo metodología ITIL (S1–S4)",
+    ],
+    excludes: [
+      "Requerimientos que excedan 40 h u 5 días calendario",
+      "Proyectos, reingenierías, upgrades o rollouts",
+      "Licenciamiento SAP, VPN u otro software del cliente",
+      "Calidad e integridad de datos maestros",
+    ],
+  },
   {
     id: "public",
     badge: "SAP Cloud ERP — Public Edition",
@@ -105,6 +129,7 @@ const PACKAGES = [
     subtitle: "Procesos estándar, clean core, ritmo acelerado",
     price: 105000,
     duration: "16–20 semanas",
+    pptFile: "decks/SEIDOR_Alcance_SAP_Cloud_ERP_Public.pptx",
     team: "1 PM · 3 Consultores funcionales · 1 Basis/CPI (part-time)",
     includes: [
       "Finanzas (FI) y Controlling básico 1 sociedad",
@@ -127,6 +152,7 @@ const PACKAGES = [
     subtitle: "Mayor flexibilidad, extensiones, procesos más complejos",
     price: 205000,
     duration: "16–24 semanas",
+    pptFile: "decks/SEIDOR_Alcance_SAP_Cloud_ERP_Private.pptx",
     team: "1 PM · 4 Consultores funcionales · 1 Técnico(ABAP) · 1 Basis",
     includes: [
       "Finanzas (FI) y Controlling básico 1 sociedad",

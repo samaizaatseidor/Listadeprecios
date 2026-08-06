@@ -565,6 +565,31 @@ table.rate-table {
   color: #8ea0c0;
 }
 
+.pkg-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 11px 18px;
+  border-radius: 100px;
+  background: var(--cyan);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  width: fit-content;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.pkg-download:hover {
+  background: var(--cyan-l);
+  transform: translateY(-1px);
+}
+
+.pkg-download svg {
+  flex: none;
+}
+
 .pkg-detail ul {
   margin: 0;
   padding: 0;
