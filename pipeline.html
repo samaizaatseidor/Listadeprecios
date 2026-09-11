@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipeline SAP · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px 20px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+  .metrics{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;}
+  .metric{background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:8px 14px; min-width:84px;}
+  .metric .n{font-size:20px; font-weight:600; line-height:1.1;}
+  .metric .l{font-size:11px; color:var(--cyan-l); margin-top:2px;}
+  .synctag{font-size:11px; color:var(--cyan-l); margin-top:10px;}
+
+  .toolbar{display:flex; gap:8px; padding:14px 16px; background:#fff; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; flex-wrap:wrap;}
+  .toolbar input[type=text]{flex:1; min-width:140px; padding:9px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px; color:var(--ink);}
+  .btn{border:none; border-radius:8px; padding:9px 14px; font-family:inherit; font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
+  .btn-danger{background:#fff; color:#B23A3A; border:1px solid #E8C7C7;}
+
+  .board{display:flex; gap:14px; padding:16px; overflow-x:auto;}
+  .col{background:#EDF3FA; border-radius:12px; min-width:270px; max-width:290px; flex-shrink:0; padding:10px; max-height:calc(100vh - 190px); overflow-y:auto;}
+  .col h2{font-size:12px; color:var(--grey); margin:2px 4px 10px; display:flex; justify-content:space-between; font-weight:600;}
+  .col h2 span.count{background:#fff; color:var(--grey); border-radius:20px; padding:1px 8px; font-size:11px;}
+  .card{background:#fff; border-radius:10px; padding:12px; margin-bottom:9px; cursor:pointer; box-shadow:var(--shadow); border-left:3px solid var(--line);}
+  .card.risk-alto{border-left-color:#C24545;}
+  .card.risk-medio{border-left-color:#D9A441;}
+  .card h3{margin:0 0 4px; font-size:13.5px; font-weight:600; color:var(--navy2);}
+  .card p{margin:0; font-size:12px; color:var(--grey); line-height:1.4;}
+  .chips{display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;}
+  .chip{font-size:10.5px; padding:2px 7px; border-radius:20px; background:#EDF3FA; color:var(--blue);}
+  .chip.modalidad{background:#E7F6FB; color:#1A7E9E;}
+  .card .next{margin-top:8px; font-size:11px; color:var(--blue); font-weight:500;}
+  .card .valor{margin-top:6px; font-size:11.5px; color:var(--navy2); font-weight:600;}
+  .card .foot{display:flex; justify-content:space-between; align-items:center; margin-top:8px;}
+  .card .sp-link{font-size:11px; color:var(--grey); text-decoration:none;}
+  .card .sp-link:hover{color:var(--blue);}
+  .risktag{font-size:10.5px; padding:2px 7px; border-radius:20px;}
+  .risktag.alto{background:#FBE7E7; color:#B23A3A;}
+  .risktag.medio{background:#FBF1DE; color:#8A6414;}
+  .empty{color:var(--greyl); font-size:12px; padding:14px 6px; text-align:center;}
+
+  .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:20; align-items:flex-end; justify-content:center;}
+  .overlay.open{display:flex;}
+  .sheet{background:#fff; width:100%; max-width:520px; border-radius:16px 16px 0 0; padding:20px; max-height:90vh; overflow-y:auto;}
+  .sheet label{display:block; font-size:11.5px; color:var(--grey); margin:14px 0 5px; font-weight:500;}
+  .sheet label:first-of-type{margin-top:4px;}
+  .sheet input[type=text], .sheet input[type=url], .sheet select, .sheet textarea{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px; color:var(--ink); resize:vertical;
+  }
+  .sheet textarea{min-height:56px;}
+  .sheet-title{font-size:16px; font-weight:600; color:var(--navy2); margin:0;}
+  .sheet-sub{font-size:12px; color:var(--greyl); margin:2px 0 0;}
+  .sheet-row{display:flex; gap:8px;}
+  .sheet-row > div{flex:1;}
+  .checks{display:flex; flex-wrap:wrap; gap:10px; margin-top:4px;}
+  .checks label{display:flex; align-items:center; gap:5px; font-size:12.5px; color:var(--ink); margin:0; font-weight:400;}
+  .checks input{width:auto;}
+  .sheet-actions{display:flex; gap:8px; margin-top:20px; flex-wrap:wrap;}
+  .summary-box{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px; font-size:12.5px; color:var(--ink); white-space:pre-wrap; margin-top:8px; line-height:1.5;}
+  .close-x{float:right; background:none; border:none; font-size:20px; color:var(--greyl); cursor:pointer; line-height:1;}
+  .loading{color:#fff; padding:40px; text-align:center;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Pipeline SAP — SEIDOR México</h1>
+  <p>Tablero de seguimiento por etapa · compartido con el equipo</p>
+  <div class="metrics" id="metrics"></div>
+  <div class="synctag" id="synctag"></div>
+</header>
+
+<div class="toolbar">
+  <input type="text" id="search" placeholder="Buscar cliente, producto o módulo…">
+  <button class="btn btn-primary" onclick="openSheet(null)">+ Nuevo</button>
+  <button class="btn btn-ghost" onclick="loadFromServer()">↻ Actualizar</button>
+  <button class="btn btn-danger" onclick="clearAll()">Borrar todo</button>
+</div>
+
+<div class="board" id="board"><div class="loading" style="color:var(--grey)">Cargando…</div></div>
+
+<div class="overlay" id="overlay" onclick="if(event.target===this) closeSheet()">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+const STAGES = [
+  {id:'prospeccion', label:'Prospección'},
+  {id:'propuesta', label:'Propuesta / RFP'},
+  {id:'scoping', label:'Scoping / SOW'},
+  {id:'implementacion', label:'Implementación'},
+  {id:'pausado', label:'Pausado'}
+];
+const PRODUCTS = ['S/4HANA', 'SuccessFactors', 'BTP', 'Analytics Cloud', 'Ariba', 'Otro'];
+const MODALIDADES = ['Public', 'Private', 'OnPremise', 'N/A'];
+const CONTRATACIONES = ['Solo servicios', 'Servicios + Suscripción'];
+const COMPROMISOS = ['Implementación', 'AMS', 'Upgrade', 'Rollout', 'T&M', 'Migración', 'Otro'];
+
+let projects = [];
+let currentId = null;
+let lastSync = null;
+
+async function loadFromServer(){
+  document.getElementById('board').innerHTML = '<div class="loading" style="color:var(--grey)">Cargando…</div>';
+  try{
+    const r = await fetch('/api/projects');
+    const data = await r.json();
+    projects = data.projects || [];
+    lastSync = data;
+  }catch(e){
+    console.error(e);
+    projects = [];
+  }
+  render();
+}
+
+async function saveToServer(){
+  try{
+    const r = await fetch('/api/projects', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(projects)
+    });
+    const data = await r.json();
+    document.getElementById('synctag').textContent = data.updatedBy ? `Última edición: ${data.updatedBy}` : '';
+  }catch(e){
+    alert('No se pudo guardar en el servidor. Revisa tu conexión e intenta de nuevo.');
+    console.error(e);
+  }
+}
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function render(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  const visible = projects.filter(p=>{
+    if(!q) return true;
+    const hay = [p.client, p.desc, p.modulos, ...(p.products||[])].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+
+  STAGES.forEach(st=>{
+    const items = visible.filter(p=>p.stage===st.id);
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.innerHTML = `<h2>${st.label} <span class="count">${items.length}</span></h2>`;
+    if(items.length===0) col.innerHTML += `<div class="empty">Sin proyectos</div>`;
+    items.forEach(p=>{
+      const riskClass = p.risk==='Alto' ? 'risk-alto' : (p.risk==='Medio' ? 'risk-medio' : '');
+      const productChips = (p.products||[]).map(pr=>`<span class="chip">${esc(pr)}</span>`).join('');
+      const modalidadChip = p.modalidad && p.modalidad!=='N/A' ? `<span class="chip modalidad">${esc(p.modalidad)}</span>` : '';
+      const compromisoChip = p.tipoCompromiso ? `<span class="chip">${esc(p.tipoCompromiso)}</span>` : '';
+      const card = document.createElement('div');
+      card.className = 'card '+riskClass;
+      card.innerHTML = `
+        <div onclick="openSheet('${p.id}')">
+          <h3>${esc(p.client)}</h3>
+          <p>${esc(p.desc)}</p>
+          <div class="chips">${productChips}${modalidadChip}${compromisoChip}</div>
+          ${p.valor ? `<div class="valor">${esc(p.valor)}</div>` : ''}
+          ${p.next ? `<div class="next">→ ${esc(p.next)}</div>` : ''}
+        </div>
+        <div class="foot">
+          ${p.risk ? `<span class="risktag ${p.risk.toLowerCase()}">Riesgo ${esc(p.risk)}</span>` : '<span></span>'}
+          ${p.sharepoint ? `<a class="sp-link" href="${esc(p.sharepoint)}" target="_blank" onclick="event.stopPropagation()">📁 Documentos</a>` : ''}
+        </div>
+      `;
+      col.appendChild(card);
+    });
+    board.appendChild(col);
+  });
+
+  const total = projects.length;
+  const enRiesgo = projects.filter(p=>p.risk==='Alto'||p.risk==='Medio').length;
+  const activos = projects.filter(p=>p.stage!=='pausado').length;
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric"><div class="n">${total}</div><div class="l">Total</div></div>
+    <div class="metric"><div class="n">${activos}</div><div class="l">Activos</div></div>
+    <div class="metric"><div class="n">${enRiesgo}</div><div class="l">Con riesgo</div></div>
+  `;
+  if(lastSync && lastSync.updatedBy){
+    document.getElementById('synctag').textContent = `Última edición: ${lastSync.updatedBy} · ${new Date(lastSync.updatedAt).toLocaleString('es-MX')}`;
+  }
+}
+
+function openSheet(id){
+  currentId = id;
+  const p = id ? projects.find(x=>x.id===id) : {
+    id:'', client:'', desc:'', stage:'prospeccion', risk:'', next:'', notes:'',
+    sharepoint:'', products:[], modalidad:'', contratacion:'', tipoCompromiso:'', modulos:'', valor:''
+  };
+  const sheet = document.getElementById('sheet');
+  const stageOptions = STAGES.map(s=>`<option value="${s.id}" ${p.stage===s.id?'selected':''}>${s.label}</option>`).join('');
+  const riskOptions = ['','Bajo','Medio','Alto'].map(r=>`<option value="${r}" ${p.risk===r?'selected':''}>${r||'Sin riesgo'}</option>`).join('');
+  const modalidadOptions = ['',...MODALIDADES].map(m=>`<option value="${m}" ${p.modalidad===m?'selected':''}>${m||'Sin definir'}</option>`).join('');
+  const contratacionOptions = ['',...CONTRATACIONES].map(c=>`<option value="${c}" ${p.contratacion===c?'selected':''}>${c||'Sin definir'}</option>`).join('');
+  const compromisoOptions = ['',...COMPROMISOS].map(c=>`<option value="${c}" ${p.tipoCompromiso===c?'selected':''}>${c||'Sin definir'}</option>`).join('');
+  const productChecks = PRODUCTS.map(pr=>`
+    <label><input type="checkbox" value="${pr}" ${((p.products||[]).includes(pr))?'checked':''} class="prod-check"> ${pr}</label>
+  `).join('');
+
+  sheet.innerHTML = `
+    <button class="close-x" onclick="closeSheet()">&times;</button>
+    <p class="sheet-title">${id ? 'Editar proyecto' : 'Nuevo proyecto'}</p>
+    <p class="sheet-sub">${id ? 'Actualiza status, riesgo y detalle del negocio' : 'Agrega un cliente u oportunidad al tablero'}</p>
+
+    <label>Cliente / Proyecto</label>
+    <input type="text" id="f-client" value="${esc(p.client)}">
+
+    <label>Descripción</label>
+    <textarea id="f-desc">${esc(p.desc)}</textarea>
+
+    <div class="sheet-row">
+      <div><label>Etapa</label><select id="f-stage">${stageOptions}</select></div>
+      <div><label>Riesgo</label><select id="f-risk">${riskOptions}</select></div>
+    </div>
+
+    <label>Producto(s)</label>
+    <div class="checks">${productChecks}</div>
+
+    <div class="sheet-row">
+      <div><label>Modalidad</label><select id="f-modalidad">${modalidadOptions}</select></div>
+      <div><label>Contratación</label><select id="f-contratacion">${contratacionOptions}</select></div>
+    </div>
+
+    <div class="sheet-row">
+      <div><label>Tipo de compromiso</label><select id="f-compromiso">${compromisoOptions}</select></div>
+      <div><label>Valor estimado</label><input type="text" id="f-valor" value="${esc(p.valor)}" placeholder="ej. $150k–250k USD"></div>
+    </div>
+
+    <label>Módulos / alcance</label>
+    <input type="text" id="f-modulos" value="${esc(p.modulos)}" placeholder="ej. FI, CO, MM, SD">
+
+    <label>Liga a SharePoint</label>
+    <input type="url" id="f-sharepoint" value="${esc(p.sharepoint)}" placeholder="https://seidor.sharepoint.com/...">
+
+    <label>Próximo paso</label>
+    <input type="text" id="f-next" value="${esc(p.next)}" placeholder="Ej. Enviar propuesta económica — 15 sep">
+
+    <label>Notas</label>
+    <textarea id="f-notes">${esc(p.notes)}</textarea>
+
+    <div class="sheet-actions">
+      <button class="btn btn-primary" onclick="saveCard()">Guardar</button>
+      ${id ? '<button class="btn btn-ghost" onclick="genSummary()">Generar resumen</button>' : ''}
+      ${id ? '<button class="btn btn-danger" onclick="deleteCard()">Eliminar</button>' : ''}
+    </div>
+    <div id="summary-out"></div>
+  `;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeSheet(){ document.getElementById('overlay').classList.remove('open'); currentId = null; }
+
+async function saveCard(){
+  const client = document.getElementById('f-client').value.trim();
+  if(!client){ alert('Ponle un nombre de cliente o proyecto'); return; }
+  const products = Array.from(document.querySelectorAll('.prod-check:checked')).map(c=>c.value);
+  const data = {
+    id: currentId || (client.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '-' + Date.now().toString(36)),
+    client,
+    desc: document.getElementById('f-desc').value.trim(),
+    stage: document.getElementById('f-stage').value,
+    risk: document.getElementById('f-risk').value,
+    products,
+    modalidad: document.getElementById('f-modalidad').value,
+    contratacion: document.getElementById('f-contratacion').value,
+    tipoCompromiso: document.getElementById('f-compromiso').value,
+    valor: document.getElementById('f-valor').value.trim(),
+    modulos: document.getElementById('f-modulos').value.trim(),
+    sharepoint: document.getElementById('f-sharepoint').value.trim(),
+    next: document.getElementById('f-next').value.trim(),
+    notes: document.getElementById('f-notes').value.trim()
+  };
+  if(currentId){
+    const idx = projects.findIndex(x=>x.id===currentId);
+    projects[idx] = data;
+  }else{
+    projects.push(data);
+  }
+  await saveToServer();
+  closeSheet();
+  render();
+}
+
+async function deleteCard(){
+  if(!confirm('¿Eliminar este proyecto del tablero?')) return;
+  projects = projects.filter(x=>x.id!==currentId);
+  await saveToServer();
+  closeSheet();
+  render();
+}
+
+function genSummary(){
+  const p = projects.find(x=>x.id===currentId);
+  const stageLabel = STAGES.find(s=>s.id===p.stage)?.label || p.stage;
+  const text = `${p.client}
+Etapa: ${stageLabel}${p.risk ? ' · Riesgo: '+p.risk : ''}
+${(p.products||[]).length ? 'Producto: '+p.products.join(', ') : ''}${p.modalidad ? ' ('+p.modalidad+')' : ''}
+${p.tipoCompromiso ? 'Compromiso: '+p.tipoCompromiso : ''}${p.contratacion ? ' · '+p.contratacion : ''}
+${p.modulos ? 'Módulos: '+p.modulos : ''}
+${p.valor ? 'Valor estimado: '+p.valor : ''}
+${p.desc}
+${p.next ? 'Próximo paso: '+p.next : 'Próximo paso: sin definir'}
+${p.notes ? '\\nNotas: '+p.notes : ''}`.split('\n').filter(l=>l.trim()!=='').join('\n');
+  document.getElementById('summary-out').innerHTML = `<div class="summary-box">${esc(text)}</div>`;
+}
+
+async function clearAll(){
+  if(!confirm('Esto borra todos los proyectos del tablero para TODO el equipo (no se puede deshacer). ¿Continuar?')) return;
+  projects = [];
+  await saveToServer();
+  render();
+}
+
+document.getElementById('search').addEventListener('input', render);
+loadFromServer();
+</script>
+</body>
+</html>
