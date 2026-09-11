@@ -74,9 +74,28 @@
   .summary-box{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px; font-size:12.5px; color:var(--ink); white-space:pre-wrap; margin-top:8px; line-height:1.5;}
   .close-x{float:right; background:none; border:none; font-size:20px; color:var(--greyl); cursor:pointer; line-height:1;}
   .loading{color:#fff; padding:40px; text-align:center;}
+
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
 </style>
 </head>
 <body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html#individuales">Servicios individuales</a>
+      <a href="/index.html#paquetes">Paquetes SAP Cloud ERP</a>
+      <a href="/pipeline.html" class="active">Pipeline SAP</a>
+    </div>
+  </div>
+</nav>
 
 <header>
   <h1>Pipeline SAP — SEIDOR México</h1>
