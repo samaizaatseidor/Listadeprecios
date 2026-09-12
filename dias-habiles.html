@@ -60,18 +60,13 @@
   <div class="topnav-wrap">
     <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
     <div class="topnav-links">
-            <a href="/index.html">Inicio</a>
+      <a href="/index.html">Inicio</a>
       <a href="/precios.html">Lista de Precios</a>
       <a href="/pipeline.html">CRM PresalesMX</a>
       <a href="/ficha.html">Ficha del Cliente</a>
       <a href="/kpis.html">Tablero de Control</a>
       <a href="/documentos.html">Documentos de Apoyo</a>
       <a href="/agentes.html" class="active">Agentes powered by DELFOS</a>
-      <a href="/pipeline.html">CRM PresalesMX</a>
-      <a href="/ficha.html">Ficha del Cliente</a>
-      <a href="/kpis.html">Tablero de Control</a>
-      <a href="/documentos.html">Documentos de Apoyo</a>
-      <a href="/agentes.html">Agentes powered by DELFOS</a>
     </div>
   </div>
 </nav>
@@ -118,10 +113,24 @@
     </div>
 
     <div id="resultBox"></div>
+
+    <div style="margin-top:20px; border-top:1px solid var(--line); padding-top:16px;">
+      <label style="display:block; font-size:12.5px; color:var(--grey); margin-bottom:8px; font-weight:500;">¿Analizar también festivos de otros países? (no afecta el cálculo de México)</label>
+      <div style="display:flex; flex-wrap:wrap; gap:14px; font-size:13px;">
+        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="country-check" value="chile" onchange="calcular()"> Chile</label>
+        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="country-check" value="colombia" onchange="calcular()"> Colombia</label>
+        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="country-check" value="peru" onchange="calcular()"> Perú</label>
+        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="country-check" value="argentina" onchange="calcular()"> Argentina</label>
+        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="country-check" value="brasil" onchange="calcular()"> Brasil</label>
+      </div>
+    </div>
+    <div id="otherCountriesResult"></div>
   </div>
 </main>
 
 <script>
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
 function nthMondayOfMonth(year, month, n){
   // month: 1-12. Regresa un objeto Date del n-ésimo lunes de ese mes.
   const d = new Date(year, month-1, 1);
@@ -183,6 +192,165 @@ function fmt(date){
   return date.toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 }
 
+// --- Análisis adicional: festivos de otros países (informativo, no afecta el conteo de México) ---
+function easterSunday(year){
+  // Algoritmo de Meeus/Jones/Butcher
+  const a = year % 19, b = Math.floor(year/100), c = year % 100;
+  const d = Math.floor(b/4), e = b % 4, f = Math.floor((b+8)/25);
+  const g = Math.floor((b-f+1)/3), h = (19*a + b - d - g + 15) % 30;
+  const i = Math.floor(c/4), k = c % 4, l = (32 + 2*e + 2*i - h - k) % 7;
+  const m = Math.floor((a + 11*h + 22*l)/451);
+  const month = Math.floor((h + l - 7*m + 114)/31);
+  const day = ((h + l - 7*m + 114) % 31) + 1;
+  return new Date(year, month-1, day);
+}
+function addDays(date, n){ const d = new Date(date); d.setDate(d.getDate()+n); return d; }
+function nextMonday(date){ const d = new Date(date); while(d.getDay() !== 1) d.setDate(d.getDate()+1); return d; }
+function nthWeekdayOfMonth(year, month, weekday, n){
+  const d = new Date(year, month-1, 1);
+  let count = 0;
+  while(true){
+    if(d.getDay() === weekday){ count++; if(count===n) return new Date(d); }
+    d.setDate(d.getDate()+1);
+  }
+}
+
+const COUNTRY_HOLIDAYS = {
+  chile: (y)=>{
+    const e = easterSunday(y);
+    return [
+      [new Date(y,0,1),'Año Nuevo'],
+      [addDays(e,-2),'Viernes Santo'],
+      [addDays(e,-1),'Sábado Santo'],
+      [new Date(y,4,1),'Día del Trabajo'],
+      [new Date(y,4,21),'Glorias Navales'],
+      [new Date(y,5,21),'Día Nacional Pueblos Indígenas'],
+      [new Date(y,5,29),'San Pedro y San Pablo'],
+      [new Date(y,6,16),'Virgen del Carmen'],
+      [new Date(y,7,15),'Asunción de la Virgen'],
+      [new Date(y,8,18),'Independencia Nacional'],
+      [new Date(y,8,19),'Glorias del Ejército'],
+      [new Date(y,9,12),'Encuentro de Dos Mundos'],
+      [new Date(y,9,31),'Iglesias Evangélicas'],
+      [new Date(y,10,1),'Todos los Santos'],
+      [new Date(y,11,8),'Inmaculada Concepción'],
+      [new Date(y,11,25),'Navidad']
+    ];
+  },
+  colombia: (y)=>{
+    const e = easterSunday(y);
+    const movFixed = (d,name)=>[nextMonday(d.getDay()===1?d:addDays(d,1)), name]; // aproximación Ley Emiliani
+    return [
+      [new Date(y,0,1),'Año Nuevo'],
+      [nextMonday(new Date(y,0,6)),'Reyes Magos (trasladado)'],
+      [nextMonday(new Date(y,2,19)),'San José (trasladado)'],
+      [addDays(e,-3),'Jueves Santo'],
+      [addDays(e,-2),'Viernes Santo'],
+      [new Date(y,4,1),'Día del Trabajo'],
+      [nextMonday(addDays(e,40)),'Ascensión (trasladado)'],
+      [nextMonday(addDays(e,60)),'Corpus Christi (trasladado)'],
+      [nextMonday(addDays(e,68)),'Sagrado Corazón (trasladado)'],
+      [nextMonday(new Date(y,5,29)),'San Pedro y San Pablo (trasladado)'],
+      [new Date(y,6,20),'Independencia'],
+      [new Date(y,7,7),'Batalla de Boyacá'],
+      [nextMonday(new Date(y,7,15)),'Asunción (trasladado)'],
+      [nextMonday(new Date(y,9,12)),'Día de la Raza (trasladado)'],
+      [nextMonday(new Date(y,10,1)),'Todos los Santos (trasladado)'],
+      [nextMonday(new Date(y,10,11)),'Independencia de Cartagena (trasladado)'],
+      [new Date(y,11,8),'Inmaculada Concepción'],
+      [new Date(y,11,25),'Navidad']
+    ];
+  },
+  peru: (y)=>{
+    const e = easterSunday(y);
+    return [
+      [new Date(y,0,1),'Año Nuevo'],
+      [addDays(e,-3),'Jueves Santo'],
+      [addDays(e,-2),'Viernes Santo'],
+      [new Date(y,4,1),'Día del Trabajo'],
+      [new Date(y,5,29),'San Pedro y San Pablo'],
+      [new Date(y,6,28),'Independencia'],
+      [new Date(y,6,29),'Fiestas Patrias'],
+      [new Date(y,7,30),'Santa Rosa de Lima'],
+      [new Date(y,9,8),'Combate de Angamos'],
+      [new Date(y,10,1),'Todos los Santos'],
+      [new Date(y,11,8),'Inmaculada Concepción'],
+      [new Date(y,11,9),'Batalla de Ayacucho'],
+      [new Date(y,11,25),'Navidad']
+    ];
+  },
+  argentina: (y)=>{
+    const e = easterSunday(y);
+    return [
+      [new Date(y,0,1),'Año Nuevo'],
+      [addDays(e,-48),'Carnaval (lunes)'],
+      [addDays(e,-47),'Carnaval (martes)'],
+      [new Date(y,2,24),'Día de la Memoria'],
+      [new Date(y,3,2),'Malvinas'],
+      [addDays(e,-2),'Viernes Santo'],
+      [new Date(y,4,1),'Día del Trabajo'],
+      [new Date(y,4,25),'Revolución de Mayo'],
+      [new Date(y,5,20),'Día de la Bandera'],
+      [new Date(y,6,9),'Independencia'],
+      [nthWeekdayOfMonth(y,8,1,3),'Paso a la Inmortalidad San Martín'],
+      [nthWeekdayOfMonth(y,10,1,2),'Diversidad Cultural'],
+      [nthWeekdayOfMonth(y,11,1,4),'Soberanía Nacional'],
+      [new Date(y,11,8),'Inmaculada Concepción'],
+      [new Date(y,11,25),'Navidad']
+    ];
+  },
+  brasil: (y)=>{
+    const e = easterSunday(y);
+    return [
+      [new Date(y,0,1),'Ano Novo'],
+      [addDays(e,-48),'Carnaval (segunda)'],
+      [addDays(e,-47),'Carnaval (terça)'],
+      [addDays(e,-2),'Sexta-feira Santa'],
+      [new Date(y,3,21),'Tiradentes'],
+      [new Date(y,4,1),'Dia do Trabalho'],
+      [addDays(e,60),'Corpus Christi'],
+      [new Date(y,8,7),'Independência'],
+      [new Date(y,9,12),'Nossa Senhora Aparecida'],
+      [new Date(y,10,2),'Finados'],
+      [new Date(y,10,15),'Proclamação da República'],
+      [new Date(y,10,20),'Consciência Negra'],
+      [new Date(y,11,25),'Natal']
+    ];
+  }
+};
+const COUNTRY_LABELS = { chile:'Chile', colombia:'Colombia', peru:'Perú', argentina:'Argentina', brasil:'Brasil' };
+
+function getHolidaysInRange(countryKey, start, end){
+  const years = [];
+  for(let y=start.getFullYear(); y<=end.getFullYear(); y++) years.push(y);
+  let all = [];
+  years.forEach(y=>{ all = all.concat(COUNTRY_HOLIDAYS[countryKey](y)); });
+  return all.filter(([d]) => d >= start && d <= end).sort((a,b)=>a[0]-b[0]);
+}
+
+function renderOtherCountriesAnalysis(start, end){
+  const checked = Array.from(document.querySelectorAll('.country-check:checked')).map(el=>el.value);
+  const box = document.getElementById('otherCountriesResult');
+  if(!checked.length){ box.innerHTML = ''; return; }
+  box.innerHTML = `
+    <div class="section" style="margin-top:0; box-shadow:none; border:1px solid var(--line);">
+      <h2 style="font-size:13px;">Festivos de otros países en este rango</h2>
+      <p class="sub" style="margin-bottom:10px;">Análisis informativo, no afecta el cálculo de días hábiles de México. Cubre los festivos nacionales principales — verifica fechas críticas con el calendario oficial de cada país.</p>
+      ${checked.map(c=>{
+        const holidays = getHolidaysInRange(c, start, end);
+        return `
+          <div style="margin-bottom:10px;">
+            <b style="font-size:12.5px; color:var(--navy2);">${COUNTRY_LABELS[c]}</b>
+            ${holidays.length
+              ? `<ul class="holiday-list" style="margin-top:4px;">${holidays.map(([d,name])=>`<li>${fmt(d)} — ${esc(name)}</li>`).join('')}</ul>`
+              : `<div style="font-size:12px; color:var(--greyl); margin-top:4px;">Sin festivos nacionales en este rango.</div>`}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
 let mode = 'sumar';
 function setMode(m){
   mode = m;
@@ -200,7 +368,7 @@ function calcular(){
   if(mode === 'sumar'){
     const startVal = document.getElementById('fechaInicio').value;
     const numDias = parseInt(document.getElementById('numDias').value || '0', 10);
-    if(!startVal || !numDias){ resultBox.innerHTML=''; return; }
+    if(!startVal || !numDias){ resultBox.innerHTML=''; document.getElementById('otherCountriesResult').innerHTML=''; return; }
     const start = new Date(startVal + 'T00:00:00');
     const years = [start.getFullYear(), start.getFullYear()+1];
     const holidays = getHolidaySet(years, includeObserved);
@@ -225,10 +393,11 @@ function calcular(){
         ${crossedFreeze ? '<div class="freeze-warn">⚠️ El rango cruza la ventana de congelamiento navideño (24 dic – 1 ene) — considera si aplica freeze de cambios en el proyecto.</div>' : ''}
       </div>
     `;
+    renderOtherCountriesAnalysis(start, current);
   }else{
     const aVal = document.getElementById('fechaA').value;
     const bVal = document.getElementById('fechaB').value;
-    if(!aVal || !bVal){ resultBox.innerHTML=''; return; }
+    if(!aVal || !bVal){ resultBox.innerHTML=''; document.getElementById('otherCountriesResult').innerHTML=''; return; }
     let a = new Date(aVal + 'T00:00:00');
     let b = new Date(bVal + 'T00:00:00');
     if(a > b){ [a,b] = [b,a]; }
@@ -252,6 +421,7 @@ function calcular(){
         ${crossedFreeze ? '<div class="freeze-warn">⚠️ El rango cruza la ventana de congelamiento navideño (24 dic – 1 ene) — considera si aplica freeze de cambios en el proyecto.</div>' : ''}
       </div>
     `;
+    renderOtherCountriesAnalysis(a, b);
   }
 }
 
