@@ -576,22 +576,51 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
 
-    if (url.pathname === '/api/raid' && request.method === 'GET') {
-      const raw = await env.PM_KV.get('raid_log');
-      return new Response(raw || '{"items":[]}', { headers: { 'Content-Type': 'application/json' } });
+    if (url.pathname === '/api/proyecto-dashboard' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('proyecto_dashboard');
+      return new Response(raw || '{"proyectos":[],"raid":[],"dependencias":[],"compromisos":[]}', { headers: { 'Content-Type': 'application/json' } });
     }
 
-    if (url.pathname === '/api/raid' && request.method === 'POST') {
-      let items;
+    if (url.pathname === '/api/proyecto-dashboard' && request.method === 'POST') {
+      let body;
       try {
-        items = await request.json();
-        if (!Array.isArray(items)) throw new Error('not an array');
+        body = await request.json();
+        if (!body || !Array.isArray(body.proyectos) || !Array.isArray(body.raid) || !Array.isArray(body.dependencias) || !Array.isArray(body.compromisos)) throw new Error('shape inválido');
       } catch (e) {
-        return new Response('JSON inválido: se esperaba un arreglo', { status: 400 });
+        return new Response('JSON inválido', { status: 400 });
       }
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
-      await env.PM_KV.put('raid_log', JSON.stringify({ items, updatedBy: email, updatedAt: new Date().toISOString() }));
+      await env.PM_KV.put('proyecto_dashboard', JSON.stringify({ ...body, updatedBy: email, updatedAt: new Date().toISOString() }));
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/proyecto-resumen' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { proyecto, raid, dependencias, compromisos } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const resumenPrompt = `Eres un asistente de Project Management para SEIDOR, consultora partner de SAP en México. Con base en estos datos del proyecto "${proyecto}", escribe un resumen ejecutivo de 2 a 3 oraciones, en español, para un Steering Committee. Destaca el mayor riesgo o bloqueo si existe, y el estado general. Sé directo, no inventes información que no esté en los datos, y no uses encabezados ni viñetas, solo prosa corrida.
+
+RAID:
+${JSON.stringify(raid)}
+
+DEPENDENCIAS CRÍTICAS:
+${JSON.stringify(dependencias)}
+
+COMPROMISOS:
+${JSON.stringify(compromisos)}`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: resumenPrompt, useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
     }
 
     if (url.pathname === '/api/whoami') {
