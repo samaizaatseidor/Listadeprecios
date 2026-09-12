@@ -24,15 +24,23 @@ export default {
       }
 
       // DIAGNÓSTICO TEMPORAL — no revela la key, solo si existe y cuántos caracteres tiene
-      const keyPresent = typeof env.RESEND_API_KEY === 'string' && env.RESEND_API_KEY.length > 0;
-      const keyLength = keyPresent ? env.RESEND_API_KEY.length : 0;
-      const keyPreview = keyPresent ? env.RESEND_API_KEY.slice(0, 3) + '...' + env.RESEND_API_KEY.slice(-3) : null;
+      let apiKeyValue = null;
+      try {
+        apiKeyValue = env.RESEND_API_KEY && typeof env.RESEND_API_KEY.get === 'function'
+          ? await env.RESEND_API_KEY.get()
+          : (typeof env.RESEND_API_KEY === 'string' ? env.RESEND_API_KEY : null);
+      } catch (e) {
+        apiKeyValue = null;
+      }
+      const keyPresent = typeof apiKeyValue === 'string' && apiKeyValue.length > 0;
+      const keyLength = keyPresent ? apiKeyValue.length : 0;
+      const keyPreview = keyPresent ? apiKeyValue.slice(0, 3) + '...' + apiKeyValue.slice(-3) : null;
 
       const primerNombre = asignadoA.split(' ')[0];
       const resendResp = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+          'Authorization': `Bearer ${apiKeyValue}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
