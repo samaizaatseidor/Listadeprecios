@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checklist de Quality Gates y Cutover · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0 0 14px; color:var(--cyan-l); font-size:13px;}
+  .proyecto-selector{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  .proyecto-selector select{padding:9px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.08); color:#fff; font-family:inherit; font-size:13.5px; min-width:220px;}
+  .proyecto-selector select option{color:#000;}
+  .btn{border:none; border-radius:8px; padding:9px 14px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;}
+  .btn-ghost{background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.3);}
+
+  main{max-width:820px; margin:0 auto; padding:16px;}
+  .tabbar{display:flex; gap:6px; overflow-x:auto; margin-bottom:14px;}
+  .tabbar button{flex-shrink:0; background:#fff; border:1px solid var(--line); border-radius:20px; padding:8px 14px; font-family:inherit; font-size:12.5px; font-weight:600; color:var(--grey); cursor:pointer;}
+  .tabbar button.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+
+  .phase-card{background:#fff; border-radius:12px; padding:18px 20px; box-shadow:var(--shadow); margin-bottom:16px;}
+  .phase-card h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .phase-card .sub{font-size:12.5px; color:var(--greyl); margin:0 0 12px;}
+  .progress-bar{background:var(--card); border-radius:20px; height:8px; overflow:hidden; margin-bottom:16px;}
+  .progress-fill{background:var(--blue); height:100%; transition:width 0.2s ease;}
+
+  .item{display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .item:last-child{border-bottom:none;}
+  .item input[type=checkbox]{width:18px; height:18px; margin-top:2px; flex-shrink:0;}
+  .item-text{font-size:13.5px; color:var(--ink); flex:1;}
+  .item.checked .item-text{color:var(--greyl); text-decoration:line-through;}
+  .item textarea{width:100%; margin-top:6px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px; color:var(--ink); resize:vertical;}
+
+  .no-proyecto{text-align:center; padding:60px 20px; color:var(--grey);}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html">Inicio</a>
+      <a href="/precios.html">Lista de Precios</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/agentes.html" class="active">Agentes powered by DELFOS</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Checklist de Quality Gates y Cutover</h1>
+  <p>Basado en SAP Activate — no dejes pendientes sueltos al cerrar una fase</p>
+  <div class="proyecto-selector">
+    <select id="proyectoSelect" onchange="selectProyecto(this.value)"><option value="">Selecciona un proyecto...</option></select>
+    <button class="btn btn-ghost" onclick="nuevoProyecto()">+ Nuevo proyecto</button>
+    <button class="btn btn-ghost" id="exportBtn" onclick="exportarPPT()" style="display:none;">📤 Exportar PPT</button>
+  </div>
+</header>
+
+<main id="main"><div class="no-proyecto">Cargando…</div></main>
+
+<script>
+const FASES = [
+  {
+    id: 'prepare', label: 'Prepare',
+    items: [
+      'Carta de proyecto (project charter) firmada',
+      'Equipo del proyecto confirmado (cliente y SEIDOR)',
+      'Plan de proyecto y cronograma aprobado',
+      'Ambiente de desarrollo/sandbox provisionado',
+      'Kickoff realizado con stakeholders clave',
+      'Roles y responsabilidades (RACI) definidos',
+      'Metodología y herramientas de gestión acordadas',
+      'Riesgos iniciales identificados y registrados'
+    ]
+  },
+  {
+    id: 'explore', label: 'Explore',
+    items: [
+      'Workshops de fit-to-standard completados para todos los procesos in-scope',
+      'Documento de diseño de solución validado por el cliente',
+      'Gaps identificados y priorizados (RICEFW)',
+      'Alcance final confirmado y firmado, sin cambios pendientes de aprobación',
+      'Estrategia de integraciones definida',
+      'Estrategia de migración de datos definida (fuentes, objetos, mapeo inicial)',
+      'Estrategia de localización México confirmada (si aplica)'
+    ]
+  },
+  {
+    id: 'realize', label: 'Realize',
+    items: [
+      'Configuración base completa y validada',
+      'Desarrollos RICEFW completados y probados unitariamente',
+      'Ciclo(s) de pruebas integrales (SIT) ejecutados con resultados documentados',
+      'Datos maestros cargados en ambiente de pruebas',
+      'Plan de capacitación a usuarios finales definido',
+      'Plan de cutover en borrador',
+      'UAT planificado y agendado con el cliente'
+    ]
+  },
+  {
+    id: 'deploy', label: 'Deploy',
+    items: [
+      'UAT completado y firmado por el cliente (sign-off)',
+      'Plan de cutover detallado y aprobado, con responsables y tiempos',
+      'Ambiente productivo configurado y validado',
+      'Capacitación a usuarios finales completada',
+      'Plan de soporte post go-live (hypercare) definido',
+      'Criterios de Go/No-Go para arranque definidos y acordados',
+      'Plan de rollback documentado'
+    ]
+  },
+  {
+    id: 'run', label: 'Run',
+    items: [
+      'Go-live ejecutado según el plan de cutover',
+      'Saldos iniciales y datos maestros validados en productivo',
+      'Soporte hypercare activo con canal de escalación definido',
+      'Issues críticos post go-live monitoreados y resueltos',
+      'Transición a soporte AMS / operación regular planificada',
+      'Lecciones aprendidas documentadas',
+      'Cierre formal del proyecto (aceptación final del cliente)'
+    ]
+  },
+  {
+    id: 'cutover', label: 'Cutover / Go-Live (Detallado)',
+    items: [
+      'Congelamiento de cambios (code freeze) comunicado y en efecto',
+      'Última copia/homologación de ambiente productivo desde QA realizada',
+      'Saldos iniciales cargados y validados (Migration Cockpit)',
+      'Datos maestros finales cargados y verificados',
+      'Interfaces/integraciones activadas y probadas end-to-end',
+      'Accesos y roles de usuarios finales asignados en productivo',
+      'Comunicación a usuarios sobre fecha de corte del sistema legado',
+      'Plan de contingencia y rollback listo y comunicado al equipo',
+      'Equipo de soporte hypercare confirmado y disponible',
+      'Validación de reportes críticos post-carga',
+      'Sign-off formal de arranque por el cliente'
+    ]
+  }
+];
+
+let proyectos = [];
+let currentProyecto = null;
+let progreso = {}; // { proyecto: { faseId: { itemIdx: {checked, nota} } } }
+let activeFase = FASES[0].id;
+
+async function loadAll(){
+  try{
+    const r1 = await fetch('/api/proyecto-dashboard');
+    const d1 = await r1.json();
+    proyectos = d1.proyectos || [];
+  }catch(e){ proyectos = []; }
+  try{
+    const r2 = await fetch('/api/checklist');
+    const d2 = await r2.json();
+    progreso = d2.progreso || {};
+  }catch(e){ progreso = {}; }
+  populateSelect();
+  if(proyectos.length) selectProyecto(proyectos[0]);
+  else render();
+}
+
+async function saveProgreso(){
+  try{
+    await fetch('/api/checklist', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ progreso })
+    });
+  }catch(e){ console.error(e); }
+}
+
+function populateSelect(){
+  const sel = document.getElementById('proyectoSelect');
+  sel.innerHTML = '<option value="">Selecciona un proyecto...</option>' + proyectos.map(p=>`<option value="${esc(p)}" ${p===currentProyecto?'selected':''}>${esc(p)}</option>`).join('');
+}
+
+async function nuevoProyecto(){
+  const name = prompt('Nombre del nuevo proyecto:');
+  if(!name || !name.trim()) return;
+  const trimmed = name.trim();
+  if(!proyectos.includes(trimmed)){
+    proyectos.push(trimmed);
+    // Se guarda en la misma fuente que usa el Dashboard de Proyecto (RAID/Dependencias/Compromisos),
+    // para que ambas pantallas compartan siempre la misma lista de proyectos.
+    try{
+      const r = await fetch('/api/proyecto-dashboard');
+      const d = await r.json();
+      const sharedProyectos = Array.from(new Set([...(d.proyectos||[]), trimmed]));
+      await fetch('/api/proyecto-dashboard', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ proyectos: sharedProyectos, raid: d.raid||[], dependencias: d.dependencias||[], compromisos: d.compromisos||[] })
+      });
+    }catch(e){ console.error('No se pudo sincronizar el proyecto nuevo', e); }
+  }
+  populateSelect();
+  selectProyecto(trimmed);
+}
+
+function selectProyecto(p){
+  currentProyecto = p || null;
+  resumenGenerated = false;
+  document.getElementById('proyectoSelect').value = p || '';
+  if(currentProyecto && !progreso[currentProyecto]) progreso[currentProyecto] = {};
+  render();
+}
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+function setFase(id){ activeFase = id; render(); }
+
+function getItemState(faseId, idx){
+  const p = progreso[currentProyecto] || {};
+  const f = p[faseId] || {};
+  return f[idx] || { checked:false, nota:'' };
+}
+
+async function toggleItem(faseId, idx, checked){
+  if(!progreso[currentProyecto]) progreso[currentProyecto] = {};
+  if(!progreso[currentProyecto][faseId]) progreso[currentProyecto][faseId] = {};
+  const cur = progreso[currentProyecto][faseId][idx] || { checked:false, nota:'' };
+  cur.checked = checked;
+  progreso[currentProyecto][faseId][idx] = cur;
+  await saveProgreso();
+  render();
+}
+
+async function updateNota(faseId, idx, nota){
+  if(!progreso[currentProyecto]) progreso[currentProyecto] = {};
+  if(!progreso[currentProyecto][faseId]) progreso[currentProyecto][faseId] = {};
+  const cur = progreso[currentProyecto][faseId][idx] || { checked:false, nota:'' };
+  cur.nota = nota;
+  progreso[currentProyecto][faseId][idx] = cur;
+  await saveProgreso();
+}
+
+function render(){
+  const main = document.getElementById('main');
+  document.getElementById('exportBtn').style.display = currentProyecto ? 'inline-block' : 'none';
+  if(!currentProyecto){
+    main.innerHTML = '<div class="no-proyecto">Selecciona o crea un proyecto para ver su checklist.</div>';
+    return;
+  }
+
+  const fase = FASES.find(f=>f.id===activeFase);
+  const checkedCount = fase.items.filter((_,i)=>getItemState(fase.id,i).checked).length;
+  const pct = Math.round(checkedCount / fase.items.length * 100);
+
+  const k = FASES.map(f=>{
+    const c = f.items.filter((_,i)=>getItemState(f.id,i).checked).length;
+    return { fase: f.label, completados: c, total: f.items.length, pendientes: f.items.filter((_,i)=>!getItemState(f.id,i).checked) };
+  });
+
+  main.innerHTML = `
+    <div class="phase-card">
+      <h2>Resumen ejecutivo</h2>
+      <div id="resumenContent" class="sub" style="color:var(--grey);">Sin generar todavía.</div>
+      <button class="btn" style="background:#fff; border:1px solid var(--line); color:var(--grey); border-radius:8px; padding:8px 12px; font-family:inherit; font-size:12.5px; cursor:pointer; margin-top:8px;" onclick="generarResumen()">Generar resumen ejecutivo</button>
+    </div>
+
+    <div class="tabbar">
+      ${FASES.map(f=>`<button class="${f.id===activeFase?'active':''}" onclick="setFase('${f.id}')">${f.label}</button>`).join('')}
+    </div>
+    <div class="phase-card">
+      <h2>${fase.label}</h2>
+      <p class="sub">${checkedCount} de ${fase.items.length} completados (${pct}%)</p>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;"></div></div>
+      ${fase.items.map((text,i)=>{
+        const state = getItemState(fase.id, i);
+        return `
+          <div class="item ${state.checked?'checked':''}">
+            <input type="checkbox" ${state.checked?'checked':''} onchange="toggleItem('${fase.id}', ${i}, this.checked)">
+            <div class="item-text">
+              ${esc(text)}
+              <textarea rows="1" placeholder="Notas (opcional)" onblur="updateNota('${fase.id}', ${i}, this.value)">${esc(state.nota)}</textarea>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+let resumenGenerated = false;
+
+async function generarResumen(){
+  const box = document.getElementById('resumenContent');
+  box.textContent = 'Generando…';
+  resumenGenerated = false;
+  const fasesData = FASES.map(f=>({
+    fase: f.label,
+    completados: f.items.filter((_,i)=>getItemState(f.id,i).checked).length,
+    total: f.items.length,
+    pendientes: f.items.filter((_,i)=>!getItemState(f.id,i).checked)
+  }));
+  try{
+    const r = await fetch('/api/checklist-resumen', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ proyecto: currentProyecto, fases: fasesData })
+    });
+    const d = await r.json();
+    if(!d.ok){ box.innerHTML = `<span style="color:#B23A3A;">${esc(d.error||'No se pudo generar.')}</span>`; return; }
+    box.style.color = 'var(--ink)';
+    box.textContent = d.resumen;
+    resumenGenerated = true;
+  }catch(e){
+    box.innerHTML = '<span style="color:#B23A3A;">No se pudo conectar con Delfos.</span>';
+  }
+}
+
+async function exportarPPT(){
+  const NAVY='0A1226', NAVY2='0E1E3F', BLUE='1E5BB8', CYAN='33B4DD', INK='16223A', LINE='D8E2EE';
+  const pptx = new PptxGenJS();
+  pptx.defineLayout({ name:'SEIDOR', width:13.333, height:7.5 });
+  pptx.layout = 'SEIDOR';
+
+  let logoDataUrl = null;
+  try{
+    const resp = await fetch('/assets/logo_dark.png');
+    const blob = await resp.blob();
+    logoDataUrl = await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); });
+  }catch(e){}
+
+  let slide = pptx.addSlide();
+  slide.background = { color: NAVY };
+  if(logoDataUrl) slide.addImage({ data: logoDataUrl, x:0.6, y:0.5, w:1.8, h:0.6 });
+  slide.addText('Checklist de Quality Gates y Cutover', { x:0.6, y:2.8, w:12, h:0.8, fontSize:28, bold:true, color:'FFFFFF', fontFace:'Arial' });
+  slide.addText(currentProyecto, { x:0.6, y:3.6, w:12, h:0.6, fontSize:20, color:CYAN, fontFace:'Arial' });
+  slide.addText(new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' }), { x:0.6, y:4.2, w:12, h:0.5, fontSize:13, color:'8A97AC', fontFace:'Arial' });
+
+  function header(s, title){
+    s.background = { color:'FFFFFF' };
+    s.addShape('rect', { x:0, y:0, w:13.333, h:0.9, fill:{color:NAVY} });
+    if(logoDataUrl) s.addImage({ data: logoDataUrl, x:11.3, y:0.15, w:1.6, h:0.55 });
+    s.addText(title, { x:0.5, y:0.15, w:9, h:0.6, fontSize:18, bold:true, color:'FFFFFF', fontFace:'Arial' });
+  }
+
+  const resumenBox = document.getElementById('resumenContent');
+  if(resumenGenerated && resumenBox){
+    slide = pptx.addSlide();
+    header(slide, 'Resumen Ejecutivo');
+    slide.addText(resumenBox.textContent, { x:0.6, y:1.4, w:12, h:4, fontSize:16, color:INK, fontFace:'Arial', valign:'top' });
+  }
+
+  slide = pptx.addSlide();
+  header(slide, 'Avance por Fase (SAP Activate)');
+  const rows = [[
+    { text:'Fase', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+    { text:'Completados', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+    { text:'% Avance', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
+  ]];
+  FASES.forEach(f=>{
+    const c = f.items.filter((_,i)=>getItemState(f.id,i).checked).length;
+    const pct = Math.round(c/f.items.length*100);
+    rows.push([f.label, `${c} / ${f.items.length}`, `${pct}%`]);
+  });
+  slide.addTable(rows, { x:0.5, y:1.3, w:8, colW:[4,2,2], fontSize:12, color:INK, border:{type:'solid', color:LINE, pt:0.5} });
+
+  FASES.forEach(f=>{
+    const pendientes = f.items.filter((_,i)=>!getItemState(f.id,i).checked);
+    if(!pendientes.length) return;
+    const s = pptx.addSlide();
+    header(s, `Pendientes — ${f.label}`);
+    const prows = [[{ text:'Punto de verificación', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }]];
+    pendientes.forEach(p=>prows.push([p]));
+    s.addTable(prows, { x:0.5, y:1.3, w:12.3, fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
+  });
+
+  pptx.writeFile({ fileName: `Checklist Quality Gates - ${currentProyecto}.pptx` });
+}
+
+loadAll();
+</script>
+</body>
+</html>
