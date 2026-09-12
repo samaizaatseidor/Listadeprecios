@@ -2,6 +2,56 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    const PREVENTAS_EMAILS = {
+      'Gustavo Najar': 'gustavo.najar@seidor.com',
+      'Rocío Anaya': 'rocio.anaya@seidor.com',
+      'Samuel Aiza': 'samuel.aiza@seidor.com'
+    };
+
+    if (url.pathname === '/api/notify' && request.method === 'POST') {
+      let body;
+      try {
+        body = await request.json();
+      } catch (e) {
+        return new Response('JSON inválido', { status: 400 });
+      }
+      const { asignadoA, client, requerimiento, gerenteComercial } = body;
+      const toEmail = PREVENTAS_EMAILS[asignadoA];
+      if (!toEmail) {
+        return new Response(JSON.stringify({ ok: false, reason: 'Sin destinatario para: ' + asignadoA }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      const primerNombre = asignadoA.split(' ')[0];
+      const resendResp = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'CRM PresalesMX <notificaciones@crmpresalesmx.com>',
+          to: [toEmail],
+          subject: `Nueva ficha de cliente asignada: ${client}`,
+          html: `
+            <p>Hola ${primerNombre},</p>
+            <p><strong>${gerenteComercial || 'Un ejecutivo comercial'}</strong> cargó una nueva ficha de cliente para <strong>${client}</strong> (${requerimiento}), y quedó asignada a ti en el CRM PresalesMX.</p>
+            <p><a href="https://listadepreciosseidor.samuel-aiza.workers.dev/pipeline.html">Ver en el tablero →</a></p>
+          `
+        })
+      });
+
+      if (!resendResp.ok) {
+        const errText = await resendResp.text();
+        return new Response(JSON.stringify({ ok: false, error: errText }), {
+          status: 502,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
     if (url.pathname === '/api/projects') {
       if (request.method === 'GET') {
         const raw = await env.PM_KV.get('projects');
