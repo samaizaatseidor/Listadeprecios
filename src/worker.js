@@ -69,9 +69,137 @@ function buildWeeklySummaryHtml(projects) {
   `;
 }
 
+function splitConcatenatedJson(text) {
+  // Extrae objetos JSON completos de un texto que puede venir con o sin
+  // separadores "data:" / saltos de línea entre ellos.
+  const objects = [];
+  let depth = 0, start = -1, inString = false, escape = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (escape) { escape = false; continue; }
+    if (ch === '\\') { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') { if (depth === 0) start = i; depth++; }
+    else if (ch === '}') { depth--; if (depth === 0 && start !== -1) { objects.push(text.slice(start, i + 1)); start = -1; } }
+  }
+  return objects;
+}
+
+const DELFOS_PROJECT_ID = 'a5485014-2353-4526-996b-d583b5f4adaf';
+const DELFOS_MODEL_ID = 'gemini-3.1-pro-preview-GCP';
+const DELFOS_TENANT = 'seidorcorpo';
+
+async function getDelfosToken(env) {
+  try {
+    return env.DELFOS_API_TOKEN && typeof env.DELFOS_API_TOKEN.get === 'function'
+      ? await env.DELFOS_API_TOKEN.get()
+      : (typeof env.DELFOS_API_TOKEN === 'string' ? env.DELFOS_API_TOKEN : null);
+  } catch (e) {
+    return null;
+  }
+}
+
+async function delfosUploadFile(token, sessionId, username, file) {
+  const form = new FormData();
+  form.append('project_id', DELFOS_PROJECT_ID);
+  form.append('session_id', sessionId);
+  form.append('username', username);
+  form.append('message_id', crypto.randomUUID());
+  form.append('files', file, file.name);
+  form.append('tenant', DELFOS_TENANT);
+
+  const resp = await fetch(`https://delfos-api.seidor.ai/api/v3/projects/${DELFOS_PROJECT_ID}/chat/files`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+      'Origin': 'https://delfos.seidor.ai'
+    },
+    body: form
+  });
+  if (!resp.ok) throw new Error('Subida a Delfos falló: ' + await resp.text());
+  return resp.json();
+}
+
+async function delfosGetCompletion(token, { sessionId, username, text, fileRef }) {
+  const resp = await fetch('https://delfos-api.seidor.ai/api/v1/getCompletion', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+      'Authorization': `Bearer ${token}`,
+      'Origin': 'https://delfos.seidor.ai'
+    },
+    body: JSON.stringify({
+      text,
+      project_id: DELFOS_PROJECT_ID,
+      session_id: sessionId,
+      username,
+      detect_multi_query: false,
+      user_common_name: username,
+      language: 'es',
+      streaming: true,
+      message_id: crypto.randomUUID(),
+      files: fileRef ? [fileRef] : [],
+      premium_model: false,
+      use_onlinesearchtool: false,
+      tenant: DELFOS_TENANT,
+      model_id: DELFOS_MODEL_ID
+    })
+  });
+  if (!resp.ok) throw new Error('Análisis de Delfos falló: ' + await resp.text());
+
+  const raw = await resp.text();
+  const chunks = splitConcatenatedJson(raw);
+  let full = '';
+  for (const chunk of chunks) {
+    try {
+      const obj = JSON.parse(chunk);
+      const msg = obj.choices && obj.choices[0] && obj.choices[0].messages && obj.choices[0].messages[0];
+      if (msg && msg.content) full += msg.content;
+    } catch (e) { /* fragmento no parseable, se ignora */ }
+  }
+  return full;
+}
+
+const SOW_REVIEW_PROMPT = `Eres un revisor experto de propuestas comerciales SAP para SEIDOR, una consultora partner de SAP. Analiza el documento adjunto (puede ser un Statement of Work o una estimación económica) y responde en español, usando exactamente este formato con encabezados en mayúsculas:
+
+RIESGOS IDENTIFICADOS
+- (riesgos de alcance, técnicos o de ejecución que veas en el documento; si no hay, escribe "Ninguno identificado")
+
+RIESGOS ECONÓMICOS
+- (riesgos de precio, margen, horas mal dimensionadas, supuestos de facturación poco claros; si no hay, escribe "Ninguno identificado")
+
+INFORMACIÓN FALTANTE
+- (datos que deberían estar y no aparecen: fechas, supuestos, exclusiones, SLAs, forma de pago, etc.; si no hay, escribe "Ninguno identificado")
+
+Sé específico y, cuando puedas, cita o referencia partes concretas del documento.`;
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    if (url.pathname === '/api/sow-review' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      const form = await request.formData();
+      const file = form.get('file');
+      if (!file || typeof file === 'string') {
+        return new Response(JSON.stringify({ ok: false, error: 'No se recibió ningún archivo' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      try {
+        const fileRef = await delfosUploadFile(token, sessionId, username, file);
+        const feedback = await delfosGetCompletion(token, { sessionId, username, text: SOW_REVIEW_PROMPT, fileRef });
+        return new Response(JSON.stringify({ ok: true, feedback }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
 
     const PREVENTAS_EMAILS = {
       'Gustavo Najar': 'gustavo.najar@seidor.com',
@@ -136,33 +264,89 @@ export default {
     }
 
     const ALLOWED_DOC_EXT = ['ppt', 'pptx', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
+    const DOC_SECTIONS = ['Procesos', 'Templates de SOW', 'Calculadoras de estimación', 'Beneficios comerciales por tipo de deal'];
 
-    if (url.pathname === '/api/docs' && request.method === 'GET') {
+    if (url.pathname === '/api/documentos' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('documentos');
+      let registry = raw ? JSON.parse(raw) : [];
+
+      // Reconciliar con R2: cualquier archivo ya subido que no esté en el registro
+      // (por ejemplo, subidos antes de tener este registro) aparece como "Sin clasificar".
       const listed = await env.DOCS_BUCKET.list();
-      const files = listed.objects.map(o => ({
-        key: o.key,
-        size: o.size,
-        uploaded: o.uploaded,
-        uploadedBy: (o.customMetadata && o.customMetadata.uploadedBy) || 'desconocido'
-      })).sort((a, b) => new Date(b.uploaded) - new Date(a.uploaded));
-      return new Response(JSON.stringify({ files }), { headers: { 'Content-Type': 'application/json' } });
+      const registeredKeys = new Set(registry.filter(d => d.type === 'file').map(d => d.r2Key));
+      const orphans = listed.objects
+        .filter(o => !registeredKeys.has(o.key))
+        .map(o => ({
+          id: 'orphan-' + o.key,
+          section: 'Sin clasificar',
+          title: o.key,
+          description: '',
+          type: 'file',
+          r2Key: o.key,
+          size: o.size,
+          uploadedBy: (o.customMetadata && o.customMetadata.uploadedBy) || 'desconocido',
+          uploadedAt: o.uploaded
+        }));
+
+      return new Response(JSON.stringify({ documentos: registry.concat(orphans), sections: DOC_SECTIONS }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
-    if (url.pathname === '/api/docs' && request.method === 'POST') {
+    if (url.pathname === '/api/documentos' && request.method === 'POST') {
       const form = await request.formData();
-      const file = form.get('file');
-      if (!file || typeof file === 'string') {
-        return new Response('No se recibió ningún archivo', { status: 400 });
-      }
-      const ext = (file.name.split('.').pop() || '').toLowerCase();
-      if (!ALLOWED_DOC_EXT.includes(ext)) {
-        return new Response('Tipo de archivo no permitido. Solo PPT, PDF, Word o Excel.', { status: 400 });
-      }
+      const type = form.get('type');
+      const section = form.get('section') || 'Sin clasificar';
+      const title = form.get('title') || '';
+      const description = form.get('description') || '';
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
-      await env.DOCS_BUCKET.put(file.name, file.stream(), {
-        httpMetadata: { contentType: file.type || 'application/octet-stream' },
-        customMetadata: { uploadedBy: email, uploadedAt: new Date().toISOString() }
-      });
+
+      const raw = await env.PM_KV.get('documentos');
+      let registry = raw ? JSON.parse(raw) : [];
+
+      if (type === 'link') {
+        const linkUrl = form.get('url');
+        if (!linkUrl) return new Response('Falta la liga', { status: 400 });
+        registry.push({
+          id: 'doc-' + Date.now().toString(36), section, title, description,
+          type: 'link', url: linkUrl, uploadedBy: email, uploadedAt: new Date().toISOString()
+        });
+      } else {
+        const file = form.get('file');
+        if (!file || typeof file === 'string') return new Response('No se recibió ningún archivo', { status: 400 });
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        if (!ALLOWED_DOC_EXT.includes(ext)) {
+          return new Response('Tipo de archivo no permitido. Solo PPT, PDF, Word o Excel.', { status: 400 });
+        }
+        const r2Key = Date.now().toString(36) + '-' + file.name;
+        await env.DOCS_BUCKET.put(r2Key, file.stream(), {
+          httpMetadata: { contentType: file.type || 'application/octet-stream' },
+          customMetadata: { uploadedBy: email, uploadedAt: new Date().toISOString() }
+        });
+        registry.push({
+          id: 'doc-' + Date.now().toString(36), section, title: title || file.name, description,
+          type: 'file', r2Key, filename: file.name, size: file.size,
+          uploadedBy: email, uploadedAt: new Date().toISOString()
+        });
+      }
+
+      await env.PM_KV.put('documentos', JSON.stringify(registry));
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/documentos' && request.method === 'DELETE') {
+      const id = url.searchParams.get('id');
+      if (!id) return new Response('Falta el id', { status: 400 });
+      const raw = await env.PM_KV.get('documentos');
+      let registry = raw ? JSON.parse(raw) : [];
+      const entry = registry.find(d => d.id === id);
+      if (entry && entry.type === 'file') {
+        await env.DOCS_BUCKET.delete(entry.r2Key);
+      } else if (id.startsWith('orphan-')) {
+        await env.DOCS_BUCKET.delete(id.replace('orphan-', ''));
+      }
+      registry = registry.filter(d => d.id !== id);
+      await env.PM_KV.put('documentos', JSON.stringify(registry));
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
 
@@ -177,13 +361,6 @@ export default {
           'Content-Disposition': `attachment; filename="${key}"`
         }
       });
-    }
-
-    if (url.pathname === '/api/docs/file' && request.method === 'DELETE') {
-      const key = url.searchParams.get('key');
-      if (!key) return new Response('Falta el parámetro key', { status: 400 });
-      await env.DOCS_BUCKET.delete(key);
-      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname === '/api/projects') {
