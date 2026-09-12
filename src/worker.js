@@ -152,6 +152,7 @@ async function delfosGetCompletion(token, { sessionId, username, text, fileRef }
       message_id: crypto.randomUUID(),
       files: fileRef ? [fileRef] : [],
       premium_model: false,
+      use_ragtool: false,
       use_onlinesearchtool: false,
       tenant: DELFOS_TENANT,
       model_id: DELFOS_MODEL_ID
