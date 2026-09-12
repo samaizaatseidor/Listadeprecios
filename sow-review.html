@@ -149,6 +149,9 @@ async function analyze(){
       resultBody.innerHTML = `<div class="error">${esc(data.error || 'No se pudo analizar el documento.')}</div>`;
     }else{
       resultBody.innerHTML = renderFeedback(data.feedback);
+      if(data.debug){
+        resultBody.innerHTML += `<h3 style="margin-top:20px;">Diagnóstico temporal</h3><pre style="white-space:pre-wrap; font-size:11px; background:var(--card); padding:10px; border-radius:8px;">${esc(JSON.stringify(data.debug, null, 2))}</pre>`;
+      }
     }
   }catch(e){
     resultBody.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
