@@ -110,6 +110,35 @@
   </div>
 
   <div class="section">
+    <h2>3. Cálculo de costos y margen del proyecto</h2>
+    <p class="sub">Hasta 6 conceptos — deja en blanco los que no apliquen</p>
+    <div id="costosTable"></div>
+  </div>
+
+  <div class="section">
+    <h2>4. Facturación</h2>
+    <p class="sub">Agrega un renglón por cada cuota/factura planeada (hasta 15)</p>
+    <div class="field" style="max-width:200px;">
+      <label>Moneda (aplica a toda la tabla)</label>
+      <select id="facturacionMoneda"><option value="">Selecciona...</option><option>USD</option><option>MXN</option></select>
+    </div>
+    <div id="facturacionRows"></div>
+    <button class="btn btn-ghost" onclick="addFacturacionRow()">+ Agregar renglón</button>
+  </div>
+
+  <div class="section">
+    <h2>5. Costos a recibir de terceros</h2>
+    <p class="sub">Solo aplica para software: licencias, suscripciones, mantenimiento, hosting (hasta 12 renglones)</p>
+    <div class="field" style="max-width:200px;">
+      <label>Moneda (aplica a toda la tabla)</label>
+      <select id="tercerosMoneda"><option value="">Selecciona...</option><option>USD</option><option>MXN</option></select>
+    </div>
+    <div id="tercerosRows"></div>
+    <button class="btn btn-ghost" onclick="addTercerosRow()">+ Agregar renglón</button>
+  </div>
+
+  <div class="section">
+    <h2>6. Generar</h2>
     <button class="btn btn-primary" onclick="generarExcel()">Generar Formato de Alta (.xlsx)</button>
     <div id="genStatus" style="margin-top:10px;"></div>
   </div>
@@ -163,6 +192,91 @@ const FIELDS = [
   {group:'EBM (aliado comercial) — solo si aplica', id:'porcentajeComision', cell:'D50', label:'Porcentaje comisión', source:'smart', type:'text'},
   {group:'EBM (aliado comercial) — solo si aplica', id:'monedaPago', cell:'D52', label:'Moneda de pago', source:'smart', type:'select', options:['USD','MXN']}
 ];
+
+const LISTA_CONCEPTO = ['SERVICIOS DE CONSULTORÍA EN IMPLEMENTACIÓN, CAPACITACIÓN Y/O A ATM ( ERP-BYD-B1-ODOO-FABSOFT)','SERVICIOS DE CONSULTORÍA MESA DE AYUDA (HELP DESK)','SUSCRIPCIONES, MANTENIMIENTOS Y LICENCIAS DE ADDONS PROPIOS O TERCEROS. (SOLO PRODUCTOS)','LICENCIAMIENTO (SAP-BYD-B1-MICROSOFT)','SUSCRIPCIONES (LICENCIAMIENTO CLOUD)','MANTENIMIENTO AL LICENCIAMIENTO (SAP-ADDON-B1)','CLOUD Y HOSTING (HUAWEI, SKYONE, AZURE, AWS)','EQUIPOS Y HARDWARE','OTRO (ESPECÍFICA)'];
+const LISTA_TIPO_FACTURA = ['ADDONS','HOSTING','LICENCIAS','MANTENIMIENTO ANUAL','MANTENIMIENTO PROPORCIONAL','SERVICIOS','SUSCRIPCIONES','SUSCRIPCIONES NO SAP'];
+const LISTA_DIVISION = ['D2 CONSULTING - ERP S4 HANA','D3 BYD','D4 PUBLIC','D8 HXM SFSF','D9 CIBERSEGURIDAD','D11 HADW &SOFT','D12 WORKPLACE','D13 CX - COES','D14 AWS - AZURE - CLOUD','D15 CLOUD B1 - HOSTING','D16 B1','D17 ANALYTICS','D19 PRODUCTOS Y ADDONS SEIDOR','D20 AMS - MESA DE AYUDA S4 HANA','D30 STAFFING S4 HANA','D31 AMS SFSF','D32 STAFFING SFSF','D33 ARIBA - CONCUR','D34 STAFFING NO SAP'];
+const LISTA_RECURRENCIA = ['CUOTA ÚNICA','MENSUAL','TRIMESTRAL','SEMESTRAL','ANUAL'];
+const LISTA_VOBO = ['ARACELI PEÑALOZA','CESAR MONTERO','ROGELIO LEYVA','SERGIO OBREGÓN'];
+const LISTA_PROVEEDOR = ['AWS AMAZON MEXICO','BACKUPIFY INC','BOYUMIT','CONCUR TECHNOLOGIES INC','COPYLEAKS INC','MADKTING - YUJU','MICROSOFT AZURE','SAP MEXICO','SKY ONE CLOUD','OTRO (ESPECÍFICA)'];
+const LISTA_CODIGO_PROVEEDOR = ['AWS - 2003898','BACK - 2002336','BOYUM - 2100025','CONCUR - 2100086','COPY - 2100128','MADK - 2003886','MICROSOFT - 2003496','SAP - 2000004','SKY - 2100118','OTRO (ESPECÍFICA)'];
+
+function selectHtml(id, options, value){
+  const opts = ['', ...options].map(o=>`<option value="${esc(o)}" ${o===value?'selected':''}>${o||'Selecciona...'}</option>`).join('');
+  return `<select id="${id}">${opts}</select>`;
+}
+
+// --- Tabla 1: Costos y margen (fija, 6 filas) ---
+function renderCostosTable(){
+  const rows = [37,38,39,40,41,42];
+  document.getElementById('costosTable').innerHTML = `
+    <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+      <tr style="text-align:left; color:var(--grey);"><th>Concepto</th><th>Costo unitario</th><th>Venta unitaria</th><th>Días/Unidades</th></tr>
+      ${rows.map(r=>`
+        <tr>
+          <td style="padding:4px 6px 4px 0;">${selectHtml('costo-concepto-'+r, LISTA_CONCEPTO)}</td>
+          <td style="padding:4px 6px;"><input type="text" id="costo-unitario-${r}" style="width:100px; padding:6px; border:1px solid var(--line); border-radius:6px;"></td>
+          <td style="padding:4px 6px;"><input type="text" id="venta-unitaria-${r}" style="width:100px; padding:6px; border:1px solid var(--line); border-radius:6px;"></td>
+          <td style="padding:4px 0;"><input type="text" id="dias-unidades-${r}" style="width:90px; padding:6px; border:1px solid var(--line); border-radius:6px;"></td>
+        </tr>
+      `).join('')}
+    </table>
+  `;
+}
+
+// --- Tabla 2: Facturación (dinámica, hasta 15) ---
+let facturacionCount = 0;
+function addFacturacionRow(){
+  if(facturacionCount >= 15) return;
+  facturacionCount++;
+  const r = 58 + facturacionCount; // fila real en la hoja: 59..73
+  const div = document.createElement('div');
+  div.id = 'fact-row-'+r;
+  div.style = 'border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:8px;';
+  div.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <b style="font-size:12px; color:var(--navy2);">Renglón ${facturacionCount}</b>
+      <button onclick="this.closest('div[id^=fact-row-]').remove()" style="border:none; background:none; color:#B23A3A; font-size:12px; cursor:pointer;">Eliminar</button>
+    </div>
+    <div class="field"><label>Descripción de la factura</label><input type="text" id="fact-desc-${r}"></div>
+    <div class="field"><label>Tipo</label>${selectHtml('fact-tipo-'+r, LISTA_TIPO_FACTURA)}</div>
+    <div class="field"><label>División</label>${selectHtml('fact-division-'+r, LISTA_DIVISION)}</div>
+    <div class="field"><label>No. cuotas</label><input type="text" id="fact-cuotas-${r}"></div>
+    <div class="field"><label>Importe</label><input type="text" id="fact-importe-${r}"></div>
+    <div class="field"><label>Fecha factura</label><input type="date" id="fact-fecha-${r}"></div>
+    <div class="field"><label>Recurrencia</label>${selectHtml('fact-recurrencia-'+r, LISTA_RECURRENCIA)}</div>
+    <div class="field"><label>Condición de pago</label><input type="text" id="fact-condpago-${r}"></div>
+    <div class="field"><label>Requiere V°B°</label>${selectHtml('fact-vobo-'+r, LISTA_VOBO)}</div>
+  `;
+  document.getElementById('facturacionRows').appendChild(div);
+}
+
+// --- Tabla 3: Costos a terceros (dinámica, hasta 12) ---
+let tercerosCount = 0;
+function addTercerosRow(){
+  if(tercerosCount >= 12) return;
+  tercerosCount++;
+  const r = 83 + tercerosCount; // fila real: 84..95
+  const div = document.createElement('div');
+  div.id = 'terc-row-'+r;
+  div.style = 'border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:8px;';
+  div.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <b style="font-size:12px; color:var(--navy2);">Renglón ${tercerosCount}</b>
+      <button onclick="this.closest('div[id^=terc-row-]').remove()" style="border:none; background:none; color:#B23A3A; font-size:12px; cursor:pointer;">Eliminar</button>
+    </div>
+    <div class="field"><label>Nombre del proveedor</label>${selectHtml('terc-proveedor-'+r, LISTA_PROVEEDOR)}</div>
+    <div class="field"><label>Código de proveedor</label>${selectHtml('terc-codigo-'+r, LISTA_CODIGO_PROVEEDOR)}</div>
+    <div class="field"><label>No. cuotas</label><input type="text" id="terc-cuotas-${r}"></div>
+    <div class="field"><label>Importe</label><input type="text" id="terc-importe-${r}"></div>
+    <div class="field"><label>Recurrencia</label>${selectHtml('terc-recurrencia-'+r, LISTA_RECURRENCIA)}</div>
+  `;
+  document.getElementById('tercerosRows').appendChild(div);
+}
+
+renderCostosTable();
+addFacturacionRow();
+addTercerosRow();
 
 let selectedFile = null;
 
@@ -298,6 +412,50 @@ async function generarExcel(){
     const result = setCellInXml(xml, f.cell, value, f.type === 'date');
     xml = result.xml;
     if(!result.found) notFound.push(`${f.label} (${f.cell})`);
+  });
+
+  function writeIfPresent(cellRef, value, isDate){
+    if(value === undefined || value === null || value === '') return;
+    const result = setCellInXml(xml, cellRef, value, !!isDate);
+    xml = result.xml;
+    if(!result.found) notFound.push(cellRef);
+  }
+
+  // Tabla 1: costos y margen
+  [37,38,39,40,41,42].forEach(r=>{
+    writeIfPresent('C'+r, document.getElementById('costo-concepto-'+r).value);
+    writeIfPresent('I'+r, document.getElementById('costo-unitario-'+r).value);
+    writeIfPresent('K'+r, document.getElementById('venta-unitaria-'+r).value);
+    writeIfPresent('N'+r, document.getElementById('dias-unidades-'+r).value);
+  });
+
+  // Tabla 2: facturación
+  const facturacionMoneda = document.getElementById('facturacionMoneda').value;
+  if(facturacionMoneda) writeIfPresent('J59', facturacionMoneda);
+  document.querySelectorAll('#facturacionRows > div').forEach(rowDiv=>{
+    const r = rowDiv.id.replace('fact-row-','');
+    writeIfPresent('C'+r, document.getElementById('fact-desc-'+r).value);
+    writeIfPresent('F'+r, document.getElementById('fact-tipo-'+r).value);
+    writeIfPresent('H'+r, document.getElementById('fact-division-'+r).value);
+    writeIfPresent('I'+r, document.getElementById('fact-cuotas-'+r).value);
+    writeIfPresent('K'+r, document.getElementById('fact-importe-'+r).value);
+    const fecha = document.getElementById('fact-fecha-'+r).value;
+    if(fecha) writeIfPresent('O'+r, fecha, true);
+    writeIfPresent('Q'+r, document.getElementById('fact-recurrencia-'+r).value);
+    writeIfPresent('R'+r, document.getElementById('fact-condpago-'+r).value);
+    writeIfPresent('S'+r, document.getElementById('fact-vobo-'+r).value);
+  });
+
+  // Tabla 3: costos a terceros
+  const tercerosMoneda = document.getElementById('tercerosMoneda').value;
+  if(tercerosMoneda) writeIfPresent('K84', tercerosMoneda);
+  document.querySelectorAll('#tercerosRows > div').forEach(rowDiv=>{
+    const r = rowDiv.id.replace('terc-row-','');
+    writeIfPresent('C'+r, document.getElementById('terc-proveedor-'+r).value);
+    writeIfPresent('G'+r, document.getElementById('terc-codigo-'+r).value);
+    writeIfPresent('J'+r, document.getElementById('terc-cuotas-'+r).value);
+    writeIfPresent('N'+r, document.getElementById('terc-importe-'+r).value);
+    writeIfPresent('Q'+r, document.getElementById('terc-recurrencia-'+r).value);
   });
 
   zip.file(sheetPath, xml);
