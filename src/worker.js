@@ -132,6 +132,116 @@ async function delfosUploadFile(token, sessionId, username, file) {
   return fileRef;
 }
 
+function extractCompleteJsonObjects(text) {
+  // Igual que splitConcatenatedJson, pero regresa también el sobrante sin cerrar
+  // para poder seguir acumulando conforme llegan más datos del stream.
+  const objects = [];
+  let depth = 0, start = -1, inString = false, escape = false, lastCompleteEnd = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (escape) { escape = false; continue; }
+    if (ch === '\\') { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') { if (depth === 0) start = i; depth++; }
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        objects.push(text.slice(start, i + 1));
+        lastCompleteEnd = i + 1;
+        start = -1;
+      }
+    }
+  }
+  return { complete: objects, rest: text.slice(lastCompleteEnd) };
+}
+
+function ndjsonStream() {
+  const { readable, writable } = new TransformStream();
+  const writer = writable.getWriter();
+  const encoder = new TextEncoder();
+  return {
+    readable,
+    write: (obj) => writer.write(encoder.encode(JSON.stringify(obj) + '\n')),
+    close: () => writer.close()
+  };
+}
+
+async function delfosStreamToClient(token, { sessionId, username, text, fileRef, useOnlineSearch }, out) {
+  let resp;
+  try {
+    resp = await fetch('https://delfos-api.seidor.ai/api/v1/getCompletion', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+        'Authorization': `Bearer ${token}`,
+        'Origin': 'https://delfos.seidor.ai'
+      },
+      body: JSON.stringify({
+        text,
+        project_id: DELFOS_PROJECT_ID,
+        session_id: sessionId,
+        username,
+        detect_multi_query: false,
+        user_common_name: username,
+        language: 'es',
+        streaming: true,
+        message_id: crypto.randomUUID(),
+        files: fileRef ? [fileRef] : [],
+        premium_model: false,
+        use_ragtool: false,
+        use_onlinesearchtool: !!useOnlineSearch,
+        tenant: DELFOS_TENANT,
+        model_id: DELFOS_MODEL_ID
+      })
+    });
+  } catch (e) {
+    await out.write({ type: 'error', text: 'No se pudo conectar con Delfos: ' + String(e.message || e) });
+    return;
+  }
+
+  if (!resp.ok) {
+    await out.write({ type: 'error', text: 'Análisis de Delfos falló: ' + await resp.text() });
+    return;
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const { complete, rest } = extractCompleteJsonObjects(buffer);
+    buffer = rest;
+
+    for (const chunkStr of complete) {
+      try {
+        const obj = JSON.parse(chunkStr);
+        const msg = obj.choices && obj.choices[0] && obj.choices[0].messages && obj.choices[0].messages[0];
+        if (!msg || msg.content == null) continue;
+        const content = msg.content;
+        if (typeof content !== 'string') continue;
+        const trimmed = content.trim();
+        if (trimmed.startsWith('{') && trimmed.includes('"step"')) {
+          try {
+            const toolObj = JSON.parse(trimmed);
+            if (toolObj.step && String(toolObj.step).endsWith('_start')) {
+              await out.write({ type: 'status', text: toolObj.input || 'Consultando una herramienta externa…' });
+            }
+          } catch (e) { /* traza no parseable, se ignora */ }
+          continue;
+        }
+        if (content) await out.write({ type: 'delta', text: content });
+      } catch (e) { /* fragmento incompleto, se ignora */ }
+    }
+  }
+
+  await out.write({ type: 'done' });
+}
+
 async function delfosGetCompletion(token, { sessionId, username, text, fileRef, useOnlineSearch }) {
   const resp = await fetch('https://delfos-api.seidor.ai/api/v1/getCompletion', {
     method: 'POST',
@@ -250,14 +360,57 @@ export default {
       const sessionId = crypto.randomUUID();
       const promptText = form.get('prompt') || SOW_REVIEW_PROMPT;
 
+      const stream = ndjsonStream();
+      ctx.waitUntil((async () => {
+        try {
+          const fileRef = await delfosUploadFile(token, sessionId, username, file);
+          await delfosStreamToClient(token, { sessionId, username, text: promptText, fileRef, useOnlineSearch: false }, stream);
+        } catch (e) {
+          await stream.write({ type: 'error', text: String(e.message || e) });
+        } finally {
+          await stream.close();
+        }
+      })());
+      return new Response(stream.readable, { headers: { 'Content-Type': 'application/x-ndjson' } });
+    }
+
+    if (url.pathname === '/api/alta/extract' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      const form = await request.formData();
+      const file = form.get('file');
+      if (!file || typeof file === 'string') {
+        return new Response(JSON.stringify({ ok: false, error: 'No se recibió ningún archivo' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const extractPrompt = `Analiza el documento adjunto (un SOW, propuesta o estimación comercial de SAP) y extrae SOLO estos datos, si están presentes. Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, con exactamente estas llaves (usa null si un dato no aparece en el documento):
+
+{
+  "nombreComercial": "",
+  "razonSocial": "",
+  "rfc": "",
+  "direccionFiscal": "",
+  "nombreProyecto": "",
+  "fechaInicio": "",
+  "fechaFinal": "",
+  "liderProyecto": ""
+}
+
+Las fechas deben ir en formato DD/MM/AAAA. No inventes datos que no estén en el documento.`;
+
       try {
         const fileRef = await delfosUploadFile(token, sessionId, username, file);
-        const feedback = await delfosGetCompletion(token, { sessionId, username, text: promptText, fileRef, useOnlineSearch: false });
-        return new Response(JSON.stringify({ ok: true, feedback }), { headers: { 'Content-Type': 'application/json' } });
+        const raw = await delfosGetCompletion(token, { sessionId, username, text: extractPrompt, fileRef, useOnlineSearch: false });
+        const match = raw.match(/\{[\s\S]*\}/);
+        const extracted = match ? JSON.parse(match[0]) : {};
+        return new Response(JSON.stringify({ ok: true, extracted }), { headers: { 'Content-Type': 'application/json' } });
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
-      }    }
-
+      }
+    }
     if (url.pathname === '/api/prospecto' && request.method === 'POST') {
       const token = await getDelfosToken(env);
       if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
@@ -271,12 +424,11 @@ export default {
       const sessionId = crypto.randomUUID();
       const promptTextProspecto = (prompt || PROSPECTO_PROMPT).replace('{{EMPRESA}}', companyName);
 
-      try {
-        const feedback = await delfosGetCompletion(token, { sessionId, username, text: promptTextProspecto, useOnlineSearch: true });
-        return new Response(JSON.stringify({ ok: true, feedback }), { headers: { 'Content-Type': 'application/json' } });
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
-      }
+      const stream = ndjsonStream();
+      ctx.waitUntil(delfosStreamToClient(token, { sessionId, username, text: promptTextProspecto, useOnlineSearch: true }, stream).catch(async e => {
+        await stream.write({ type: 'error', text: String(e.message || e) });
+      }).finally(() => stream.close()));
+      return new Response(stream.readable, { headers: { 'Content-Type': 'application/x-ndjson' } });
     }
 
     const PREVENTAS_EMAILS = {
