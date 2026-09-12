@@ -82,6 +82,7 @@
       <a href="/pipeline.html">CRM PresalesMX</a>
       <a href="/ficha.html" class="active">Ficha del Cliente</a>
       <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
     </div>
   </div>
 </nav>
@@ -383,28 +384,33 @@ const BRAND = {
 };
 
 async function styleSheet(ws, headerCols, title){
-  ws.mergeCells(1,1,1,headerCols);
-  const titleCell = ws.getCell(1,1);
+  // Insertamos DOS filas arriba (logo + título) sin tocar los datos/encabezados originales
+  ws.spliceRows(1, 0, [], []);
+
+  ws.getRow(1).height = 34; // fila reservada solo para el logo
+
+  ws.mergeCells(2,1,2,headerCols);
+  const titleCell = ws.getCell(2,1);
   titleCell.value = title;
   titleCell.font = { name:'Calibri', size:14, bold:true, color:{argb:BRAND.white} };
   titleCell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:BRAND.navy} };
   titleCell.alignment = { vertical:'middle' };
-  ws.getRow(1).height = 28;
+  ws.getRow(2).height = 28;
 
-  const headerRow = ws.getRow(2);
+  const headerRow = ws.getRow(3);
   headerRow.eachCell(cell=>{
     cell.font = { name:'Calibri', size:11, bold:true, color:{argb:BRAND.white} };
     cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:BRAND.navy2} };
   });
 
   ws.eachRow((row, rowNum)=>{
-    if(rowNum <= 2) return;
+    if(rowNum <= 3) return;
     row.eachCell(cell=>{
       cell.font = { name:'Calibri', size:10.5, color:{argb:BRAND.ink} };
       cell.border = { bottom:{style:'thin', color:{argb:BRAND.line}} };
       cell.alignment = { vertical:'top', wrapText:true };
     });
-    if(rowNum % 2 === 0){
+    if(rowNum % 2 === 1){
       row.eachCell(cell=>{ cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:BRAND.card} }; });
     }
   });
@@ -413,7 +419,7 @@ async function styleSheet(ws, headerCols, title){
     const resp = await fetch('/assets/logo_dark.png');
     const buf = await resp.arrayBuffer();
     const imgId = ws.workbook.addImage({ buffer: buf, extension: 'png' });
-    ws.addImage(imgId, { tl: { col: headerCols - 1.9, row: 0.05 }, ext: { width: 90, height: 30 } });
+    ws.addImage(imgId, { tl: { col: 0.1, row: 0.1 }, ext: { width: 90, height: 26 } });
   }catch(e){ /* si no carga el logo, seguimos sin él */ }
 }
 
@@ -464,34 +470,72 @@ async function downloadExcel(){
   URL.revokeObjectURL(url);
 }
 
-function downloadTemplate(){
-  const wb = XLSX.utils.book_new();
+const REQUERIMIENTO_OPTS = ['Implementación','Upgrade','Rollout','Mejora','Otro'];
+const AE_OPTS = ['Fernanda Richards','Manuel Apón','Natalia Ossa','Estefanía Muñoz','Freda Juárez','Fernanda Villagómez','Josselyn González','Omar Dávila'];
 
-  const dgRows = [
-    ['Campo','Respuesta','Notas'],
-    ['Nombre cliente','',''],
-    ['Tipo de requerimiento','', 'Implementación / Upgrade / Rollout / Mejora / Otro'],
-    ['Gerente área comercial','', 'Fernanda Richards / Manuel Apón / Natalia Ossa / Estefanía Muñoz / Freda Juárez / Fernanda Villagómez / Josselyn González / Omar Dávila']
-  ];
+function addListValidation(cell, options){
+  cell.dataValidation = {
+    type: 'list',
+    allowBlank: true,
+    formulae: [`"${options.join(',')}"`],
+    showErrorMessage: true,
+    errorTitle: 'Valor no válido',
+    error: 'Elige una opción de la lista para evitar errores al cargar la ficha.'
+  };
+}
+
+async function downloadTemplate(){
+  const wb = new ExcelJS.Workbook();
+
+  const dgSheet = wb.addWorksheet('Datos Generales');
+  dgSheet.columns = [{width:45},{width:30},{width:45}];
+  dgSheet.addRow(['Campo','Respuesta','Notas']);
+  dgSheet.addRow(['Nombre cliente','','']);
+  dgSheet.addRow(['Tipo de requerimiento','', 'Elige de la lista']);
+  dgSheet.addRow(['Gerente área comercial','', 'Elige de la lista']);
   DATA.datosGenerales.forEach(f=>{
-    const notas = [f.required ? 'Obligatorio' : '', f.type==='select' ? 'Responder Sí o No' : ''].filter(Boolean).join(' · ');
-    dgRows.push([f.label, '', notas]);
+    const notas = [f.required ? 'Obligatorio' : '', f.type==='select' ? 'Elige Sí o No de la lista' : ''].filter(Boolean).join(' · ');
+    dgSheet.addRow([f.label, '', notas]);
   });
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dgRows), 'Datos Generales');
+  await styleSheet(dgSheet, 3, 'Plantilla — Ficha del Cliente SEIDOR');
+  // +3 filas insertadas por styleSheet (logo+título+encabezado ya contado): las filas de datos ahora empiezan en la 4
+  addListValidation(dgSheet.getCell('B5'), REQUERIMIENTO_OPTS); // Tipo de requerimiento
+  addListValidation(dgSheet.getCell('B6'), AE_OPTS); // Gerente área comercial
+  DATA.datosGenerales.forEach((f,i)=>{
+    if(f.type === 'select'){
+      addListValidation(dgSheet.getCell(`B${7+i}`), f.options);
+    }
+  });
 
-  const upRows = [['Pregunta','Respuesta']];
-  DATA.upgrade.forEach(q=>upRows.push([q, '']));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(upRows), 'Upgrade');
+  const upSheet = wb.addWorksheet('Upgrade');
+  upSheet.columns = [{width:60},{width:30}];
+  upSheet.addRow(['Pregunta','Respuesta']);
+  DATA.upgrade.forEach(q=>upSheet.addRow([q, '']));
+  await styleSheet(upSheet, 2, 'Plantilla — Upgrade');
 
-  const roRows = [['Sección','ID','Consulta','Respuesta']];
-  DATA.rollout.forEach(sec=>sec.questions.forEach(q=>roRows.push([sec.title, q.id, q.pregunta, ''])));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(roRows), 'Rollout');
+  const roSheet = wb.addWorksheet('Rollout');
+  roSheet.columns = [{width:28},{width:8},{width:55},{width:30}];
+  roSheet.addRow(['Sección','ID','Consulta','Respuesta']);
+  DATA.rollout.forEach(sec=>sec.questions.forEach(q=>roSheet.addRow([sec.title, q.id, q.pregunta, ''])));
+  await styleSheet(roSheet, 4, 'Plantilla — Rollout');
 
-  const lmRows = [['Campo','Pregunta','Respuesta']];
-  DATA.localizacionMexico.forEach(q=>lmRows.push([q.label, q.pregunta, '']));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(lmRows), 'Localizacion Mexico');
+  const lmSheet = wb.addWorksheet('Localizacion Mexico');
+  lmSheet.columns = [{width:30},{width:55},{width:30}];
+  lmSheet.addRow(['Campo','Pregunta','Respuesta']);
+  DATA.localizacionMexico.forEach(q=>lmSheet.addRow([q.label, q.pregunta, '']));
+  await styleSheet(lmSheet, 3, 'Plantilla — Localización México');
 
-  XLSX.writeFile(wb, 'Plantilla Ficha Cliente - SEIDOR.xlsx');
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'Plantilla Ficha Cliente - SEIDOR.xlsx';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function findHeaderRow(rows, firstCellValue){
+  return rows.findIndex(r => r[0] && String(r[0]).trim() === firstCellValue);
 }
 
 function uploadFilledExcel(file){
@@ -503,7 +547,8 @@ function uploadFilledExcel(file){
 
       const dgSheet = wb.Sheets['Datos Generales'];
       if(!dgSheet){ alert('No encontré la pestaña "Datos Generales" en ese archivo. ¿Es la plantilla correcta?'); return; }
-      const dgRows = XLSX.utils.sheet_to_json(dgSheet, { header:1 }).slice(1);
+      const dgAll = XLSX.utils.sheet_to_json(dgSheet, { header:1 });
+      const dgRows = dgAll.slice(findHeaderRow(dgAll, 'Campo') + 1);
       const dgMap = {};
       dgRows.forEach(r=>{ if(r[0]) dgMap[String(r[0]).trim()] = r[1] !== undefined ? String(r[1]).trim() : ''; });
 
@@ -520,7 +565,8 @@ function uploadFilledExcel(file){
 
       const upSheet = wb.Sheets['Upgrade'];
       if(upSheet){
-        const upRows = XLSX.utils.sheet_to_json(upSheet, { header:1 }).slice(1);
+        const upAll = XLSX.utils.sheet_to_json(upSheet, { header:1 });
+        const upRows = upAll.slice(findHeaderRow(upAll, 'Pregunta') + 1);
         const upMap = {};
         upRows.forEach(r=>{ if(r[0]) upMap[String(r[0]).trim()] = r[1] !== undefined ? String(r[1]).trim() : ''; });
         DATA.upgrade.forEach((q,i)=>{
@@ -530,7 +576,8 @@ function uploadFilledExcel(file){
 
       const roSheet = wb.Sheets['Rollout'];
       if(roSheet){
-        const roRows = XLSX.utils.sheet_to_json(roSheet, { header:1 }).slice(1);
+        const roAll = XLSX.utils.sheet_to_json(roSheet, { header:1 });
+        const roRows = roAll.slice(findHeaderRow(roAll, 'Sección') + 1);
         const roMap = {};
         roRows.forEach(r=>{ if(r[0] && r[2]) roMap[String(r[0]).trim()+'|'+String(r[2]).trim()] = r[3] !== undefined ? String(r[3]).trim() : ''; });
         DATA.rollout.forEach((sec, si)=>{
@@ -543,7 +590,8 @@ function uploadFilledExcel(file){
 
       const lmSheet = wb.Sheets['Localizacion Mexico'];
       if(lmSheet){
-        const lmRows = XLSX.utils.sheet_to_json(lmSheet, { header:1 }).slice(1);
+        const lmAll = XLSX.utils.sheet_to_json(lmSheet, { header:1 });
+        const lmRows = lmAll.slice(findHeaderRow(lmAll, 'Campo') + 1);
         const lmMap = {};
         lmRows.forEach(r=>{ if(r[1]) lmMap[String(r[1]).trim()] = r[2] !== undefined ? String(r[2]).trim() : ''; });
         const anyLmFilled = Object.values(lmMap).some(v=>v);

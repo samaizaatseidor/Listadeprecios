@@ -10,3 +10,10 @@ run_worker_first = ["/api/*"]
 [[kv_namespaces]]
 binding = "PM_KV"
 id = "64aaa5613ef240b486f24e02610498cd"
+
+[[r2_buckets]]
+binding = "DOCS_BUCKET"
+bucket_name = "presalesmx-docs"
+
+[triggers]
+crons = ["0 22 * * 5"]
