@@ -576,6 +576,24 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
 
+    if (url.pathname === '/api/raid' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('raid_log');
+      return new Response(raw || '{"items":[]}', { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/raid' && request.method === 'POST') {
+      let items;
+      try {
+        items = await request.json();
+        if (!Array.isArray(items)) throw new Error('not an array');
+      } catch (e) {
+        return new Response('JSON inválido: se esperaba un arreglo', { status: 400 });
+      }
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      await env.PM_KV.put('raid_log', JSON.stringify({ items, updatedBy: email, updatedAt: new Date().toISOString() }));
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
     if (url.pathname === '/api/whoami') {
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
       return new Response(JSON.stringify({ email }), { headers: { 'Content-Type': 'application/json' } });
