@@ -167,7 +167,7 @@ async function investigar(){
   const resultBody = document.getElementById('resultBody');
   btn.disabled = true;
   resultSection.style.display = 'block';
-  resultBody.innerHTML = '<div class="loading"><span class="spinner"></span>Investigando ' + esc(company) + '… puede tardar hasta un minuto</div>';
+  resultBody.innerHTML = '<div class="loading"><span class="spinner"></span>Preparando investigación…</div>';
   document.getElementById('pdfBtn').style.display = 'none';
 
   try{
@@ -175,13 +175,39 @@ async function investigar(){
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ companyName: company, prompt: document.getElementById('promptBox').value })
     });
-    const data = await r.json();
-    if(!data.ok){
-      resultBody.innerHTML = `<div class="error">${esc(data.error || 'No se pudo investigar la empresa.')}</div>`;
-    }else{
-      lastFeedback = data.feedback;
-      resultBody.innerHTML = renderFeedback(data.feedback);
-      document.getElementById('pdfBtn').style.display = 'inline-block';
+    if(!r.body){ throw new Error('sin stream'); }
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+    let gotError = false;
+
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for(const line of lines){
+        if(!line.trim()) continue;
+        let obj;
+        try{ obj = JSON.parse(line); }catch(e){ continue; }
+        if(obj.type === 'status'){
+          resultBody.innerHTML = `<div class="loading"><span class="spinner"></span>${esc(obj.text)}</div>`;
+        }else if(obj.type === 'delta'){
+          fullText += obj.text;
+          resultBody.innerHTML = `<pre style="white-space:pre-wrap; font-family:inherit; font-size:13px; margin:0;">${esc(fullText)}</pre>`;
+        }else if(obj.type === 'error'){
+          gotError = true;
+          resultBody.innerHTML = `<div class="error">${esc(obj.text)}</div>`;
+        }else if(obj.type === 'done'){
+          if(!gotError && fullText){
+            lastFeedback = fullText;
+            resultBody.innerHTML = renderFeedback(fullText);
+            document.getElementById('pdfBtn').style.display = 'inline-block';
+          }
+        }
+      }
     }
   }catch(e){
     resultBody.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';

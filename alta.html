@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Formato de Alta · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:820px; margin:0 auto; padding:20px 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
+
+  .dropzone{border:2px dashed var(--line); border-radius:10px; padding:20px; text-align:center; cursor:pointer;}
+  .dropzone:hover{border-color:var(--blue);}
+  .dropzone p{margin:6px 0 0; color:var(--grey); font-size:12.5px;}
+  .filename{font-size:13px; color:var(--navy2); font-weight:600; margin-top:8px;}
+
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:4px; font-weight:500;}
+  .field input[type=text], .field input[type=date], .field select, .field textarea{
+    width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px;
+    font-family:inherit; font-size:13.5px; color:var(--ink);
+  }
+  .field.extracted input{background:#EFF6FF; border-color:var(--cyan-l);}
+  .badge-extracted{font-size:10px; color:var(--blue); font-weight:600; margin-left:6px;}
+
+  .btn{border:none; border-radius:8px; padding:11px 18px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-primary:disabled{background:var(--line); color:var(--greyl); cursor:not-allowed;}
+  .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
+
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:16px;}
+  .spinner{display:inline-block; width:14px; height:14px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:8px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+  .error{color:#B23A3A; font-size:13px; background:#FBE7E7; border-radius:8px; padding:10px 12px; margin-bottom:12px;}
+  .warn{color:#8A6414; font-size:12px; background:#FBF1DE; border-radius:8px; padding:10px 12px; margin-bottom:12px;}
+  .group-title{font-size:12px; color:var(--blue); font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin:20px 0 10px;}
+  .group-title:first-child{margin-top:0;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html#individuales">Servicios individuales</a>
+      <a href="/index.html#paquetes">Paquetes SAP Cloud ERP</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/agentes.html" class="active">Agentes powered by DELFOS</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Generador de Formato de Alta</h1>
+  <p>Sube el SOW o estimación firmada y completa el resto con el formulario inteligente (Fase 1: encabezado)</p>
+</header>
+
+<main>
+  <a href="/agentes.html" style="display:inline-block; margin-bottom:14px; font-size:13px; color:var(--blue); text-decoration:none;">← Agentes powered by DELFOS</a>
+
+  <div class="section">
+    <h2>1. Documento firmado (opcional pero recomendado)</h2>
+    <p class="sub">SOW, propuesta o estimación — Word, Excel o PDF</p>
+    <label class="dropzone" style="display:block;">
+      <div style="font-size:22px;">📄</div>
+      <p>Click para elegir el archivo</p>
+      <input type="file" id="fileInput" accept=".doc,.docx,.xls,.xlsx,.pdf" style="display:none;" onchange="handleFile(this.files[0])">
+    </label>
+    <div id="filename" class="filename"></div>
+    <div style="margin-top:12px;">
+      <button class="btn btn-ghost" id="extractBtn" onclick="extraer()" disabled>Extraer datos del documento</button>
+    </div>
+    <div id="extractStatus" style="margin-top:10px;"></div>
+  </div>
+
+  <div class="section">
+    <h2>2. Completa el resto</h2>
+    <p class="sub">Los campos en azul ya vinieron del documento — revísalos. El resto son desplegables tomados directo de tu archivo de Formato de Alta.</p>
+    <div id="formFields"></div>
+  </div>
+
+  <div class="section">
+    <button class="btn btn-primary" onclick="generarExcel()">Generar Formato de Alta (.xlsx)</button>
+    <div id="genStatus" style="margin-top:10px;"></div>
+  </div>
+</main>
+
+<script>
+// Cada campo: id (coincide con la llave del formulario), celda real en la hoja SALES,
+// tipo de dato, y si es 'extract' (viene del documento) o 'smart' (formulario inteligente).
+const FIELDS = [
+  {group:'Datos fiscales del cliente', id:'nombreComercial', cell:'D7', label:'Nombre comercial', source:'extract', type:'text'},
+  {group:'Datos fiscales del cliente', id:'razonSocial', cell:'D8', label:'Razón social', source:'extract', type:'text'},
+  {group:'Datos fiscales del cliente', id:'rfc', cell:'D9', label:'RFC', source:'extract', type:'text'},
+  {group:'Datos fiscales del cliente', id:'direccionFiscal', cell:'D10', label:'Dirección fiscal', source:'extract', type:'text'},
+  {group:'Datos fiscales del cliente', id:'localidad', cell:'D11', label:'Localidad', source:'smart', type:'select', options:['NACIONAL','INTERNACIONAL']},
+  {group:'Datos fiscales del cliente', id:'existePEP', cell:'R7', label:'¿Existe PEP del cliente?', source:'smart', type:'select', options:['SI','NO']},
+
+  {group:'Información del proyecto', id:'nombreProyecto', cell:'K7', label:'Nombre del proyecto', source:'extract', type:'text'},
+  {group:'Información del proyecto', id:'version', cell:'K8', label:'Versión', source:'smart', type:'text'},
+  {group:'Información del proyecto', id:'fechaInicio', cell:'K9', label:'Fecha de inicio de proyecto', source:'extract', type:'date'},
+  {group:'Información del proyecto', id:'fechaFinal', cell:'K10', label:'Fecha final de proyecto', source:'extract', type:'date'},
+  {group:'Información del proyecto', id:'empresaFactura', cell:'K11', label:'Empresa que factura', source:'smart', type:'select', options:['SEIDOR MEXICO']},
+  {group:'Información del proyecto', id:'intercompany', cell:'K12', label:'Intercompany / Partner con', source:'smart', type:'select', options:['SEIDOR ESPAÑA','SEIDOR ARGENTINA','SEIDOR EU','SEIDOR CHILE','SEIDOR PERÚ','OTRO (ESPECÍFICA)']},
+  {group:'Información del proyecto', id:'responsableCOE', cell:'K13', label:'Nombre del responsable (COE)', source:'smart', type:'select', options:['SERGIO OBREGÓN','SILVERIO CHÁVEZ','OTRO (ESPECÍFICA)']},
+  {group:'Información del proyecto', id:'monedaVenta', cell:'Q14', label:'Moneda de venta', source:'smart', type:'select', options:['MXN','USD']},
+
+  {group:'Contacto del cliente', id:'liderProyecto', cell:'D15', label:'Líder del proyecto', source:'extract', type:'text'},
+  {group:'Contacto del cliente', id:'telLider', cell:'D16', label:'Teléfono (líder de proyecto)', source:'smart', type:'text'},
+  {group:'Contacto del cliente', id:'correoLider', cell:'G16', label:'Correo (líder de proyecto)', source:'smart', type:'text'},
+  {group:'Contacto del cliente', id:'contactoCxP', cell:'D17', label:'Contacto cuentas por pagar', source:'smart', type:'text'},
+  {group:'Contacto del cliente', id:'telCxP', cell:'D18', label:'Teléfono (cuentas por pagar)', source:'smart', type:'text'},
+  {group:'Contacto del cliente', id:'correoCxP', cell:'G18', label:'Correo (cuentas por pagar)', source:'smart', type:'text'},
+
+  {group:'Soluciones y productos', id:'licenSapTipo', cell:'K17', label:'LICEN SAP — tipo', source:'smart', type:'select', options:['ON PREMISE','VAR']},
+  {group:'Soluciones y productos', id:'suscSapTipo', cell:'K18', label:'SUSC. SAP — tipo', source:'smart', type:'select', options:['CCFLEX','CCP','VAR','OEM']},
+  {group:'Soluciones y productos', id:'hostingProveedor', cell:'K19', label:'Hosting — proveedor', source:'smart', type:'select', options:['AWS','AZURE','SKYONE','HUAWEI']},
+
+  {group:'Facturación — cliente', id:'solicitaODC', cell:'D22', label:'¿Solicita ODC?', source:'smart', type:'select', options:['SI','NO']},
+  {group:'Facturación — cliente', id:'portalProveedores', cell:'D23', label:'Portal web de proveedores', source:'smart', type:'text'},
+  {group:'Facturación — cliente', id:'contrasena', cell:'D24', label:'Contraseña', source:'smart', type:'text'},
+  {group:'Facturación — cliente', id:'procesoFacturacion', cell:'C26', label:'Proceso de facturación y cobranza', source:'smart', type:'textarea'},
+
+  {group:'Responsables SEIDOR', id:'directorGeneral', cell:'K23', label:'Director general', source:'smart', type:'text'},
+  {group:'Responsables SEIDOR', id:'directorOperaciones', cell:'K24', label:'Director de operaciones', source:'smart', type:'select', options:['CESAR MONTERO','CESAR CALLEJA']},
+  {group:'Responsables SEIDOR', id:'gerenteBU', cell:'K25', label:'Gerente BU', source:'smart', type:'select', options:['ARACELI PEÑALOZA','CESAR MONTERO','ROGELIO LEYVA','ARMANDO MIRANDA']},
+  {group:'Responsables SEIDOR', id:'divisionBU', cell:'K26', label:'División comercial BU', source:'smart', type:'select', options:['B1','BUSINESS EXPERIENCE','SAP','SOL&TECH']},
+  {group:'Responsables SEIDOR', id:'ejecutivoComercial', cell:'K27', label:'Ejecutivo comercial', source:'smart', type:'select', options:['ANAMARIA SILVA','ESTEFANIA MUÑOZ','FERNANDA RICHARDS','FREDA JUÁREZ','LAURA MARTINEZ','MANUEL APON','NATALIA OSSA','VERONICA NORIEGA']},
+
+  {group:'EBM (aliado comercial) — solo si aplica', id:'hayEBM', cell:'D47', label:'¿Hay EBM en el proyecto?', source:'smart', type:'select', options:['SI','NO']},
+  {group:'EBM (aliado comercial) — solo si aplica', id:'razonSocialEBM', cell:'D48', label:'Razón social EBM', source:'smart', type:'text'},
+  {group:'EBM (aliado comercial) — solo si aplica', id:'comisionBase', cell:'D49', label:'Comisión es con base a', source:'smart', type:'select', options:['COSTO','VENTA','MARGEN']},
+  {group:'EBM (aliado comercial) — solo si aplica', id:'porcentajeComision', cell:'D50', label:'Porcentaje comisión', source:'smart', type:'text'},
+  {group:'EBM (aliado comercial) — solo si aplica', id:'monedaPago', cell:'D52', label:'Moneda de pago', source:'smart', type:'select', options:['USD','MXN']}
+];
+
+let selectedFile = null;
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function renderForm(){
+  const el = document.getElementById('formFields');
+  let html = '';
+  let lastGroup = null;
+  FIELDS.forEach(f=>{
+    if(f.group !== lastGroup){
+      html += `<div class="group-title">${esc(f.group)}</div>`;
+      lastGroup = f.group;
+    }
+    const extractedTag = f.source === 'extract' ? '<span class="badge-extracted">del documento</span>' : '';
+    if(f.type === 'select'){
+      const opts = ['', ...f.options].map(o=>`<option value="${esc(o)}">${o||'Selecciona...'}</option>`).join('');
+      html += `<div class="field"><label>${esc(f.label)}${extractedTag}</label><select id="f-${f.id}">${opts}</select></div>`;
+    }else if(f.type === 'date'){
+      html += `<div class="field ${f.source}" id="wrap-${f.id}"><label>${esc(f.label)}${extractedTag}</label><input type="date" id="f-${f.id}"></div>`;
+    }else if(f.type === 'textarea'){
+      html += `<div class="field"><label>${esc(f.label)}${extractedTag}</label><textarea id="f-${f.id}" rows="2"></textarea></div>`;
+    }else{
+      html += `<div class="field ${f.source}" id="wrap-${f.id}"><label>${esc(f.label)}${extractedTag}</label><input type="text" id="f-${f.id}"></div>`;
+    }
+  });
+  el.innerHTML = html;
+}
+renderForm();
+
+function handleFile(file){
+  selectedFile = file;
+  document.getElementById('filename').textContent = file ? file.name : '';
+  document.getElementById('extractBtn').disabled = !file;
+}
+
+function ddmmaaaaToISO(s){
+  if(!s) return '';
+  const m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(!m) return '';
+  return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+}
+
+async function extraer(){
+  if(!selectedFile) return;
+  const status = document.getElementById('extractStatus');
+  const btn = document.getElementById('extractBtn');
+  btn.disabled = true;
+  status.innerHTML = '<div class="loading"><span class="spinner"></span>Extrayendo datos…</div>';
+
+  const form = new FormData();
+  form.append('file', selectedFile);
+
+  try{
+    const r = await fetch('/api/alta/extract', { method:'POST', body: form });
+    const data = await r.json();
+    if(!data.ok){
+      status.innerHTML = `<div class="error">${esc(data.error || 'No se pudo extraer información.')}</div>`;
+    }else{
+      const ex = data.extracted || {};
+      if(ex.nombreComercial) document.getElementById('f-nombreComercial').value = ex.nombreComercial;
+      if(ex.razonSocial) document.getElementById('f-razonSocial').value = ex.razonSocial;
+      if(ex.rfc) document.getElementById('f-rfc').value = ex.rfc;
+      if(ex.direccionFiscal) document.getElementById('f-direccionFiscal').value = ex.direccionFiscal;
+      if(ex.nombreProyecto) document.getElementById('f-nombreProyecto').value = ex.nombreProyecto;
+      if(ex.fechaInicio) document.getElementById('f-fechaInicio').value = ddmmaaaaToISO(ex.fechaInicio);
+      if(ex.fechaFinal) document.getElementById('f-fechaFinal').value = ddmmaaaaToISO(ex.fechaFinal);
+      if(ex.liderProyecto) document.getElementById('f-liderProyecto').value = ex.liderProyecto;
+      status.innerHTML = '<div style="color:var(--blue); font-size:12.5px;">Listo — revisa los campos marcados "del documento" antes de generar el Excel.</div>';
+    }
+  }catch(e){
+    status.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
+  }
+  btn.disabled = false;
+}
+
+function excelDateSerial(isoDate){
+  // Serial de Excel: días desde 1899-12-30
+  const d = new Date(isoDate + 'T00:00:00Z');
+  const epoch = Date.UTC(1899, 11, 30);
+  return Math.round((d.getTime() - epoch) / 86400000);
+}
+
+function escapeXml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+
+function setCellInXml(xml, cellRef, value, isDate){
+  // Busca la celda (self-closing o con contenido) y la reemplaza con el valor nuevo.
+  const selfClosing = new RegExp(`<c r="${cellRef}"([^>]*)/>`);
+  const withContent = new RegExp(`<c r="${cellRef}"([^>]*)>[\\s\\S]*?</c>`);
+
+  let newCell;
+  if(isDate){
+    newCell = (attrs) => `<c r="${cellRef}"${attrs.replace(/ t="[^"]*"/,'')}><v>${excelDateSerial(value)}</v></c>`;
+  }else{
+    newCell = (attrs) => `<c r="${cellRef}"${attrs.replace(/ t="[^"]*"/,'')} t="inlineStr"><is><t xml:space="preserve">${escapeXml(value)}</t></is></c>`;
+  }
+
+  if(selfClosing.test(xml)){
+    return { xml: xml.replace(selfClosing, (m, attrs) => newCell(attrs)), found:true };
+  }
+  if(withContent.test(xml)){
+    return { xml: xml.replace(withContent, (m, attrs) => newCell(attrs)), found:true };
+  }
+  return { xml, found:false };
+}
+
+async function generarExcel(){
+  const genStatus = document.getElementById('genStatus');
+  genStatus.innerHTML = '<div class="loading"><span class="spinner"></span>Generando archivo…</div>';
+
+  let templateResp;
+  try{
+    templateResp = await fetch('/templates/FORMATO_DE_ALTA_2026.xlsx');
+    if(!templateResp.ok) throw new Error('no encontrada');
+  }catch(e){
+    genStatus.innerHTML = '<div class="error">No encontré la plantilla en /templates/FORMATO_DE_ALTA_2026.xlsx — confirma que se subió ahí.</div>';
+    return;
+  }
+
+  const templateBuffer = await templateResp.arrayBuffer();
+  const zip = await JSZip.loadAsync(templateBuffer);
+  const sheetPath = 'xl/worksheets/sheet1.xml';
+  let xml = await zip.file(sheetPath).async('string');
+
+  const notFound = [];
+  FIELDS.forEach(f=>{
+    const el = document.getElementById('f-'+f.id);
+    if(!el) return;
+    const value = el.value;
+    if(!value) return;
+    const result = setCellInXml(xml, f.cell, value, f.type === 'date');
+    xml = result.xml;
+    if(!result.found) notFound.push(`${f.label} (${f.cell})`);
+  });
+
+  zip.file(sheetPath, xml);
+  const outBuffer = await zip.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+  const url = URL.createObjectURL(outBuffer);
+  const a = document.createElement('a');
+  const clientName = document.getElementById('f-nombreComercial').value || 'cliente';
+  a.href = url; a.download = `Formato de Alta - ${clientName}.xlsx`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  if(notFound.length){
+    genStatus.innerHTML = `<div class="warn">Archivo generado, pero estos campos no se pudieron escribir automáticamente (complétalos a mano en Excel): ${notFound.map(esc).join(', ')}</div>`;
+  }else{
+    genStatus.innerHTML = '<div style="color:var(--blue); font-size:12.5px;">Listo — revisa el archivo descargado antes de mandarlo a facturación.</div>';
+  }
+}
+</script>
+</body>
+</html>
