@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard de Proyecto · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0 0 14px; color:var(--cyan-l); font-size:13px;}
+  .proyecto-selector{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  .proyecto-selector select{padding:9px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.08); color:#fff; font-family:inherit; font-size:13.5px; min-width:220px;}
+  .proyecto-selector select option{color:#000;}
+
+  .btn{border:none; border-radius:8px; padding:9px 14px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-ghost{background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.3);}
+  .btn-ghost.light{background:#fff; color:var(--grey); border:1px solid var(--line);}
+  .btn-danger{background:#fff; color:#B23A3A; border:1px solid #E8C7C7;}
+
+  main{max-width:1000px; margin:0 auto; padding:16px;}
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px; margin-bottom:16px;}
+  .kpi-card{background:#fff; border-radius:12px; padding:14px 16px; box-shadow:var(--shadow);}
+  .kpi-card .n{font-size:22px; font-weight:700; color:var(--navy2);}
+  .kpi-card .n.warn{color:#B23A3A;}
+  .kpi-card .l{font-size:11.5px; color:var(--grey); margin-top:2px;}
+
+  .resumen-box{background:#fff; border-radius:12px; padding:16px 18px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .resumen-box h2{font-size:13px; color:var(--navy2); margin:0 0 8px;}
+  .resumen-text{font-size:13px; color:var(--ink); line-height:1.6;}
+  .resumen-empty{font-size:12.5px; color:var(--greyl);}
+
+  .tabbar{background:#fff; border-radius:12px 12px 0 0; display:flex; box-shadow:var(--shadow); overflow:hidden;}
+  .tabbar button{flex:1; background:none; border:none; padding:12px; font-family:inherit; font-size:13px; font-weight:600; color:var(--grey); cursor:pointer; border-bottom:3px solid transparent;}
+  .tabbar button.active{color:var(--blue); border-bottom-color:var(--cyan); background:var(--card);}
+
+  .tabcontent{background:#fff; border-radius:0 0 12px 12px; padding:16px; box-shadow:var(--shadow); margin-bottom:20px;}
+  .tab-toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:10px; flex-wrap:wrap;}
+  .tab-toolbar input[type=text]{padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; min-width:180px;}
+
+  .board{display:flex; gap:12px; overflow-x:auto;}
+  .col{background:var(--card); border-radius:10px; min-width:220px; max-width:260px; flex-shrink:0; padding:8px;}
+  .col h3{font-size:11.5px; text-transform:none; color:var(--grey); margin:2px 4px 8px; display:flex; justify-content:space-between; font-weight:600;}
+  .col h3 .count{background:#fff; color:var(--grey); border-radius:20px; padding:1px 7px; font-size:10.5px;}
+
+  .row{background:#fff; border-radius:9px; padding:11px 13px; margin-bottom:8px; box-shadow:var(--shadow); border-left:3px solid var(--line); cursor:pointer;}
+  .row.riesgo-alto, .row.tipo-riesgo{border-left-color:#C24545;}
+  .row.riesgo-medio, .row.tipo-issue{border-left-color:#D9A441;}
+  .row.riesgo-bajo{border-left-color:#2E9E5B;}
+  .row.tipo-accion{border-left-color:#1E5BB8;}
+  .row.tipo-decision{border-left-color:#2E9E5B;}
+  .row h4{margin:0; font-size:12.5px; color:var(--navy2); font-weight:600;}
+  .row .meta-top{font-size:10.5px; color:var(--greyl); margin-bottom:3px;}
+  .row .meta-bottom{font-size:10.5px; color:var(--greyl); margin-top:6px;}
+  .row .meta-bottom .overdue{color:#B23A3A; font-weight:600;}
+  .tag{font-size:9.5px; font-weight:600; padding:1px 7px; border-radius:20px; display:inline-block; margin-top:4px;}
+  .tag.riesgo-alto{background:#FBE7E7; color:#B23A3A;}
+  .tag.riesgo-medio{background:#FBF1DE; color:#8A6414;}
+  .tag.riesgo-bajo{background:#E7F7EE; color:#1F8A4C;}
+  .tag.estatus{background:#EDF3FA; color:#1E5BB8;}
+
+  .list-view .row{max-width:none;}
+  .empty{color:var(--greyl); font-size:12.5px; text-align:center; padding:20px;}
+  .loading{color:var(--grey); text-align:center; padding:30px;}
+  .no-proyecto{text-align:center; padding:60px 20px; color:var(--grey);}
+
+  .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:20; align-items:flex-end; justify-content:center;}
+  .overlay.open{display:flex;}
+  .sheet{background:#fff; width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; max-height:88vh; overflow-y:auto;}
+  .sheet label{display:block; font-size:11.5px; color:var(--grey); margin:14px 0 5px; font-weight:500;}
+  .sheet label:first-of-type{margin-top:4px;}
+  .sheet input[type=text], .sheet input[type=date], .sheet select, .sheet textarea{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px; color:var(--ink); resize:vertical;
+  }
+  .sheet-title{font-size:16px; font-weight:600; color:var(--navy2); margin:0;}
+  .sheet-row{display:flex; gap:8px;}
+  .sheet-row > div{flex:1;}
+  .sheet-actions{display:flex; gap:8px; margin-top:20px;}
+  .close-x{float:right; background:none; border:none; font-size:20px; color:var(--greyl); cursor:pointer; line-height:1;}
+  .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html">Inicio</a>
+      <a href="/precios.html">Lista de Precios</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/agentes.html" class="active">Agentes powered by DELFOS</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Dashboard de Proyecto</h1>
+  <p>RAID, dependencias críticas y compromisos, todo en un solo lugar por proyecto</p>
+  <div class="proyecto-selector">
+    <select id="proyectoSelect" onchange="selectProyecto(this.value)"><option value="">Selecciona un proyecto...</option></select>
+    <button class="btn btn-ghost" onclick="nuevoProyecto()">+ Nuevo proyecto</button>
+  </div>
+</header>
+
+<main id="main"><div class="loading">Cargando…</div></main>
+
+<div class="overlay" id="overlay" onclick="if(event.target===this) closeSheet()">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+let data = { proyectos: [], raid: [], dependencias: [], compromisos: [] };
+let currentProyecto = null;
+let activeTab = 'raid';
+let currentId = null;
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+function fmtDate(s){ return s ? new Date(s+'T00:00:00').toLocaleDateString('es-MX') : ''; }
+function isPastDue(fecha, estatus, doneStatus){
+  if(!fecha || estatus === doneStatus) return false;
+  return new Date(fecha+'T00:00:00') < new Date(new Date().toDateString());
+}
+
+async function loadData(){
+  try{
+    const r = await fetch('/api/proyecto-dashboard');
+    const d = await r.json();
+    data.proyectos = d.proyectos || [];
+    data.raid = d.raid || [];
+    data.dependencias = d.dependencias || [];
+    data.compromisos = d.compromisos || [];
+  }catch(e){}
+  populateProyectoSelect();
+  if(data.proyectos.length && !currentProyecto) selectProyecto(data.proyectos[0]);
+  else render();
+}
+
+async function saveData(){
+  try{
+    await fetch('/api/proyecto-dashboard', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ proyectos: data.proyectos, raid: data.raid, dependencias: data.dependencias, compromisos: data.compromisos })
+    });
+  }catch(e){ console.error(e); }
+}
+
+function populateProyectoSelect(){
+  const sel = document.getElementById('proyectoSelect');
+  sel.innerHTML = '<option value="">Selecciona un proyecto...</option>' + data.proyectos.map(p=>`<option value="${esc(p)}" ${p===currentProyecto?'selected':''}>${esc(p)}</option>`).join('');
+}
+
+function nuevoProyecto(){
+  const name = prompt('Nombre del nuevo proyecto:');
+  if(!name || !name.trim()) return;
+  const trimmed = name.trim();
+  if(!data.proyectos.includes(trimmed)) data.proyectos.push(trimmed);
+  saveData();
+  populateProyectoSelect();
+  selectProyecto(trimmed);
+}
+
+function selectProyecto(p){
+  currentProyecto = p || null;
+  document.getElementById('proyectoSelect').value = p || '';
+  render();
+}
+
+function setTab(t){ activeTab = t; render(); }
+
+function itemsFor(kind){
+  return data[kind].filter(it=>it.proyecto === currentProyecto);
+}
+
+function computeKPIs(){
+  const raid = itemsFor('raid');
+  const deps = itemsFor('dependencias');
+  const coms = itemsFor('compromisos');
+
+  const riesgosAltoAbiertos = raid.filter(it=>it.tipo==='Riesgo' && it.prioridad==='Alta' && it.estatus!=='Cerrado').length;
+  const depsBloqueando = deps.filter(it=>it.estatus==='Bloqueando').length;
+  const comsVencidos = coms.filter(it=>isPastDue(it.fechaLimite, it.estatus, 'Cumplido')).length;
+  const raidCerrado = raid.length ? Math.round(raid.filter(it=>it.estatus==='Cerrado').length / raid.length * 100) : null;
+
+  const allTimestamps = [...raid, ...deps, ...coms].map(it=>it.updatedAt || it.createdAt).filter(Boolean).map(d=>new Date(d));
+  let diasDesdeUpdate = null;
+  if(allTimestamps.length){
+    const last = new Date(Math.max(...allTimestamps));
+    diasDesdeUpdate = Math.floor((new Date() - last) / (1000*60*60*24));
+  }
+
+  return { riesgosAltoAbiertos, depsBloqueando, comsVencidos, raidCerrado, diasDesdeUpdate };
+}
+
+function render(){
+  const main = document.getElementById('main');
+  if(!currentProyecto){
+    main.innerHTML = '<div class="no-proyecto">Selecciona o crea un proyecto para ver su dashboard.</div>';
+    return;
+  }
+
+  const k = computeKPIs();
+  main.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="n ${k.riesgosAltoAbiertos?'warn':''}">${k.riesgosAltoAbiertos}</div><div class="l">Riesgos altos abiertos</div></div>
+      <div class="kpi-card"><div class="n ${k.depsBloqueando?'warn':''}">${k.depsBloqueando}</div><div class="l">Dependencias bloqueando</div></div>
+      <div class="kpi-card"><div class="n ${k.comsVencidos?'warn':''}">${k.comsVencidos}</div><div class="l">Compromisos vencidos</div></div>
+      <div class="kpi-card"><div class="n">${k.raidCerrado===null?'—':k.raidCerrado+'%'}</div><div class="l">RAID cerrado</div></div>
+      <div class="kpi-card"><div class="n">${k.diasDesdeUpdate===null?'—':k.diasDesdeUpdate}</div><div class="l">Días desde última actualización</div></div>
+    </div>
+
+    <div class="resumen-box">
+      <h2>Resumen ejecutivo</h2>
+      <div id="resumenContent" class="resumen-empty">Sin generar todavía.</div>
+      <button class="btn btn-ghost light" style="margin-top:10px;" onclick="generarResumen()">Generar resumen ejecutivo</button>
+    </div>
+
+    <div class="tabbar">
+      <button class="${activeTab==='raid'?'active':''}" onclick="setTab('raid')">RAID</button>
+      <button class="${activeTab==='dependencias'?'active':''}" onclick="setTab('dependencias')">Dependencias Críticas</button>
+      <button class="${activeTab==='compromisos'?'active':''}" onclick="setTab('compromisos')">Compromisos</button>
+    </div>
+    <div class="tabcontent">
+      <div class="tab-toolbar">
+        <input type="text" id="search" placeholder="Buscar…" oninput="renderTabBody()">
+        <button class="btn btn-primary" onclick="openSheet(null)">+ Nuevo</button>
+      </div>
+      <div id="tabBody"></div>
+    </div>
+  `;
+  renderTabBody();
+}
+
+function renderTabBody(){
+  const q = (document.getElementById('search')?.value || '').trim().toLowerCase();
+  const body = document.getElementById('tabBody');
+
+  if(activeTab === 'raid'){
+    const items = itemsFor('raid').filter(it => !q || it.descripcion.toLowerCase().includes(q));
+    if(!items.length){ body.innerHTML = '<div class="empty">Sin registros RAID para este proyecto.</div>'; return; }
+    const cols = ['Abierto','En progreso','Cerrado'];
+    const tipoClass = t => ({'Riesgo':'tipo-riesgo','Issue':'tipo-issue','Acción':'tipo-accion','Decisión':'tipo-decision'}[t]||'');
+    const prioOrder = {'Alta':0,'Media':1,'Baja':2};
+    body.innerHTML = `<div class="board">${cols.map(estatus=>{
+      const colItems = items.filter(it=>it.estatus===estatus).sort((a,b)=>(prioOrder[a.prioridad]??1)-(prioOrder[b.prioridad]??1));
+      return `<div class="col"><h3>${estatus} <span class="count">${colItems.length}</span></h3>
+        ${colItems.map(it=>`
+          <div class="row ${tipoClass(it.tipo)}" onclick="openSheet('${it.id}')">
+            <div class="meta-top">${esc(it.tipo)}</div>
+            <h4>${esc(it.descripcion.slice(0,70))}${it.descripcion.length>70?'…':''}</h4>
+            ${it.prioridad ? `<span class="tag riesgo-${it.prioridad.toLowerCase()==='alta'?'alto':(it.prioridad.toLowerCase()==='media'?'medio':'bajo')}">${esc(it.prioridad)}</span>` : ''}
+            <div class="meta-bottom">${it.responsable ? esc(it.responsable) : 'Sin responsable'}${it.fechaLimite ? ' · '+fmtDate(it.fechaLimite) : ''}</div>
+          </div>
+        `).join('') || '<div class="empty" style="padding:10px 4px;">Vacío</div>'}
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  if(activeTab === 'dependencias'){
+    const items = itemsFor('dependencias').filter(it => !q || it.descripcion.toLowerCase().includes(q));
+    if(!items.length){ body.innerHTML = '<div class="empty">Sin dependencias registradas para este proyecto.</div>'; return; }
+    const order = {'Alto':0,'Medio':1,'Bajo':2};
+    const sorted = items.slice().sort((a,b)=>(order[a.nivelRiesgo]??1)-(order[b.nivelRiesgo]??1));
+    body.innerHTML = `<div class="list-view">${sorted.map(it=>{
+      const overdue = isPastDue(it.fechaEsperada, it.estatus, 'Resuelta');
+      const rc = {'Alto':'riesgo-alto','Medio':'riesgo-medio','Bajo':'riesgo-bajo'}[it.nivelRiesgo]||'';
+      return `
+        <div class="row ${rc}" onclick="openSheet('${it.id}')">
+          <div class="meta-top">Depende de: ${esc(it.tercero)}</div>
+          <h4>${esc(it.descripcion)}</h4>
+          <span class="tag ${rc}">Riesgo ${esc(it.nivelRiesgo)}</span> <span class="tag estatus">${esc(it.estatus)}</span>
+          ${it.impacto ? `<div class="meta-bottom">Impacto: ${esc(it.impacto)}</div>` : ''}
+          <div class="meta-bottom">${it.fechaEsperada ? (overdue ? '<span class="overdue">Se esperaba '+fmtDate(it.fechaEsperada)+'</span>' : 'Esperado: '+fmtDate(it.fechaEsperada)) : 'Sin fecha esperada'}</div>
+        </div>
+      `;
+    }).join('')}</div>`;
+  }
+
+  if(activeTab === 'compromisos'){
+    const items = itemsFor('compromisos').filter(it => !q || it.compromiso.toLowerCase().includes(q));
+    if(!items.length){ body.innerHTML = '<div class="empty">Sin compromisos registrados para este proyecto.</div>'; return; }
+    const sorted = items.slice().sort((a,b)=>(a.fechaLimite||'9999').localeCompare(b.fechaLimite||'9999'));
+    body.innerHTML = `<div class="list-view">${sorted.map(it=>{
+      const overdue = isPastDue(it.fechaLimite, it.estatus, 'Cumplido');
+      return `
+        <div class="row" onclick="openSheet('${it.id}')">
+          <div class="meta-top">${esc(it.quien)}</div>
+          <h4>${esc(it.compromiso)}</h4>
+          <span class="tag estatus">${esc(it.estatus)}</span>
+          <div class="meta-bottom">${it.fechaLimite ? (overdue ? '<span class="overdue">Venció '+fmtDate(it.fechaLimite)+'</span>' : 'Vence '+fmtDate(it.fechaLimite)) : 'Sin fecha límite'}</div>
+        </div>
+      `;
+    }).join('')}</div>`;
+  }
+}
+
+function openSheet(id){
+  currentId = id;
+  const sheet = document.getElementById('sheet');
+
+  if(activeTab === 'raid'){
+    const it = id ? data.raid.find(x=>x.id===id) : { proyecto:currentProyecto, tipo:'Riesgo', descripcion:'', responsable:'', fechaLimite:'', prioridad:'Media', estatus:'Abierto' };
+    const tipoOpts = ['Riesgo','Issue','Acción','Decisión'].map(t=>`<option value="${t}" ${it.tipo===t?'selected':''}>${t}</option>`).join('');
+    const prioOpts = ['Alta','Media','Baja'].map(p=>`<option value="${p}" ${it.prioridad===p?'selected':''}>${p}</option>`).join('');
+    const estatusOpts = ['Abierto','En progreso','Cerrado'].map(e=>`<option value="${e}" ${it.estatus===e?'selected':''}>${e}</option>`).join('');
+    sheet.innerHTML = `
+      <button class="close-x" onclick="closeSheet()">&times;</button>
+      <p class="sheet-title">${id ? 'Editar registro RAID' : 'Nuevo registro RAID'}</p>
+      <div class="sheet-row">
+        <div><label>Tipo</label><select id="f-tipo">${tipoOpts}</select></div>
+        <div><label>Prioridad</label><select id="f-prioridad">${prioOpts}</select></div>
+      </div>
+      <label>Descripción</label><textarea id="f-descripcion" rows="3">${esc(it.descripcion)}</textarea>
+      <div class="sheet-row">
+        <div><label>Responsable</label><input type="text" id="f-responsable" value="${esc(it.responsable)}"></div>
+        <div><label>Fecha límite</label><input type="date" id="f-fechaLimite" value="${it.fechaLimite||''}"></div>
+      </div>
+      <label>Estatus</label><select id="f-estatus">${estatusOpts}</select>
+      <div class="sheet-actions">
+        <button class="btn btn-primary" onclick="saveRaid()">Guardar</button>
+        ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
+      </div>
+    `;
+  }
+
+  if(activeTab === 'dependencias'){
+    const it = id ? data.dependencias.find(x=>x.id===id) : { proyecto:currentProyecto, descripcion:'', tercero:'', fechaEsperada:'', impacto:'', estatus:'Pendiente', nivelRiesgo:'Medio' };
+    const estatusOpts = ['Pendiente','En proceso','Bloqueando','Resuelta'].map(e=>`<option value="${e}" ${it.estatus===e?'selected':''}>${e}</option>`).join('');
+    const riesgoOpts = ['Alto','Medio','Bajo'].map(r=>`<option value="${r}" ${it.nivelRiesgo===r?'selected':''}>${r}</option>`).join('');
+    sheet.innerHTML = `
+      <button class="close-x" onclick="closeSheet()">&times;</button>
+      <p class="sheet-title">${id ? 'Editar dependencia' : 'Nueva dependencia crítica'}</p>
+      <label>¿De quién depende? (SAT, banco, cliente, proveedor…)</label><input type="text" id="f-tercero" value="${esc(it.tercero)}">
+      <label>Descripción</label><textarea id="f-descripcion" rows="3">${esc(it.descripcion)}</textarea>
+      <div class="sheet-row">
+        <div><label>Nivel de riesgo</label><select id="f-nivelRiesgo">${riesgoOpts}</select></div>
+        <div><label>Fecha esperada</label><input type="date" id="f-fechaEsperada" value="${it.fechaEsperada||''}"></div>
+      </div>
+      <label>Impacto si se retrasa</label><textarea id="f-impacto" rows="2">${esc(it.impacto)}</textarea>
+      <label>Estatus</label><select id="f-estatus">${estatusOpts}</select>
+      <div class="sheet-actions">
+        <button class="btn btn-primary" onclick="saveDependencia()">Guardar</button>
+        ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
+      </div>
+    `;
+  }
+
+  if(activeTab === 'compromisos'){
+    const it = id ? data.compromisos.find(x=>x.id===id) : { proyecto:currentProyecto, compromiso:'', quien:'', fechaLimite:'', estatus:'Pendiente' };
+    const estatusOpts = ['Pendiente','Cumplido'].map(e=>`<option value="${e}" ${it.estatus===e?'selected':''}>${e}</option>`).join('');
+    sheet.innerHTML = `
+      <button class="close-x" onclick="closeSheet()">&times;</button>
+      <p class="sheet-title">${id ? 'Editar compromiso' : 'Nuevo compromiso'}</p>
+      <label>¿Quién se comprometió?</label><input type="text" id="f-quien" value="${esc(it.quien)}" placeholder="Ej. Cliente / Juan Pérez">
+      <label>¿Qué se comprometió?</label><textarea id="f-compromiso" rows="3">${esc(it.compromiso)}</textarea>
+      <div class="sheet-row">
+        <div><label>Fecha límite</label><input type="date" id="f-fechaLimite" value="${it.fechaLimite||''}"></div>
+        <div><label>Estatus</label><select id="f-estatus">${estatusOpts}</select></div>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn btn-primary" onclick="saveCompromiso()">Guardar</button>
+        ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
+      </div>
+    `;
+  }
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeSheet(){ document.getElementById('overlay').classList.remove('open'); currentId = null; }
+
+async function saveRaid(){
+  const descripcion = document.getElementById('f-descripcion').value.trim();
+  if(!descripcion){ alert('Falta la descripción'); return; }
+  const existing = currentId ? data.raid.find(x=>x.id===currentId) : null;
+  const item = {
+    id: currentId || ('raid-'+Date.now().toString(36)),
+    proyecto: currentProyecto,
+    tipo: document.getElementById('f-tipo').value,
+    descripcion,
+    responsable: document.getElementById('f-responsable').value.trim(),
+    fechaLimite: document.getElementById('f-fechaLimite').value,
+    prioridad: document.getElementById('f-prioridad').value,
+    estatus: document.getElementById('f-estatus').value,
+    createdAt: existing ? existing.createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  if(currentId){ data.raid[data.raid.findIndex(x=>x.id===currentId)] = item; } else { data.raid.push(item); }
+  await saveData(); closeSheet(); render();
+}
+
+async function saveDependencia(){
+  const descripcion = document.getElementById('f-descripcion').value.trim();
+  if(!descripcion){ alert('Falta la descripción'); return; }
+  const existing = currentId ? data.dependencias.find(x=>x.id===currentId) : null;
+  const item = {
+    id: currentId || ('dep-'+Date.now().toString(36)),
+    proyecto: currentProyecto,
+    tercero: document.getElementById('f-tercero').value.trim(),
+    descripcion,
+    fechaEsperada: document.getElementById('f-fechaEsperada').value,
+    impacto: document.getElementById('f-impacto').value.trim(),
+    estatus: document.getElementById('f-estatus').value,
+    nivelRiesgo: document.getElementById('f-nivelRiesgo').value,
+    createdAt: existing ? existing.createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  if(currentId){ data.dependencias[data.dependencias.findIndex(x=>x.id===currentId)] = item; } else { data.dependencias.push(item); }
+  await saveData(); closeSheet(); render();
+}
+
+async function saveCompromiso(){
+  const compromiso = document.getElementById('f-compromiso').value.trim();
+  if(!compromiso){ alert('Falta describir el compromiso'); return; }
+  const existing = currentId ? data.compromisos.find(x=>x.id===currentId) : null;
+  const item = {
+    id: currentId || ('com-'+Date.now().toString(36)),
+    proyecto: currentProyecto,
+    quien: document.getElementById('f-quien').value.trim(),
+    compromiso,
+    fechaLimite: document.getElementById('f-fechaLimite').value,
+    estatus: document.getElementById('f-estatus').value,
+    createdAt: existing ? existing.createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  if(currentId){ data.compromisos[data.compromisos.findIndex(x=>x.id===currentId)] = item; } else { data.compromisos.push(item); }
+  await saveData(); closeSheet(); render();
+}
+
+async function deleteItem(){
+  if(!confirm('¿Eliminar este registro?')) return;
+  data[activeTab] = data[activeTab].filter(x=>x.id!==currentId);
+  await saveData(); closeSheet(); render();
+}
+
+async function generarResumen(){
+  const box = document.getElementById('resumenContent');
+  box.className = '';
+  box.innerHTML = '<span class="spinner"></span>Generando…';
+  try{
+    const r = await fetch('/api/proyecto-resumen', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        proyecto: currentProyecto,
+        raid: itemsFor('raid'),
+        dependencias: itemsFor('dependencias'),
+        compromisos: itemsFor('compromisos')
+      })
+    });
+    const d = await r.json();
+    if(!d.ok){ box.innerHTML = `<span style="color:#B23A3A;">${esc(d.error||'No se pudo generar.')}</span>`; return; }
+    box.className = 'resumen-text';
+    box.textContent = d.resumen;
+  }catch(e){
+    box.innerHTML = '<span style="color:#B23A3A;">No se pudo conectar con Delfos.</span>';
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
