@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentes powered by DELFOS · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:30px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:960px; margin:0 auto; padding:24px 16px 60px;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:16px;}
+  .app-card{background:#fff; border-radius:14px; padding:22px; box-shadow:var(--shadow); text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:10px; transition:transform 0.15s ease;}
+  .app-card:hover{transform:translateY(-2px);}
+  .app-icon{width:44px; height:44px; border-radius:10px; background:linear-gradient(135deg, var(--blue), var(--cyan)); display:flex; align-items:center; justify-content:center; font-size:22px;}
+  .app-card h3{margin:0; font-size:15px; color:var(--navy2);}
+  .app-card p{margin:0; font-size:12.5px; color:var(--grey); line-height:1.5;}
+  .app-badge{font-size:10px; color:var(--blue); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;}
+
+  .app-card.soon{opacity:0.55; cursor:default;}
+  .app-card.soon:hover{transform:none;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html#individuales">Servicios individuales</a>
+      <a href="/index.html#paquetes">Paquetes SAP Cloud ERP</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/agentes.html" class="active">Agentes powered by DELFOS</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Agentes powered by DELFOS</h1>
+  <p>Herramientas de IA para el equipo comercial y de preventas de SEIDOR México</p>
+</header>
+
+<main>
+  <div class="grid">
+    <a href="/sow-review.html" class="app-card">
+      <div class="app-icon">📄</div>
+      <span class="app-badge">Preventas</span>
+      <h3>Revisor de SOW y Estimaciones</h3>
+      <p>Sube un Word o Excel y recibe riesgos, discrepancias, información faltante y sugerencias de mejora.</p>
+    </a>
+
+    <a href="/prospecto.html" class="app-card">
+      <div class="app-icon">🔎</div>
+      <span class="app-badge">Ventas</span>
+      <h3>Investigación de Prospecto</h3>
+      <p>Escribe el nombre de una empresa y recibe un perfil comercial listo para tu primera llamada o correo.</p>
+    </a>
+
+    <div class="app-card soon">
+      <div class="app-icon">✨</div>
+      <span class="app-badge">Próximamente</span>
+      <h3>Más agentes en camino</h3>
+      <p>Iremos agregando aquí nuevas herramientas conforme las necesite el equipo.</p>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

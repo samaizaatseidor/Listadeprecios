@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Revisión de SOW · SEIDOR México</title>
+<title>Investigación de Prospecto · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -34,10 +34,8 @@
   .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
   .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
 
-  .dropzone{border:2px dashed var(--line); border-radius:10px; padding:24px; text-align:center; cursor:pointer;}
-  .dropzone:hover{border-color:var(--blue);}
-  .dropzone p{margin:6px 0 0; color:var(--grey); font-size:12.5px;}
-  .filename{font-size:13px; color:var(--navy2); font-weight:600; margin-top:10px;}
+  .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:6px; font-weight:500;}
+  .field input[type=text]{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:14px; color:var(--ink);}
 
   .btn{border:none; border-radius:8px; padding:11px 18px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;}
   .btn-primary{background:var(--blue); color:#fff;}
@@ -72,31 +70,30 @@
 </nav>
 
 <header>
-  <h1>Revisión de SOW / Estimación</h1>
-  <p>Sube un Word o Excel y recibe retroalimentación automática — riesgos y huecos de información</p>
+  <h1>Investigación de Prospecto</h1>
+  <p>Escribe el nombre de una empresa y llega preparado a tu primera llamada o correo</p>
 </header>
 
 <main>
   <a href="/agentes.html" style="display:inline-block; margin-bottom:14px; font-size:13px; color:var(--blue); text-decoration:none;">← Agentes powered by DELFOS</a>
+
   <div class="section">
-    <h2>Documento a revisar</h2>
-    <p class="sub">Word (.doc, .docx) o Excel (.xls, .xlsx)</p>
-    <label class="dropzone" style="display:block;">
-      <div style="font-size:24px;">📄</div>
-      <p>Click para elegir el archivo</p>
-      <input type="file" id="fileInput" accept=".doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleFile(this.files[0])">
-    </label>
-    <div id="filename" class="filename"></div>
-    <label style="display:block; font-size:12px; color:var(--grey); margin:16px 0 6px; font-weight:500;">Instrucciones para el análisis (puedes agregarle algo más)</label>
+    <h2>Empresa a investigar</h2>
+    <div class="field">
+      <label>Nombre de la empresa</label>
+      <input type="text" id="companyInput" placeholder="Ej. Grupo Bimbo" oninput="document.getElementById('goBtn').disabled = !this.value.trim()">
+    </div>
+
+    <label style="display:block; font-size:12px; color:var(--grey); margin:16px 0 6px; font-weight:500;">Instrucciones para la investigación (puedes agregarle algo más)</label>
     <textarea id="promptBox" rows="14" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; color:var(--ink); resize:vertical;"></textarea>
 
     <div style="margin-top:14px;">
-      <button class="btn btn-primary" id="analyzeBtn" onclick="analyze()" disabled>Analizar documento</button>
+      <button class="btn btn-primary" id="goBtn" onclick="investigar()" disabled>Investigar</button>
     </div>
   </div>
 
   <div class="section" id="resultSection" style="display:none;">
-    <h2>Retroalimentación</h2>
+    <h2>Perfil comercial</h2>
     <div id="resultBody"></div>
     <div style="margin-top:16px;">
       <button class="btn btn-primary" id="pdfBtn" onclick="downloadPDF()" style="display:none;">Descargar PDF</button>
@@ -105,33 +102,94 @@
 </main>
 
 <script>
-const DEFAULT_PROMPT = `Eres un revisor experto de propuestas comerciales SAP para SEIDOR, una consultora partner de SAP. Analiza el documento adjunto (puede ser un Statement of Work o una estimación económica) y responde en español, usando exactamente este formato con encabezados en mayúsculas:
+const DEFAULT_PROMPT = `Eres un asistente de investigación comercial para el equipo de ventas (AEs y BDRs) de SEIDOR, consultora partner de SAP en México. Investiga la empresa "{{EMPRESA}}" usando fuentes públicas disponibles y responde en español, usando exactamente este formato con encabezados en mayúsculas:
 
-RIESGOS IDENTIFICADOS
-- (riesgos de alcance, técnicos o de ejecución que veas en el documento; si no hay, escribe "Ninguno identificado")
+NOMBRE COMERCIAL
+- 
 
-RIESGOS ECONÓMICOS
-- (riesgos de precio, margen, horas mal dimensionadas, supuestos de facturación poco claros; si no hay, escribe "Ninguno identificado")
+RAZÓN SOCIAL
+- (si no la encuentras con certeza, indícalo)
 
-INFORMACIÓN FALTANTE
-- (datos que deberían estar y no aparecen: fechas, supuestos, exclusiones, SLAs, forma de pago, etc.; si no hay, escribe "Ninguno identificado")
+RFC
+- (si no lo encuentras con certeza, indícalo — nunca inventes un RFC)
 
-DISCREPANCIAS
-- (inconsistencias internas del documento: alcance vs. horas cotizadas, entregables vs. cronograma, texto vs. tablas de precio, etc.; si no hay, escribe "Ninguna identificada")
+INDUSTRIA
+- 
 
-SUPUESTOS Y EXCLUSIONES POCO CLAROS
-- (supuestos que el documento da por hecho sin declararlos explícitamente, o exclusiones de alcance ambiguas que podrían generar disputas con el cliente; si no hay, escribe "Ninguno identificado")
+PRINCIPALES CONTACTOS O PERSONAS CLAVE
+- (nombres y cargos de personas relevantes para una venta B2B: dirección general, TI, finanzas, operaciones, compras; si no encuentras nombres específicos, indica qué roles buscar)
 
-SUGERENCIAS DE MEJORA
-- (cambios concretos que harían la propuesta más sólida, clara o competitiva; si no hay, escribe "Ninguna")
+QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP
+- (qué soluciones SAP — S/4HANA, SuccessFactors, BTP, Analytics Cloud, etc. — encajarían mejor con esta empresa dado su tamaño, industria y posible madurez tecnológica, y cómo posicionarlo en una llamada o correo en frío)
 
-Sé específico y, cuando puedas, cita o referencia partes concretas del documento.`;
+VALUE DRIVERS PARA ENGANCHAR
+- (los 3-5 argumentos de valor más relevantes para esta empresa específica: eficiencia operativa, cumplimiento fiscal, escalabilidad, reducción de costos, etc., adaptados a su contexto)
+
+OTROS DATOS ÚTILES PARA LA LLAMADA
+- (cualquier cosa adicional relevante: noticias recientes, expansión, cambios de liderazgo, retos del sector, competidores, tamaño aproximado de la empresa, presencia geográfica, etc.)
+
+Si no encuentras información confiable sobre algún punto, dilo explícitamente en vez de inventar datos.`;
 
 document.getElementById('promptBox').value = DEFAULT_PROMPT;
-let selectedFile = null;
 let lastFeedback = '';
+let lastCompany = '';
 
-const PDF_KNOWN_HEADERS = ['RIESGOS IDENTIFICADOS','RIESGOS ECONÓMICOS','INFORMACIÓN FALTANTE','DISCREPANCIAS','SUPUESTOS Y EXCLUSIONES POCO CLAROS','SUGERENCIAS DE MEJORA','NOMBRE COMERCIAL','RAZÓN SOCIAL','RFC','INDUSTRIA','PRINCIPALES CONTACTOS O PERSONAS CLAVE','QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP','VALUE DRIVERS PARA ENGANCHAR','OTROS DATOS ÚTILES PARA LA LLAMADA'];
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+function renderFeedback(text){
+  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l);
+  let html = '';
+  let inList = false;
+  const knownHeaders = ['NOMBRE COMERCIAL','RAZÓN SOCIAL','RFC','INDUSTRIA','PRINCIPALES CONTACTOS O PERSONAS CLAVE','QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP','VALUE DRIVERS PARA ENGANCHAR','OTROS DATOS ÚTILES PARA LA LLAMADA'];
+  lines.forEach(line=>{
+    const isHeader = knownHeaders.some(h => line.toUpperCase().startsWith(h));
+    if(isHeader){
+      if(inList){ html += '</ul>'; inList = false; }
+      html += `<h3>${esc(line)}</h3>`;
+    }else if(line.startsWith('-') || line.startsWith('•')){
+      if(!inList){ html += '<ul>'; inList = true; }
+      html += `<li>${esc(line.replace(/^[-•]\s*/, ''))}</li>`;
+    }else{
+      if(inList){ html += '</ul>'; inList = false; }
+      html += `<p style="font-size:13px; color:var(--ink);">${esc(line)}</p>`;
+    }
+  });
+  if(inList) html += '</ul>';
+  return html || `<p>${esc(text)}</p>`;
+}
+
+async function investigar(){
+  const company = document.getElementById('companyInput').value.trim();
+  if(!company) return;
+  lastCompany = company;
+  const btn = document.getElementById('goBtn');
+  const resultSection = document.getElementById('resultSection');
+  const resultBody = document.getElementById('resultBody');
+  btn.disabled = true;
+  resultSection.style.display = 'block';
+  resultBody.innerHTML = '<div class="loading"><span class="spinner"></span>Investigando ' + esc(company) + '… puede tardar hasta un minuto</div>';
+  document.getElementById('pdfBtn').style.display = 'none';
+
+  try{
+    const r = await fetch('/api/prospecto', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ companyName: company, prompt: document.getElementById('promptBox').value })
+    });
+    const data = await r.json();
+    if(!data.ok){
+      resultBody.innerHTML = `<div class="error">${esc(data.error || 'No se pudo investigar la empresa.')}</div>`;
+    }else{
+      lastFeedback = data.feedback;
+      resultBody.innerHTML = renderFeedback(data.feedback);
+      document.getElementById('pdfBtn').style.display = 'inline-block';
+    }
+  }catch(e){
+    resultBody.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
+  }
+  btn.disabled = false;
+}
+
+const PDF_KNOWN_HEADERS = ['NOMBRE COMERCIAL','RAZÓN SOCIAL','RFC','INDUSTRIA','PRINCIPALES CONTACTOS O PERSONAS CLAVE','QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP','VALUE DRIVERS PARA ENGANCHAR','OTROS DATOS ÚTILES PARA LA LLAMADA'];
 
 async function exportFeedbackPDF(title, subtitle, feedbackText, filename){
   const { jsPDF } = window.jspdf;
@@ -148,7 +206,7 @@ async function exportFeedbackPDF(title, subtitle, feedbackText, filename){
     const blob = await resp.blob();
     const dataUrl = await new Promise(res => { const r = new FileReader(); r.onload = ()=>res(r.result); r.readAsDataURL(blob); });
     doc.addImage(dataUrl, 'PNG', margin, 20, 90, 30);
-  }catch(e){ /* seguimos sin logo si falla */ }
+  }catch(e){}
 
   doc.setTextColor(255,255,255);
   doc.setFontSize(13);
@@ -191,69 +249,7 @@ async function exportFeedbackPDF(title, subtitle, feedbackText, filename){
 
 function downloadPDF(){
   if(!lastFeedback) return;
-  const client = selectedFile ? selectedFile.name : 'documento';
-  exportFeedbackPDF('Revisión de SOW / Estimación', client, lastFeedback, `Revision SOW - ${client}.pdf`);
-}
-
-function handleFile(file){
-  selectedFile = file;
-  document.getElementById('filename').textContent = file ? file.name : '';
-  document.getElementById('analyzeBtn').disabled = !file;
-}
-
-function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
-
-function renderFeedback(text){
-  // Convierte el texto de Delfos (encabezados en mayúsculas + líneas con "-") en HTML simple
-  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l);
-  let html = '';
-  let inList = false;
-  const knownHeaders = ['RIESGOS IDENTIFICADOS','RIESGOS ECONÓMICOS','INFORMACIÓN FALTANTE','DISCREPANCIAS','SUPUESTOS Y EXCLUSIONES POCO CLAROS','SUGERENCIAS DE MEJORA'];
-  lines.forEach(line=>{
-    const isHeader = knownHeaders.some(h => line.toUpperCase().startsWith(h));
-    if(isHeader){
-      if(inList){ html += '</ul>'; inList = false; }
-      html += `<h3>${esc(line)}</h3>`;
-    }else if(line.startsWith('-') || line.startsWith('•')){
-      if(!inList){ html += '<ul>'; inList = true; }
-      html += `<li>${esc(line.replace(/^[-•]\s*/, ''))}</li>`;
-    }else{
-      if(inList){ html += '</ul>'; inList = false; }
-      html += `<p style="font-size:13px; color:var(--ink);">${esc(line)}</p>`;
-    }
-  });
-  if(inList) html += '</ul>';
-  return html || `<p>${esc(text)}</p>`;
-}
-
-async function analyze(){
-  if(!selectedFile) return;
-  const btn = document.getElementById('analyzeBtn');
-  const resultSection = document.getElementById('resultSection');
-  const resultBody = document.getElementById('resultBody');
-  btn.disabled = true;
-  resultSection.style.display = 'block';
-  resultBody.innerHTML = '<div class="loading"><span class="spinner"></span>Analizando documento… puede tardar hasta un minuto</div>';
-
-  const form = new FormData();
-  form.append('file', selectedFile);
-  form.append('prompt', document.getElementById('promptBox').value);
-
-  try{
-    const r = await fetch('/api/sow-review', { method:'POST', body: form });
-    const data = await r.json();
-    if(!data.ok){
-      resultBody.innerHTML = `<div class="error">${esc(data.error || 'No se pudo analizar el documento.')}</div>`;
-      document.getElementById('pdfBtn').style.display = 'none';
-    }else{
-      lastFeedback = data.feedback;
-      resultBody.innerHTML = renderFeedback(data.feedback);
-      document.getElementById('pdfBtn').style.display = 'inline-block';
-    }
-  }catch(e){
-    resultBody.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
-  }
-  btn.disabled = false;
+  exportFeedbackPDF('Investigación de Prospecto', lastCompany, lastFeedback, `Prospecto - ${lastCompany}.pdf`);
 }
 </script>
 </body>
