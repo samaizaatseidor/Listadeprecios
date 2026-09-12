@@ -328,7 +328,7 @@ async function confirmarYCrear(){
 
     await fetch('/api/proyecto-dashboard', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ proyectos, raid, dependencias, compromisos: dash.compromisos || [] })
+      body: JSON.stringify({ proyectos, raid, dependencias, compromisos: dash.compromisos || [], changeRequests: dash.changeRequests || [] })
     });
 
     // 2. Guardar la Línea Base

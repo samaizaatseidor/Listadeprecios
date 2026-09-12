@@ -137,7 +137,7 @@
 </div>
 
 <script>
-let data = { proyectos: [], raid: [], dependencias: [], compromisos: [] };
+let data = { proyectos: [], raid: [], dependencias: [], compromisos: [], changeRequests: [] };
 let currentProyecto = null;
 let activeTab = 'raid';
 let currentId = null;
@@ -159,6 +159,7 @@ async function loadData(){
     data.raid = d.raid || [];
     data.dependencias = d.dependencias || [];
     data.compromisos = d.compromisos || [];
+    data.changeRequests = d.changeRequests || [];
   }catch(e){}
   try{
     const r2 = await fetch('/api/linea-base');
@@ -177,7 +178,7 @@ async function saveData(){
   try{
     await fetch('/api/proyecto-dashboard', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ proyectos: data.proyectos, raid: data.raid, dependencias: data.dependencias, compromisos: data.compromisos })
+      body: JSON.stringify({ proyectos: data.proyectos, raid: data.raid, dependencias: data.dependencias, compromisos: data.compromisos, changeRequests: data.changeRequests })
     });
   }catch(e){ console.error(e); }
 }
@@ -228,20 +229,22 @@ function computeKPIs(){
   const raid = itemsFor('raid');
   const deps = itemsFor('dependencias');
   const coms = itemsFor('compromisos');
+  const crs = itemsFor('changeRequests');
 
   const riesgosAltoAbiertos = raid.filter(it=>it.tipo==='Riesgo' && it.prioridad==='Alta' && it.estatus!=='Cerrado').length;
   const depsBloqueando = deps.filter(it=>it.estatus==='Bloqueando').length;
   const comsVencidos = coms.filter(it=>isPastDue(it.fechaLimite, it.estatus, 'Cumplido')).length;
   const raidCerrado = raid.length ? Math.round(raid.filter(it=>it.estatus==='Cerrado').length / raid.length * 100) : null;
+  const crsPendientes = crs.filter(it=>it.estatus==='Solicitada' || it.estatus==='En análisis').length;
 
-  const allTimestamps = [...raid, ...deps, ...coms].map(it=>it.updatedAt || it.createdAt).filter(Boolean).map(d=>new Date(d));
+  const allTimestamps = [...raid, ...deps, ...coms, ...crs].map(it=>it.updatedAt || it.createdAt).filter(Boolean).map(d=>new Date(d));
   let diasDesdeUpdate = null;
   if(allTimestamps.length){
     const last = new Date(Math.max(...allTimestamps));
     diasDesdeUpdate = Math.floor((new Date() - last) / (1000*60*60*24));
   }
 
-  return { riesgosAltoAbiertos, depsBloqueando, comsVencidos, raidCerrado, diasDesdeUpdate };
+  return { riesgosAltoAbiertos, depsBloqueando, comsVencidos, raidCerrado, diasDesdeUpdate, crsPendientes };
 }
 
 function render(){
@@ -282,6 +285,7 @@ function render(){
       <div class="kpi-card"><div class="n ${k.depsBloqueando?'warn':''}">${k.depsBloqueando}</div><div class="l">Dependencias bloqueando</div></div>
       <div class="kpi-card"><div class="n ${k.comsVencidos?'warn':''}">${k.comsVencidos}</div><div class="l">Compromisos vencidos</div></div>
       <div class="kpi-card"><div class="n">${k.raidCerrado===null?'—':k.raidCerrado+'%'}</div><div class="l">RAID cerrado</div></div>
+      <div class="kpi-card"><div class="n ${k.crsPendientes?'warn':''}">${k.crsPendientes}</div><div class="l">Change Requests pendientes</div></div>
       <div class="kpi-card"><div class="n">${k.diasDesdeUpdate===null?'—':k.diasDesdeUpdate}</div><div class="l">Días desde última actualización</div></div>
     </div>
 
@@ -295,6 +299,7 @@ function render(){
       <button class="${activeTab==='raid'?'active':''}" onclick="setTab('raid')">RAID</button>
       <button class="${activeTab==='dependencias'?'active':''}" onclick="setTab('dependencias')">Dependencias Críticas</button>
       <button class="${activeTab==='compromisos'?'active':''}" onclick="setTab('compromisos')">Compromisos</button>
+      <button class="${activeTab==='changeRequests'?'active':''}" onclick="setTab('changeRequests')">Change Requests</button>
     </div>
     <div class="tabcontent">
       <div class="tab-toolbar">
@@ -369,6 +374,22 @@ function renderTabBody(){
       `;
     }).join('')}</div>`;
   }
+
+  if(activeTab === 'changeRequests'){
+    const items = itemsFor('changeRequests').filter(it => !q || it.titulo.toLowerCase().includes(q) || it.descripcion.toLowerCase().includes(q));
+    if(!items.length){ body.innerHTML = '<div class="empty">Sin Change Requests registrados para este proyecto.</div>'; return; }
+    const estatusOrder = {'Solicitada':0,'En análisis':1,'Aprobada':2,'Rechazada':3,'Facturada':4};
+    const sorted = items.slice().sort((a,b)=>(estatusOrder[a.estatus]??0)-(estatusOrder[b.estatus]??0));
+    const crClass = e => ({'Solicitada':'riesgo-medio','En análisis':'riesgo-medio','Aprobada':'riesgo-bajo','Rechazada':'riesgo-alto','Facturada':'riesgo-bajo'}[e]||'');
+    body.innerHTML = `<div class="list-view">${sorted.map(it=>`
+        <div class="row ${crClass(it.estatus)}" onclick="openSheet('${it.id}')">
+          <div class="meta-top">${it.solicitadoPor ? 'Solicitado por: '+esc(it.solicitadoPor) : ''}${it.fechaSolicitud ? ' · '+fmtDate(it.fechaSolicitud) : ''}</div>
+          <h4>${esc(it.titulo)} ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}</h4>
+          <span class="tag estatus">${esc(it.estatus)}</span>
+          ${it.impactoTiempo || it.impactoCosto ? `<div class="meta-bottom">${it.impactoTiempo ? 'Impacto tiempo: '+esc(it.impactoTiempo) : ''}${it.impactoTiempo && it.impactoCosto ? ' · ' : ''}${it.impactoCosto ? 'Impacto costo: '+esc(it.impactoCosto) : ''}</div>` : ''}
+        </div>
+    `).join('')}</div>`;
+  }
 }
 
 function openSheet(id){
@@ -439,6 +460,32 @@ function openSheet(id){
       <label style="display:flex; align-items:center; gap:6px; margin-top:14px;"><input type="checkbox" id="f-visibleCliente" style="width:auto;" ${it.visibleCliente?'checked':''}> Visible para cliente (se incluye en el PPT exportable)</label>
       <div class="sheet-actions">
         <button class="btn btn-primary" onclick="saveCompromiso()">Guardar</button>
+        ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
+      </div>
+    `;
+  }
+
+  if(activeTab === 'changeRequests'){
+    const it = id ? data.changeRequests.find(x=>x.id===id) : { proyecto:currentProyecto, titulo:'', descripcion:'', solicitadoPor:'', fechaSolicitud:'', impactoAlcance:'', impactoTiempo:'', impactoCosto:'', estatus:'Solicitada' };
+    const estatusOpts = ['Solicitada','En análisis','Aprobada','Rechazada','Facturada'].map(e=>`<option value="${e}" ${it.estatus===e?'selected':''}>${e}</option>`).join('');
+    sheet.innerHTML = `
+      <button class="close-x" onclick="closeSheet()">&times;</button>
+      <p class="sheet-title">${id ? 'Editar Change Request' : 'Nuevo Change Request'}</p>
+      <label>Título</label><input type="text" id="f-titulo" value="${esc(it.titulo)}" placeholder="Ej. Reporte adicional de inventarios">
+      <label>Descripción</label><textarea id="f-descripcion" rows="3">${esc(it.descripcion)}</textarea>
+      <div class="sheet-row">
+        <div><label>Solicitado por</label><input type="text" id="f-solicitadoPor" value="${esc(it.solicitadoPor)}" placeholder="Cliente / Interno"></div>
+        <div><label>Fecha de solicitud</label><input type="date" id="f-fechaSolicitud" value="${it.fechaSolicitud||''}"></div>
+      </div>
+      <label>Impacto en alcance</label><textarea id="f-impactoAlcance" rows="2">${esc(it.impactoAlcance)}</textarea>
+      <div class="sheet-row">
+        <div><label>Impacto en tiempo</label><input type="text" id="f-impactoTiempo" value="${esc(it.impactoTiempo)}" placeholder="Ej. +2 semanas"></div>
+        <div><label>Impacto en costo</label><input type="text" id="f-impactoCosto" value="${esc(it.impactoCosto)}" placeholder="Ej. $45,000 MXN"></div>
+      </div>
+      <label>Estatus</label><select id="f-estatus">${estatusOpts}</select>
+      <label style="display:flex; align-items:center; gap:6px; margin-top:14px;"><input type="checkbox" id="f-visibleCliente" style="width:auto;" ${it.visibleCliente?'checked':''}> Visible para cliente (se incluye en el PPT exportable)</label>
+      <div class="sheet-actions">
+        <button class="btn btn-primary" onclick="saveCR()">Guardar</button>
         ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
       </div>
     `;
@@ -515,14 +562,40 @@ async function saveCompromiso(){
   await saveData(); closeSheet(); render();
 }
 
+async function saveCR(){
+  const titulo = document.getElementById('f-titulo').value.trim();
+  if(!titulo){ alert('Falta el título del Change Request'); return; }
+  const existing = currentId ? data.changeRequests.find(x=>x.id===currentId) : null;
+  const item = {
+    id: currentId || ('cr-'+Date.now().toString(36)),
+    proyecto: currentProyecto,
+    titulo,
+    descripcion: document.getElementById('f-descripcion').value.trim(),
+    solicitadoPor: document.getElementById('f-solicitadoPor').value.trim(),
+    fechaSolicitud: document.getElementById('f-fechaSolicitud').value,
+    impactoAlcance: document.getElementById('f-impactoAlcance').value.trim(),
+    impactoTiempo: document.getElementById('f-impactoTiempo').value.trim(),
+    impactoCosto: document.getElementById('f-impactoCosto').value.trim(),
+    estatus: document.getElementById('f-estatus').value,
+    visibleCliente: document.getElementById('f-visibleCliente').checked,
+    createdAt: existing ? existing.createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  const wasEdit = !!currentId;
+  if(currentId){ data.changeRequests[data.changeRequests.findIndex(x=>x.id===currentId)] = item; } else { data.changeRequests.push(item); }
+  await logAudit(wasEdit ? 'Editó Change Request' : 'Creó Change Request', `Proyecto "${currentProyecto}" — ${item.titulo}`);
+  await saveData(); closeSheet(); render();
+}
+
 async function deleteProyecto(){
   if(!currentProyecto) return;
   const raidCount = itemsFor('raid').length;
   const depsCount = itemsFor('dependencias').length;
   const comsCount = itemsFor('compromisos').length;
-  const total = raidCount + depsCount + comsCount;
+  const crCount = itemsFor('changeRequests').length;
+  const total = raidCount + depsCount + comsCount + crCount;
 
-  const label = `Se borrará el proyecto "${currentProyecto}" completo, incluyendo ${raidCount} registro(s) RAID, ${depsCount} dependencia(s) y ${comsCount} compromiso(s) (${total} registros en total).`;
+  const label = `Se borrará el proyecto "${currentProyecto}" completo, incluyendo ${raidCount} registro(s) RAID, ${depsCount} dependencia(s), ${comsCount} compromiso(s) y ${crCount} Change Request(s) (${total} registros en total).`;
   if(!confirmDestructive(label, currentProyecto)){
     alert('No coincidió el nombre escrito — no se borró nada.');
     return;
@@ -532,8 +605,9 @@ async function deleteProyecto(){
   data.raid = data.raid.filter(it=>it.proyecto!==currentProyecto);
   data.dependencias = data.dependencias.filter(it=>it.proyecto!==currentProyecto);
   data.compromisos = data.compromisos.filter(it=>it.proyecto!==currentProyecto);
+  data.changeRequests = data.changeRequests.filter(it=>it.proyecto!==currentProyecto);
 
-  await logAudit('Borró proyecto completo', `"${currentProyecto}" — ${total} registros (RAID: ${raidCount}, Dependencias: ${depsCount}, Compromisos: ${comsCount})`);
+  await logAudit('Borró proyecto completo', `"${currentProyecto}" — ${total} registros (RAID: ${raidCount}, Dependencias: ${depsCount}, Compromisos: ${comsCount}, CRs: ${crCount})`);
   await saveData();
   currentProyecto = data.proyectos[0] || null;
   populateProyectoSelect();
@@ -542,7 +616,7 @@ async function deleteProyecto(){
 
 async function deleteItem(){
   const it = data[activeTab].find(x=>x.id===currentId);
-  const previewText = activeTab === 'compromisos' ? it.compromiso : it.descripcion;
+  const previewText = activeTab === 'compromisos' ? it.compromiso : (activeTab === 'changeRequests' ? it.titulo : it.descripcion);
   const preview = (previewText || '').slice(0,80);
   if(!confirm(`¿Eliminar este registro?\n\n"${preview}${previewText && previewText.length>80 ? '…' : ''}"\n\nNo se puede deshacer.`)) return;
   await logAudit('Eliminó registro de '+activeTab, `Proyecto "${currentProyecto}" — ${preview}`);
@@ -561,7 +635,8 @@ async function generarResumen(){
         proyecto: currentProyecto,
         raid: itemsFor('raid'),
         dependencias: itemsFor('dependencias'),
-        compromisos: itemsFor('compromisos')
+        compromisos: itemsFor('compromisos'),
+        changeRequests: itemsFor('changeRequests')
       })
     });
     const d = await r.json();
@@ -577,10 +652,11 @@ async function exportarPPT(){
   const raidVis = itemsFor('raid').filter(it=>it.visibleCliente);
   const depsVis = itemsFor('dependencias').filter(it=>it.visibleCliente);
   const comsVis = itemsFor('compromisos').filter(it=>it.visibleCliente);
+  const crVis = itemsFor('changeRequests').filter(it=>it.visibleCliente);
   const resumenText = document.getElementById('resumenContent')?.textContent || '';
   const hasResumen = document.getElementById('resumenContent')?.className === 'resumen-text';
 
-  if(!raidVis.length && !depsVis.length && !comsVis.length && !hasResumen){
+  if(!raidVis.length && !depsVis.length && !comsVis.length && !crVis.length && !hasResumen){
     alert('No hay nada marcado como "Visible para cliente" todavía (ni un resumen ejecutivo generado). Marca al menos un registro o genera el resumen antes de exportar.');
     return;
   }
@@ -660,6 +736,20 @@ async function exportarPPT(){
     ]];
     comsVis.forEach(it=>rows.push([it.quien, it.compromiso, it.estatus, it.fechaLimite ? fmtDate(it.fechaLimite) : '—']));
     slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[2.2,6.4,1.8,1.9], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
+  }
+
+  // Change Requests
+  if(crVis.length){
+    slide = pptx.addSlide();
+    addContentSlideHeader(slide, 'Change Requests');
+    const rows = [[
+      { text:'Título', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Impacto tiempo', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Impacto costo', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Estatus', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
+    ]];
+    crVis.forEach(it=>rows.push([it.titulo, it.impactoTiempo || '—', it.impactoCosto || '—', it.estatus]));
+    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[5.5,2.5,2.5,1.8], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
   }
 
   pptx.writeFile({ fileName: `Reporte de Estatus - ${currentProyecto}.pptx` });

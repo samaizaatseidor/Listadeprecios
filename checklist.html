@@ -218,7 +218,7 @@ async function nuevoProyecto(){
       const sharedProyectos = Array.from(new Set([...(d.proyectos||[]), trimmed]));
       await fetch('/api/proyecto-dashboard', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ proyectos: sharedProyectos, raid: d.raid||[], dependencias: d.dependencias||[], compromisos: d.compromisos||[] })
+        body: JSON.stringify({ proyectos: sharedProyectos, raid: d.raid||[], dependencias: d.dependencias||[], compromisos: d.compromisos||[], changeRequests: d.changeRequests||[] })
       });
     }catch(e){ console.error('No se pudo sincronizar el proyecto nuevo', e); }
   }
