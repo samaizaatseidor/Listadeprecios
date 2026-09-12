@@ -24,32 +24,45 @@
   .topnav-links a:hover{color:var(--blue);}
   .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
 
-  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px;}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;}
   header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
-
-  main{max-width:820px; margin:0 auto; padding:20px 16px 60px;}
-  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
-  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
-  .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
-
-  .dropzone{border:2px dashed var(--line); border-radius:10px; padding:24px; text-align:center; cursor:pointer;}
-  .dropzone:hover{border-color:var(--blue);}
-  .dropzone p{margin:6px 0 0; color:var(--grey); font-size:12.5px;}
   .btn{border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;}
   .btn-primary{background:var(--blue); color:#fff;}
   .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
 
-  .doc-row{display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line);}
+  main{max-width:900px; margin:0 auto; padding:20px 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .section .count{font-size:12px; color:var(--greyl); font-weight:400;}
+
+  .doc-row{display:flex; align-items:flex-start; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line); gap:12px;}
   .doc-row:last-child{border-bottom:none;}
+  .doc-icon{font-size:18px; flex-shrink:0;}
   .doc-name{font-size:13.5px; font-weight:600; color:var(--navy2);}
-  .doc-meta{font-size:11.5px; color:var(--greyl); margin-top:2px;}
-  .doc-actions{display:flex; gap:8px;}
-  .doc-actions a, .doc-actions button{font-size:12px; text-decoration:none; color:var(--blue); background:none; border:none; cursor:pointer; font-family:inherit;}
+  .doc-desc{font-size:12px; color:var(--grey); margin-top:2px;}
+  .doc-meta{font-size:11px; color:var(--greyl); margin-top:4px;}
+  .doc-actions{display:flex; gap:10px; flex-shrink:0;}
+  .doc-actions a, .doc-actions button{font-size:12px; text-decoration:none; color:var(--blue); background:none; border:none; cursor:pointer; font-family:inherit; padding:0;}
   .doc-actions .del{color:#B23A3A;}
 
-  .empty{color:var(--greyl); font-size:12.5px; text-align:center; padding:20px;}
+  .empty{color:var(--greyl); font-size:12.5px; padding:10px 0;}
   .loading{color:var(--grey); text-align:center; padding:20px;}
+
+  .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:20; align-items:flex-end; justify-content:center;}
+  .overlay.open{display:flex;}
+  .sheet{background:#fff; width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; max-height:88vh; overflow-y:auto;}
+  .sheet label{display:block; font-size:11.5px; color:var(--grey); margin:14px 0 5px; font-weight:500;}
+  .sheet label:first-of-type{margin-top:4px;}
+  .sheet input[type=text], .sheet input[type=url], .sheet select, .sheet textarea{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px; color:var(--ink); resize:vertical;
+  }
+  .sheet-title{font-size:16px; font-weight:600; color:var(--navy2); margin:0;}
+  .type-toggle{display:flex; gap:8px; margin-top:4px;}
+  .type-toggle button{flex:1; padding:9px; border-radius:8px; border:1px solid var(--line); background:#fff; font-family:inherit; font-size:13px; cursor:pointer;}
+  .type-toggle button.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+  .sheet-actions{margin-top:20px;}
+  .close-x{float:right; background:none; border:none; font-size:20px; color:var(--greyl); cursor:pointer; line-height:1;}
 </style>
 </head>
 <body>
@@ -64,89 +77,167 @@
       <a href="/ficha.html">Ficha del Cliente</a>
       <a href="/kpis.html">Tablero de Control</a>
       <a href="/documentos.html" class="active">Documentos de Apoyo</a>
+      <a href="/sow-review.html">Revisión de SOW</a>
     </div>
   </div>
 </nav>
 
 <header>
-  <h1>Documentos de Apoyo</h1>
-  <p>Presentaciones, guías y plantillas del equipo de preventas</p>
+  <div>
+    <h1>Documentos de Apoyo</h1>
+    <p>Procesos, templates y herramientas del equipo de preventas</p>
+  </div>
+  <button class="btn btn-primary" onclick="openAdd()">+ Agregar</button>
 </header>
 
-<main>
-  <div class="section">
-    <h2>Subir documento</h2>
-    <p class="sub">Formatos permitidos: PowerPoint, PDF, Word, Excel</p>
-    <label class="dropzone" style="display:block;">
-      <div style="font-size:24px;">📁</div>
-      <p>Click para elegir un archivo, o arrástralo aquí</p>
-      <input type="file" id="fileInput" accept=".ppt,.pptx,.pdf,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleFile(this.files[0])">
-    </label>
-    <div id="uploadStatus" style="margin-top:10px; font-size:12.5px; color:var(--grey);"></div>
-  </div>
+<main id="main"><div class="loading">Cargando…</div></main>
 
-  <div class="section">
-    <h2>Documentos disponibles</h2>
-    <div id="docList"><div class="loading">Cargando…</div></div>
-  </div>
-</main>
+<div class="overlay" id="overlay" onclick="if(event.target===this) closeAdd()">
+  <div class="sheet" id="sheet"></div>
+</div>
 
 <script>
-function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+let SECTIONS = [];
+let docs = [];
+let addType = 'file';
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
 function formatSize(bytes){
+  if(!bytes) return '';
   if(bytes < 1024) return bytes + ' B';
   if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
   return (bytes/(1024*1024)).toFixed(1) + ' MB';
 }
 
 async function loadDocs(){
-  const el = document.getElementById('docList');
+  const main = document.getElementById('main');
   try{
-    const r = await fetch('/api/docs');
+    const r = await fetch('/api/documentos');
     const data = await r.json();
-    const files = data.files || [];
-    if(!files.length){ el.innerHTML = '<div class="empty">Aún no hay documentos subidos.</div>'; return; }
-    el.innerHTML = files.map(f => `
-      <div class="doc-row">
-        <div>
-          <div class="doc-name">${esc(f.key)}</div>
-          <div class="doc-meta">${formatSize(f.size)} · subido por ${esc(f.uploadedBy)} · ${new Date(f.uploaded).toLocaleDateString('es-MX')}</div>
-        </div>
-        <div class="doc-actions">
-          <a href="/api/docs/file?key=${encodeURIComponent(f.key)}">Descargar</a>
-          <button class="del" onclick="deleteDoc('${esc(f.key)}')">Eliminar</button>
-        </div>
-      </div>
-    `).join('');
+    docs = data.documentos || [];
+    SECTIONS = data.sections || [];
+    render();
   }catch(e){
-    el.innerHTML = '<div class="empty">No se pudo cargar la lista de documentos.</div>';
+    main.innerHTML = '<div class="section"><p class="empty">No se pudo cargar la lista de documentos.</p></div>';
   }
 }
 
-async function handleFile(file){
-  if(!file) return;
-  const status = document.getElementById('uploadStatus');
-  status.textContent = 'Subiendo ' + file.name + '…';
+function render(){
+  const main = document.getElementById('main');
+  const allSections = SECTIONS.concat(docs.some(d=>d.section==='Sin clasificar') ? ['Sin clasificar'] : []);
+  main.innerHTML = allSections.map(section=>{
+    const items = docs.filter(d=>d.section===section);
+    return `
+      <div class="section">
+        <h2>${esc(section)} <span class="count">(${items.length})</span></h2>
+        ${items.length ? items.map(d=>`
+          <div class="doc-row">
+            <div class="doc-icon">${d.type==='link' ? '🔗' : '📄'}</div>
+            <div style="flex:1;">
+              <div class="doc-name">${esc(d.title)}</div>
+              ${d.description ? `<div class="doc-desc">${esc(d.description)}</div>` : ''}
+              <div class="doc-meta">${d.type==='file' ? formatSize(d.size)+' · ' : ''}${esc(d.uploadedBy)} · ${new Date(d.uploadedAt).toLocaleDateString('es-MX')}</div>
+            </div>
+            <div class="doc-actions">
+              ${d.type==='link'
+                ? `<a href="${esc(d.url)}" target="_blank">Abrir</a>`
+                : `<a href="/api/docs/file?key=${encodeURIComponent(d.r2Key)}">Descargar</a>`}
+              <button class="del" onclick="deleteDoc('${d.id}')">Eliminar</button>
+            </div>
+          </div>
+        `).join('') : '<div class="empty">Sin documentos todavía.</div>'}
+      </div>
+    `;
+  }).join('');
+}
+
+function openAdd(){
+  addType = 'file';
+  const sheet = document.getElementById('sheet');
+  const sectionOptions = SECTIONS.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  sheet.innerHTML = `
+    <button class="close-x" onclick="closeAdd()">&times;</button>
+    <p class="sheet-title">Agregar documento</p>
+
+    <div class="type-toggle">
+      <button id="btn-type-file" class="active" onclick="setAddType('file')">Subir archivo</button>
+      <button id="btn-type-link" onclick="setAddType('link')">Liga a SharePoint</button>
+    </div>
+
+    <label>Sección</label>
+    <select id="d-section">${sectionOptions}</select>
+
+    <label>Título</label>
+    <input type="text" id="d-title" placeholder="Ej. Playbook de descubrimiento SAP">
+
+    <label>Descripción</label>
+    <textarea id="d-desc" rows="2" placeholder="¿De qué trata este documento?"></textarea>
+
+    <div id="file-field">
+      <label>Archivo (PPT, PDF, Word o Excel)</label>
+      <input type="file" id="d-file" accept=".ppt,.pptx,.pdf,.doc,.docx,.xls,.xlsx">
+    </div>
+    <div id="link-field" style="display:none;">
+      <label>Liga de SharePoint</label>
+      <input type="url" id="d-url" placeholder="https://seidor.sharepoint.com/...">
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn btn-primary" onclick="submitDoc()" style="width:100%;">Guardar</button>
+    </div>
+    <div id="addStatus" style="margin-top:10px; font-size:12.5px; color:var(--grey);"></div>
+  `;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function setAddType(type){
+  addType = type;
+  document.getElementById('btn-type-file').classList.toggle('active', type==='file');
+  document.getElementById('btn-type-link').classList.toggle('active', type==='link');
+  document.getElementById('file-field').style.display = type==='file' ? 'block' : 'none';
+  document.getElementById('link-field').style.display = type==='link' ? 'block' : 'none';
+}
+
+function closeAdd(){ document.getElementById('overlay').classList.remove('open'); }
+
+async function submitDoc(){
+  const section = document.getElementById('d-section').value;
+  const title = document.getElementById('d-title').value.trim();
+  const description = document.getElementById('d-desc').value.trim();
+  const status = document.getElementById('addStatus');
+
+  if(!title){ alert('Ponle un título al documento'); return; }
+
   const form = new FormData();
-  form.append('file', file);
+  form.append('type', addType);
+  form.append('section', section);
+  form.append('title', title);
+  form.append('description', description);
+
+  if(addType === 'file'){
+    const file = document.getElementById('d-file').files[0];
+    if(!file){ alert('Elige un archivo'); return; }
+    form.append('file', file);
+  }else{
+    const urlVal = document.getElementById('d-url').value.trim();
+    if(!urlVal){ alert('Pega la liga de SharePoint'); return; }
+    form.append('url', urlVal);
+  }
+
+  status.textContent = 'Guardando…';
   try{
-    const r = await fetch('/api/docs', { method:'POST', body: form });
-    if(!r.ok){
-      const msg = await r.text();
-      status.textContent = 'Error: ' + msg;
-      return;
-    }
-    status.textContent = 'Listo — ' + file.name + ' subido.';
-    document.getElementById('fileInput').value = '';
+    const r = await fetch('/api/documentos', { method:'POST', body: form });
+    if(!r.ok){ status.textContent = 'Error: ' + await r.text(); return; }
+    closeAdd();
     loadDocs();
   }catch(e){
-    status.textContent = 'No se pudo subir el archivo. Intenta de nuevo.';
+    status.textContent = 'No se pudo guardar. Intenta de nuevo.';
   }
 }
 
-async function deleteDoc(key){
-  if(!confirm('¿Eliminar "'+key+'"? No se puede deshacer.')) return;
-  await fetch('/api/docs/file?key='+encodeURIComponent(key), { method:'DELETE' });
+async function deleteDoc(id){
+  if(!confirm('¿Eliminar este documento? No se puede deshacer.')) return;
+  await fetch('/api/documentos?id='+encodeURIComponent(id), { method:'DELETE' });
   loadDocs();
 }
 

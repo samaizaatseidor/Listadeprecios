@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revisión de SOW · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:760px; margin:0 auto; padding:20px 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
+
+  .dropzone{border:2px dashed var(--line); border-radius:10px; padding:24px; text-align:center; cursor:pointer;}
+  .dropzone:hover{border-color:var(--blue);}
+  .dropzone p{margin:6px 0 0; color:var(--grey); font-size:12.5px;}
+  .filename{font-size:13px; color:var(--navy2); font-weight:600; margin-top:10px;}
+
+  .btn{border:none; border-radius:8px; padding:11px 18px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-primary:disabled{background:var(--line); color:var(--greyl); cursor:not-allowed;}
+
+  .result h3{font-size:13.5px; color:var(--navy2); margin:18px 0 8px; text-transform:uppercase; letter-spacing:0.4px;}
+  .result h3:first-child{margin-top:0;}
+  .result ul{margin:0; padding-left:20px;}
+  .result li{font-size:13px; color:var(--ink); margin-bottom:6px; line-height:1.5;}
+
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .spinner{display:inline-block; width:14px; height:14px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:8px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+  .error{color:#B23A3A; font-size:13px; background:#FBE7E7; border-radius:8px; padding:10px 12px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html#individuales">Servicios individuales</a>
+      <a href="/index.html#paquetes">Paquetes SAP Cloud ERP</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/sow-review.html" class="active">Revisión de SOW</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Revisión de SOW / Estimación</h1>
+  <p>Sube un Word o Excel y recibe retroalimentación automática — riesgos y huecos de información</p>
+</header>
+
+<main>
+  <div class="section">
+    <h2>Documento a revisar</h2>
+    <p class="sub">Word (.doc, .docx) o Excel (.xls, .xlsx)</p>
+    <label class="dropzone" style="display:block;">
+      <div style="font-size:24px;">📄</div>
+      <p>Click para elegir el archivo</p>
+      <input type="file" id="fileInput" accept=".doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleFile(this.files[0])">
+    </label>
+    <div id="filename" class="filename"></div>
+    <div style="margin-top:14px;">
+      <button class="btn btn-primary" id="analyzeBtn" onclick="analyze()" disabled>Analizar documento</button>
+    </div>
+  </div>
+
+  <div class="section" id="resultSection" style="display:none;">
+    <h2>Retroalimentación</h2>
+    <div id="resultBody"></div>
+  </div>
+</main>
+
+<script>
+let selectedFile = null;
+
+function handleFile(file){
+  selectedFile = file;
+  document.getElementById('filename').textContent = file ? file.name : '';
+  document.getElementById('analyzeBtn').disabled = !file;
+}
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+function renderFeedback(text){
+  // Convierte el texto de Delfos (encabezados en mayúsculas + líneas con "-") en HTML simple
+  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l);
+  let html = '';
+  let inList = false;
+  const knownHeaders = ['RIESGOS IDENTIFICADOS','RIESGOS ECONÓMICOS','INFORMACIÓN FALTANTE'];
+  lines.forEach(line=>{
+    const isHeader = knownHeaders.some(h => line.toUpperCase().startsWith(h));
+    if(isHeader){
+      if(inList){ html += '</ul>'; inList = false; }
+      html += `<h3>${esc(line)}</h3>`;
+    }else if(line.startsWith('-') || line.startsWith('•')){
+      if(!inList){ html += '<ul>'; inList = true; }
+      html += `<li>${esc(line.replace(/^[-•]\s*/, ''))}</li>`;
+    }else{
+      if(inList){ html += '</ul>'; inList = false; }
+      html += `<p style="font-size:13px; color:var(--ink);">${esc(line)}</p>`;
+    }
+  });
+  if(inList) html += '</ul>';
+  return html || `<p>${esc(text)}</p>`;
+}
+
+async function analyze(){
+  if(!selectedFile) return;
+  const btn = document.getElementById('analyzeBtn');
+  const resultSection = document.getElementById('resultSection');
+  const resultBody = document.getElementById('resultBody');
+  btn.disabled = true;
+  resultSection.style.display = 'block';
+  resultBody.innerHTML = '<div class="loading"><span class="spinner"></span>Analizando documento… puede tardar hasta un minuto</div>';
+
+  const form = new FormData();
+  form.append('file', selectedFile);
+
+  try{
+    const r = await fetch('/api/sow-review', { method:'POST', body: form });
+    const data = await r.json();
+    if(!data.ok){
+      resultBody.innerHTML = `<div class="error">${esc(data.error || 'No se pudo analizar el documento.')}</div>`;
+    }else{
+      resultBody.innerHTML = renderFeedback(data.feedback);
+    }
+  }catch(e){
+    resultBody.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
