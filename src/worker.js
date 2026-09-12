@@ -129,10 +129,10 @@ async function delfosUploadFile(token, sessionId, username, file) {
     url,
     mimetype: entry.mimetype || entry.mime_type || file.type || 'application/octet-stream'
   };
-  return { fileRef, rawUploadResponse: data };
+  return fileRef;
 }
 
-async function delfosGetCompletion(token, { sessionId, username, text, fileRef }) {
+async function delfosGetCompletion(token, { sessionId, username, text, fileRef, useOnlineSearch }) {
   const resp = await fetch('https://delfos-api.seidor.ai/api/v1/getCompletion', {
     method: 'POST',
     headers: {
@@ -154,7 +154,7 @@ async function delfosGetCompletion(token, { sessionId, username, text, fileRef }
       files: fileRef ? [fileRef] : [],
       premium_model: false,
       use_ragtool: false,
-      use_onlinesearchtool: false,
+      use_onlinesearchtool: !!useOnlineSearch,
       tenant: DELFOS_TENANT,
       model_id: DELFOS_MODEL_ID
     })
@@ -185,7 +185,44 @@ RIESGOS ECONÓMICOS
 INFORMACIÓN FALTANTE
 - (datos que deberían estar y no aparecen: fechas, supuestos, exclusiones, SLAs, forma de pago, etc.; si no hay, escribe "Ninguno identificado")
 
+DISCREPANCIAS
+- (inconsistencias internas del documento: alcance vs. horas cotizadas, entregables vs. cronograma, texto vs. tablas de precio, etc.; si no hay, escribe "Ninguna identificada")
+
+SUPUESTOS Y EXCLUSIONES POCO CLAROS
+- (supuestos que el documento da por hecho sin declararlos explícitamente, o exclusiones de alcance ambiguas que podrían generar disputas con el cliente; si no hay, escribe "Ninguno identificado")
+
+SUGERENCIAS DE MEJORA
+- (cambios concretos que harían la propuesta más sólida, clara o competitiva; si no hay, escribe "Ninguna")
+
 Sé específico y, cuando puedas, cita o referencia partes concretas del documento.`;
+
+const PROSPECTO_PROMPT = `Eres un asistente de investigación comercial para el equipo de ventas (AEs y BDRs) de SEIDOR, consultora partner de SAP en México. Investiga la empresa "{{EMPRESA}}" usando fuentes públicas disponibles y responde en español, usando exactamente este formato con encabezados en mayúsculas:
+
+NOMBRE COMERCIAL
+- 
+
+RAZÓN SOCIAL
+- (si no la encuentras con certeza, indícalo)
+
+RFC
+- (si no lo encuentras con certeza, indícalo — nunca inventes un RFC)
+
+INDUSTRIA
+- 
+
+PRINCIPALES CONTACTOS O PERSONAS CLAVE
+- (nombres y cargos de personas relevantes para una venta B2B: dirección general, TI, finanzas, operaciones, compras; si no encuentras nombres específicos, indica qué roles buscar)
+
+QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP
+- (qué soluciones SAP — S/4HANA, SuccessFactors, BTP, Analytics Cloud, etc. — encajarían mejor con esta empresa dado su tamaño, industria y posible madurez tecnológica, y cómo posicionarlo en una llamada o correo en frío)
+
+VALUE DRIVERS PARA ENGANCHAR
+- (los 3-5 argumentos de valor más relevantes para esta empresa específica: eficiencia operativa, cumplimiento fiscal, escalabilidad, reducción de costos, etc., adaptados a su contexto)
+
+OTROS DATOS ÚTILES PARA LA LLAMADA
+- (cualquier cosa adicional relevante: noticias recientes, expansión, cambios de liderazgo, retos del sector, competidores, tamaño aproximado de la empresa, presencia geográfica, etc.)
+
+Si no encuentras información confiable sobre algún punto, dilo explícitamente en vez de inventar datos.`;
 
 export default {
   async fetch(request, env, ctx) {
@@ -202,14 +239,36 @@ export default {
       }
       const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
       const sessionId = crypto.randomUUID();
+      const promptText = form.get('prompt') || SOW_REVIEW_PROMPT;
 
       try {
-        const { fileRef, rawUploadResponse } = await delfosUploadFile(token, sessionId, username, file);
-        const feedback = await delfosGetCompletion(token, { sessionId, username, text: SOW_REVIEW_PROMPT, fileRef });
-        return new Response(JSON.stringify({ ok: true, feedback, debug: { fileRef, rawUploadResponse } }), { headers: { 'Content-Type': 'application/json' } });
+        const fileRef = await delfosUploadFile(token, sessionId, username, file);
+        const feedback = await delfosGetCompletion(token, { sessionId, username, text: promptText, fileRef, useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, feedback }), { headers: { 'Content-Type': 'application/json' } });
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
       }    }
+
+    if (url.pathname === '/api/prospecto' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { companyName, prompt } = body;
+      if (!companyName) return new Response(JSON.stringify({ ok: false, error: 'Falta el nombre de la empresa' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+      const promptTextProspecto = (prompt || PROSPECTO_PROMPT).replace('{{EMPRESA}}', companyName);
+
+      try {
+        const feedback = await delfosGetCompletion(token, { sessionId, username, text: promptTextProspecto, useOnlineSearch: true });
+        return new Response(JSON.stringify({ ok: true, feedback }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
 
     const PREVENTAS_EMAILS = {
       'Gustavo Najar': 'gustavo.najar@seidor.com',
