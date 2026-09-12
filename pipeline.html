@@ -53,6 +53,12 @@
   .risktag{font-size:10.5px; padding:2px 7px; border-radius:20px;}
   .risktag.alto{background:#FBE7E7; color:#B23A3A;}
   .risktag.medio{background:#FBF1DE; color:#8A6414;}
+  .gonogo-dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle;}
+  .gonogo-dot.go{background:#2E9E5B;}
+  .gonogo-dot.nogo{background:#C24545;}
+  .gonogo-tag{font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:20px; display:inline-flex; align-items:center;}
+  .gonogo-tag.go{background:#E7F7EE; color:#1F8A4C;}
+  .gonogo-tag.nogo{background:#FBE7E7; color:#B23A3A;}
   .empty{color:var(--greyl); font-size:12px; padding:14px 6px; text-align:center;}
 
   .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:20; align-items:flex-end; justify-content:center;}
@@ -95,6 +101,7 @@
       <a href="/index.html#paquetes">Paquetes SAP Cloud ERP</a>
       <a href="/pipeline.html" class="active">CRM PresalesMX</a>
       <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
     </div>
   </div>
 </nav>
@@ -129,8 +136,11 @@ const STAGES = [
   {id:'propuesta', label:'Propuesta / RFP'},
   {id:'scoping', label:'Scoping / SOW'},
   {id:'implementacion', label:'Implementación'},
-  {id:'pausado', label:'Pausado'}
+  {id:'pausado', label:'Pausado'},
+  {id:'no_go', label:'No-Go'}
 ];
+const GONOGO = ['Go', 'No-Go'];
+const HANDOVER_OPTS = ['Sí', 'No'];
 const ASIGNADOS = ['Gustavo Najar', 'Rocío Anaya', 'Samuel Aiza'];
 const PRODUCTS = ['S/4HANA', 'SuccessFactors', 'BTP', 'Analytics Cloud', 'Ariba', 'Otro'];
 const MODALIDADES = ['Public', 'Private', 'OnPremise', 'N/A'];
@@ -207,13 +217,15 @@ function render(){
       const modalidadChip = p.modalidad && p.modalidad!=='N/A' ? `<span class="chip modalidad">${esc(p.modalidad)}</span>` : '';
       const compromisoChip = p.tipoCompromiso ? `<span class="chip">${esc(p.tipoCompromiso)}</span>` : '';
       const asignadoChip = p.asignadoA ? `<span class="chip" style="background:#EAF7EF; color:#1F8A4C;">👤 ${esc(p.asignadoA)}</span>` : '';
+      const gonogoTag = p.goNoGo === 'Go' ? `<span class="gonogo-tag go"><span class="gonogo-dot go"></span>Go</span>`
+        : p.goNoGo === 'No-Go' ? `<span class="gonogo-tag nogo"><span class="gonogo-dot nogo"></span>No-Go</span>` : '';
       const card = document.createElement('div');
       card.className = 'card '+riskClass;
       card.innerHTML = `
         <div onclick="openSheet('${p.id}')">
           <h3>${esc(p.client)}</h3>
           <p>${esc(p.desc)}</p>
-          <div class="chips">${productChips}${modalidadChip}${compromisoChip}${asignadoChip}</div>
+          <div class="chips">${productChips}${modalidadChip}${compromisoChip}${asignadoChip}${gonogoTag}</div>
           ${p.valor ? `<div class="valor">${esc(p.valor)}</div>` : ''}
           ${p.next ? `<div class="next">→ ${esc(p.next)}</div>` : ''}
         </div>
@@ -247,7 +259,8 @@ function openSheet(id){
   currentId = id;
   const p = id ? projects.find(x=>x.id===id) : {
     id:'', client:'', desc:'', stage:'prospeccion', risk:'', next:'', notes:'',
-    sharepoint:'', products:[], modalidad:'', contratacion:'', tipoCompromiso:'', modulos:'', valor:'', asignadoA:''
+    sharepoint:'', products:[], modalidad:'', contratacion:'', tipoCompromiso:'', modulos:'', valor:'', asignadoA:'',
+    goNoGo:'', handoverFormal:'', stageHistory:[]
   };
   const sheet = document.getElementById('sheet');
   const stageOptions = STAGES.map(s=>`<option value="${s.id}" ${p.stage===s.id?'selected':''}>${s.label}</option>`).join('');
@@ -256,6 +269,8 @@ function openSheet(id){
   const contratacionOptions = ['',...CONTRATACIONES].map(c=>`<option value="${c}" ${p.contratacion===c?'selected':''}>${c||'Sin definir'}</option>`).join('');
   const compromisoOptions = ['',...COMPROMISOS].map(c=>`<option value="${c}" ${p.tipoCompromiso===c?'selected':''}>${c||'Sin definir'}</option>`).join('');
   const asignadoOptions = ['',...ASIGNADOS].map(a=>`<option value="${a}" ${p.asignadoA===a?'selected':''}>${a||'Sin asignar'}</option>`).join('');
+  const gonogoOptions = ['',...GONOGO].map(g=>`<option value="${g}" ${p.goNoGo===g?'selected':''}>${g||'Sin definir'}</option>`).join('');
+  const handoverOptions = ['',...HANDOVER_OPTS].map(h=>`<option value="${h}" ${p.handoverFormal===h?'selected':''}>${h||'Sin definir'}</option>`).join('');
   const productChecks = PRODUCTS.map(pr=>`
     <label><input type="checkbox" value="${pr}" ${((p.products||[]).includes(pr))?'checked':''} class="prod-check"> ${pr}</label>
   `).join('');
@@ -276,8 +291,14 @@ function openSheet(id){
       <div><label>Riesgo</label><select id="f-risk">${riskOptions}</select></div>
     </div>
 
+    <label>Go / No-Go</label>
+    <select id="f-gonogo" onchange="applyGoNoGo(this.value)">${gonogoOptions}</select>
+
     <label>Asignado a preventa</label>
     <select id="f-asignado">${asignadoOptions}</select>
+
+    <label>Handover formal realizado (solo aplica en Implementación)</label>
+    <select id="f-handover">${handoverOptions}</select>
 
     <label>Producto(s)</label>
     <div class="checks">${productChecks}</div>
@@ -314,19 +335,34 @@ function openSheet(id){
   document.getElementById('overlay').classList.add('open');
 }
 
+function applyGoNoGo(value){
+  const stageSelect = document.getElementById('f-stage');
+  if(value === 'Go') stageSelect.value = 'asignada_preventa';
+  if(value === 'No-Go') stageSelect.value = 'no_go';
+}
+
 function closeSheet(){ document.getElementById('overlay').classList.remove('open'); currentId = null; }
 
 async function saveCard(){
   const client = document.getElementById('f-client').value.trim();
   if(!client){ alert('Ponle un nombre de cliente o proyecto'); return; }
   const products = Array.from(document.querySelectorAll('.prod-check:checked')).map(c=>c.value);
+  const newStage = document.getElementById('f-stage').value;
+  const existing = currentId ? projects.find(x=>x.id===currentId) : null;
+  let stageHistory = existing && existing.stageHistory ? existing.stageHistory.slice() : [];
+  if(!stageHistory.length || stageHistory[stageHistory.length-1].stage !== newStage){
+    stageHistory.push({ stage: newStage, at: new Date().toISOString() });
+  }
   const data = {
     id: currentId || (client.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '-' + Date.now().toString(36)),
     client,
     desc: document.getElementById('f-desc').value.trim(),
-    stage: document.getElementById('f-stage').value,
+    stage: newStage,
     risk: document.getElementById('f-risk').value,
+    goNoGo: document.getElementById('f-gonogo').value,
     asignadoA: document.getElementById('f-asignado').value,
+    handoverFormal: document.getElementById('f-handover').value,
+    stageHistory,
     products,
     modalidad: document.getElementById('f-modalidad').value,
     contratacion: document.getElementById('f-contratacion').value,
@@ -335,7 +371,8 @@ async function saveCard(){
     modulos: document.getElementById('f-modulos').value.trim(),
     sharepoint: document.getElementById('f-sharepoint').value.trim(),
     next: document.getElementById('f-next').value.trim(),
-    notes: document.getElementById('f-notes').value.trim()
+    notes: document.getElementById('f-notes').value.trim(),
+    ficha: existing ? existing.ficha : undefined
   };
   if(currentId){
     const idx = projects.findIndex(x=>x.id===currentId);
@@ -403,8 +440,8 @@ function viewFicha(id){
       body += block(sec, qs.map(q=>[`${q.id ? q.id+'. ' : ''}${q.pregunta}`, q.respuesta]));
     });
   }
-  if(f.localizacionPeru && f.localizacionPeru.length){
-    body += block('Localización Perú', f.localizacionPeru.map(q=>[q.pregunta, q.respuesta]));
+  if(f.localizacionMexico && f.localizacionMexico.length){
+    body += block('Localización México', f.localizacionMexico.map(q=>[q.pregunta, q.respuesta]));
   }
 
   document.getElementById('sheet').innerHTML = `

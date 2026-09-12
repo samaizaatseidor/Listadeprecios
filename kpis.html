@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablero de Control · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:980px; margin:0 auto; padding:20px 16px 60px;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-bottom:20px;}
+  .kpi-card{background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow);}
+  .kpi-card .n{font-size:28px; font-weight:700; color:var(--navy2);}
+  .kpi-card .l{font-size:12.5px; color:var(--grey); margin-top:4px;}
+
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 14px;}
+  .bar-row{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .bar-label{width:150px; font-size:12.5px; color:var(--ink); flex-shrink:0;}
+  .bar-track{flex:1; background:var(--card); border-radius:6px; height:20px; overflow:hidden;}
+  .bar-fill{background:var(--blue); height:100%; border-radius:6px; display:flex; align-items:center; justify-content:flex-end; padding-right:6px;}
+  .bar-fill span{color:#fff; font-size:10.5px; font-weight:600;}
+  .bar-fill.cyan{background:var(--cyan);}
+
+  .loading{color:var(--grey); padding:40px; text-align:center;}
+  .empty{color:var(--greyl); font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html#individuales">Servicios individuales</a>
+      <a href="/index.html#paquetes">Paquetes SAP Cloud ERP</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html" class="active">Tablero de Control</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Tablero de Control</h1>
+  <p>KPIs de preventas — datos en vivo desde CRM PresalesMX</p>
+</header>
+
+<main id="main"><div class="loading">Cargando…</div></main>
+
+<script>
+const ASIGNADOS = ['Gustavo Najar', 'Rocío Anaya', 'Samuel Aiza'];
+const STAGE_LABELS = {
+  prospeccion: 'Prospección',
+  asignada_preventa: 'Asignada a preventa',
+  propuesta: 'Propuesta / RFP',
+  scoping: 'Scoping / SOW',
+  implementacion: 'Implementación',
+  pausado: 'Pausado',
+  no_go: 'No-Go'
+};
+
+function daysBetween(a, b){ return (b - a) / (1000*60*60*24); }
+
+function computeAvgDaysPerStage(projects){
+  const totals = {}; // stage -> {sum, count}
+  const now = new Date();
+  projects.forEach(p=>{
+    const hist = p.stageHistory && p.stageHistory.length ? p.stageHistory : [{stage:p.stage, at: null}];
+    for(let i=0; i<hist.length; i++){
+      const stage = hist[i].stage;
+      const start = hist[i].at ? new Date(hist[i].at) : null;
+      const end = (i+1 < hist.length) ? new Date(hist[i+1].at) : now;
+      if(!start) continue;
+      const d = daysBetween(start, end);
+      if(!totals[stage]) totals[stage] = {sum:0, count:0};
+      totals[stage].sum += d;
+      totals[stage].count += 1;
+    }
+  });
+  const result = {};
+  Object.entries(totals).forEach(([stage, t])=>{ result[stage] = t.sum / t.count; });
+  return result;
+}
+
+async function load(){
+  const main = document.getElementById('main');
+  let projects = [];
+  try{
+    const r = await fetch('/api/projects');
+    const data = await r.json();
+    projects = data.projects || [];
+  }catch(e){
+    main.innerHTML = '<div class="section"><p class="empty">No se pudo cargar la información del Pipeline.</p></div>';
+    return;
+  }
+
+  if(!projects.length){
+    main.innerHTML = '<div class="section"><p class="empty">Aún no hay proyectos en el Pipeline.</p></div>';
+    return;
+  }
+
+  const total = projects.length;
+
+  // KPI 1: asignadas por preventas
+  const porPreventas = {};
+  ASIGNADOS.forEach(a=>porPreventas[a]=0);
+  projects.forEach(p=>{ if(p.asignadoA && porPreventas[p.asignadoA] !== undefined) porPreventas[p.asignadoA]++; });
+  const maxPreventas = Math.max(1, ...Object.values(porPreventas));
+
+  // KPI 2: % con Go/No-Go documentado
+  const conGoNoGo = projects.filter(p=>p.goNoGo === 'Go' || p.goNoGo === 'No-Go').length;
+  const pctGoNoGo = Math.round((conGoNoGo / total) * 100);
+
+  // KPI 3: días promedio por etapa
+  const avgDays = computeAvgDaysPerStage(projects);
+  const maxAvgDays = Math.max(1, ...Object.values(avgDays));
+
+  // KPI 4: % handover formal (entre proyectos actualmente en Implementación)
+  const enImplementacion = projects.filter(p=>p.stage === 'implementacion');
+  const conHandover = enImplementacion.filter(p=>p.handoverFormal === 'Sí').length;
+  const pctHandover = enImplementacion.length ? Math.round((conHandover / enImplementacion.length) * 100) : null;
+
+  main.innerHTML = `
+    <div class="grid">
+      <div class="kpi-card"><div class="n">${total}</div><div class="l">Oportunidades totales</div></div>
+      <div class="kpi-card"><div class="n">${pctGoNoGo}%</div><div class="l">Con Go / No-Go documentado</div></div>
+      <div class="kpi-card"><div class="n">${pctHandover !== null ? pctHandover+'%' : 'N/A'}</div><div class="l">Handover formal en Implementación${enImplementacion.length ? ' ('+enImplementacion.length+' proyectos)' : ' (sin proyectos aún)'}</div></div>
+      <div class="kpi-card"><div class="n">${enImplementacion.length}</div><div class="l">Proyectos en Implementación</div></div>
+    </div>
+
+    <div class="section">
+      <h2>Oportunidades asignadas por preventas</h2>
+      ${Object.entries(porPreventas).map(([name,count])=>`
+        <div class="bar-row">
+          <div class="bar-label">${name}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(count/maxPreventas)*100}%"><span>${count}</span></div></div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="section">
+      <h2>Días promedio por etapa</h2>
+      ${Object.keys(STAGE_LABELS).map(stage=>{
+        const d = avgDays[stage];
+        if(d === undefined) return '';
+        return `
+        <div class="bar-row">
+          <div class="bar-label">${STAGE_LABELS[stage]}</div>
+          <div class="bar-track"><div class="bar-fill cyan" style="width:${(d/maxAvgDays)*100}%"><span>${d.toFixed(1)} d</span></div></div>
+        </div>`;
+      }).join('') || '<p class="empty">Aún no hay suficiente historial de etapas.</p>'}
+    </div>
+  `;
+}
+
+load();
+</script>
+</body>
+</html>
