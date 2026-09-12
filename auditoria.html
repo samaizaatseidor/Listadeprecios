@@ -43,6 +43,7 @@
 
   .empty{color:var(--greyl); font-size:13px; text-align:center; padding:30px;}
   .loading{color:var(--grey); text-align:center; padding:30px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -66,6 +67,14 @@
   <h1>Auditoría</h1>
   <p>Quién hizo qué en el sitio — creación, edición y borrado de registros (últimas 1,000 acciones)</p>
 </header>
+
+<div style="max-width:900px; margin:16px auto 0; padding:0 16px;">
+  <div style="background:#fff; border-radius:10px; padding:14px 16px; box-shadow:0 3px 9px rgba(159,179,204,0.35);">
+    <div style="font-size:13px; font-weight:600; color:#0E1E3F; margin-bottom:8px;">Resumen de cambios (Delfos)</div>
+    <div id="resumenBox" style="font-size:12.5px; color:#5E6B82;">Sin generar todavía — resume lo que esté visible según tus filtros actuales.</div>
+    <button class="btn btn-ghost" style="margin-top:10px; border:1px solid #D8E2EE; background:#fff; color:#5E6B82; border-radius:8px; padding:8px 12px; font-family:inherit; font-size:12.5px; cursor:pointer;" onclick="generarResumen()">Generar resumen con Delfos</button>
+  </div>
+</div>
 
 <div class="toolbar">
   <input type="text" id="search" placeholder="Buscar por persona, acción o detalle…">
@@ -100,18 +109,21 @@ function populateFilters(){
   sel.innerHTML = '<option value="">Todas las páginas</option>' + pages.map(p=>`<option value="${esc(p)}" ${p===current?'selected':''}>${esc(p)}</option>`).join('');
 }
 
-function render(){
+function getVisible(){
   const q = document.getElementById('search').value.trim().toLowerCase();
   const pageF = document.getElementById('filterPage').value;
   const actionF = document.getElementById('filterAction').value;
-  const main = document.getElementById('main');
-
-  const visible = entries.filter(e=>{
+  return entries.filter(e=>{
     if(pageF && e.page !== pageF) return false;
     if(actionF === 'destructivas' && !/elimin|borr/i.test(e.action)) return false;
     if(!q) return true;
     return (e.by+' '+e.action+' '+e.detail).toLowerCase().includes(q);
   });
+}
+
+function render(){
+  const main = document.getElementById('main');
+  const visible = getVisible();
 
   if(!visible.length){ main.innerHTML = '<div class="empty">Sin actividad registrada todavía.</div>'; return; }
 
@@ -128,6 +140,28 @@ function render(){
       </div>
     `;
   }).join('');
+}
+
+async function generarResumen(){
+  const box = document.getElementById('resumenBox');
+  const visible = getVisible();
+  if(!visible.length){
+    box.textContent = 'No hay actividad visible con los filtros actuales para resumir.';
+    return;
+  }
+  box.innerHTML = '<span style="display:inline-block; width:11px; height:11px; border:2px solid #D8E2EE; border-top-color:#1E5BB8; border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;"></span>Generando…';
+  try{
+    const r = await fetch('/api/audit-resumen', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ entries: visible.slice(0, 200) })
+    });
+    const d = await r.json();
+    if(!d.ok){ box.innerHTML = `<span style="color:#B23A3A;">${esc(d.error||'No se pudo generar.')}</span>`; return; }
+    box.style.color = '#16223A';
+    box.textContent = d.resumen;
+  }catch(e){
+    box.innerHTML = '<span style="color:#B23A3A;">No se pudo conectar con Delfos.</span>';
+  }
 }
 
 document.getElementById('search').addEventListener('input', render);
