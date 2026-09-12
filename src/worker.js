@@ -121,13 +121,13 @@ async function delfosUploadFile(token, sessionId, username, file) {
   if (!resp.ok) throw new Error('Subida a Delfos falló: ' + await resp.text());
   const data = await resp.json();
 
-  // La respuesta real de Delfos no siempre trae exactamente {filename,url,mimetype};
-  // toleramos variantes de nombre de campo (ej. blob_location en vez de url).
-  const url = data.url || data.blob_location || data.location || data.file_url || data.blobLocation;
+  // La respuesta real de Delfos viene envuelta en { files: [ {...} ] }
+  const entry = (data.files && data.files[0]) ? data.files[0] : data;
+  const url = entry.short_url || entry.url || entry.blob_location || entry.location || entry.file_url;
   const fileRef = {
-    filename: data.filename || file.name,
+    filename: entry.filename || file.name,
     url,
-    mimetype: data.mimetype || data.mime_type || file.type || 'application/octet-stream'
+    mimetype: entry.mimetype || entry.mime_type || file.type || 'application/octet-stream'
   };
   return { fileRef, rawUploadResponse: data };
 }
