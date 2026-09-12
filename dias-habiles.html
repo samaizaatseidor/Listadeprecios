@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Días Hábiles México · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:680px; margin:0 auto; padding:20px 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
+
+  .tabs{display:flex; gap:8px; margin-bottom:16px;}
+  .tabs button{flex:1; padding:10px; border-radius:8px; border:1px solid var(--line); background:#fff; font-family:inherit; font-size:13px; cursor:pointer;}
+  .tabs button.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:5px; font-weight:500;}
+  .field input, .field select{width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:14px; color:var(--ink);}
+  .check-row{display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:13px;}
+  .check-row input{width:auto;}
+
+  .btn{border:none; border-radius:8px; padding:11px 18px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+
+  .result{background:var(--card); border-radius:10px; padding:16px; margin-top:16px;}
+  .result .n{font-size:26px; font-weight:700; color:var(--navy2);}
+  .result .l{font-size:12.5px; color:var(--grey);}
+  .holiday-list{margin-top:12px; font-size:12px; color:var(--grey);}
+  .holiday-list li{margin-bottom:3px;}
+  .freeze-warn{background:#FBF1DE; color:#8A6414; border-radius:8px; padding:10px 12px; font-size:12.5px; margin-top:12px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html#individuales">Servicios individuales</a>
+      <a href="/index.html#paquetes">Paquetes SAP Cloud ERP</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/agentes.html" class="active">Agentes powered by DELFOS</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Días Hábiles México</h1>
+  <p>Calcula fechas de proyecto considerando festivos oficiales y calendario mexicano</p>
+</header>
+
+<main>
+  <a href="/agentes.html" style="display:inline-block; margin-bottom:14px; font-size:13px; color:var(--blue); text-decoration:none;">← Agentes powered by DELFOS</a>
+
+  <div class="section">
+    <div class="tabs">
+      <button id="tab-sumar" class="active" onclick="setMode('sumar')">Sumar días hábiles</button>
+      <button id="tab-entre" onclick="setMode('entre')">Días hábiles entre 2 fechas</button>
+    </div>
+
+    <div class="check-row">
+      <input type="checkbox" id="incluirObservados" checked onchange="calcular()">
+      <label for="incluirObservados" style="margin:0;">Incluir festivos comúnmente observados (5 mayo, 2 nov, 12 dic)</label>
+    </div>
+
+    <div id="mode-sumar">
+      <div class="field">
+        <label>Fecha de inicio</label>
+        <input type="date" id="fechaInicio" onchange="calcular()">
+      </div>
+      <div class="field">
+        <label>Días hábiles a sumar</label>
+        <input type="number" id="numDias" value="10" onchange="calcular()">
+      </div>
+    </div>
+
+    <div id="mode-entre" class="hidden">
+      <div class="field">
+        <label>Fecha inicial</label>
+        <input type="date" id="fechaA" onchange="calcular()">
+      </div>
+      <div class="field">
+        <label>Fecha final</label>
+        <input type="date" id="fechaB" onchange="calcular()">
+      </div>
+    </div>
+
+    <div id="resultBox"></div>
+  </div>
+</main>
+
+<script>
+function nthMondayOfMonth(year, month, n){
+  // month: 1-12. Regresa un objeto Date del n-ésimo lunes de ese mes.
+  const d = new Date(year, month-1, 1);
+  let count = 0;
+  while(true){
+    if(d.getDay() === 1){ count++; if(count === n) return new Date(d); }
+    d.setDate(d.getDate()+1);
+  }
+}
+
+function lftHolidays(year){
+  return [
+    new Date(year,0,1),                    // 1 enero
+    nthMondayOfMonth(year,2,1),             // 1er lunes de febrero (Constitución)
+    nthMondayOfMonth(year,3,3),             // 3er lunes de marzo (Natalicio Juárez)
+    new Date(year,4,1),                     // 1 mayo
+    new Date(year,8,16),                    // 16 septiembre
+    nthMondayOfMonth(year,11,3),            // 3er lunes de noviembre (Revolución)
+    new Date(year,11,25)                    // 25 diciembre
+  ];
+}
+
+function commonlyObservedHolidays(year){
+  return [
+    new Date(year,4,5),   // 5 mayo
+    new Date(year,10,2),  // 2 noviembre
+    new Date(year,11,12)  // 12 diciembre
+  ];
+}
+
+function isSameDay(a,b){
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function getHolidaySet(yearsRange, includeObserved){
+  let holidays = [];
+  yearsRange.forEach(y=>{
+    holidays = holidays.concat(lftHolidays(y));
+    if(includeObserved) holidays = holidays.concat(commonlyObservedHolidays(y));
+  });
+  return holidays;
+}
+
+function isHoliday(date, holidays){
+  return holidays.some(h=>isSameDay(h,date));
+}
+
+function isInFreezeWindow(date){
+  const m = date.getMonth(), d = date.getDate();
+  return (m===11 && d>=24) || (m===0 && d<=1);
+}
+
+function isWeekend(date){
+  const day = date.getDay();
+  return day===0 || day===6;
+}
+
+function fmt(date){
+  return date.toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+
+let mode = 'sumar';
+function setMode(m){
+  mode = m;
+  document.getElementById('tab-sumar').classList.toggle('active', m==='sumar');
+  document.getElementById('tab-entre').classList.toggle('active', m==='entre');
+  document.getElementById('mode-sumar').classList.toggle('hidden', m!=='sumar');
+  document.getElementById('mode-entre').classList.toggle('hidden', m!=='entre');
+  calcular();
+}
+
+function calcular(){
+  const includeObserved = document.getElementById('incluirObservados').checked;
+  const resultBox = document.getElementById('resultBox');
+
+  if(mode === 'sumar'){
+    const startVal = document.getElementById('fechaInicio').value;
+    const numDias = parseInt(document.getElementById('numDias').value || '0', 10);
+    if(!startVal || !numDias){ resultBox.innerHTML=''; return; }
+    const start = new Date(startVal + 'T00:00:00');
+    const years = [start.getFullYear(), start.getFullYear()+1];
+    const holidays = getHolidaySet(years, includeObserved);
+
+    let current = new Date(start);
+    let count = 0;
+    const skipped = [];
+    let crossedFreeze = false;
+    while(count < numDias){
+      current.setDate(current.getDate()+1);
+      if(isWeekend(current)) continue;
+      if(isHoliday(current, holidays)){ skipped.push(new Date(current)); continue; }
+      if(isInFreezeWindow(current)) crossedFreeze = true;
+      count++;
+    }
+
+    resultBox.innerHTML = `
+      <div class="result">
+        <div class="n">${fmt(current)}</div>
+        <div class="l">Fecha resultante sumando ${numDias} días hábiles desde ${fmt(start)}</div>
+        ${skipped.length ? `<ul class="holiday-list">${skipped.map(h=>`<li>Se saltó: ${fmt(h)} (festivo)</li>`).join('')}</ul>` : ''}
+        ${crossedFreeze ? '<div class="freeze-warn">⚠️ El rango cruza la ventana de congelamiento navideño (24 dic – 1 ene) — considera si aplica freeze de cambios en el proyecto.</div>' : ''}
+      </div>
+    `;
+  }else{
+    const aVal = document.getElementById('fechaA').value;
+    const bVal = document.getElementById('fechaB').value;
+    if(!aVal || !bVal){ resultBox.innerHTML=''; return; }
+    let a = new Date(aVal + 'T00:00:00');
+    let b = new Date(bVal + 'T00:00:00');
+    if(a > b){ [a,b] = [b,a]; }
+    const years = [];
+    for(let y=a.getFullYear(); y<=b.getFullYear(); y++) years.push(y);
+    const holidays = getHolidaySet(years, includeObserved);
+
+    let current = new Date(a);
+    let count = 0;
+    let crossedFreeze = false;
+    while(current <= b){
+      if(!isWeekend(current) && !isHoliday(current, holidays)) count++;
+      if(isInFreezeWindow(current)) crossedFreeze = true;
+      current.setDate(current.getDate()+1);
+    }
+
+    resultBox.innerHTML = `
+      <div class="result">
+        <div class="n">${count} días hábiles</div>
+        <div class="l">Entre ${fmt(a)} y ${fmt(b)}</div>
+        ${crossedFreeze ? '<div class="freeze-warn">⚠️ El rango cruza la ventana de congelamiento navideño (24 dic – 1 ene) — considera si aplica freeze de cambios en el proyecto.</div>' : ''}
+      </div>
+    `;
+  }
+}
+
+document.getElementById('fechaInicio').valueAsDate = new Date();
+calcular();
+</script>
+</body>
+</html>

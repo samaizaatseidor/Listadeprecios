@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Minutas · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:760px; margin:0 auto; padding:20px 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
+
+  textarea{width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px; color:var(--ink); resize:vertical;}
+  .or-divider{text-align:center; font-size:12px; color:var(--greyl); margin:12px 0;}
+  .dropzone{border:2px dashed var(--line); border-radius:10px; padding:16px; text-align:center; cursor:pointer;}
+  .dropzone:hover{border-color:var(--blue);}
+  .filename{font-size:13px; color:var(--navy2); font-weight:600; margin-top:8px;}
+
+  .btn{border:none; border-radius:8px; padding:11px 18px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-primary:disabled{background:var(--line); color:var(--greyl); cursor:not-allowed;}
+
+  .result h3{font-size:13.5px; color:var(--navy2); margin:18px 0 8px; text-transform:uppercase; letter-spacing:0.4px;}
+  .result h3:first-child{margin-top:0;}
+  .result ul{margin:0; padding-left:20px;}
+  .result li{font-size:13px; color:var(--ink); margin-bottom:6px; line-height:1.5;}
+
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:16px;}
+  .spinner{display:inline-block; width:14px; height:14px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:8px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+  .error{color:#B23A3A; font-size:13px; background:#FBE7E7; border-radius:8px; padding:10px 12px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html#individuales">Servicios individuales</a>
+      <a href="/index.html#paquetes">Paquetes SAP Cloud ERP</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/agentes.html" class="active">Agentes powered by DELFOS</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Generador de Minutas / Status</h1>
+  <p>Pega tus notas de la llamada y recibe una minuta estructurada</p>
+</header>
+
+<main>
+  <a href="/agentes.html" style="display:inline-block; margin-bottom:14px; font-size:13px; color:var(--blue); text-decoration:none;">← Agentes powered by DELFOS</a>
+
+  <div class="section">
+    <h2>Notas de la llamada</h2>
+    <p class="sub">Pega tus notas tal cual las tomaste, o sube un archivo</p>
+    <textarea id="notesInput" rows="8" placeholder="Ej. Hoy hablamos con el cliente, avanzamos en la config de FI, sigue pendiente la carga de datos maestros que depende del cliente, próxima llamada el viernes..." oninput="checkReady()"></textarea>
+
+    <div class="or-divider">— o —</div>
+
+    <label class="dropzone" style="display:block;">
+      <div style="font-size:20px;">📄</div>
+      <p style="margin:4px 0 0; color:var(--grey); font-size:12.5px;">Subir un archivo con las notas (Word, PDF, Excel)</p>
+      <input type="file" id="fileInput" accept=".doc,.docx,.xls,.xlsx,.pdf" style="display:none;" onchange="handleFile(this.files[0])">
+    </label>
+    <div id="filename" class="filename"></div>
+
+    <div style="margin-top:14px;">
+      <button class="btn btn-primary" id="genBtn" onclick="generar()" disabled>Generar minuta</button>
+    </div>
+  </div>
+
+  <div class="section" id="resultSection" style="display:none;">
+    <h2>Minuta</h2>
+    <div id="resultBody"></div>
+    <div style="margin-top:16px;">
+      <button class="btn btn-primary" id="pdfBtn" onclick="downloadPDF()" style="display:none;">Descargar PDF</button>
+    </div>
+  </div>
+</main>
+
+<script>
+let selectedFile = null;
+let lastFeedback = '';
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+function checkReady(){
+  document.getElementById('genBtn').disabled = !(document.getElementById('notesInput').value.trim() || selectedFile);
+}
+function handleFile(file){
+  selectedFile = file;
+  document.getElementById('filename').textContent = file ? file.name : '';
+  checkReady();
+}
+
+function renderFeedback(text){
+  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l);
+  let html = '';
+  let inList = false;
+  const knownHeaders = ['ESTATUS GENERAL','ACUERDOS','PENDIENTES','RIESGOS O TEMAS DE ATENCIÓN'];
+  lines.forEach(line=>{
+    const isHeader = knownHeaders.some(h => line.toUpperCase().startsWith(h));
+    if(isHeader){
+      if(inList){ html += '</ul>'; inList = false; }
+      html += `<h3>${esc(line)}</h3>`;
+    }else if(line.startsWith('-') || line.startsWith('•')){
+      if(!inList){ html += '<ul>'; inList = true; }
+      html += `<li>${esc(line.replace(/^[-•]\s*/, ''))}</li>`;
+    }else{
+      if(inList){ html += '</ul>'; inList = false; }
+      html += `<p style="font-size:13px; color:var(--ink);">${esc(line)}</p>`;
+    }
+  });
+  if(inList) html += '</ul>';
+  return html || `<p>${esc(text)}</p>`;
+}
+
+async function generar(){
+  const btn = document.getElementById('genBtn');
+  const resultSection = document.getElementById('resultSection');
+  const resultBody = document.getElementById('resultBody');
+  btn.disabled = true;
+  resultSection.style.display = 'block';
+  resultBody.innerHTML = '<div class="loading"><span class="spinner"></span>Generando minuta…</div>';
+  document.getElementById('pdfBtn').style.display = 'none';
+
+  const form = new FormData();
+  if(selectedFile){ form.append('file', selectedFile); }
+  else{ form.append('notes', document.getElementById('notesInput').value.trim()); }
+
+  try{
+    const r = await fetch('/api/minutas', { method:'POST', body: form });
+    if(!r.body) throw new Error('sin stream');
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+    let gotError = false;
+
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+      buffer += decoder.decode(value, { stream:true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for(const line of lines){
+        if(!line.trim()) continue;
+        let obj; try{ obj = JSON.parse(line); }catch(e){ continue; }
+        if(obj.type === 'status'){
+          resultBody.innerHTML = `<div class="loading"><span class="spinner"></span>${esc(obj.text)}</div>`;
+        }else if(obj.type === 'delta'){
+          fullText += obj.text;
+          resultBody.innerHTML = `<pre style="white-space:pre-wrap; font-family:inherit; font-size:13px; margin:0;">${esc(fullText)}</pre>`;
+        }else if(obj.type === 'error'){
+          gotError = true;
+          resultBody.innerHTML = `<div class="error">${esc(obj.text)}</div>`;
+        }else if(obj.type === 'done'){
+          if(!gotError && fullText){
+            lastFeedback = fullText;
+            resultBody.innerHTML = renderFeedback(fullText);
+            document.getElementById('pdfBtn').style.display = 'inline-block';
+          }
+        }
+      }
+    }
+  }catch(e){
+    resultBody.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
+  }
+  btn.disabled = false;
+}
+
+const PDF_KNOWN_HEADERS = ['ESTATUS GENERAL','ACUERDOS','PENDIENTES','RIESGOS O TEMAS DE ATENCIÓN'];
+
+async function exportFeedbackPDF(title, subtitle, feedbackText, filename){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'letter' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 44;
+  let y;
+
+  doc.setFillColor(10,18,38);
+  doc.rect(0,0,pageWidth,70,'F');
+  try{
+    const resp = await fetch('/assets/logo_dark.png');
+    const blob = await resp.blob();
+    const dataUrl = await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); });
+    doc.addImage(dataUrl,'PNG',margin,20,90,30);
+  }catch(e){}
+
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(13); doc.setFont(undefined,'bold');
+  doc.text(title, pageWidth-margin, 32, {align:'right'});
+  doc.setFontSize(9); doc.setFont(undefined,'normal');
+  doc.text(subtitle + ' · ' + new Date().toLocaleDateString('es-MX'), pageWidth-margin, 48, {align:'right'});
+
+  y = 100;
+  doc.setTextColor(22,34,58);
+  const lines = feedbackText.split('\n').map(l=>l.trim()).filter(l=>l);
+  lines.forEach(line=>{
+    const isHeader = PDF_KNOWN_HEADERS.some(h=>line.toUpperCase().startsWith(h));
+    if(y > pageHeight-60){ doc.addPage(); y=50; }
+    if(isHeader){
+      y+=8; doc.setFontSize(11); doc.setFont(undefined,'bold'); doc.setTextColor(30,91,184);
+      doc.text(line, margin, y); y+=16;
+      doc.setTextColor(22,34,58); doc.setFont(undefined,'normal'); doc.setFontSize(10);
+    }else{
+      const clean = line.replace(/^[-•]\s*/, '•  ');
+      const wrapped = doc.splitTextToSize(clean, pageWidth-margin*2);
+      wrapped.forEach(w=>{
+        if(y > pageHeight-60){ doc.addPage(); y=50; }
+        doc.text(w, margin, y); y+=14;
+      });
+    }
+  });
+  doc.save(filename);
+}
+
+function downloadPDF(){
+  if(!lastFeedback) return;
+  exportFeedbackPDF('Minuta de Seguimiento', new Date().toLocaleDateString('es-MX'), lastFeedback, `Minuta - ${new Date().toISOString().slice(0,10)}.pdf`);
+}
+</script>
+</body>
+</html>

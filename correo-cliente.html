@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redactor de Correos a Cliente · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:760px; margin:0 auto; padding:20px 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:5px; font-weight:500;}
+  .field input, .field select, .field textarea{width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px; color:var(--ink); resize:vertical;}
+
+  .btn{border:none; border-radius:8px; padding:11px 18px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-primary:disabled{background:var(--line); color:var(--greyl); cursor:not-allowed;}
+  .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line); font-size:12px; padding:6px 10px;}
+
+  .option-card{border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px;}
+  .option-card h4{margin:0 0 8px; font-size:12.5px; color:var(--blue); text-transform:uppercase; letter-spacing:0.4px;}
+  .option-card pre{white-space:pre-wrap; font-family:inherit; font-size:13px; color:var(--ink); margin:0;}
+
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:16px;}
+  .spinner{display:inline-block; width:14px; height:14px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:8px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+  .error{color:#B23A3A; font-size:13px; background:#FBE7E7; border-radius:8px; padding:10px 12px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html#individuales">Servicios individuales</a>
+      <a href="/index.html#paquetes">Paquetes SAP Cloud ERP</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/agentes.html" class="active">Agentes powered by DELFOS</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Redactor de Correos a Cliente</h1>
+  <p>Describe la situación y recibe opciones de correo con el tono adecuado</p>
+</header>
+
+<main>
+  <a href="/agentes.html" style="display:inline-block; margin-bottom:14px; font-size:13px; color:var(--blue); text-decoration:none;">← Agentes powered by DELFOS</a>
+
+  <div class="section">
+    <h2>Situación</h2>
+    <div class="field">
+      <label>Cliente (opcional)</label>
+      <input type="text" id="clienteInput" placeholder="Ej. Grupo Bimbo">
+    </div>
+    <div class="field">
+      <label>Tipo de comunicación</label>
+      <select id="tipoInput">
+        <option value="Retraso en entrega">Retraso en entrega</option>
+        <option value="Escalación de problema">Escalación de problema</option>
+        <option value="Cierre de fase">Cierre de fase</option>
+        <option value="Actualización general de status">Actualización general de status</option>
+        <option value="Solicitud de información al cliente">Solicitud de información al cliente</option>
+        <option value="Cambio de alcance / Change Request">Cambio de alcance / Change Request</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Describe la situación</label>
+      <textarea id="situacionInput" rows="6" placeholder="Ej. El cliente no nos ha entregado los datos maestros de materiales, esto está retrasando la carga de datos 5 días hábiles. Ya tuvimos 2 llamadas pidiéndolo." oninput="document.getElementById('genBtn').disabled = !this.value.trim()"></textarea>
+    </div>
+    <button class="btn btn-primary" id="genBtn" onclick="generar()" disabled>Generar opciones de correo</button>
+  </div>
+
+  <div class="section" id="resultSection" style="display:none;">
+    <h2>Opciones de correo</h2>
+    <div id="resultBody"></div>
+  </div>
+</main>
+
+<script>
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+function renderOptions(text){
+  // Divide por "OPCIÓN N —" y arma una tarjeta copiable por cada una
+  const parts = text.split(/(?=OPCIÓN\s*\d)/i).map(p=>p.trim()).filter(Boolean);
+  if(!parts.length) return `<pre style="white-space:pre-wrap;">${esc(text)}</pre>`;
+  return parts.map((p,i)=>{
+    const lines = p.split('\n');
+    const title = lines.shift();
+    const body = lines.join('\n').trim();
+    return `
+      <div class="option-card">
+        <h4>${esc(title)}</h4>
+        <pre id="opt-body-${i}">${esc(body)}</pre>
+        <button class="btn btn-ghost" style="margin-top:10px;" onclick="copyOption(${i})">Copiar</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function copyOption(i){
+  const text = document.getElementById('opt-body-'+i).textContent;
+  navigator.clipboard.writeText(text);
+}
+
+async function generar(){
+  const btn = document.getElementById('genBtn');
+  const resultSection = document.getElementById('resultSection');
+  const resultBody = document.getElementById('resultBody');
+  btn.disabled = true;
+  resultSection.style.display = 'block';
+  resultBody.innerHTML = '<div class="loading"><span class="spinner"></span>Redactando opciones…</div>';
+
+  try{
+    const r = await fetch('/api/correo-cliente', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        situacion: document.getElementById('situacionInput').value.trim(),
+        tipo: document.getElementById('tipoInput').value,
+        cliente: document.getElementById('clienteInput').value.trim()
+      })
+    });
+    if(!r.body) throw new Error('sin stream');
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+    let gotError = false;
+
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+      buffer += decoder.decode(value, { stream:true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for(const line of lines){
+        if(!line.trim()) continue;
+        let obj; try{ obj = JSON.parse(line); }catch(e){ continue; }
+        if(obj.type === 'status'){
+          resultBody.innerHTML = `<div class="loading"><span class="spinner"></span>${esc(obj.text)}</div>`;
+        }else if(obj.type === 'delta'){
+          fullText += obj.text;
+          resultBody.innerHTML = `<pre style="white-space:pre-wrap; font-family:inherit; font-size:13px; margin:0;">${esc(fullText)}</pre>`;
+        }else if(obj.type === 'error'){
+          gotError = true;
+          resultBody.innerHTML = `<div class="error">${esc(obj.text)}</div>`;
+        }else if(obj.type === 'done'){
+          if(!gotError && fullText){
+            resultBody.innerHTML = renderOptions(fullText);
+          }
+        }
+      }
+    }
+  }catch(e){
+    resultBody.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
