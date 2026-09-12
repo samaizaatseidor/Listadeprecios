@@ -15,5 +15,15 @@ id = "64aaa5613ef240b486f24e02610498cd"
 binding = "DOCS_BUCKET"
 bucket_name = "presalesmx-docs"
 
+[[secrets_store_secrets]]
+binding = "RESEND_API_KEY"
+store_id = "f63b63e25881480bb743023201203a6a"
+secret_name = "RESEND_API_KEY"
+
+[[secrets_store_secrets]]
+binding = "DELFOS_API_TOKEN"
+store_id = "f63b63e25881480bb743023201203a6a"
+secret_name = "DELFOS_API_TOKEN"
+
 [triggers]
 crons = ["0 22 * * 5"]
