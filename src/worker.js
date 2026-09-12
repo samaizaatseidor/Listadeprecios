@@ -623,6 +623,24 @@ ${JSON.stringify(compromisos)}`;
       }
     }
 
+    if (url.pathname === '/api/audit' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('audit_log');
+      return new Response(raw || '{"entries":[]}', { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/audit' && request.method === 'POST') {
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { page, action, detail } = body;
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      const raw = await env.PM_KV.get('audit_log');
+      let log = raw ? JSON.parse(raw) : { entries: [] };
+      log.entries.push({ at: new Date().toISOString(), by: email, page: page || 'desconocida', action: action || '', detail: detail || '' });
+      if (log.entries.length > 1000) log.entries = log.entries.slice(-1000);
+      await env.PM_KV.put('audit_log', JSON.stringify(log));
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
     if (url.pathname === '/api/whoami') {
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
       return new Response(JSON.stringify({ email }), { headers: { 'Content-Type': 'application/json' } });
