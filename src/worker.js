@@ -411,6 +411,94 @@ Las fechas deben ir en formato DD/MM/AAAA. No inventes datos que no estén en el
         return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
       }
     }
+const MINUTAS_PROMPT = `Eres un asistente de Project Management para SEIDOR, consultora partner de SAP en México. Convierte las notas informales de una llamada de seguimiento de proyecto en una minuta estructurada. Responde en español, usando exactamente este formato con encabezados en mayúsculas:
+
+ESTATUS GENERAL
+- (Rojo/Amarillo/Verde y una frase justificando el color)
+
+ACUERDOS
+- (decisiones tomadas en la llamada)
+
+PENDIENTES
+- (tareas con responsable y fecha si se mencionan; si no hay responsable claro, dilo)
+
+RIESGOS O TEMAS DE ATENCIÓN
+- (cualquier riesgo, bloqueo o preocupación mencionada; si no hay, escribe "Ninguno identificado")
+
+Sé conciso y no inventes nombres, fechas ni compromisos que no estén en las notas.`;
+
+const CORREO_CLIENTE_PROMPT_BASE = `Eres un asistente de comunicación para Project Managers de SEIDOR, consultora partner de SAP en México. Ayuda a redactar un correo profesional y diplomático para un cliente, dada la siguiente situación:
+
+{{SITUACION}}
+
+Tipo de comunicación: {{TIPO}}
+{{CLIENTE_LINE}}
+
+Escribe EXACTAMENTE 2 opciones de correo con enfoques distintos (por ejemplo, uno más directo y otro más conciliador), en español, con este formato:
+
+OPCIÓN 1 — [nombre corto del enfoque]
+Asunto: ...
+(cuerpo del correo)
+
+OPCIÓN 2 — [nombre corto del enfoque]
+Asunto: ...
+(cuerpo del correo)
+
+Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
+
+    if (url.pathname === '/api/minutas' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      const form = await request.formData();
+      const notes = form.get('notes');
+      const file = form.get('file');
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const stream = ndjsonStream();
+      ctx.waitUntil((async () => {
+        try {
+          let fileRef = null;
+          let text = MINUTAS_PROMPT;
+          if (file && typeof file !== 'string') {
+            fileRef = await delfosUploadFile(token, sessionId, username, file);
+          } else if (notes) {
+            text = MINUTAS_PROMPT + '\n\nNotas de la llamada:\n' + notes;
+          }
+          await delfosStreamToClient(token, { sessionId, username, text, fileRef, useOnlineSearch: false }, stream);
+        } catch (e) {
+          await stream.write({ type: 'error', text: String(e.message || e) });
+        } finally {
+          await stream.close();
+        }
+      })());
+      return new Response(stream.readable, { headers: { 'Content-Type': 'application/x-ndjson' } });
+    }
+
+    if (url.pathname === '/api/correo-cliente' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { situacion, tipo, cliente } = body;
+      if (!situacion) return new Response(JSON.stringify({ ok: false, error: 'Falta describir la situación' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+      const promptText = CORREO_CLIENTE_PROMPT_BASE
+        .replace('{{SITUACION}}', situacion)
+        .replace('{{TIPO}}', tipo || 'Actualización general')
+        .replace('{{CLIENTE_LINE}}', cliente ? `Cliente: ${cliente}` : '');
+
+      const stream = ndjsonStream();
+      ctx.waitUntil(delfosStreamToClient(token, { sessionId, username, text: promptText, useOnlineSearch: false }, stream).catch(async e => {
+        await stream.write({ type: 'error', text: String(e.message || e) });
+      }).finally(() => stream.close()));
+      return new Response(stream.readable, { headers: { 'Content-Type': 'application/x-ndjson' } });
+    }
+
     if (url.pathname === '/api/prospecto' && request.method === 'POST') {
       const token = await getDelfosToken(env);
       if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
