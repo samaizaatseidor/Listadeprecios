@@ -168,7 +168,16 @@ async function delfosGetCompletion(token, { sessionId, username, text, fileRef, 
     try {
       const obj = JSON.parse(chunk);
       const msg = obj.choices && obj.choices[0] && obj.choices[0].messages && obj.choices[0].messages[0];
-      if (msg && msg.content) full += msg.content;
+      if (!msg || msg.content == null) continue;
+      const content = msg.content;
+      // El contenido de un paso real de respuesta siempre es texto plano.
+      // Los pasos internos de herramientas (búsqueda en línea, etc.) llegan como
+      // objetos, o como texto que en realidad es un JSON de traza tipo
+      // {"name":"serpapi_tool","step":"serpapi_tool_start"} — los descartamos.
+      if (typeof content !== 'string') continue;
+      const trimmed = content.trim();
+      if (trimmed.startsWith('{') && trimmed.includes('"step"')) continue;
+      full += content;
     } catch (e) { /* fragmento no parseable, se ignora */ }
   }
   return full;
