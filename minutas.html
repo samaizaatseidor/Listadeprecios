@@ -61,13 +61,18 @@
   <div class="topnav-wrap">
     <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
     <div class="topnav-links">
-      <a href="/index.html#individuales">Servicios individuales</a>
-      <a href="/index.html#paquetes">Paquetes SAP Cloud ERP</a>
+            <a href="/index.html">Inicio</a>
+      <a href="/precios.html">Lista de Precios</a>
       <a href="/pipeline.html">CRM PresalesMX</a>
       <a href="/ficha.html">Ficha del Cliente</a>
       <a href="/kpis.html">Tablero de Control</a>
       <a href="/documentos.html">Documentos de Apoyo</a>
       <a href="/agentes.html" class="active">Agentes powered by DELFOS</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/agentes.html">Agentes powered by DELFOS</a>
     </div>
   </div>
 </nav>
@@ -222,7 +227,7 @@ async function exportFeedbackPDF(title, subtitle, feedbackText, filename){
   doc.setFontSize(13); doc.setFont(undefined,'bold');
   doc.text(title, pageWidth-margin, 32, {align:'right'});
   doc.setFontSize(9); doc.setFont(undefined,'normal');
-  doc.text(subtitle + ' · ' + new Date().toLocaleDateString('es-MX'), pageWidth-margin, 48, {align:'right'});
+  doc.text(subtitle ? subtitle + ' · ' + new Date().toLocaleDateString('es-MX') : new Date().toLocaleDateString('es-MX'), pageWidth-margin, 48, {align:'right'});
 
   y = 100;
   doc.setTextColor(22,34,58);
@@ -248,7 +253,7 @@ async function exportFeedbackPDF(title, subtitle, feedbackText, filename){
 
 function downloadPDF(){
   if(!lastFeedback) return;
-  exportFeedbackPDF('Minuta de Seguimiento', new Date().toLocaleDateString('es-MX'), lastFeedback, `Minuta - ${new Date().toISOString().slice(0,10)}.pdf`);
+  exportFeedbackPDF('Minuta de Seguimiento', '', lastFeedback, `Minuta - ${new Date().toISOString().slice(0,10)}.pdf`);
 }
 </script>
 </body>
