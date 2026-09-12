@@ -78,6 +78,7 @@
   <div class="proyecto-selector">
     <select id="proyectoSelect" onchange="selectProyecto(this.value)"><option value="">Selecciona un proyecto...</option></select>
     <button class="btn btn-ghost" onclick="nuevoProyecto()">+ Nuevo proyecto</button>
+    <a class="btn btn-ghost" id="dashboardLink" href="#" style="display:none; text-decoration:none;">📐 Ver Dashboard de Proyecto</a>
     <button class="btn btn-ghost" id="exportBtn" onclick="exportarPPT()" style="display:none;">📤 Exportar PPT</button>
   </div>
 </header>
@@ -136,18 +137,6 @@ const FASES = [
     ]
   },
   {
-    id: 'run', label: 'Run',
-    items: [
-      'Go-live ejecutado según el plan de cutover',
-      'Saldos iniciales y datos maestros validados en productivo',
-      'Soporte hypercare activo con canal de escalación definido',
-      'Issues críticos post go-live monitoreados y resueltos',
-      'Transición a soporte AMS / operación regular planificada',
-      'Lecciones aprendidas documentadas',
-      'Cierre formal del proyecto (aceptación final del cliente)'
-    ]
-  },
-  {
     id: 'cutover', label: 'Cutover / Go-Live (Detallado)',
     items: [
       'Congelamiento de cambios (code freeze) comunicado y en efecto',
@@ -161,6 +150,18 @@ const FASES = [
       'Equipo de soporte hypercare confirmado y disponible',
       'Validación de reportes críticos post-carga',
       'Sign-off formal de arranque por el cliente'
+    ]
+  },
+  {
+    id: 'run', label: 'Run',
+    items: [
+      'Go-live ejecutado según el plan de cutover',
+      'Saldos iniciales y datos maestros validados en productivo',
+      'Soporte hypercare activo con canal de escalación definido',
+      'Issues críticos post go-live monitoreados y resueltos',
+      'Transición a soporte AMS / operación regular planificada',
+      'Lecciones aprendidas documentadas',
+      'Cierre formal del proyecto (aceptación final del cliente)'
     ]
   }
 ];
@@ -182,7 +183,10 @@ async function loadAll(){
     progreso = d2.progreso || {};
   }catch(e){ progreso = {}; }
   populateSelect();
-  if(proyectos.length) selectProyecto(proyectos[0]);
+  const urlParams = new URLSearchParams(window.location.search);
+  const proyectoFromUrl = urlParams.get('proyecto');
+  if(proyectoFromUrl && proyectos.includes(proyectoFromUrl)) selectProyecto(proyectoFromUrl);
+  else if(proyectos.length) selectProyecto(proyectos[0]);
   else render();
 }
 
@@ -262,6 +266,13 @@ async function updateNota(faseId, idx, nota){
 function render(){
   const main = document.getElementById('main');
   document.getElementById('exportBtn').style.display = currentProyecto ? 'inline-block' : 'none';
+  const dashboardLink = document.getElementById('dashboardLink');
+  if(currentProyecto){
+    dashboardLink.style.display = 'inline-block';
+    dashboardLink.href = '/proyecto.html?proyecto=' + encodeURIComponent(currentProyecto);
+  }else{
+    dashboardLink.style.display = 'none';
+  }
   if(!currentProyecto){
     main.innerHTML = '<div class="no-proyecto">Selecciona o crea un proyecto para ver su checklist.</div>';
     return;

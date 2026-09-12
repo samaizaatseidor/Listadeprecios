@@ -353,7 +353,7 @@ async function confirmarYCrear(){
       body: JSON.stringify({ page:'Iniciar Proyecto', action:'Creó proyecto desde SOW/DDA', detail:`"${nombreProyecto}" — ${riesgos.length} riesgos, ${integraciones.length} integraciones` })
     });
 
-    status.innerHTML = `<div class="success-box">Proyecto "${esc(nombreProyecto)}" creado con ${riesgos.length} riesgo(s) y ${integraciones.length} dependencia(s). <a href="/proyecto.html">Ver en el Dashboard de Proyecto →</a></div>`;
+    status.innerHTML = `<div class="success-box">Proyecto "${esc(nombreProyecto)}" creado con ${riesgos.length} riesgo(s) y ${integraciones.length} dependencia(s).<br><br><a href="/proyecto.html?proyecto=${encodeURIComponent(nombreProyecto)}">Ver en el Dashboard de Proyecto →</a> &nbsp;|&nbsp; <a href="/checklist.html?proyecto=${encodeURIComponent(nombreProyecto)}">Ir al Checklist de Quality Gates →</a></div>`;
   }catch(e){
     console.error(e);
     status.innerHTML = '<div class="error">Algo falló al crear el proyecto. Intenta de nuevo.</div>';

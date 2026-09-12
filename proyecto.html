@@ -125,6 +125,7 @@
     <select id="proyectoSelect" onchange="selectProyecto(this.value)"><option value="">Selecciona un proyecto...</option></select>
     <button class="btn btn-ghost" onclick="nuevoProyecto()">+ Nuevo proyecto</button>
     <button class="btn btn-ghost" id="exportBtn" onclick="exportarPPT()" style="display:none;">📤 Exportar PPT para cliente</button>
+    <a class="btn btn-ghost" id="checklistLink" href="#" style="display:none; text-decoration:none;">✅ Ver Checklist</a>
     <button class="btn btn-danger" id="deleteProyectoBtn" onclick="deleteProyecto()" style="display:none;">🗑 Borrar este proyecto</button>
   </div>
 </header>
@@ -165,7 +166,10 @@ async function loadData(){
     lineasBase = d2.proyectos || {};
   }catch(e){}
   populateProyectoSelect();
-  if(data.proyectos.length && !currentProyecto) selectProyecto(data.proyectos[0]);
+  const urlParams = new URLSearchParams(window.location.search);
+  const proyectoFromUrl = urlParams.get('proyecto');
+  if(proyectoFromUrl && data.proyectos.includes(proyectoFromUrl)) selectProyecto(proyectoFromUrl);
+  else if(data.proyectos.length && !currentProyecto) selectProyecto(data.proyectos[0]);
   else render();
 }
 
@@ -244,6 +248,13 @@ function render(){
   const main = document.getElementById('main');
   document.getElementById('exportBtn').style.display = currentProyecto ? 'inline-block' : 'none';
   document.getElementById('deleteProyectoBtn').style.display = currentProyecto ? 'inline-block' : 'none';
+  const checklistLink = document.getElementById('checklistLink');
+  if(currentProyecto){
+    checklistLink.style.display = 'inline-block';
+    checklistLink.href = '/checklist.html?proyecto=' + encodeURIComponent(currentProyecto);
+  }else{
+    checklistLink.style.display = 'none';
+  }
   if(!currentProyecto){
     main.innerHTML = '<div class="no-proyecto">Selecciona o crea un proyecto para ver su dashboard.</div>';
     return;
