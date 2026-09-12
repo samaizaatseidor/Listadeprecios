@@ -124,11 +124,12 @@ async function delfosUploadFile(token, sessionId, username, file) {
   // La respuesta real de Delfos no siempre trae exactamente {filename,url,mimetype};
   // toleramos variantes de nombre de campo (ej. blob_location en vez de url).
   const url = data.url || data.blob_location || data.location || data.file_url || data.blobLocation;
-  return {
+  const fileRef = {
     filename: data.filename || file.name,
     url,
     mimetype: data.mimetype || data.mime_type || file.type || 'application/octet-stream'
   };
+  return { fileRef, rawUploadResponse: data };
 }
 
 async function delfosGetCompletion(token, { sessionId, username, text, fileRef }) {
@@ -203,9 +204,9 @@ export default {
       const sessionId = crypto.randomUUID();
 
       try {
-        const fileRef = await delfosUploadFile(token, sessionId, username, file);
+        const { fileRef, rawUploadResponse } = await delfosUploadFile(token, sessionId, username, file);
         const feedback = await delfosGetCompletion(token, { sessionId, username, text: SOW_REVIEW_PROMPT, fileRef });
-        return new Response(JSON.stringify({ ok: true, feedback }), { headers: { 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ ok: true, feedback, debug: { fileRef, rawUploadResponse } }), { headers: { 'Content-Type': 'application/json' } });
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
       }    }
