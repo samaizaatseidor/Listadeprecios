@@ -23,6 +23,11 @@ export default {
         });
       }
 
+      // DIAGNÓSTICO TEMPORAL — no revela la key, solo si existe y cuántos caracteres tiene
+      const keyPresent = typeof env.RESEND_API_KEY === 'string' && env.RESEND_API_KEY.length > 0;
+      const keyLength = keyPresent ? env.RESEND_API_KEY.length : 0;
+      const keyPreview = keyPresent ? env.RESEND_API_KEY.slice(0, 3) + '...' + env.RESEND_API_KEY.slice(-3) : null;
+
       const primerNombre = asignadoA.split(' ')[0];
       const resendResp = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -44,7 +49,7 @@ export default {
 
       if (!resendResp.ok) {
         const errText = await resendResp.text();
-        return new Response(JSON.stringify({ ok: false, error: errText }), {
+        return new Response(JSON.stringify({ ok: false, error: errText, debug: { keyPresent, keyLength, keyPreview } }), {
           status: 502,
           headers: { 'Content-Type': 'application/json' }
         });
