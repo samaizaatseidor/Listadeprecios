@@ -641,6 +641,32 @@ ${JSON.stringify(compromisos)}`;
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
 
+    if (url.pathname === '/api/audit-resumen' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { entries } = body;
+      if (!Array.isArray(entries) || !entries.length) {
+        return new Response(JSON.stringify({ ok: false, error: 'No hay actividad para resumir' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un asistente que resume bitácoras de actividad de un sitio interno de SEIDOR México. Con base en este log de acciones (más reciente primero), escribe un resumen en español, en prosa corrida (sin encabezados ni viñetas), de máximo 5 oraciones, agrupando por tipo de acción y destacando primero cualquier borrado masivo o de proyecto completo si lo hay. No inventes información que no esté en los datos.
+
+LOG:
+${JSON.stringify(entries)}`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
     if (url.pathname === '/api/whoami') {
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
       return new Response(JSON.stringify({ email }), { headers: { 'Content-Type': 'application/json' } });
