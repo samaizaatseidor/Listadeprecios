@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha del Cliente · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:820px; margin:0 auto; padding:20px 16px 80px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:4px; font-weight:500;}
+  .field input[type=text], .field select, .field textarea{
+    width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px;
+    font-family:inherit; font-size:13.5px; color:var(--ink);
+  }
+  .req-badge{font-size:10px; padding:1px 6px; border-radius:10px; margin-left:6px; font-weight:600;}
+  .req-badge.Obligatoria{background:#FBE7E7; color:#B23A3A;}
+  .req-badge.Opcional{background:#EDF3FA; color:var(--blue);}
+
+  details.accordion{border:1px solid var(--line); border-radius:10px; margin-bottom:10px; overflow:hidden;}
+  details.accordion summary{
+    padding:11px 14px; cursor:pointer; font-size:13.5px; font-weight:600; color:var(--navy2);
+    background:#F7FAFD; list-style:none; display:flex; justify-content:space-between; align-items:center;
+  }
+  details.accordion summary::-webkit-details-marker{display:none;}
+  details.accordion summary .count{font-size:11px; color:var(--greyl); font-weight:400;}
+  details.accordion .accordion-body{padding:14px;}
+
+  .hidden{display:none !important;}
+  .check-row{display:flex; align-items:center; gap:8px; margin-bottom:14px; font-size:13.5px;}
+  .check-row input{width:auto;}
+
+  .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;}
+  .btn{border:none; border-radius:8px; padding:11px 18px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
+
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--navy2); color:#fff;
+    padding:14px 20px; border-radius:10px; font-size:13.5px; box-shadow:0 6px 20px rgba(10,18,38,0.3);
+    display:none; z-index:30; text-align:center; max-width:90vw;
+  }
+  .toast a{color:var(--cyan-l); font-weight:600; text-decoration:none;}
+  .toast.show{display:block;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html#individuales">Servicios individuales</a>
+      <a href="/index.html#paquetes">Paquetes SAP Cloud ERP</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html" class="active">Ficha del Cliente</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Ficha del Cliente</h1>
+  <p>Llénala para engancharnos a preventas — se agrega directo a CRM PresalesMX</p>
+</header>
+
+<main>
+
+  <div class="section">
+    <h2>Datos generales</h2>
+    <p class="sub">Información base del cliente y la oportunidad</p>
+    <div class="field">
+      <label>Nombre cliente *</label>
+      <input type="text" id="f-nombre-cliente">
+    </div>
+    <div class="field">
+      <label>Tipo de requerimiento *</label>
+      <select id="f-requerimiento">
+        <option value="">Selecciona...</option>
+        <option value="Implementación">Implementación</option>
+        <option value="Upgrade">Upgrade</option>
+        <option value="Rollout">Rollout</option>
+        <option value="Mejora">Mejora</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Gerente área comercial (AE) *</label>
+      <select id="f-gerente-comercial">
+        <option value="">Selecciona...</option>
+        <option value="Fernanda Richards">Fernanda Richards</option>
+        <option value="Manuel Apón">Manuel Apón</option>
+        <option value="Natalia Ossa">Natalia Ossa</option>
+        <option value="Estefanía Muñoz">Estefanía Muñoz</option>
+        <option value="Freda Juárez">Freda Juárez</option>
+        <option value="Fernanda Villagómez">Fernanda Villagómez</option>
+        <option value="Josselyn González">Josselyn González</option>
+        <option value="Omar Dávila">Omar Dávila</option>
+      </select>
+    </div>
+    <div id="dg-fields"></div>
+  </div>
+
+  <div class="section hidden" id="section-upgrade">
+    <h2>Upgrade</h2>
+    <p class="sub">Preguntas técnicas específicas para proyectos de upgrade</p>
+    <div id="upgrade-fields"></div>
+  </div>
+
+  <div class="section hidden" id="section-rollout">
+    <h2>Rollout</h2>
+    <p class="sub">Cuestionario funcional por área — despliega cada sección</p>
+    <label class="check-row"><input type="checkbox" id="f-incluye-loc-mexico"> Incluir cuestionario de Localización México</label>
+    <div id="rollout-fields"></div>
+    <div id="locmexico-fields" class="hidden"></div>
+  </div>
+
+  <div class="section">
+    <div class="actions">
+      <button class="btn btn-primary" onclick="submitFicha()">Enviar a Preventas (agrega a Pipeline)</button>
+      <button class="btn btn-ghost" onclick="downloadExcel()">Descargar Excel</button>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {"datosGenerales": [{"label": "¿Es cliente SEIDOR?", "type": "select", "options": ["Sí", "No"]}, {"label": "RFC cliente", "type": "text"}, {"label": "Razón social", "type": "text"}, {"label": "Industria", "type": "text"}, {"label": "Dirección", "type": "text"}, {"label": "Datos de contacto cliente (incluya cargo)", "type": "text"}, {"label": "ERP Actual", "type": "text"}, {"label": "Productos o servicios (si cuenta con SAP)", "type": "text"}, {"label": "Número de sociedades en ERP actual", "type": "text"}, {"label": "¿En cuántos países tienen operación?", "type": "text"}, {"label": "Divisiones (¿cuántas ubicaciones / centros tienen?)", "type": "text"}, {"label": "Módulos SAP operativos", "type": "text"}, {"label": "Soluciones adquiridas SAP (ERP, Concur, Ariba, etc.)", "type": "text"}, {"label": "Base instalada SAP", "type": "text"}, {"label": "Base instalada SEIDOR", "type": "text"}, {"label": "Servicios de continuidad operacional contratados (AMS), ¿cuáles?", "type": "text"}, {"label": "Fecha salida en vivo ERP", "type": "text"}, {"label": "Versión SAP ERP", "type": "text"}, {"label": "Volumen de ventas", "type": "text"}, {"label": "Cantidad de empleados", "type": "text"}, {"label": "Principales interlocutores", "type": "text"}, {"label": "Módulos implementados (independiente de ERP)", "type": "text"}, {"label": "Middleware de integración (PI, PO, CPI)", "type": "text"}, {"label": "¿Utilizan BTP?", "type": "text"}, {"label": "HR (¿tiene SAP HCM?)", "type": "text"}, {"label": "Integraciones con sistemas legados, ¿cuáles son?", "type": "text"}, {"label": "¿Disponen de mapa de integraciones que puedan informar?", "type": "text"}, {"label": "Número de desarrollos en funcionamiento (catastro de programas Z)", "type": "text"}, {"label": "Proyectos implementados por SEIDOR, ¿cuáles?", "type": "text"}, {"label": "En términos generales, describe el requerimiento del cliente", "type": "textarea"}], "upgrade": ["¿Ha realizado la ejecución del ATC (ABAP Test Cockpit)?", "Última fecha de ejecución ATC (ABAP Test Cockpit)", "¿Cuenta con SAP Router activo para la ejecución de ATC?", "¿Ha realizado la ejecución del Readiness Check?", "¿Qué legados tiene conectados a su ambiente de Calidad actual? (mapa de sistemas)", "¿Qué legados tiene conectados a su ambiente Productivo actual? (mapa de sistemas)", "¿Cuenta actualmente con FIORI embebido?", "¿Cuenta con disponibilidad de plataforma paralela para el proyecto de Upgrade?", "¿Dónde se encuentra alojada su infraestructura actual SAP?", "¿Utilizan plataforma SAP BTP?", "¿Qué sistemas adicionales SAP tiene instalados en su plataforma actual?", "¿Tiene SNOTE activo y funcionando en los sistemas SAP actuales?", "¿Tiene disponible un reporte de EarlyWatch Alert para su sistema SAP Productivo?", "¿Cuenta con componentes SAP ST-PI / ST-A-PI?", "¿Cuál es la versión de los componentes SAP ST-PI / ST-A-PI?", "¿Su sistema SAP Productivo tiene alta disponibilidad?", "¿Su plataforma SAP es híbrida a nivel de sistema operativo?", "¿Qué sistema operativo tiene su plataforma actual SAP?", "¿Cuál es la versión de su sistema operativo?", "¿Cuál es la versión de su base de datos?", "¿Cuál es la versión de su sistema SAP?", "Número de roles Z o Y en ambiente Productivo (no SAP)", "Módulos SAP que tiene implementados actualmente", "¿Dispone de lista de procesos críticos a probar en etapa de testing?", "Listado de procesos críticos (E2E)", "¿Cuenta el cliente con la ejecución de la transacción SE80?", "¿Qué acciones se tomarán con los objetos inactivos arrojados por la SE80?", "¿Esta actividad será realizada por el cliente?", "Si es realizada por SEIDOR, ¿qué acción se debe ejecutar?", "¿Se debe activar solucionando los errores? (indicar equipos involucrados: cliente / ABAP)", "¿Se deben eliminar los objetos de mandante? (equipo involucrado ABAP)"], "rollout": [{"title": "Localización Financiera", "questions": [{"id": "1", "pregunta": "Indique moneda en que se llevará la contabilidad", "obligatoriedad": "Obligatoria"}, {"id": "2", "pregunta": "Indique los impuestos de retención que requiere implementar", "obligatoriedad": "Obligatoria"}, {"id": "3", "pregunta": "Indique los impuestos a los que estará afecta su operación", "obligatoriedad": "Obligatoria"}, {"id": "4", "pregunta": "¿Requiere la implementación de nuevos libros o utilizará los ya utilizados por su sistema?. ¿Cuáles?", "obligatoriedad": "Obligatoria"}, {"id": "7", "pregunta": "¿Requiere cargar Saldos de partidas abiertas?", "obligatoriedad": "Obligatoria"}, {"id": "8", "pregunta": "¿Se requeire creación de cuentas para la localización o se manejará internamente por  el cliente?", "obligatoriedad": "Obligatoria"}, {"id": "9", "pregunta": "¿requieren la creación de una estructura de balance exclusiva para este servicio o se utilizará la del grupo?", "obligatoriedad": "Obligatoria"}, {"id": "10", "pregunta": "¿las cuentas que se utilizarán para este servicio serán las mismas que  las del grupo o se requiere la creación de otras exclusivas para chile?", "obligatoriedad": "Obligatoria"}, {"id": "11", "pregunta": "¿con qué banco se trabajará? ¿ya está contratado el servicio?", "obligatoriedad": "Obligatoria"}, {"id": "12", "pregunta": "¿requiere incluir conciliación bancaria?. ¿qué tipo de conciliación utiliza? (manual o automática)", "obligatoriedad": "Obligatoria"}, {"id": "13", "pregunta": "¿utilizan archivo multicash o mt940?", "obligatoriedad": "Obligatoria"}, {"id": "14", "pregunta": "¿con qué bancos se realiza la carga de cartolas?", "obligatoriedad": "Obligatoria"}, {"id": "15", "pregunta": "¿Requiere incluir pago a proveedores?", "obligatoriedad": "Obligatoria"}, {"id": "16", "pregunta": "¿qué tipo de comunicación se tiene con el banco con el que se realizan los pagos a proveedores? (hub to hub o carga manual a portal bancario)", "obligatoriedad": "Obligatoria"}, {"id": "17", "pregunta": "¿existe flujos de importaciones en la compañía?", "obligatoriedad": "Obligatoria"}]}, {"title": "Migración de Datos", "questions": [{"id": "1", "pregunta": "Necesita que se incluya esfuerzo para la migración de datos. Si su respuesta es afiermativa completar las siguientes preguntas.", "obligatoriedad": "Obligatoria"}, {"id": "1.1", "pregunta": "¿Requiere cargar Balance?", "obligatoriedad": "Opcional"}, {"id": "1.2", "pregunta": "¿Requiere carga de partidas abiertas de proveedores?", "obligatoriedad": "Opcional"}, {"id": "1.3", "pregunta": "¿Requiere carga de activos fijos?. ¿Cuántos activos fijos aproximadamente son?", "obligatoriedad": "Opcional"}]}, {"title": "Desarrollos a la medida y otros", "questions": [{"id": "1", "pregunta": "¿Existen actualmente desarrollos críticos que se requieran considerar  para ese servicio?. Describa brevemente.", "obligatoriedad": "Opcional"}, {"id": "2", "pregunta": "¿Requiere que se consideren esfuerzos para modificación de roles y perfiles?", "obligatoriedad": "Opcional"}]}, {"title": "Datos Maestros Abastecimiento", "questions": [{"id": "1", "pregunta": "Datos maestros, existe algún registro maestro para los distintos tipos de materiales? Favor detalle el proceso de  creación", "obligatoriedad": "Obligatoria"}, {"id": "2", "pregunta": "Datos maestros, favor indique si utiliza los siguientes tipos de materiales:  (En caso de existir otro distinto, favor detallar)", "obligatoriedad": "Obligatoria"}, {"id": "2.1", "pregunta": "Materias Primas (MP)", "obligatoriedad": ""}, {"id": "2.2", "pregunta": "Mat. de Envase (ME)", "obligatoriedad": ""}, {"id": "2.3", "pregunta": "Prod. Semielaborado (ST)", "obligatoriedad": ""}, {"id": "2.4", "pregunta": "Prod. Terminado (PV)", "obligatoriedad": ""}, {"id": "2.5", "pregunta": "Muestras Medicas (MM)", "obligatoriedad": ""}, {"id": "2.6", "pregunta": "Lic/Maq/Prom/Otr (Material gráfico)", "obligatoriedad": ""}, {"id": "3", "pregunta": "Datos maestros, existe algún registro maestro para los proveedores? Favor detalle el proceso de creación", "obligatoriedad": "Obligatoria"}, {"id": "4", "pregunta": "Datos maestros, favor indique si utiliza la siguiente clasificación de proveedores: (En caso de existir otro distinto, favor detallar)", "obligatoriedad": "Opcional"}, {"id": "4.1", "pregunta": "Proveedor Extranjero", "obligatoriedad": ""}, {"id": "4.2", "pregunta": "Otros receptores exterior", "obligatoriedad": ""}, {"id": "4.3", "pregunta": "Filiales", "obligatoriedad": ""}, {"id": "4.4", "pregunta": "Receptores", "obligatoriedad": ""}, {"id": "4.5", "pregunta": "Acreedores CPD (Proveedor esporádico o de una sola vez)", "obligatoriedad": ""}, {"id": "4.6", "pregunta": "Proveedores Nacionales", "obligatoriedad": ""}, {"id": "4.7", "pregunta": "Remuneraciones", "obligatoriedad": ""}]}, {"title": "Estructura Logística", "questions": [{"id": "1", "pregunta": "Cómo está constituída la actual estructura del área logística?, indicar ejemplos", "obligatoriedad": "Obligatoria"}, {"id": "1.1", "pregunta": "Centros Logísticos, cuantos centros tienen operaciones logísticas", "obligatoriedad": "Obligatoria"}, {"id": "2", "pregunta": "Almacenes, ¿Cuántos almacenes aproximadamente se manejan dentro de cada centro?", "obligatoriedad": "Obligatoria"}, {"id": "3", "pregunta": "Actualmente manejan gestión de almacenes por WMS. Indicar si es en SAP o externo a SAP.", "obligatoriedad": "Obligatoria"}]}, {"title": "Gestión de Abastecimiento", "questions": [{"id": "1", "pregunta": "Estructura, Dentro de su organización, cuantas personas trabajan en relación a la gestión de materiales? Ej: Compradores, receptores de mercadería, Gerentes, etc. Por favor detalle.", "obligatoriedad": "Opcional"}, {"id": "2", "pregunta": "Para los formularios a utilizar, que datos legales deben incluir?. Ej.: para el caso de las órdenes de compra, razón social, Nº de identificación legal, dirección y otros. Incluir formatos de los formularios vigentes, diferenciando aquellos de orden legal de aquellos de orden interno.", "obligatoriedad": "Obligatorio"}, {"id": "3", "pregunta": "Para las compras se requiren que tipos de impuestos?", "obligatoriedad": "Obligatoria"}, {"id": "4", "pregunta": "Para las compras se requiren que tipos de retenciones?", "obligatoriedad": "Obligatoria"}, {"id": "5", "pregunta": "Antecedentes acerca de la estructura organizativa SAP denominada Organización de compras:\nUna unidad de organización responsable del aprovisionamiento de materiales y servicios para uno o más centros y de la negociación de precios y condiciones de compras con el proveedor. La organización de compras asume responsabilidad legal para todas las operaciones de compras externas.\n\nNormalmente, una organización de compras está representada por el Gerente o Jefe de Adquisiciones o quien ejecute esas funciones\nGrupo de compras\nLa organización de compras se divide a su vez en grupos de compras (grupos de compras) que son responsables de las actividades de compra diarias.\n\nConsulta:\nEn relación a lo anterior, cuantos grupos de compra (Persona o grupo de personas) existen en su filial?", "obligatoriedad": "Obligatoria"}, {"id": "6", "pregunta": "De las compras, en relación a los tipos de compras que se realizan en su sucursal, favor confirmar si efectúan los siguientes:", "obligatoriedad": "Obligatoria"}, {"id": "6.1", "pregunta": "Compra de producto terminado (Nacional o Importado, indicar)", "obligatoriedad": ""}, {"id": "6.2", "pregunta": "Compra de materia prima, material de empaque, material impreso, insumos productivos (Nacional o Importado, indicar)", "obligatoriedad": ""}, {"id": "6.3", "pregunta": "Compra de subcontratación (Re acondicionamiento, nuevo empaque o fabricación externa ejecutada por un tercero)", "obligatoriedad": ""}, {"id": "6.4", "pregunta": "Compra de insumos de oficina, servicios en general, contra imputación contable", "obligatoriedad": ""}, {"id": "11", "pregunta": "Contratos", "obligatoriedad": ""}, {"id": "12", "pregunta": "Activos fijos", "obligatoriedad": ""}, {"id": "13", "pregunta": "De las compras, existe un requerimiento, solicitud o documento previo a la orden de compra donde se requieran los bienes y/o servicios??  Si existe, tiene una estrategia de liberación, antes de llegar al área de compras??", "obligatoriedad": "Obligatoria"}, {"id": "14", "pregunta": "De las Compras, las ordenes de compra están sujetas a estrategia de liberación??, de cuantos niveles?? Que criterios ocupan??", "obligatoriedad": "Obligatoria"}, {"id": "15", "pregunta": "Antecedentes acerca de el esquema de cálculo para pedidos de compra:                                                                                                   El esquema de cálculo agrupa todas las clases de condiciones que forman parte del cálculo del precio. Establece el orden en el que todas las clases de condición se deben considerar en el cálculo. Además, el esquema de cálculo especifica los siguientes puntos:\n• A qué subtotales se ha llegado\n• Hasta qué punto se puede llevar a cabo manualmente el proceso de determinación de precio\n• Las bases sobre las que el sistema calcula los descuentos y recargos porcentuales\n• Qué condiciones deben satisfacerse para que se tenga en cuenta una clase de condición concreta                                                      De lo anterior, que clase de condiciones forman parte la estructura del precio de compra??  Ej. : Precio Neto, fletes, seguros, descuentos, recargos, etc.", "obligatoriedad": "Obligatoria"}, {"id": "16", "pregunta": "¿Cómo es el proceso de costeo real de productos?", "obligatoriedad": "Opcional"}, {"id": "17", "pregunta": "¿Cuáles son los controles realizados en el proceso de aceptación de servicios?  Ej. cantidad, calidad, orden de compra, otros.", "obligatoriedad": "Obligatoria"}, {"id": "18", "pregunta": "¿En que área se realiza la contabilización de las facturas, notas de crédito, boletas de materiales y servicios de origen nacional, facturas de servicios extranjeros, facturas de importación ?", "obligatoriedad": "Obligatoria"}, {"id": "19", "pregunta": "¿Cuántas personas contabilizan facturas de proveedores?", "obligatoriedad": "Opcional"}, {"id": "20", "pregunta": "¿Cómo se realiza el proceso actual de ingreso y contabilización de facturas?", "obligatoriedad": "Obligatorio"}, {"id": "21", "pregunta": "¿Cómo se verifica que valores y cantidades de la factura sean los mismos que los comprados? ¿Cómo se verifica que las compras realizadas han sido recibidas a satisfacción de las áreas solicitantes?", "obligatoriedad": "Obligatorio"}, {"id": "22", "pregunta": "¿Cuáles son las tolerancias usadas en el proceso actual de forma de aceptar o rechazar las diferencias entre la factura y el pedido?", "obligatoriedad": "Opcional"}, {"id": "23", "pregunta": "¿Qué tratamiento se realiza con las diferencias de tipo de cambio?", "obligatoriedad": "Obligatorio"}, {"id": "24", "pregunta": "¿De que manera se procede con los costos indirectos de una compra de materiales?", "obligatoriedad": "Opcional"}, {"id": "25", "pregunta": "¿Cómo se realiza la contabilización de las facturas de importación, agentes de aduana, transportistas, etc.? ¿Cómo se costean los materiales?", "obligatoriedad": "Opcional"}, {"id": "26", "pregunta": "¿Cómo se realizan la entrega de anticipos a proveedores? ¿Cómo se compensan estos?", "obligatoriedad": "Opcional"}, {"id": "27", "pregunta": "¿Cuáles son las condiciones de pago utilizadas para el pago a proveedores?", "obligatoriedad": "Opcional"}, {"id": "28", "pregunta": "¿Cuáles son los indicadores de IVA utilizados?", "obligatoriedad": ""}, {"id": "29", "pregunta": "Planificación de necesidades, existe algún método para la planificación de compras??", "obligatoriedad": "Opcional"}, {"id": "30", "pregunta": "Planificación de necesidades, como se definen los criterios de cobertura de stock??", "obligatoriedad": "Opcional"}, {"id": "31", "pregunta": "Existe algún programa Z adicional que debamos considerar?, puede ser uno existente o un deseable.  Por favor indicar nombre del programa y una breve descripción de su funcionalidad, si existe.  Si es un deseable, indicar lo que se necesita.", "obligatoriedad": "Obligatorio"}]}, {"title": "Gestión de Inventario", "questions": [{"id": "1", "pregunta": "De las existencias, ¿Qué tipo de valoración (precio medio valorado, precio estándar) se utiliza para los distintos tipos de existencia, materias primas, productos terminados, semielaborados?", "obligatoriedad": "Obligatoria"}, {"id": "2", "pregunta": "¿Cuál es la tolerancia permitida para la recepción de materiales en exceso?.", "obligatoriedad": "Opcional"}, {"id": "3", "pregunta": "¿Cómo se realizan la devoluciones de materiales al proveedor? ¿Cuáles son las razones de dicha devolución?", "obligatoriedad": "Obligatoria"}, {"id": "4", "pregunta": "¿Utilizan materiales con lotes?", "obligatoriedad": "Obligatoria"}, {"id": "5", "pregunta": "¿Cómo realiza el control de calidad de los productos recibidos?.", "obligatoriedad": "Opcional"}, {"id": "6", "pregunta": "¿Existe algún(os) materiales a los cuales sea necesario verificar su fecha de vencimiento? ¿Cuáles son estos casos?", "obligatoriedad": "Opcional"}, {"id": "7", "pregunta": "¿Cuáles son los controles realizados en el proceso de aceptación de servicios?  Ej. cantidad, calidad, orden de compra, otros.", "obligatoriedad": "Obligatoria"}, {"id": "8", "pregunta": "¿Existen materiales para los cuales sea necesario valorarlos de manera separada? Ej.: valoración separada por origen (comprados en chile o en el extranjero) , valoración por lotes", "obligatoriedad": "Obligatoria"}, {"id": "9", "pregunta": "¿Cómo se realiza el proceso de salidas de materiales para consumo interno desde stock? En caso de no existir stock se debe describir el proceso de entrega de productos a usuario final.", "obligatoriedad": "Obligatoria"}, {"id": "10", "pregunta": "¿Su proveedor logístico gestiona todos sus almacenes en el mismo lugar físico?", "obligatoriedad": "Obligatoria"}, {"id": "11", "pregunta": "¿Cuál es su actual procedimiento para toma de inventario? Favor detallar si es en forma cíclica, por muestreo o legal.", "obligatoriedad": "Opcional"}, {"id": "12", "pregunta": "¿Cuál es su política de manejo de diferencia de inventario?.", "obligatoriedad": "Opcional"}]}, {"title": "Datos Maestros Ventas", "questions": [{"id": "1", "pregunta": "Datos maestros, favor indique si utiliza la siguiente clasificación de Clientes: (En caso de existir otro distinto, favor detallar)", "obligatoriedad": "Obligatorio"}, {"id": "1.1", "pregunta": "Cliente Extranjero", "obligatoriedad": ""}, {"id": "1.2", "pregunta": "Clientes Nacionales", "obligatoriedad": ""}, {"id": "1.3", "pregunta": "Clientes Ocasionales (CPD)", "obligatoriedad": ""}, {"id": "1.4", "pregunta": "Otros (Señalar)", "obligatoriedad": ""}]}, {"title": "Estructura de Ventas", "questions": [{"id": "1", "pregunta": "Cómo está constituída la actual estructura de las áreas de venta?, indicar ejemplos", "obligatoriedad": "Opcional"}, {"id": "2", "pregunta": "a) La nueva empresa formará una estructura legal diferenciada de la existente? O\nb) Funcionará sobre la existente con un nombre comercial diferente?", "obligatoriedad": "Obligatorio"}, {"id": "3", "pregunta": "Si a) ¿Se desea mantener la misma estructura de sus áreas de venta?", "obligatoriedad": "Opcional"}, {"id": "4", "pregunta": "Si b) ¿Se tendría que mantener la estructura actual y proponer una diferenciación por organización de ventas, canal o sector, dependiendo de lo propuesto en el sistema actual?", "obligatoriedad": "Opcional"}, {"id": "5", "pregunta": "La Oficina de Venta define los aspectos geográficos de las estructuras organizativas en adquisiones y ventas. Una oficina de ventas puede verse como una oficina real o quizás como un territorio o región.\nDado lo anterior:\na) Se dispone de oficinas de ventas configuradas en el sistema?\nb) Qué representan estas oficinas de ventas?, ejemplo: Región, Sucursal real, etc\nc) Indicar la cantidad de oficinas de ventas nuevas que se tendrían con la integración de la nueva empresa", "obligatoriedad": "Obligatoria"}, {"id": "6", "pregunta": "Los empleados de una oficina de ventas pueden asignarse a Grupo de Vendedores definidos para cada sector o canal de distribución.\nDado lo anterior:\na) Se dispone de grupos de vendedores configurados en el sistema?\nb) Los grupos de vendedores actuales se mantedrían o se crearían nuevos para la nueva empresa?", "obligatoriedad": "Obligatoria"}, {"id": "7", "pregunta": "Se mantendrá el centro de distribución actual o se creará uno adicional?, esto dependerá de varios factores, como por ejemplo: Si la empresa nueva será una sociedad independiente o parte de la sociedad actual, si la empresa nueva tiene un CD que se desea mantener, si la empresa nueva tiene una linea de negocio diferente a la actual, los tipos de materiales, etc.", "obligatoriedad": "Obligatoria"}, {"id": "8", "pregunta": "En base a la respuesta anterior, se debe determinar si se crearán nuevos almacenes, se usarán los existentes o se crearán nuevos en el centro actual.  Cuál sería la opción en este caso?.", "obligatoriedad": "Opcional"}, {"id": "9", "pregunta": "En base a la respuesta de la pregunta 7, se debe determinar si se crearán nuevos puestos de expedición o se usarán los existentes. Cuál sería la opción en este caso?.", "obligatoriedad": "Opcional"}]}, {"title": "Flujos de Venta", "questions": [{"id": "1", "pregunta": "Se mantendrán todos los flujos de venta actuales para la empresa nueva?, cuáles?", "obligatoriedad": "Obligatorio"}, {"id": "2", "pregunta": "Se considera la creación de nuevos flujos de venta para la empresa nueva?, si esto es así, cuáles son los escenarios de venta que se necesitan cubrir?", "obligatoriedad": "Obligatorio"}, {"id": "3", "pregunta": "Cuántos y cuáles serían los canales de venta que se manejarían en la nueva empresa?.  Ejemplo: E-commerce, Venta móvil, Venta en oficina, etc.", "obligatoriedad": "Obligatorio"}, {"id": "4", "pregunta": "Estos canales corresponden a los manejados actualmente, hay alguno nuevo o alguno no se utilizará en la nueva empresa?", "obligatoriedad": "Obligatorio"}, {"id": "5", "pregunta": "En qué sistema se manejan estos canales de venta?.  Ejemplo: Shopify, SAP directamente, etc", "obligatoriedad": "Obligatorio"}, {"id": "6", "pregunta": "Si son sistemas existentes:\na) Todos están interfaceados con SAP o alguno requiere manualidad?, cuál y en que consiste esta manualidad?\nB) Cuántas interfaces debemos considerar para la implementación de ventas de la nueva empresa?", "obligatoriedad": "Obligatorio"}, {"id": "7", "pregunta": "Si son sistemas nuevos:\na) Cuáles son?\nB) Cómo funciona la retroalimentación con el ERP actual de la empresa nueva?, lo que se intenta determinar es qué tipo de solución técnica se usa (Carga masiva de la información, webservice, etc) y qué información es la que viaja hacia o desde estos sistemas.", "obligatoriedad": "Obligatorio"}, {"id": "8", "pregunta": "Existe algún programa Z adicional que debamos considerar?, puede ser uno existente o un deseable.  Por favor indicar nombre del programa y una breve descripción de su funcionalidad, si existe.  Si es un deseable, indicar lo que se necesita.", "obligatoriedad": "Obligatorio"}]}, {"title": "Esquema de Precio", "questions": [{"id": "1", "pregunta": "De acuerdo con los flujos de venta que se mantendrán, cuántos esquemas de cálculo se manejan para estos?", "obligatoriedad": "Obligatorio"}, {"id": "2", "pregunta": "Tienen relación 1:1?, es decir, un flujo de venta solo puede determinar un esquema de cálculo o varios?", "obligatoriedad": "Obligatorio"}, {"id": "3", "pregunta": "Cómo están constituidos estos precios por esquema?.  Ejemplo: Precio + IVA, Precio - descuento + IVA, etc.", "obligatoriedad": "Obligatorio"}, {"id": "4", "pregunta": "Si se crearán nuevos flujos de venta, estos mantendrán algún esquema de los existentes?", "obligatoriedad": "Obligatorio"}, {"id": "5", "pregunta": "Si la respuesta  4 es no:\na) Cómo está constituido el precio en cada flujo nuevo a considerar?.  Ejemplo: Precio + IVA, Precio - descuento + IVA, Precio + Recargo - Descuento + IVA, etc.\nb) Cómo determinan actualmente el precio, descuento o recargo para este proceso de venta?, cuáles son los niveles?.  Ejemplo: para cierto X, del rubro Y y material H se determina el precio A.", "obligatoriedad": "Opcional"}, {"id": "6", "pregunta": "Se cuenta con un programa de carga de precios?, carga precios, descuentos, recargos, etc?", "obligatoriedad": "Obligatorio"}]}, {"title": "Facturación Electrónica (FEL)", "questions": [{"id": "1", "pregunta": "Con qué proveedor tienen implementada la facturación electrónica la nueva empresa?", "obligatoriedad": "Obligatorio"}, {"id": "2", "pregunta": "Se mantendrá el mismo proveedor o se adoptará la solución existente en la empresa que compra?", "obligatoriedad": "Obligatorio"}, {"id": "3", "pregunta": "Si se adopta solución existente:\na) Explicar cómo se realiza el proceso de facturación electrónica.  Ejemplo: por medio de la IDCP, e-Document\nb) La facturación electrónica se realiza siempre desde SAP? O se tienen sistemas legado que emiten documentos tributarios de forma independiente?, de ser así, indicar cuántos sistemas.\nc) Cuántos formularios tienen actualmente?\nd) El sistema actual permite la anulación de guías de despacho y facturas?\ne) El control y asignación de folios lo tiene SAP o el facturador de acuerdo con la respuesta de SUNAT?\nf) Si el control lo tiene SAP, cómo realizan el envío de CAF (Código de Asignación de Folios)?", "obligatoriedad": "Obligatorio"}]}], "localizacionMexico": [{"label": "RFC", "pregunta": "¿Cuenta actualmente con RFC registrado ante el SAT?", "obligatoriedad": "SI", "comentario": "Registro Federal de Contribuyentes, requerido para toda operación fiscal en México."}, {"label": "RÉGIMEN FISCAL", "pregunta": "¿Cuál es su régimen fiscal? (Título II General, RESICO, Régimen de Confianza, etc.)", "obligatoriedad": "SI", "comentario": ""}, {"label": "MONEDA", "pregunta": "¿En qué moneda se llevará la contabilidad?", "obligatoriedad": "SI", "comentario": ""}, {"label": "MONEDA ADICIONAL", "pregunta": "¿Existe alguna moneda adicional de reporte o consolidación?", "obligatoriedad": "NO", "comentario": ""}, {"label": "PAC", "pregunta": "¿Con qué PAC (Proveedor Autorizado de Certificación) trabajan actualmente para el timbrado de CFDI?", "obligatoriedad": "SI", "comentario": ""}, {"label": "VERSIÓN CFDI", "pregunta": "¿Qué versión de CFDI utilizan (3.3, 4.0)?", "obligatoriedad": "SI", "comentario": ""}, {"label": "CFDI DE INGRESO", "pregunta": "Indique el volumen aproximado mensual de CFDI de ingreso (facturas) emitidos", "obligatoriedad": "SI", "comentario": "Indicar volumen aproximado mensual o anual"}, {"label": "NOTAS DE CRÉDITO (CFDI EGRESO)", "pregunta": "Indique el volumen aproximado mensual de CFDI de egreso (notas de crédito) emitidos", "obligatoriedad": "SI", "comentario": ""}, {"label": "COMPLEMENTO DE PAGO (REP)", "pregunta": "¿Emiten Complemento de Pago (REP) para operaciones en parcialidades o pago diferido?", "obligatoriedad": "SI", "comentario": ""}, {"label": "CARTA PORTE", "pregunta": "¿Requieren timbrado de Carta Porte para traslado o transporte de mercancías?", "obligatoriedad": "SI", "comentario": "Complemento obligatorio para transporte de bienes en territorio nacional."}, {"label": "NÓMINA ELECTRÓNICA", "pregunta": "¿Requieren la emisión de CFDI de Nómina?", "obligatoriedad": "SI", "comentario": ""}, {"label": "CANCELACIÓN DE CFDI", "pregunta": "¿Cómo gestionan actualmente el proceso de cancelación de CFDI (motivo de cancelación, aceptación del receptor)?", "obligatoriedad": "SI", "comentario": "Vigente desde la actualización del esquema de cancelación del SAT."}, {"label": "CONTABILIDAD ELECTRÓNICA", "pregunta": "¿Envían actualmente la Contabilidad Electrónica al SAT (catálogo de cuentas, balanza de comprobación, pólizas)?", "obligatoriedad": "SI", "comentario": "Obligatorio salvo excepciones específicas de RESICO/personas físicas."}, {"label": "DIOT", "pregunta": "¿Generan la Declaración Informativa de Operaciones con Terceros (DIOT)?", "obligatoriedad": "SI", "comentario": ""}, {"label": "IVA", "pregunta": "¿Qué tasas de IVA manejan? (16% general, 8% región fronteriza, 0%, exento)", "obligatoriedad": "SI", "comentario": ""}, {"label": "RETENCIÓN ISR", "pregunta": "Indique los tipos de retención de ISR que aplican (honorarios, arrendamiento, fletes, otros)", "obligatoriedad": "SI", "comentario": ""}, {"label": "RETENCIÓN IVA", "pregunta": "Indique los tipos de retención de IVA que aplican (servicios, fletes, honorarios, arrendamiento)", "obligatoriedad": "SI", "comentario": ""}, {"label": "ISN", "pregunta": "¿Están sujetos al Impuesto Sobre Nóminas (ISN) estatal? ¿En qué estado(s)?", "obligatoriedad": "SI", "comentario": "El ISN varía por entidad federativa."}, {"label": "IEPS", "pregunta": "¿Su operación está afecta al Impuesto Especial sobre Producción y Servicios (IEPS)?", "obligatoriedad": "NO", "comentario": "Aplica a bebidas alcohólicas, tabaco, combustibles, alimentos con alta densidad calórica, entre otros."}, {"label": "COMERCIO EXTERIOR", "pregunta": "¿Realizan operaciones de comercio exterior (importación/exportación)? ¿Requieren Complemento de Comercio Exterior en el CFDI?", "obligatoriedad": "NO", "comentario": ""}, {"label": "PEDIMENTOS", "pregunta": "¿Manejan pedimentos aduanales? ¿Cómo se gestionan actualmente (agente aduanal, sistema)?", "obligatoriedad": "NO", "comentario": ""}, {"label": "BANCOS", "pregunta": "¿Con qué banco(s) trabajarán en México? ¿Ya está contratado el servicio?", "obligatoriedad": "NO", "comentario": ""}, {"label": "CONCILIACIÓN BANCARIA", "pregunta": "¿Requieren conciliación bancaria automática? ¿Qué formato de layout bancario utilizan?", "obligatoriedad": "NO", "comentario": ""}, {"label": "PAGO A PROVEEDORES", "pregunta": "¿Qué tipo de comunicación tienen con el banco para pagos a proveedores? (dispersión electrónica, layout, portal manual)", "obligatoriedad": "NO", "comentario": ""}, {"label": "ESTRUCTURA DE BALANCE", "pregunta": "¿Requieren una estructura de balance exclusiva para México o se utilizará la del grupo?", "obligatoriedad": "NO", "comentario": "Depende de la definición del proyecto."}, {"label": "PLAN DE CUENTAS", "pregunta": "¿Las cuentas para México serán las mismas del grupo o requieren un plan de cuentas exclusivo (agrupador SAT)?", "obligatoriedad": "SI", "comentario": "El catálogo de cuentas para Contabilidad Electrónica requiere código agrupador SAT."}, {"label": "ACTIVOS FIJOS", "pregunta": "¿Requieren apoyo con la carga de activos fijos? ¿Cuántos aproximadamente?", "obligatoriedad": "NO", "comentario": ""}, {"label": "CREACIÓN DE CUENTAS PARA LOCALIZACIÓN", "pregunta": "¿Se requiere creación de cuentas específicas para la localización o se manejará internamente por el cliente?", "obligatoriedad": "NO", "comentario": ""}, {"label": "E.FIRMA Y CSD", "pregunta": "¿Cuentan con e.firma (FIEL) y Certificado de Sello Digital (CSD) vigentes para timbrado?", "obligatoriedad": "SI", "comentario": ""}, {"label": "BUZÓN TRIBUTARIO", "pregunta": "¿Tienen habilitado y monitoreado el Buzón Tributario del SAT?", "obligatoriedad": "NO", "comentario": ""}, {"label": "OPINIÓN DE CUMPLIMIENTO 32-D", "pregunta": "¿Requieren validación automática de opinión de cumplimiento (32-D) de proveedores/clientes?", "obligatoriedad": "NO", "comentario": ""}, {"label": "INTEGRACIÓN CON PAC", "pregunta": "¿Requiere la creación de integración/middleware con el PAC o ya cuentan con una solución conectada a SAP?", "obligatoriedad": "SI", "comentario": "Ej. Edicom, Diverza, Facturama, u otro conector certificado."}, {"label": "RECEPCIÓN DE CFDI", "pregunta": "¿Necesitan una solución para la recepción y validación automática de CFDI de proveedores?", "obligatoriedad": "NO", "comentario": ""}, {"label": "SEGURIDAD SOCIAL (IMSS/INFONAVIT)", "pregunta": "¿Requieren integración con el proceso de determinación de cuotas IMSS/INFONAVIT (SUA)?", "obligatoriedad": "NO", "comentario": ""}, {"label": "INTEGRACIÓN CON LEGADOS", "pregunta": "¿Se requiere la creación de integraciones con sistemas legados para la operación en México? ¿Cuáles?", "obligatoriedad": "NO", "comentario": "Describir brevemente la finalidad de cada sistema legado."}, {"label": "CAPACITACIÓN", "pregunta": "¿El equipo que operará la solución de localización ya conoce SAP o requiere capacitación de nivelación?", "obligatoriedad": "NO", "comentario": "Pensado para equipos que nunca han operado con este ERP."}]};
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+function renderDatosGenerales(){
+  const el = document.getElementById('dg-fields');
+  el.innerHTML = DATA.datosGenerales.map((f,i)=>{
+    if(f.type === 'select'){
+      const opts = ['', ...f.options].map(o=>`<option value="${esc(o)}">${o||'Selecciona...'}</option>`).join('');
+      return `<div class="field"><label>${esc(f.label)}</label><select id="dg-${i}">${opts}</select></div>`;
+    }
+    if(f.type === 'textarea'){
+      return `<div class="field"><label>${esc(f.label)}</label><textarea id="dg-${i}" rows="3"></textarea></div>`;
+    }
+    return `<div class="field"><label>${esc(f.label)}</label><input type="text" id="dg-${i}"></div>`;
+  }).join('');
+}
+
+function renderUpgrade(){
+  const el = document.getElementById('upgrade-fields');
+  el.innerHTML = DATA.upgrade.map((q,i)=>`
+    <div class="field">
+      <label>${esc(q)}</label>
+      <input type="text" id="up-${i}">
+    </div>
+  `).join('');
+}
+
+function renderRollout(){
+  const el = document.getElementById('rollout-fields');
+  el.innerHTML = DATA.rollout.map((sec, si)=>`
+    <details class="accordion">
+      <summary>${esc(sec.title)} <span class="count">${sec.questions.length} preguntas</span></summary>
+      <div class="accordion-body">
+        ${sec.questions.map((q,qi)=>`
+          <div class="field">
+            <label>${q.id ? esc(q.id)+'. ' : ''}${esc(q.pregunta)}${q.obligatoriedad ? `<span class="req-badge ${esc(q.obligatoriedad)}">${esc(q.obligatoriedad)}</span>` : ''}</label>
+            <input type="text" id="ro-${si}-${qi}">
+          </div>
+        `).join('')}
+      </div>
+    </details>
+  `).join('');
+}
+
+function renderLocMexico(){
+  const el = document.getElementById('locmexico-fields');
+  el.innerHTML = `<details class="accordion" open>
+    <summary>Localización México <span class="count">${DATA.localizacionMexico.length} preguntas</span></summary>
+    <div class="accordion-body">
+      ${DATA.localizacionMexico.map((q,i)=>`
+        <div class="field">
+          <label>${q.label ? esc(q.label)+' — ' : ''}${esc(q.pregunta)}${q.obligatoriedad ? `<span class="req-badge ${q.obligatoriedad==='SI'?'Obligatoria':'Opcional'}">${esc(q.obligatoriedad)}</span>` : ''}</label>
+          <input type="text" id="lm-${i}">
+        </div>
+      `).join('')}
+    </div>
+  </details>`;
+}
+
+document.getElementById('f-requerimiento').addEventListener('change', (e)=>{
+  const v = e.target.value;
+  document.getElementById('section-upgrade').classList.toggle('hidden', v !== 'Upgrade');
+  document.getElementById('section-rollout').classList.toggle('hidden', v !== 'Rollout');
+});
+document.getElementById('f-incluye-loc-mexico').addEventListener('change', (e)=>{
+  document.getElementById('locmexico-fields').classList.toggle('hidden', !e.target.checked);
+});
+
+function collectDatosGenerales(){
+  const obj = {};
+  DATA.datosGenerales.forEach((f,i)=>{
+    const v = document.getElementById('dg-'+i).value.trim();
+    if(v) obj[f.label] = v;
+  });
+  return obj;
+}
+function collectUpgrade(){
+  const obj = {};
+  DATA.upgrade.forEach((label,i)=>{
+    const v = document.getElementById('up-'+i).value.trim();
+    if(v) obj[label] = v;
+  });
+  return obj;
+}
+function collectRollout(){
+  const obj = {};
+  DATA.rollout.forEach((sec,si)=>{
+    const answered = [];
+    sec.questions.forEach((q,qi)=>{
+      const v = document.getElementById(`ro-${si}-${qi}`).value.trim();
+      if(v) answered.push({id:q.id, pregunta:q.pregunta, respuesta:v});
+    });
+    if(answered.length) obj[sec.title] = answered;
+  });
+  return obj;
+}
+function collectLocMexico(){
+  if(!document.getElementById('f-incluye-loc-mexico').checked) return null;
+  const arr = [];
+  DATA.localizacionMexico.forEach((q,i)=>{
+    const v = document.getElementById('lm-'+i).value.trim();
+    if(v) arr.push({label:q.label, pregunta:q.pregunta, respuesta:v});
+  });
+  return arr;
+}
+
+function buildFicha(){
+  const requerimiento = document.getElementById('f-requerimiento').value;
+  const ficha = {
+    tipoRequerimiento: requerimiento,
+    fecha: new Date().toISOString(),
+    gerenteComercial: document.getElementById('f-gerente-comercial').value.trim(),
+    datosGenerales: collectDatosGenerales()
+  };
+  if(requerimiento === 'Upgrade') ficha.upgrade = collectUpgrade();
+  if(requerimiento === 'Rollout'){
+    ficha.rollout = collectRollout();
+    const loc = collectLocMexico();
+    if(loc) ficha.localizacionMexico = loc;
+  }
+  return ficha;
+}
+
+function showToast(html){
+  const t = document.getElementById('toast');
+  t.innerHTML = html;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 6000);
+}
+
+const AE_TO_PREVENTAS = {
+  'Fernanda Richards': 'Gustavo Najar',
+  'Manuel Apón': 'Gustavo Najar',
+  'Natalia Ossa': 'Samuel Aiza',
+  'Estefanía Muñoz': 'Rocío Anaya',
+  'Freda Juárez': 'Rocío Anaya',
+  'Fernanda Villagómez': 'Rocío Anaya',
+  'Josselyn González': 'Rocío Anaya',
+  'Omar Dávila': 'Samuel Aiza'
+};
+
+async function submitFicha(){
+  const client = document.getElementById('f-nombre-cliente').value.trim();
+  const requerimiento = document.getElementById('f-requerimiento').value;
+  if(!client){ alert('Falta el nombre del cliente'); return; }
+  if(!requerimiento){ alert('Falta seleccionar el tipo de requerimiento'); return; }
+
+  const ficha = buildFicha();
+  const dg = ficha.datosGenerales;
+
+  const tipoCompromisoMap = {'Upgrade':'Upgrade','Rollout':'Rollout','Implementación':'Implementación','Mejora':'Otro','Otro':'Otro'};
+  const asignadoA = AE_TO_PREVENTAS[ficha.gerenteComercial] || '';
+
+  const project = {
+    id: client.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '-' + Date.now().toString(36),
+    client,
+    desc: [requerimiento, dg['Industria']].filter(Boolean).join(' — ') || 'Ficha cliente recibida',
+    stage: asignadoA ? 'asignada_preventa' : 'prospeccion',
+    risk: '',
+    asignadoA,
+    products: [],
+    modalidad: '',
+    contratacion: '',
+    tipoCompromiso: tipoCompromisoMap[requerimiento] || '',
+    valor: '',
+    modulos: dg['Módulos SAP operativos'] || '',
+    sharepoint: '',
+    next: 'Agendar discovery con preventas',
+    notes: `Ficha cliente recibida${ficha.gerenteComercial ? ' de '+ficha.gerenteComercial : ''}. Ver detalle completo en la ficha adjunta.`,
+    ficha
+  };
+
+  try{
+    const r = await fetch('/api/projects');
+    const data = await r.json();
+    const projects = data.projects || [];
+    projects.push(project);
+    const r2 = await fetch('/api/projects', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(projects)
+    });
+    if(!r2.ok) throw new Error('save failed');
+
+    if(asignadoA){
+      try{
+        await fetch('/api/notify', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ asignadoA, client, requerimiento, gerenteComercial: ficha.gerenteComercial })
+        });
+      }catch(e){ console.error('No se pudo enviar la notificación por correo', e); }
+    }
+
+    const stageMsg = asignadoA ? `asignada a <b>${esc(asignadoA)}</b> en "Asignada a preventa"` : 'agregada en Prospección';
+    showToast(`Ficha enviada, ${stageMsg}. <a href="/pipeline.html">Ver tablero →</a>`);
+  }catch(e){
+    console.error(e);
+    alert('No se pudo guardar en el Pipeline. Revisa tu conexión e intenta de nuevo. (El Excel sí lo puedes descargar de todas formas.)');
+  }
+}
+
+function downloadExcel(){
+  const client = document.getElementById('f-nombre-cliente').value.trim() || 'cliente';
+  const ficha = buildFicha();
+  const wb = XLSX.utils.book_new();
+
+  const dgRows = [['Campo','Respuesta'], ['Nombre cliente', client], ['Requerimiento', ficha.tipoRequerimiento], ['Gerente área comercial', ficha.gerenteComercial]];
+  Object.entries(ficha.datosGenerales).forEach(([k,v])=>dgRows.push([k,v]));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dgRows), 'Datos Generales');
+
+  if(ficha.upgrade){
+    const rows = [['Pregunta','Respuesta']];
+    Object.entries(ficha.upgrade).forEach(([k,v])=>rows.push([k,v]));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Upgrade');
+  }
+  if(ficha.rollout){
+    const rows = [['Sección','ID','Consulta','Respuesta']];
+    Object.entries(ficha.rollout).forEach(([sec, qs])=>{
+      qs.forEach(q=>rows.push([sec, q.id, q.pregunta, q.respuesta]));
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Rollout');
+  }
+  if(ficha.localizacionMexico){
+    const rows = [['Campo','Pregunta','Respuesta']];
+    ficha.localizacionMexico.forEach(q=>rows.push([q.label, q.pregunta, q.respuesta]));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Localizacion Mexico');
+  }
+
+  XLSX.writeFile(wb, `Ficha Cliente - ${client}.xlsx`);
+}
+
+renderDatosGenerales();
+renderUpgrade();
+renderRollout();
+renderLocMexico();
+</script>
+</body>
+</html>
