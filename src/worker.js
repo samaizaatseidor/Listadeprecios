@@ -578,7 +578,12 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
 
     if (url.pathname === '/api/proyecto-dashboard' && request.method === 'GET') {
       const raw = await env.PM_KV.get('proyecto_dashboard');
-      return new Response(raw || '{"proyectos":[],"raid":[],"dependencias":[],"compromisos":[]}', { headers: { 'Content-Type': 'application/json' } });
+      if (!raw) {
+        return new Response('{"proyectos":[],"raid":[],"dependencias":[],"compromisos":[],"changeRequests":[]}', { headers: { 'Content-Type': 'application/json' } });
+      }
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed.changeRequests)) parsed.changeRequests = [];
+      return new Response(JSON.stringify(parsed), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname === '/api/proyecto-dashboard' && request.method === 'POST') {
@@ -586,6 +591,7 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
       try {
         body = await request.json();
         if (!body || !Array.isArray(body.proyectos) || !Array.isArray(body.raid) || !Array.isArray(body.dependencias) || !Array.isArray(body.compromisos)) throw new Error('shape inválido');
+        if (!Array.isArray(body.changeRequests)) body.changeRequests = [];
       } catch (e) {
         return new Response('JSON inválido', { status: 400 });
       }
@@ -600,7 +606,7 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
 
       let body;
       try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
-      const { proyecto, raid, dependencias, compromisos } = body;
+      const { proyecto, raid, dependencias, compromisos, changeRequests } = body;
       const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
       const sessionId = crypto.randomUUID();
 
@@ -613,7 +619,10 @@ DEPENDENCIAS CRÍTICAS:
 ${JSON.stringify(dependencias)}
 
 COMPROMISOS:
-${JSON.stringify(compromisos)}`;
+${JSON.stringify(compromisos)}
+
+CHANGE REQUESTS:
+${JSON.stringify(changeRequests || [])}`;
 
       try {
         const resumen = await delfosGetCompletion(token, { sessionId, username, text: resumenPrompt, useOnlineSearch: false });
