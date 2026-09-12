@@ -167,7 +167,7 @@ function ndjsonStream() {
   };
 }
 
-async function delfosStreamToClient(token, { sessionId, username, text, fileRef, useOnlineSearch }, out) {
+async function delfosStreamToClient(token, { sessionId, username, text, fileRefs, useOnlineSearch }, out) {
   let resp;
   try {
     resp = await fetch('https://delfos-api.seidor.ai/api/v1/getCompletion', {
@@ -188,7 +188,7 @@ async function delfosStreamToClient(token, { sessionId, username, text, fileRef,
         language: 'es',
         streaming: true,
         message_id: crypto.randomUUID(),
-        files: fileRef ? [fileRef] : [],
+        files: fileRefs || [],
         premium_model: false,
         use_ragtool: false,
         use_onlinesearchtool: !!useOnlineSearch,
@@ -242,7 +242,7 @@ async function delfosStreamToClient(token, { sessionId, username, text, fileRef,
   await out.write({ type: 'done' });
 }
 
-async function delfosGetCompletion(token, { sessionId, username, text, fileRef, useOnlineSearch }) {
+async function delfosGetCompletion(token, { sessionId, username, text, fileRefs, useOnlineSearch }) {
   const resp = await fetch('https://delfos-api.seidor.ai/api/v1/getCompletion', {
     method: 'POST',
     headers: {
@@ -261,7 +261,7 @@ async function delfosGetCompletion(token, { sessionId, username, text, fileRef, 
       language: 'es',
       streaming: true,
       message_id: crypto.randomUUID(),
-      files: fileRef ? [fileRef] : [],
+      files: fileRefs || [],
       premium_model: false,
       use_ragtool: false,
       use_onlinesearchtool: !!useOnlineSearch,
@@ -364,7 +364,7 @@ export default {
       ctx.waitUntil((async () => {
         try {
           const fileRef = await delfosUploadFile(token, sessionId, username, file);
-          await delfosStreamToClient(token, { sessionId, username, text: promptText, fileRef, useOnlineSearch: false }, stream);
+          await delfosStreamToClient(token, { sessionId, username, text: promptText, fileRefs: [fileRef], useOnlineSearch: false }, stream);
         } catch (e) {
           await stream.write({ type: 'error', text: String(e.message || e) });
         } finally {
@@ -403,7 +403,7 @@ Las fechas deben ir en formato DD/MM/AAAA. No inventes datos que no estén en el
 
       try {
         const fileRef = await delfosUploadFile(token, sessionId, username, file);
-        const raw = await delfosGetCompletion(token, { sessionId, username, text: extractPrompt, fileRef, useOnlineSearch: false });
+        const raw = await delfosGetCompletion(token, { sessionId, username, text: extractPrompt, fileRefs: [fileRef], useOnlineSearch: false });
         const match = raw.match(/\{[\s\S]*\}/);
         const extracted = match ? JSON.parse(match[0]) : {};
         return new Response(JSON.stringify({ ok: true, extracted }), { headers: { 'Content-Type': 'application/json' } });
@@ -466,7 +466,7 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
           } else if (notes) {
             text = MINUTAS_PROMPT + '\n\nNotas de la llamada:\n' + notes;
           }
-          await delfosStreamToClient(token, { sessionId, username, text, fileRef, useOnlineSearch: false }, stream);
+          await delfosStreamToClient(token, { sessionId, username, text, fileRefs: fileRef ? [fileRef] : [], useOnlineSearch: false }, stream);
         } catch (e) {
           await stream.write({ type: 'error', text: String(e.message || e) });
         } finally {
@@ -706,6 +706,73 @@ ${JSON.stringify(fases)}`;
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
       }
+    }
+
+    if (url.pathname === '/api/iniciar-proyecto/extract' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      const form = await request.formData();
+      const sowFile = form.get('sow');
+      const ddaFile = form.get('dda');
+      const propuestaFile = form.get('propuesta');
+      if (!sowFile || typeof sowFile === 'string') {
+        return new Response(JSON.stringify({ ok: false, error: 'Falta el SOW' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const extractPrompt = `Analiza los documentos adjuntos de un proyecto de implementación SAP (un SOW obligatorio, y opcionalmente un DDA/Digital Discovery Assessment y/o una propuesta comercial). Extrae SOLO estos datos y responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown:
+
+{
+  "clienteNombre": "",
+  "nombreProyecto": "",
+  "alcanceResumen": "",
+  "fueraDeAlcance": ["..."],
+  "riesgos": [{"riesgo":"", "probabilidad":"", "impacto":"", "mitigacion":""}],
+  "integraciones": [{"sistema":"", "descripcion":"", "direccion":"", "tecnologia":""}],
+  "fases": [{"fase":"", "duracion":"", "fechas":"", "entregables":""}],
+  "inversionTotal": "",
+  "moneda": ""
+}
+
+Usa "" o [] si un dato no aparece. No inventes información. Si el SOW tiene una tabla explícita de riesgos, úsala tal cual para "riesgos". Si tiene una tabla de integraciones o interfaces (RICEF/RICEFW), úsala para "integraciones".`;
+
+      try {
+        const fileRefs = [];
+        fileRefs.push(await delfosUploadFile(token, sessionId, username, sowFile));
+        if (ddaFile && typeof ddaFile !== 'string') fileRefs.push(await delfosUploadFile(token, sessionId, username, ddaFile));
+        if (propuestaFile && typeof propuestaFile !== 'string') fileRefs.push(await delfosUploadFile(token, sessionId, username, propuestaFile));
+
+        const raw = await delfosGetCompletion(token, { sessionId, username, text: extractPrompt, fileRefs, useOnlineSearch: false });
+        const match = raw.match(/\{[\s\S]*\}/);
+        const extracted = match ? JSON.parse(match[0]) : {};
+        return new Response(JSON.stringify({ ok: true, extracted }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/linea-base' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('lineas_base');
+      return new Response(raw || '{"proyectos":{}}', { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/linea-base' && request.method === 'POST') {
+      let body;
+      try {
+        body = await request.json();
+        if (!body || typeof body.proyecto !== 'string' || typeof body.datos !== 'object') throw new Error('shape inválido');
+      } catch (e) {
+        return new Response('JSON inválido', { status: 400 });
+      }
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      const raw = await env.PM_KV.get('lineas_base');
+      const store = raw ? JSON.parse(raw) : { proyectos: {} };
+      store.proyectos[body.proyecto] = { ...body.datos, guardadoPor: email, guardadoAt: new Date().toISOString() };
+      await env.PM_KV.put('lineas_base', JSON.stringify(store));
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname === '/api/whoami') {
