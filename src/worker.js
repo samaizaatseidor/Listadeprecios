@@ -667,6 +667,47 @@ ${JSON.stringify(entries)}`;
       }
     }
 
+    if (url.pathname === '/api/checklist' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('checklist_log');
+      return new Response(raw || '{"progreso":{}}', { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/checklist' && request.method === 'POST') {
+      let body;
+      try {
+        body = await request.json();
+        if (!body || typeof body.progreso !== 'object') throw new Error('shape inválido');
+      } catch (e) {
+        return new Response('JSON inválido', { status: 400 });
+      }
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      await env.PM_KV.put('checklist_log', JSON.stringify({ progreso: body.progreso, updatedBy: email, updatedAt: new Date().toISOString() }));
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/checklist-resumen' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { proyecto, fases } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un asistente de PM para SEIDOR México. Con base en este avance de checklist de Quality Gates (metodología SAP Activate) del proyecto "${proyecto}", escribe un resumen ejecutivo de 2 a 3 oraciones, en español, en prosa corrida (sin encabezados ni viñetas). Destaca qué fase está más atrasada o con más pendientes críticos, y el estado general de preparación para cutover. No inventes información que no esté en los datos.
+
+DATOS:
+${JSON.stringify(fases)}`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
     if (url.pathname === '/api/whoami') {
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
       return new Response(JSON.stringify({ email }), { headers: { 'Content-Type': 'application/json' } });
