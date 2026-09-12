@@ -8,6 +8,18 @@ export default {
       'Samuel Aiza': 'samuel.aiza@seidor.com'
     };
 
+    const AE_EMAILS = {
+      'Fernanda Richards': 'fernanda.richards@seidor.com',
+      'Manuel Apón': 'manuel.apon@seidor.com',
+      'Natalia Ossa': 'natalia.ossa@seidor.com',
+      'Estefanía Muñoz': 'estefania.munoz@seidor.com',
+      'Freda Juárez': 'freda.juarez@seidor.com',
+      'Fernanda Villagómez': 'fernanda.villagomez@seidor.com',
+      'Josselyn González': 'josselyn.gonzalez@seidor.com',
+      'Omar Dávila': 'omar.davila@seidor.com'
+    };
+    const SAM_EMAIL = 'samuel.aiza@seidor.com';
+
     if (url.pathname === '/api/notify' && request.method === 'POST') {
       let body;
       try {
@@ -16,14 +28,15 @@ export default {
         return new Response('JSON inválido', { status: 400 });
       }
       const { asignadoA, client, requerimiento, gerenteComercial } = body;
-      const toEmail = PREVENTAS_EMAILS[asignadoA];
-      if (!toEmail) {
-        return new Response(JSON.stringify({ ok: false, reason: 'Sin destinatario para: ' + asignadoA }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
+      const preventasEmail = PREVENTAS_EMAILS[asignadoA] || null;
+      const aeEmail = AE_EMAILS[gerenteComercial] || null;
 
-      // DIAGNÓSTICO TEMPORAL — no revela la key, solo si existe y cuántos caracteres tiene
+      // Destinatario principal: el preventas asignado; si no hay, cae al AE; si tampoco, a Sam.
+      const toEmail = preventasEmail || aeEmail || SAM_EMAIL;
+      const ccSet = new Set([aeEmail, SAM_EMAIL].filter(Boolean));
+      ccSet.delete(toEmail);
+      const ccEmails = Array.from(ccSet);
+
       let apiKeyValue = null;
       try {
         apiKeyValue = env.RESEND_API_KEY && typeof env.RESEND_API_KEY.get === 'function'
@@ -32,11 +45,8 @@ export default {
       } catch (e) {
         apiKeyValue = null;
       }
-      const keyPresent = typeof apiKeyValue === 'string' && apiKeyValue.length > 0;
-      const keyLength = keyPresent ? apiKeyValue.length : 0;
-      const keyPreview = keyPresent ? apiKeyValue.slice(0, 3) + '...' + apiKeyValue.slice(-3) : null;
 
-      const primerNombre = asignadoA.split(' ')[0];
+      const primerNombre = (asignadoA || toEmail).split(' ')[0];
       const resendResp = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -46,10 +56,11 @@ export default {
         body: JSON.stringify({
           from: 'CRM PresalesMX <notificaciones@crmpresalesmx.com>',
           to: [toEmail],
-          subject: `Nueva ficha de cliente asignada: ${client}`,
+          cc: ccEmails,
+          subject: `Nueva ficha de cliente: ${client}`,
           html: `
-            <p>Hola ${primerNombre},</p>
-            <p><strong>${gerenteComercial || 'Un ejecutivo comercial'}</strong> cargó una nueva ficha de cliente para <strong>${client}</strong> (${requerimiento}), y quedó asignada a ti en el CRM PresalesMX.</p>
+            <p>Hola,</p>
+            <p><strong>${gerenteComercial || 'Un ejecutivo comercial'}</strong> cargó una nueva ficha de cliente para <strong>${client}</strong> (${requerimiento}).${preventasEmail ? ` Quedó preasignada a <strong>${asignadoA}</strong> en Prospección dentro del CRM PresalesMX.` : ''}</p>
             <p><a href="https://listadepreciosseidor.samuel-aiza.workers.dev/pipeline.html">Ver en el tablero →</a></p>
           `
         })
@@ -57,7 +68,7 @@ export default {
 
       if (!resendResp.ok) {
         const errText = await resendResp.text();
-        return new Response(JSON.stringify({ ok: false, error: errText, debug: { keyPresent, keyLength, keyPreview } }), {
+        return new Response(JSON.stringify({ ok: false, error: errText }), {
           status: 502,
           headers: { 'Content-Type': 'application/json' }
         });
