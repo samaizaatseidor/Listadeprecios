@@ -148,6 +148,8 @@ function isPastDue(fecha, estatus, doneStatus){
   return new Date(fecha+'T00:00:00') < new Date(new Date().toDateString());
 }
 
+let lineasBase = {};
+
 async function loadData(){
   try{
     const r = await fetch('/api/proyecto-dashboard');
@@ -156,6 +158,11 @@ async function loadData(){
     data.raid = d.raid || [];
     data.dependencias = d.dependencias || [];
     data.compromisos = d.compromisos || [];
+  }catch(e){}
+  try{
+    const r2 = await fetch('/api/linea-base');
+    const d2 = await r2.json();
+    lineasBase = d2.proyectos || {};
   }catch(e){}
   populateProyectoSelect();
   if(data.proyectos.length && !currentProyecto) selectProyecto(data.proyectos[0]);
@@ -243,7 +250,22 @@ function render(){
   }
 
   const k = computeKPIs();
+  const lb = lineasBase[currentProyecto];
+
   main.innerHTML = `
+    ${lb ? `
+      <details style="background:#fff; border-radius:12px; padding:14px 18px; margin-bottom:16px; box-shadow:var(--shadow);">
+        <summary style="cursor:pointer; font-size:13px; font-weight:600; color:var(--navy2);">📐 Línea Base del Proyecto (SOW/DDA)</summary>
+        <div style="margin-top:12px; font-size:12.5px; color:var(--ink); line-height:1.6;">
+          ${lb.clienteNombre ? `<div><b>Cliente:</b> ${esc(lb.clienteNombre)}</div>` : ''}
+          ${lb.alcanceResumen ? `<div style="margin-top:8px;"><b>Alcance:</b> ${esc(lb.alcanceResumen)}</div>` : ''}
+          ${lb.inversionTotal ? `<div style="margin-top:8px;"><b>Inversión total:</b> ${esc(lb.inversionTotal)} ${esc(lb.moneda||'')}</div>` : ''}
+          ${lb.fueraDeAlcance && lb.fueraDeAlcance.length ? `<div style="margin-top:8px;"><b>Fuera de alcance:</b><ul style="margin:4px 0 0; padding-left:18px;">${lb.fueraDeAlcance.map(f=>`<li>${esc(f)}</li>`).join('')}</ul></div>` : ''}
+          ${lb.fases && lb.fases.length ? `<div style="margin-top:8px;"><b>Fases:</b><ul style="margin:4px 0 0; padding-left:18px;">${lb.fases.map(f=>`<li>${esc(f.fase)}${f.fechas ? ' — '+esc(f.fechas) : ''}</li>`).join('')}</ul></div>` : ''}
+        </div>
+      </details>
+    ` : ''}
+
     <div class="kpi-grid">
       <div class="kpi-card"><div class="n ${k.riesgosAltoAbiertos?'warn':''}">${k.riesgosAltoAbiertos}</div><div class="l">Riesgos altos abiertos</div></div>
       <div class="kpi-card"><div class="n ${k.depsBloqueando?'warn':''}">${k.depsBloqueando}</div><div class="l">Dependencias bloqueando</div></div>

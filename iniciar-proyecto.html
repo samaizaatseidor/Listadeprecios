@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar Proyecto desde SOW/DDA · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:820px; margin:0 auto; padding:20px 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
+
+  .dropzone{border:2px dashed var(--line); border-radius:10px; padding:16px; text-align:center; cursor:pointer; margin-bottom:12px;}
+  .dropzone:hover{border-color:var(--blue);}
+  .dropzone p{margin:6px 0 0; color:var(--grey); font-size:12.5px;}
+  .dropzone .req{color:#B23A3A; font-weight:600;}
+  .filename{font-size:12.5px; color:var(--navy2); font-weight:600; margin:-6px 0 12px;}
+
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:4px; font-weight:500;}
+  .field input[type=text], .field textarea{width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px; color:var(--ink); resize:vertical;}
+
+  .btn{border:none; border-radius:8px; padding:11px 18px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-primary:disabled{background:var(--line); color:var(--greyl); cursor:not-allowed;}
+  .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line); font-size:12px; padding:6px 10px;}
+
+  .table-editor{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:8px;}
+  .table-editor th{text-align:left; color:var(--grey); font-weight:600; padding:4px 6px; font-size:11px;}
+  .table-editor td{padding:4px 6px; vertical-align:top;}
+  .table-editor input[type=text], .table-editor textarea{width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;}
+  .table-editor .del-row{border:none; background:none; color:#B23A3A; cursor:pointer; font-size:16px;}
+
+  .chip-list{display:flex; flex-direction:column; gap:6px;}
+  .chip-list .chip-row{display:flex; gap:6px; align-items:center;}
+  .chip-list input{flex:1;}
+
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .spinner{display:inline-block; width:14px; height:14px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:8px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+  .error{color:#B23A3A; font-size:13px; background:#FBE7E7; border-radius:8px; padding:10px 12px;}
+  .success-box{background:#E7F7EE; color:#1F8A4C; border-radius:8px; padding:14px 16px; font-size:13.5px;}
+  .success-box a{color:#1E5BB8; font-weight:600;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html">Inicio</a>
+      <a href="/precios.html">Lista de Precios</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/agentes.html" class="active">Agentes powered by DELFOS</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Iniciar Proyecto desde SOW/DDA</h1>
+  <p>Sube el SOW firmado (y opcionalmente el DDA y la propuesta) para arrancar el proyecto con su línea base, riesgos y dependencias ya cargados</p>
+</header>
+
+<main>
+  <a href="/agentes.html" style="display:inline-block; margin-bottom:14px; font-size:13px; color:var(--blue); text-decoration:none;">← Agentes powered by DELFOS</a>
+
+  <div class="section" id="uploadSection">
+    <h2>1. Documentos del proyecto</h2>
+    <p class="sub">El SOW es obligatorio. DDA y propuesta son opcionales pero mejoran la extracción.</p>
+
+    <label class="dropzone" style="display:block;">
+      <div style="font-size:20px;">📄</div>
+      <p>SOW <span class="req">(obligatorio)</span> — click para elegir</p>
+      <input type="file" id="sowInput" accept=".doc,.docx,.pdf" style="display:none;" onchange="handleFile('sow', this.files[0])">
+    </label>
+    <div id="sowFilename" class="filename"></div>
+
+    <label class="dropzone" style="display:block;">
+      <div style="font-size:20px;">📊</div>
+      <p>DDA / Digital Discovery Assessment (opcional)</p>
+      <input type="file" id="ddaInput" accept=".doc,.docx,.pdf" style="display:none;" onchange="handleFile('dda', this.files[0])">
+    </label>
+    <div id="ddaFilename" class="filename"></div>
+
+    <label class="dropzone" style="display:block;">
+      <div style="font-size:20px;">📑</div>
+      <p>Propuesta / Estimación (opcional)</p>
+      <input type="file" id="propuestaInput" accept=".doc,.docx,.pdf,.ppt,.pptx,.xls,.xlsx" style="display:none;" onchange="handleFile('propuesta', this.files[0])">
+    </label>
+    <div id="propuestaFilename" class="filename"></div>
+
+    <button class="btn btn-primary" id="extractBtn" onclick="extraer()" disabled>Extraer información</button>
+    <div id="extractStatus" style="margin-top:10px;"></div>
+  </div>
+
+  <div class="section hidden" id="reviewSection">
+    <h2>2. Revisa antes de crear el proyecto</h2>
+    <p class="sub">Nada se crea todavía — corrige lo que haga falta y confirma al final.</p>
+    <div id="reviewBody"></div>
+  </div>
+
+  <div class="section hidden" id="confirmSection">
+    <button class="btn btn-primary" onclick="confirmarYCrear()">Confirmar y crear proyecto</button>
+    <div id="confirmStatus" style="margin-top:10px;"></div>
+  </div>
+</main>
+
+<script>
+const files = { sow: null, dda: null, propuesta: null };
+let extracted = null;
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+function handleFile(kind, file){
+  files[kind] = file;
+  document.getElementById(kind+'Filename').textContent = file ? file.name : '';
+  document.getElementById('extractBtn').disabled = !files.sow;
+}
+
+async function extraer(){
+  const btn = document.getElementById('extractBtn');
+  const status = document.getElementById('extractStatus');
+  btn.disabled = true;
+  status.innerHTML = '<div class="loading"><span class="spinner"></span>Extrayendo información de los documentos… puede tardar un minuto</div>';
+
+  const form = new FormData();
+  form.append('sow', files.sow);
+  if(files.dda) form.append('dda', files.dda);
+  if(files.propuesta) form.append('propuesta', files.propuesta);
+
+  try{
+    const r = await fetch('/api/iniciar-proyecto/extract', { method:'POST', body: form });
+    const data = await r.json();
+    if(!data.ok){
+      status.innerHTML = `<div class="error">${esc(data.error || 'No se pudo extraer información.')}</div>`;
+      btn.disabled = false;
+      return;
+    }
+    extracted = normalizeExtracted(data.extracted);
+    status.innerHTML = '';
+    renderReview();
+    document.getElementById('reviewSection').classList.remove('hidden');
+    document.getElementById('confirmSection').classList.remove('hidden');
+  }catch(e){
+    status.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
+  }
+  btn.disabled = false;
+}
+
+function normalizeExtracted(ex){
+  return {
+    clienteNombre: ex.clienteNombre || '',
+    nombreProyecto: ex.nombreProyecto || '',
+    alcanceResumen: ex.alcanceResumen || '',
+    fueraDeAlcance: Array.isArray(ex.fueraDeAlcance) ? ex.fueraDeAlcance : [],
+    riesgos: Array.isArray(ex.riesgos) ? ex.riesgos : [],
+    integraciones: Array.isArray(ex.integraciones) ? ex.integraciones : [],
+    fases: Array.isArray(ex.fases) ? ex.fases : [],
+    inversionTotal: ex.inversionTotal || '',
+    moneda: ex.moneda || ''
+  };
+}
+
+function renderReview(){
+  const body = document.getElementById('reviewBody');
+  body.innerHTML = `
+    <div class="field"><label>Nombre del proyecto</label><input type="text" id="f-nombreProyecto" value="${esc(extracted.nombreProyecto)}"></div>
+    <div class="field"><label>Cliente</label><input type="text" id="f-clienteNombre" value="${esc(extracted.clienteNombre)}"></div>
+    <div class="field"><label>Resumen de alcance</label><textarea id="f-alcanceResumen" rows="3">${esc(extracted.alcanceResumen)}</textarea></div>
+    <div class="field" style="display:flex; gap:8px;">
+      <div style="flex:1;"><label>Inversión total</label><input type="text" id="f-inversionTotal" value="${esc(extracted.inversionTotal)}"></div>
+      <div style="flex:1;"><label>Moneda</label><input type="text" id="f-moneda" value="${esc(extracted.moneda)}"></div>
+    </div>
+
+    <label style="display:block; font-size:12.5px; color:var(--grey); margin:16px 0 6px; font-weight:500;">Fuera de alcance</label>
+    <div class="chip-list" id="fueraAlcanceList"></div>
+    <button class="btn btn-ghost" style="margin-top:6px;" onclick="addFueraAlcance('')">+ Agregar</button>
+
+    <label style="display:block; font-size:12.5px; color:var(--grey); margin:20px 0 6px; font-weight:500;">Riesgos identificados (se cargarán como registros RAID)</label>
+    <table class="table-editor" id="riesgosTable">
+      <tr><th>Riesgo</th><th>Probabilidad</th><th>Impacto</th><th>Mitigación</th><th></th></tr>
+    </table>
+    <button class="btn btn-ghost" onclick="addRiesgo({riesgo:'',probabilidad:'',impacto:'',mitigacion:''})">+ Agregar riesgo</button>
+
+    <label style="display:block; font-size:12.5px; color:var(--grey); margin:20px 0 6px; font-weight:500;">Integraciones en alcance (se cargarán como Dependencias Críticas)</label>
+    <table class="table-editor" id="integracionesTable">
+      <tr><th>Sistema</th><th>Descripción</th><th>Dirección</th><th>Tecnología</th><th></th></tr>
+    </table>
+    <button class="btn btn-ghost" onclick="addIntegracion({sistema:'',descripcion:'',direccion:'',tecnologia:''})">+ Agregar integración</button>
+  `;
+
+  document.getElementById('fueraAlcanceList').innerHTML = '';
+  extracted.fueraDeAlcance.forEach(item => addFueraAlcance(item));
+
+  document.getElementById('riesgosTable').innerHTML = '<tr><th>Riesgo</th><th>Probabilidad</th><th>Impacto</th><th>Mitigación</th><th></th></tr>';
+  extracted.riesgos.forEach(r => addRiesgo(r));
+
+  document.getElementById('integracionesTable').innerHTML = '<tr><th>Sistema</th><th>Descripción</th><th>Dirección</th><th>Tecnología</th><th></th></tr>';
+  extracted.integraciones.forEach(i => addIntegracion(i));
+}
+
+function addFueraAlcance(value){
+  const list = document.getElementById('fueraAlcanceList');
+  const row = document.createElement('div');
+  row.className = 'chip-row';
+  row.innerHTML = `<input type="text" value="${esc(value)}"> <button class="del-row" onclick="this.parentElement.remove()">×</button>`;
+  list.appendChild(row);
+}
+
+function addRiesgo(r){
+  const table = document.getElementById('riesgosTable');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><textarea rows="2">${esc(r.riesgo)}</textarea></td>
+    <td><input type="text" value="${esc(r.probabilidad)}" style="width:80px;"></td>
+    <td><input type="text" value="${esc(r.impacto)}" style="width:80px;"></td>
+    <td><textarea rows="2">${esc(r.mitigacion)}</textarea></td>
+    <td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  table.appendChild(tr);
+}
+
+function addIntegracion(i){
+  const table = document.getElementById('integracionesTable');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${esc(i.sistema)}"></td>
+    <td><textarea rows="2">${esc(i.descripcion)}</textarea></td>
+    <td><input type="text" value="${esc(i.direccion)}" style="width:90px;"></td>
+    <td><input type="text" value="${esc(i.tecnologia)}" style="width:110px;"></td>
+    <td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  table.appendChild(tr);
+}
+
+function mapImpactoToPrioridad(impacto){
+  const i = (impacto||'').toLowerCase();
+  if(i.startsWith('alt')) return 'Alta';
+  if(i.startsWith('baj')) return 'Baja';
+  return 'Media';
+}
+
+async function confirmarYCrear(){
+  const status = document.getElementById('confirmStatus');
+  const nombreProyecto = document.getElementById('f-nombreProyecto').value.trim();
+  if(!nombreProyecto){ alert('Falta el nombre del proyecto'); return; }
+
+  status.innerHTML = '<div class="loading"><span class="spinner"></span>Creando proyecto…</div>';
+
+  const fueraDeAlcance = Array.from(document.querySelectorAll('#fueraAlcanceList input')).map(i=>i.value.trim()).filter(Boolean);
+  const riesgosRows = Array.from(document.querySelectorAll('#riesgosTable tr')).slice(1);
+  const riesgos = riesgosRows.map(tr=>{
+    const cells = tr.querySelectorAll('textarea, input');
+    return { riesgo: cells[0].value.trim(), probabilidad: cells[1].value.trim(), impacto: cells[2].value.trim(), mitigacion: cells[3].value.trim() };
+  }).filter(r=>r.riesgo);
+  const integracionesRows = Array.from(document.querySelectorAll('#integracionesTable tr')).slice(1);
+  const integraciones = integracionesRows.map(tr=>{
+    const cells = tr.querySelectorAll('input, textarea');
+    return { sistema: cells[0].value.trim(), descripcion: cells[1].value.trim(), direccion: cells[2].value.trim(), tecnologia: cells[3].value.trim() };
+  }).filter(i=>i.sistema || i.descripcion);
+
+  try{
+    // 1. Traer el estado compartido actual
+    const r = await fetch('/api/proyecto-dashboard');
+    const dash = await r.json();
+    const proyectos = Array.from(new Set([...(dash.proyectos||[]), nombreProyecto]));
+    const raid = dash.raid || [];
+    const dependencias = dash.dependencias || [];
+
+    const now = new Date().toISOString();
+    riesgos.forEach(rz => {
+      raid.push({
+        id: 'raid-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6),
+        proyecto: nombreProyecto,
+        tipo: 'Riesgo',
+        descripcion: rz.mitigacion ? `${rz.riesgo}\n\nMitigación propuesta: ${rz.mitigacion}` : rz.riesgo,
+        responsable: '',
+        fechaLimite: '',
+        prioridad: mapImpactoToPrioridad(rz.impacto),
+        estatus: 'Abierto',
+        visibleCliente: false,
+        createdAt: now, updatedAt: now
+      });
+    });
+
+    integraciones.forEach(ig => {
+      dependencias.push({
+        id: 'dep-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6),
+        proyecto: nombreProyecto,
+        tercero: ig.sistema,
+        descripcion: [ig.descripcion, ig.tecnologia ? `Tecnología: ${ig.tecnologia}` : '', ig.direccion ? `Dirección: ${ig.direccion}` : ''].filter(Boolean).join(' — '),
+        fechaEsperada: '',
+        impacto: '',
+        estatus: 'Pendiente',
+        nivelRiesgo: 'Medio',
+        visibleCliente: false,
+        createdAt: now, updatedAt: now
+      });
+    });
+
+    await fetch('/api/proyecto-dashboard', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ proyectos, raid, dependencias, compromisos: dash.compromisos || [] })
+    });
+
+    // 2. Guardar la Línea Base
+    await fetch('/api/linea-base', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        proyecto: nombreProyecto,
+        datos: {
+          clienteNombre: document.getElementById('f-clienteNombre').value.trim(),
+          alcanceResumen: document.getElementById('f-alcanceResumen').value.trim(),
+          fueraDeAlcance,
+          fases: extracted.fases,
+          inversionTotal: document.getElementById('f-inversionTotal').value.trim(),
+          moneda: document.getElementById('f-moneda').value.trim()
+        }
+      })
+    });
+
+    // 3. Auditoría
+    await fetch('/api/audit', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ page:'Iniciar Proyecto', action:'Creó proyecto desde SOW/DDA', detail:`"${nombreProyecto}" — ${riesgos.length} riesgos, ${integraciones.length} integraciones` })
+    });
+
+    status.innerHTML = `<div class="success-box">Proyecto "${esc(nombreProyecto)}" creado con ${riesgos.length} riesgo(s) y ${integraciones.length} dependencia(s). <a href="/proyecto.html">Ver en el Dashboard de Proyecto →</a></div>`;
+  }catch(e){
+    console.error(e);
+    status.innerHTML = '<div class="error">Algo falló al crear el proyecto. Intenta de nuevo.</div>';
+  }
+}
+</script>
+</body>
+</html>
