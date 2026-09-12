@@ -6,6 +6,7 @@
 <title>Dashboard de Proyecto · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
@@ -123,6 +124,8 @@
   <div class="proyecto-selector">
     <select id="proyectoSelect" onchange="selectProyecto(this.value)"><option value="">Selecciona un proyecto...</option></select>
     <button class="btn btn-ghost" onclick="nuevoProyecto()">+ Nuevo proyecto</button>
+    <button class="btn btn-ghost" id="exportBtn" onclick="exportarPPT()" style="display:none;">📤 Exportar PPT para cliente</button>
+    <button class="btn btn-danger" id="deleteProyectoBtn" onclick="deleteProyecto()" style="display:none;">🗑 Borrar este proyecto</button>
   </div>
 </header>
 
@@ -173,6 +176,21 @@ function populateProyectoSelect(){
   sel.innerHTML = '<option value="">Selecciona un proyecto...</option>' + data.proyectos.map(p=>`<option value="${esc(p)}" ${p===currentProyecto?'selected':''}>${esc(p)}</option>`).join('');
 }
 
+async function logAudit(action, detail){
+  try{
+    await fetch('/api/audit', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ page: 'Dashboard de Proyecto', action, detail })
+    });
+  }catch(e){ /* si falla el log, no bloqueamos la acción */ }
+}
+
+function confirmDestructive(actionLabel, confirmText){
+  const typed = prompt(`Esta acción NO se puede deshacer:\n\n${actionLabel}\n\nEscribe exactamente "${confirmText}" para confirmar:`);
+  if(typed === null) return false;
+  return typed.trim() === confirmText;
+}
+
 function nuevoProyecto(){
   const name = prompt('Nombre del nuevo proyecto:');
   if(!name || !name.trim()) return;
@@ -217,6 +235,8 @@ function computeKPIs(){
 
 function render(){
   const main = document.getElementById('main');
+  document.getElementById('exportBtn').style.display = currentProyecto ? 'inline-block' : 'none';
+  document.getElementById('deleteProyectoBtn').style.display = currentProyecto ? 'inline-block' : 'none';
   if(!currentProyecto){
     main.innerHTML = '<div class="no-proyecto">Selecciona o crea un proyecto para ver su dashboard.</div>';
     return;
@@ -271,6 +291,7 @@ function renderTabBody(){
           <div class="row ${tipoClass(it.tipo)}" onclick="openSheet('${it.id}')">
             <div class="meta-top">${esc(it.tipo)}</div>
             <h4>${esc(it.descripcion.slice(0,70))}${it.descripcion.length>70?'…':''}</h4>
+            ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}
             ${it.prioridad ? `<span class="tag riesgo-${it.prioridad.toLowerCase()==='alta'?'alto':(it.prioridad.toLowerCase()==='media'?'medio':'bajo')}">${esc(it.prioridad)}</span>` : ''}
             <div class="meta-bottom">${it.responsable ? esc(it.responsable) : 'Sin responsable'}${it.fechaLimite ? ' · '+fmtDate(it.fechaLimite) : ''}</div>
           </div>
@@ -290,7 +311,7 @@ function renderTabBody(){
       return `
         <div class="row ${rc}" onclick="openSheet('${it.id}')">
           <div class="meta-top">Depende de: ${esc(it.tercero)}</div>
-          <h4>${esc(it.descripcion)}</h4>
+          <h4>${esc(it.descripcion)} ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}</h4>
           <span class="tag ${rc}">Riesgo ${esc(it.nivelRiesgo)}</span> <span class="tag estatus">${esc(it.estatus)}</span>
           ${it.impacto ? `<div class="meta-bottom">Impacto: ${esc(it.impacto)}</div>` : ''}
           <div class="meta-bottom">${it.fechaEsperada ? (overdue ? '<span class="overdue">Se esperaba '+fmtDate(it.fechaEsperada)+'</span>' : 'Esperado: '+fmtDate(it.fechaEsperada)) : 'Sin fecha esperada'}</div>
@@ -308,7 +329,7 @@ function renderTabBody(){
       return `
         <div class="row" onclick="openSheet('${it.id}')">
           <div class="meta-top">${esc(it.quien)}</div>
-          <h4>${esc(it.compromiso)}</h4>
+          <h4>${esc(it.compromiso)} ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}</h4>
           <span class="tag estatus">${esc(it.estatus)}</span>
           <div class="meta-bottom">${it.fechaLimite ? (overdue ? '<span class="overdue">Venció '+fmtDate(it.fechaLimite)+'</span>' : 'Vence '+fmtDate(it.fechaLimite)) : 'Sin fecha límite'}</div>
         </div>
@@ -339,6 +360,7 @@ function openSheet(id){
         <div><label>Fecha límite</label><input type="date" id="f-fechaLimite" value="${it.fechaLimite||''}"></div>
       </div>
       <label>Estatus</label><select id="f-estatus">${estatusOpts}</select>
+      <label style="display:flex; align-items:center; gap:6px; margin-top:14px;"><input type="checkbox" id="f-visibleCliente" style="width:auto;" ${it.visibleCliente?'checked':''}> Visible para cliente (se incluye en el PPT exportable)</label>
       <div class="sheet-actions">
         <button class="btn btn-primary" onclick="saveRaid()">Guardar</button>
         ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
@@ -361,6 +383,7 @@ function openSheet(id){
       </div>
       <label>Impacto si se retrasa</label><textarea id="f-impacto" rows="2">${esc(it.impacto)}</textarea>
       <label>Estatus</label><select id="f-estatus">${estatusOpts}</select>
+      <label style="display:flex; align-items:center; gap:6px; margin-top:14px;"><input type="checkbox" id="f-visibleCliente" style="width:auto;" ${it.visibleCliente?'checked':''}> Visible para cliente (se incluye en el PPT exportable)</label>
       <div class="sheet-actions">
         <button class="btn btn-primary" onclick="saveDependencia()">Guardar</button>
         ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
@@ -380,6 +403,7 @@ function openSheet(id){
         <div><label>Fecha límite</label><input type="date" id="f-fechaLimite" value="${it.fechaLimite||''}"></div>
         <div><label>Estatus</label><select id="f-estatus">${estatusOpts}</select></div>
       </div>
+      <label style="display:flex; align-items:center; gap:6px; margin-top:14px;"><input type="checkbox" id="f-visibleCliente" style="width:auto;" ${it.visibleCliente?'checked':''}> Visible para cliente (se incluye en el PPT exportable)</label>
       <div class="sheet-actions">
         <button class="btn btn-primary" onclick="saveCompromiso()">Guardar</button>
         ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
@@ -404,10 +428,13 @@ async function saveRaid(){
     fechaLimite: document.getElementById('f-fechaLimite').value,
     prioridad: document.getElementById('f-prioridad').value,
     estatus: document.getElementById('f-estatus').value,
+    visibleCliente: document.getElementById('f-visibleCliente').checked,
     createdAt: existing ? existing.createdAt : new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
+  const wasEdit = !!currentId;
   if(currentId){ data.raid[data.raid.findIndex(x=>x.id===currentId)] = item; } else { data.raid.push(item); }
+  await logAudit(wasEdit ? 'Editó registro RAID' : 'Creó registro RAID', `Proyecto "${currentProyecto}" — ${item.tipo}: ${item.descripcion.slice(0,80)}`);
   await saveData(); closeSheet(); render();
 }
 
@@ -424,10 +451,13 @@ async function saveDependencia(){
     impacto: document.getElementById('f-impacto').value.trim(),
     estatus: document.getElementById('f-estatus').value,
     nivelRiesgo: document.getElementById('f-nivelRiesgo').value,
+    visibleCliente: document.getElementById('f-visibleCliente').checked,
     createdAt: existing ? existing.createdAt : new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
+  const wasEdit = !!currentId;
   if(currentId){ data.dependencias[data.dependencias.findIndex(x=>x.id===currentId)] = item; } else { data.dependencias.push(item); }
+  await logAudit(wasEdit ? 'Editó dependencia' : 'Creó dependencia', `Proyecto "${currentProyecto}" — ${item.descripcion.slice(0,80)}`);
   await saveData(); closeSheet(); render();
 }
 
@@ -442,15 +472,47 @@ async function saveCompromiso(){
     compromiso,
     fechaLimite: document.getElementById('f-fechaLimite').value,
     estatus: document.getElementById('f-estatus').value,
+    visibleCliente: document.getElementById('f-visibleCliente').checked,
     createdAt: existing ? existing.createdAt : new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
+  const wasEdit = !!currentId;
   if(currentId){ data.compromisos[data.compromisos.findIndex(x=>x.id===currentId)] = item; } else { data.compromisos.push(item); }
+  await logAudit(wasEdit ? 'Editó compromiso' : 'Creó compromiso', `Proyecto "${currentProyecto}" — ${item.compromiso.slice(0,80)}`);
   await saveData(); closeSheet(); render();
 }
 
+async function deleteProyecto(){
+  if(!currentProyecto) return;
+  const raidCount = itemsFor('raid').length;
+  const depsCount = itemsFor('dependencias').length;
+  const comsCount = itemsFor('compromisos').length;
+  const total = raidCount + depsCount + comsCount;
+
+  const label = `Se borrará el proyecto "${currentProyecto}" completo, incluyendo ${raidCount} registro(s) RAID, ${depsCount} dependencia(s) y ${comsCount} compromiso(s) (${total} registros en total).`;
+  if(!confirmDestructive(label, currentProyecto)){
+    alert('No coincidió el nombre escrito — no se borró nada.');
+    return;
+  }
+
+  data.proyectos = data.proyectos.filter(p=>p!==currentProyecto);
+  data.raid = data.raid.filter(it=>it.proyecto!==currentProyecto);
+  data.dependencias = data.dependencias.filter(it=>it.proyecto!==currentProyecto);
+  data.compromisos = data.compromisos.filter(it=>it.proyecto!==currentProyecto);
+
+  await logAudit('Borró proyecto completo', `"${currentProyecto}" — ${total} registros (RAID: ${raidCount}, Dependencias: ${depsCount}, Compromisos: ${comsCount})`);
+  await saveData();
+  currentProyecto = data.proyectos[0] || null;
+  populateProyectoSelect();
+  render();
+}
+
 async function deleteItem(){
-  if(!confirm('¿Eliminar este registro?')) return;
+  const it = data[activeTab].find(x=>x.id===currentId);
+  const previewText = activeTab === 'compromisos' ? it.compromiso : it.descripcion;
+  const preview = (previewText || '').slice(0,80);
+  if(!confirm(`¿Eliminar este registro?\n\n"${preview}${previewText && previewText.length>80 ? '…' : ''}"\n\nNo se puede deshacer.`)) return;
+  await logAudit('Eliminó registro de '+activeTab, `Proyecto "${currentProyecto}" — ${preview}`);
   data[activeTab] = data[activeTab].filter(x=>x.id!==currentId);
   await saveData(); closeSheet(); render();
 }
@@ -476,6 +538,98 @@ async function generarResumen(){
   }catch(e){
     box.innerHTML = '<span style="color:#B23A3A;">No se pudo conectar con Delfos.</span>';
   }
+}
+
+async function exportarPPT(){
+  const raidVis = itemsFor('raid').filter(it=>it.visibleCliente);
+  const depsVis = itemsFor('dependencias').filter(it=>it.visibleCliente);
+  const comsVis = itemsFor('compromisos').filter(it=>it.visibleCliente);
+  const resumenText = document.getElementById('resumenContent')?.textContent || '';
+  const hasResumen = document.getElementById('resumenContent')?.className === 'resumen-text';
+
+  if(!raidVis.length && !depsVis.length && !comsVis.length && !hasResumen){
+    alert('No hay nada marcado como "Visible para cliente" todavía (ni un resumen ejecutivo generado). Marca al menos un registro o genera el resumen antes de exportar.');
+    return;
+  }
+
+  const NAVY = '0A1226', NAVY2 = '0E1E3F', BLUE = '1E5BB8', CYAN = '33B4DD', INK = '16223A', GREY = '5E6B82', LINE = 'D8E2EE';
+
+  const pptx = new PptxGenJS();
+  pptx.defineLayout({ name: 'SEIDOR', width: 13.333, height: 7.5 });
+  pptx.layout = 'SEIDOR';
+
+  let logoDataUrl = null;
+  try{
+    const resp = await fetch('/assets/logo_dark.png');
+    const blob = await resp.blob();
+    logoDataUrl = await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); });
+  }catch(e){}
+
+  // Portada
+  let slide = pptx.addSlide();
+  slide.background = { color: NAVY };
+  if(logoDataUrl) slide.addImage({ data: logoDataUrl, x:0.6, y:0.5, w:1.8, h:0.6 });
+  slide.addText('Reporte de Estatus', { x:0.6, y:2.8, w:12, h:0.8, fontSize:32, bold:true, color:'FFFFFF', fontFace:'Arial' });
+  slide.addText(currentProyecto, { x:0.6, y:3.6, w:12, h:0.6, fontSize:20, color:CYAN, fontFace:'Arial' });
+  slide.addText(new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' }), { x:0.6, y:4.2, w:12, h:0.5, fontSize:13, color:'8A97AC', fontFace:'Arial' });
+
+  function addContentSlideHeader(s, title){
+    s.background = { color:'FFFFFF' };
+    s.addShape('rect', { x:0, y:0, w:13.333, h:0.9, fill:{color:NAVY} });
+    if(logoDataUrl) s.addImage({ data: logoDataUrl, x:11.3, y:0.15, w:1.6, h:0.55 });
+    s.addText(title, { x:0.5, y:0.15, w:9, h:0.6, fontSize:18, bold:true, color:'FFFFFF', fontFace:'Arial' });
+  }
+
+  // Resumen ejecutivo
+  if(hasResumen && resumenText){
+    slide = pptx.addSlide();
+    addContentSlideHeader(slide, 'Resumen Ejecutivo');
+    slide.addText(resumenText, { x:0.6, y:1.4, w:12, h:4, fontSize:16, color:INK, fontFace:'Arial', valign:'top' });
+  }
+
+  // RAID
+  if(raidVis.length){
+    slide = pptx.addSlide();
+    addContentSlideHeader(slide, 'Riesgos, Issues, Acciones y Decisiones');
+    const rows = [[
+      { text:'Tipo', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Descripción', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Estatus', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Fecha límite', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
+    ]];
+    raidVis.forEach(it=>rows.push([it.tipo, it.descripcion, it.estatus, it.fechaLimite ? fmtDate(it.fechaLimite) : '—']));
+    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[1.6,7,1.8,1.9], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
+  }
+
+  // Dependencias
+  if(depsVis.length){
+    slide = pptx.addSlide();
+    addContentSlideHeader(slide, 'Dependencias Críticas');
+    const rows = [[
+      { text:'Depende de', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Descripción', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Estatus', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Fecha esperada', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
+    ]];
+    depsVis.forEach(it=>rows.push([it.tercero, it.descripcion, it.estatus, it.fechaEsperada ? fmtDate(it.fechaEsperada) : '—']));
+    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[2.2,6.4,1.8,1.9], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
+  }
+
+  // Compromisos
+  if(comsVis.length){
+    slide = pptx.addSlide();
+    addContentSlideHeader(slide, 'Compromisos');
+    const rows = [[
+      { text:'Quién', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Compromiso', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Estatus', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
+      { text:'Fecha límite', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
+    ]];
+    comsVis.forEach(it=>rows.push([it.quien, it.compromiso, it.estatus, it.fechaLimite ? fmtDate(it.fechaLimite) : '—']));
+    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[2.2,6.4,1.8,1.9], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
+  }
+
+  pptx.writeFile({ fileName: `Reporte de Estatus - ${currentProyecto}.pptx` });
 }
 
 loadData();

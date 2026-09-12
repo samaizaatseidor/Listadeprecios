@@ -160,6 +160,15 @@ let currentId = null;
 let lastSync = null;
 let currentUser = 'desconocido';
 
+async function logAudit(action, detail){
+  try{
+    await fetch('/api/audit', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ page: 'CRM PresalesMX', action, detail })
+    });
+  }catch(e){ /* si falla el log, no bloqueamos la acción */ }
+}
+
 async function loadCurrentUser(){
   try{
     const r = await fetch('/api/whoami');
@@ -424,6 +433,7 @@ async function saveCard(){
     ficha: existing ? existing.ficha : undefined
   };
   const newActivity = buildActivityDiff(existing, data);
+  newActivity.forEach(a => logAudit(existing ? 'Editó tarjeta' : 'Creó tarjeta', `${client} — ${a.note}`));
   data.activityLog = (existing && existing.activityLog ? existing.activityLog.slice() : []).concat(newActivity);
   if(currentId){
     const idx = projects.findIndex(x=>x.id===currentId);
@@ -437,7 +447,9 @@ async function saveCard(){
 }
 
 async function deleteCard(){
-  if(!confirm('¿Eliminar este proyecto del tablero?')) return;
+  const p = projects.find(x=>x.id===currentId);
+  if(!confirm(`¿Eliminar "${p ? p.client : 'este proyecto'}" del tablero?\n\nNo se puede deshacer.`)) return;
+  await logAudit('Eliminó tarjeta', p ? p.client : currentId);
   projects = projects.filter(x=>x.id!==currentId);
   await saveToServer();
   closeSheet();
@@ -460,8 +472,19 @@ ${p.notes ? '\\nNotas: '+p.notes : ''}`.split('\n').filter(l=>l.trim()!=='').joi
   document.getElementById('summary-out').innerHTML = `<div class="summary-box">${esc(text)}</div>`;
 }
 
+function confirmDestructive(actionLabel, confirmText){
+  const typed = prompt(`Esta acción NO se puede deshacer:\n\n${actionLabel}\n\nEscribe exactamente "${confirmText}" para confirmar:`);
+  if(typed === null) return false;
+  return typed.trim() === confirmText;
+}
+
 async function clearAll(){
-  if(!confirm('Esto borra todos los proyectos del tablero para TODO el equipo (no se puede deshacer). ¿Continuar?')) return;
+  const label = `Se borrarán las ${projects.length} oportunidades del Pipeline para TODO el equipo.`;
+  if(!confirmDestructive(label, 'BORRAR TODO')){
+    alert('No coincidió el texto — no se borró nada.');
+    return;
+  }
+  await logAudit('Borró TODO el Pipeline', `${projects.length} tarjetas eliminadas`);
   projects = [];
   await saveToServer();
   render();

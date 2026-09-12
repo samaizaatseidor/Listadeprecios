@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  .toolbar{display:flex; gap:8px; padding:14px 16px; background:#fff; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .toolbar input[type=text]{flex:1; min-width:140px; padding:9px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px; color:var(--ink);}
+  .toolbar select{padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px; color:var(--ink); background:#fff;}
+
+  main{max-width:900px; margin:0 auto; padding:16px;}
+  .entry{background:#fff; border-radius:10px; padding:12px 16px; margin-bottom:8px; box-shadow:var(--shadow); border-left:3px solid var(--line);}
+  .entry.destructive{border-left-color:#C24545;}
+  .entry-top{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; font-size:12.5px;}
+  .entry-top b{color:var(--navy2);}
+  .entry-when{color:var(--greyl); font-size:11.5px;}
+  .entry-detail{font-size:12.5px; color:var(--ink); margin-top:4px;}
+  .entry-page{font-size:10.5px; color:var(--blue); background:#EDF3FA; padding:1px 8px; border-radius:20px; display:inline-block; margin-top:6px;}
+
+  .empty{color:var(--greyl); font-size:13px; text-align:center; padding:30px;}
+  .loading{color:var(--grey); text-align:center; padding:30px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html">Inicio</a>
+      <a href="/precios.html">Lista de Precios</a>
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/agentes.html" class="active">Agentes powered by DELFOS</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Auditoría</h1>
+  <p>Quién hizo qué en el sitio — creación, edición y borrado de registros (últimas 1,000 acciones)</p>
+</header>
+
+<div class="toolbar">
+  <input type="text" id="search" placeholder="Buscar por persona, acción o detalle…">
+  <select id="filterPage"><option value="">Todas las páginas</option></select>
+  <select id="filterAction">
+    <option value="">Todas las acciones</option>
+    <option value="destructivas">Solo borrados</option>
+  </select>
+</div>
+
+<main id="main"><div class="loading">Cargando…</div></main>
+
+<script>
+let entries = [];
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function loadLog(){
+  try{
+    const r = await fetch('/api/audit');
+    const d = await r.json();
+    entries = (d.entries || []).slice().reverse(); // más reciente primero
+  }catch(e){ entries = []; }
+  populateFilters();
+  render();
+}
+
+function populateFilters(){
+  const sel = document.getElementById('filterPage');
+  const current = sel.value;
+  const pages = Array.from(new Set(entries.map(e=>e.page))).sort();
+  sel.innerHTML = '<option value="">Todas las páginas</option>' + pages.map(p=>`<option value="${esc(p)}" ${p===current?'selected':''}>${esc(p)}</option>`).join('');
+}
+
+function render(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const pageF = document.getElementById('filterPage').value;
+  const actionF = document.getElementById('filterAction').value;
+  const main = document.getElementById('main');
+
+  const visible = entries.filter(e=>{
+    if(pageF && e.page !== pageF) return false;
+    if(actionF === 'destructivas' && !/elimin|borr/i.test(e.action)) return false;
+    if(!q) return true;
+    return (e.by+' '+e.action+' '+e.detail).toLowerCase().includes(q);
+  });
+
+  if(!visible.length){ main.innerHTML = '<div class="empty">Sin actividad registrada todavía.</div>'; return; }
+
+  main.innerHTML = visible.map(e=>{
+    const destructive = /elimin|borr/i.test(e.action);
+    return `
+      <div class="entry ${destructive?'destructive':''}">
+        <div class="entry-top">
+          <div><b>${esc(e.by)}</b> — ${esc(e.action)}</div>
+          <div class="entry-when">${new Date(e.at).toLocaleString('es-MX')}</div>
+        </div>
+        ${e.detail ? `<div class="entry-detail">${esc(e.detail)}</div>` : ''}
+        <div class="entry-page">${esc(e.page)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.getElementById('search').addEventListener('input', render);
+document.getElementById('filterPage').addEventListener('change', render);
+document.getElementById('filterAction').addEventListener('change', render);
+loadLog();
+</script>
+</body>
+</html>

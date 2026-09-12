@@ -142,7 +142,7 @@ function render(){
               ${d.type==='link'
                 ? `<a href="${esc(d.url)}" target="_blank">Abrir</a>`
                 : `<a href="/api/docs/file?key=${encodeURIComponent(d.r2Key)}">Descargar</a>`}
-              <button class="del" onclick="deleteDoc('${d.id}')">Eliminar</button>
+              <button class="del" onclick="deleteDoc('${d.id}', '${esc(d.title).replace(/'/g, "\\'")}')">Eliminar</button>
             </div>
           </div>
         `).join('') : '<div class="empty">Sin documentos todavía.</div>'}
@@ -235,8 +235,18 @@ async function submitDoc(){
   }
 }
 
-async function deleteDoc(id){
-  if(!confirm('¿Eliminar este documento? No se puede deshacer.')) return;
+async function logAudit(action, detail){
+  try{
+    await fetch('/api/audit', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ page: 'Documentos de Apoyo', action, detail })
+    });
+  }catch(e){}
+}
+
+async function deleteDoc(id, title){
+  if(!confirm(`¿Eliminar "${title}"?\n\nNo se puede deshacer.`)) return;
+  await logAudit('Eliminó documento', title);
   await fetch('/api/documentos?id='+encodeURIComponent(id), { method:'DELETE' });
   loadDocs();
 }
