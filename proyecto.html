@@ -281,7 +281,7 @@ function computeKPIs(){
   const depsBloqueando = deps.filter(it=>it.estatus==='Bloqueando').length;
   const comsVencidos = coms.filter(it=>isPastDue(it.fechaLimite, it.estatus, 'Cumplido')).length;
   const raidCerrado = raid.length ? Math.round(raid.filter(it=>it.estatus==='Cerrado').length / raid.length * 100) : null;
-  const crsPendientes = crs.filter(it=>it.estatus==='Solicitada' || it.estatus==='En análisis').length;
+  const crsPendientes = crs.filter(it=>it.estatus!=='Aceptado').length;
 
   const allTimestamps = [...raid, ...deps, ...coms, ...crs].map(it=>it.updatedAt || it.createdAt).filter(Boolean).map(d=>new Date(d));
   let diasDesdeUpdate = null;
@@ -329,6 +329,7 @@ function render(){
           ${lb.alcanceResumen ? `<div style="margin-top:8px;"><b>Alcance:</b> ${esc(lb.alcanceResumen)}</div>` : ''}
           ${lb.inversionTotal ? `<div style="margin-top:8px;"><b>Inversión total:</b> ${esc(lb.inversionTotal)} ${esc(lb.moneda||'')}</div>` : ''}
           ${lb.fueraDeAlcance && lb.fueraDeAlcance.length ? `<div style="margin-top:8px;"><b>Fuera de alcance:</b><ul style="margin:4px 0 0; padding-left:18px;">${lb.fueraDeAlcance.map(f=>`<li>${esc(f)}</li>`).join('')}</ul></div>` : ''}
+          ${lb.cambiosAprobados && lb.cambiosAprobados.length ? `<div style="margin-top:8px;"><b>Cambios aprobados (Change Requests):</b><ul style="margin:4px 0 0; padding-left:18px;">${lb.cambiosAprobados.map(c=>`<li>${esc(c.titulo)}${c.impactoCosto ? ' — '+esc(c.impactoCosto) : ''}${c.impactoTiempo ? ' — '+esc(c.impactoTiempo) : ''} (${esc(c.fecha)})</li>`).join('')}</ul></div>` : ''}
           ${lb.fases && lb.fases.length ? `<div style="margin-top:8px;"><b>Fases:</b><ul style="margin:4px 0 0; padding-left:18px;">${lb.fases.map(f=>`<li>${esc(f.fase)}${f.fechas ? ' — '+esc(f.fechas) : ''}</li>`).join('')}</ul></div>` : ''}
         </div>
       </details>
@@ -432,17 +433,26 @@ function renderTabBody(){
   if(activeTab === 'changeRequests'){
     const items = itemsFor('changeRequests').filter(it => !q || it.titulo.toLowerCase().includes(q) || it.descripcion.toLowerCase().includes(q));
     if(!items.length){ body.innerHTML = '<div class="empty">Sin Change Requests registrados para este proyecto.</div>'; return; }
-    const estatusOrder = {'Solicitada':0,'En análisis':1,'Aprobada':2,'Rechazada':3,'Facturada':4};
-    const sorted = items.slice().sort((a,b)=>(estatusOrder[a.estatus]??0)-(estatusOrder[b.estatus]??0));
-    const crClass = e => ({'Solicitada':'riesgo-medio','En análisis':'riesgo-medio','Aprobada':'riesgo-bajo','Rechazada':'riesgo-alto','Facturada':'riesgo-bajo'}[e]||'');
-    body.innerHTML = `<div class="list-view">${sorted.map(it=>`
-        <div class="row ${crClass(it.estatus)}" onclick="openSheet('${it.id}')">
-          <div class="meta-top">${it.solicitadoPor ? 'Solicitado por: '+esc(it.solicitadoPor) : ''}${it.fechaSolicitud ? ' · '+fmtDate(it.fechaSolicitud) : ''}</div>
-          <h4>${esc(it.titulo)} ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}</h4>
-          <span class="tag estatus">${esc(it.estatus)}</span>
-          ${it.impactoTiempo || it.impactoCosto ? `<div class="meta-bottom">${it.impactoTiempo ? 'Impacto tiempo: '+esc(it.impactoTiempo) : ''}${it.impactoTiempo && it.impactoCosto ? ' · ' : ''}${it.impactoCosto ? 'Impacto costo: '+esc(it.impactoCosto) : ''}</div>` : ''}
-        </div>
-    `).join('')}</div>`;
+    const CR_COLS = [
+      { key:'Identificado', owner:'PM' },
+      { key:'En estimación', owner:'Consultores' },
+      { key:'Validación comercial', owner:'AE' },
+      { key:'Presentado al cliente', owner:'PM' },
+      { key:'Aceptado', owner:'Cerrado' }
+    ];
+    body.innerHTML = `<div class="board">${CR_COLS.map(col=>{
+      const colItems = items.filter(it=>it.estatus===col.key);
+      return `<div class="col"><h3>${col.key} <span class="count">${colItems.length}</span></h3>
+        <div style="font-size:10px; color:var(--greyl); margin:-4px 4px 8px;">Responsable: ${col.owner}</div>
+        ${colItems.map(it=>`
+          <div class="row" onclick="openSheet('${it.id}')">
+            <div class="meta-top">${it.solicitadoPor ? esc(it.solicitadoPor) : 'Sin solicitante'}${it.fechaSolicitud ? ' · '+fmtDate(it.fechaSolicitud) : ''}</div>
+            <h4>${esc(it.titulo.slice(0,70))}${it.titulo.length>70?'…':''} ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}</h4>
+            ${it.impactoTiempo || it.impactoCosto ? `<div class="meta-bottom">${it.impactoTiempo ? esc(it.impactoTiempo) : ''}${it.impactoTiempo && it.impactoCosto ? ' · ' : ''}${it.impactoCosto ? esc(it.impactoCosto) : ''}</div>` : ''}
+          </div>
+        `).join('') || '<div class="empty" style="padding:14px 6px;">Vacío</div>'}
+      </div>`;
+    }).join('')}</div>`;
   }
 }
 
@@ -520,8 +530,9 @@ function openSheet(id){
   }
 
   if(activeTab === 'changeRequests'){
-    const it = id ? data.changeRequests.find(x=>x.id===id) : { proyecto:currentProyecto, titulo:'', descripcion:'', solicitadoPor:'', fechaSolicitud:'', impactoAlcance:'', impactoTiempo:'', impactoCosto:'', estatus:'Solicitada' };
-    const estatusOpts = ['Solicitada','En análisis','Aprobada','Rechazada','Facturada'].map(e=>`<option value="${e}" ${it.estatus===e?'selected':''}>${e}</option>`).join('');
+    const it = id ? data.changeRequests.find(x=>x.id===id) : { proyecto:currentProyecto, titulo:'', descripcion:'', solicitadoPor:'', fechaSolicitud:'', impactoAlcance:'', impactoTiempo:'', impactoCosto:'', estatus:'Identificado' };
+    const CR_ESTATUS_OWNER = {'Identificado':'PM','En estimación':'Consultores','Validación comercial':'AE','Presentado al cliente':'PM','Aceptado':'Cerrado'};
+    const estatusOpts = Object.keys(CR_ESTATUS_OWNER).map(e=>`<option value="${e}" ${it.estatus===e?'selected':''}>${e} (${CR_ESTATUS_OWNER[e]})</option>`).join('');
     sheet.innerHTML = `
       <button class="close-x" onclick="closeSheet()">&times;</button>
       <p class="sheet-title">${id ? 'Editar Change Request' : 'Nuevo Change Request'}</p>
@@ -636,9 +647,49 @@ async function saveCR(){
     updatedAt: new Date().toISOString()
   };
   const wasEdit = !!currentId;
+  const justAccepted = item.estatus === 'Aceptado' && (!existing || existing.estatus !== 'Aceptado');
   if(currentId){ data.changeRequests[data.changeRequests.findIndex(x=>x.id===currentId)] = item; } else { data.changeRequests.push(item); }
   await logAudit(wasEdit ? 'Editó Change Request' : 'Creó Change Request', `Proyecto "${currentProyecto}" — ${item.titulo}`);
-  await saveData(); closeSheet(); render();
+  await saveData();
+
+  if(justAccepted){
+    await onCRAccepted(item);
+  }
+
+  closeSheet(); render();
+}
+
+async function onCRAccepted(item){
+  // 1) Ofrecer crear el Compromiso de facturación
+  if(confirm(`"${item.titulo}" fue aceptado por el cliente.\n\n¿Crear un Compromiso de facturación por este Change Request?`)){
+    const now = new Date().toISOString();
+    data.compromisos.push({
+      id: 'com-'+Date.now().toString(36),
+      proyecto: currentProyecto,
+      quien: 'Cliente',
+      compromiso: `Facturación de Change Request: ${item.titulo}${item.impactoCosto ? ' — '+item.impactoCosto : ''}`,
+      fechaLimite: '',
+      estatus: 'Pendiente',
+      visibleCliente: false,
+      createdAt: now, updatedAt: now
+    });
+    await logAudit('Creó compromiso', `Proyecto "${currentProyecto}" — Facturación de CR: ${item.titulo}`);
+    await saveData();
+  }
+
+  // 2) Registrar el cambio aceptado en la Línea Base del proyecto
+  try{
+    const r = await fetch('/api/linea-base');
+    const d = await r.json();
+    const lb = (d.proyectos && d.proyectos[currentProyecto]) || {};
+    const cambiosAprobados = Array.isArray(lb.cambiosAprobados) ? lb.cambiosAprobados : [];
+    cambiosAprobados.push({ titulo: item.titulo, impactoTiempo: item.impactoTiempo, impactoCosto: item.impactoCosto, fecha: new Date().toISOString().slice(0,10) });
+    await fetch('/api/linea-base', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ proyecto: currentProyecto, datos: { ...lb, cambiosAprobados } })
+    });
+    lineasBase[currentProyecto] = { ...lb, cambiosAprobados };
+  }catch(e){ console.error('No se pudo actualizar la Línea Base', e); }
 }
 
 async function deleteProyecto(){
