@@ -768,13 +768,34 @@ async function exportarPPT(soloCliente){
   }
 
   // RAID
+  function estimateRowLines(text, colWidthIn, fontSize){
+    fontSize = fontSize || 11;
+    const charsPerLine = Math.max(8, Math.floor(colWidthIn * 13.5 * (11/fontSize)));
+    const explicitLines = String(text||'').split('\n');
+    let total = 0;
+    explicitLines.forEach(line=>{ total += Math.max(1, Math.ceil(line.length / charsPerLine)); });
+    return total;
+  }
   function addPaginatedTable(title, headerCells, dataRows, colW){
-    const CHUNK = 9;
-    for(let i=0; i<dataRows.length; i+=CHUNK){
+    const AVAILABLE_H = 5.3, ROW_PAD = 0.14, LINE_H = 0.235;
+    let i = 0;
+    while(i < dataRows.length){
       const s = pptx.addSlide();
       addContentSlideHeader(s, title);
-      const chunk = [headerCells, ...dataRows.slice(i, i+CHUNK)];
+      const chunk = [headerCells];
+      let used = 0.4;
+      let j = i;
+      while(j < dataRows.length){
+        const row = dataRows[j];
+        const lines = Math.max(...row.map((cell,ci)=>estimateRowLines(cell, colW[ci])));
+        const rowH = ROW_PAD + lines*LINE_H;
+        if(used + rowH > AVAILABLE_H && chunk.length > 1) break;
+        chunk.push(row);
+        used += rowH;
+        j++;
+      }
       s.addTable(chunk, { x:0.5, y:1.55, w:12.3, colW, fontSize:11, color:INK, fontFace:'Poppins', border:{type:'solid', color:LINE, pt:0.5} });
+      i = j;
     }
   }
 

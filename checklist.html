@@ -458,15 +458,35 @@ async function exportarPPT(){
   });
   slide.addTable(rows, { x:0.5, y:1.55, w:8, colW:[4,2,2], fontSize:12, color:INK, fontFace:'Poppins', border:{type:'solid', color:LINE, pt:0.5} });
 
+  function estimateRowLines(text, colWidthIn, fontSize){
+    fontSize = fontSize || 11;
+    const charsPerLine = Math.max(8, Math.floor(colWidthIn * 13.5 * (11/fontSize)));
+    const explicitLines = String(text||'').split('\n');
+    let total = 0;
+    explicitLines.forEach(line=>{ total += Math.max(1, Math.ceil(line.length / charsPerLine)); });
+    return total;
+  }
   FASES.forEach(f=>{
     const pendientes = f.items.filter((_,i)=>!getItemState(f.id,i).checked);
     if(!pendientes.length) return;
-    const CHUNK = 12;
-    for(let i=0; i<pendientes.length; i+=CHUNK){
+    const AVAILABLE_H = 5.3, ROW_PAD = 0.14, LINE_H = 0.235;
+    let i = 0;
+    while(i < pendientes.length){
       const s = pptx.addSlide();
       header(s, `Pendientes — ${f.label}`);
-      const prows = [[{ text:'Punto de verificación', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }], ...pendientes.slice(i, i+CHUNK).map(p=>[p])];
+      const prows = [[{ text:'Punto de verificación', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }]];
+      let used = 0.4;
+      let j = i;
+      while(j < pendientes.length){
+        const lines = estimateRowLines(pendientes[j], 12.3);
+        const rowH = ROW_PAD + lines*LINE_H;
+        if(used + rowH > AVAILABLE_H && prows.length > 1) break;
+        prows.push([pendientes[j]]);
+        used += rowH;
+        j++;
+      }
       s.addTable(prows, { x:0.5, y:1.55, w:12.3, fontSize:11, color:INK, fontFace:'Poppins', border:{type:'solid', color:LINE, pt:0.5} });
+      i = j;
     }
   });
 
