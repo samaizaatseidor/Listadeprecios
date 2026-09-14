@@ -202,6 +202,10 @@ async function generar(){
 const PDF_KNOWN_HEADERS = ['ESTATUS GENERAL','ACUERDOS','PENDIENTES','RIESGOS O TEMAS DE ATENCIÓN'];
 
 async function exportFeedbackPDF(title, subtitle, feedbackText, filename){
+  if(!window.jspdf){
+    alert('No se pudo cargar la librería para generar el PDF. Revisa tu conexión a internet y vuelve a intentar; si el problema persiste, avísale a Sam.');
+    return;
+  }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'pt', format:'letter' });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -243,7 +247,12 @@ async function exportFeedbackPDF(title, subtitle, feedbackText, filename){
       });
     }
   });
-  doc.save(filename);
+  try{
+    doc.save(filename);
+  }catch(e){
+    console.error(e);
+    alert('No se pudo generar el archivo PDF. Intenta de nuevo — si sigue fallando, avísale a Sam.');
+  }
 }
 
 function downloadPDF(){

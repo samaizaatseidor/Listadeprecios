@@ -6,7 +6,7 @@
 <title>Dashboard de Proyecto · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
@@ -657,6 +657,10 @@ async function generarResumen(){
 }
 
 async function exportarPPT(){
+  if(typeof PptxGenJS === 'undefined'){
+    alert('No se pudo cargar la librería para generar el PPT (pptxgenjs). Revisa tu conexión a internet y vuelve a intentar; si el problema persiste, avísale a Sam.');
+    return;
+  }
   const raidVis = itemsFor('raid').filter(it=>it.visibleCliente);
   const depsVis = itemsFor('dependencias').filter(it=>it.visibleCliente);
   const comsVis = itemsFor('compromisos').filter(it=>it.visibleCliente);
@@ -760,7 +764,12 @@ async function exportarPPT(){
     slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[5.5,2.5,2.5,1.8], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
   }
 
-  pptx.writeFile({ fileName: `Reporte de Estatus - ${currentProyecto}.pptx` });
+  try{
+    await pptx.writeFile({ fileName: `Reporte de Estatus - ${currentProyecto}.pptx` });
+  }catch(e){
+    console.error(e);
+    alert('No se pudo generar el archivo PPT. Intenta de nuevo — si sigue fallando, avísale a Sam.');
+  }
 }
 
 loadData();

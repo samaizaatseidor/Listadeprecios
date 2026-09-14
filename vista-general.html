@@ -6,7 +6,7 @@
 <title>Vista General del Proyecto · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
@@ -267,6 +267,10 @@ async function generarResumen(){
 }
 
 async function exportarPPT(){
+  if(typeof PptxGenJS === 'undefined'){
+    alert('No se pudo cargar la librería para generar el PPT (pptxgenjs). Revisa tu conexión a internet y vuelve a intentar; si el problema persiste, avísale a Sam.');
+    return;
+  }
   const NAVY='0A1226', NAVY2='0E1E3F', BLUE='1E5BB8', CYAN='33B4DD', INK='16223A', LINE='D8E2EE';
   const k = computeKPIs();
   const lb = lineasBase[currentProyecto];
@@ -357,7 +361,12 @@ async function exportarPPT(){
     slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[5.5,4.8,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
   }
 
-  pptx.writeFile({ fileName: `Reporte General - ${currentProyecto}.pptx` });
+  try{
+    await pptx.writeFile({ fileName: `Reporte General - ${currentProyecto}.pptx` });
+  }catch(e){
+    console.error(e);
+    alert('No se pudo generar el archivo PPT. Intenta de nuevo — si sigue fallando, avísale a Sam.');
+  }
 }
 
 loadAll();
