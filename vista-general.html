@@ -271,6 +271,7 @@ async function exportarPPT(){
     alert('No se pudo cargar la librería para generar el PPT (pptxgenjs). Revisa tu conexión a internet y vuelve a intentar; si el problema persiste, avísale a Sam.');
     return;
   }
+  try{
   const NAVY='0A1226', NAVY2='0E1E3F', BLUE='1E5BB8', CYAN='33B4DD', INK='16223A', LINE='D8E2EE';
   const k = computeKPIs();
   const lb = lineasBase[currentProyecto];
@@ -283,38 +284,40 @@ async function exportarPPT(){
   pptx.defineLayout({ name:'SEIDOR', width:13.333, height:7.5 });
   pptx.layout = 'SEIDOR';
 
-  let logoDataUrl = null;
+  let logoDarkUrl = null, logoLightUrl = null, bgDarkUrl = null, bgContentUrl = null;
   try{
-    const resp = await fetch('/assets/logo_dark.png');
-    const blob = await resp.blob();
-    logoDataUrl = await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); });
+    const toDataUrl = async (url) => { const resp = await fetch(url); const blob = await resp.blob(); return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); }); };
+    [logoDarkUrl, logoLightUrl, bgDarkUrl, bgContentUrl] = await Promise.all([
+      toDataUrl('/assets/logo_dark.png'), toDataUrl('/assets/logo_light.png'),
+      toDataUrl('/assets/bg_dark_cover.png'), toDataUrl('/assets/bg_content.png')
+    ]);
   }catch(e){}
 
   let slide = pptx.addSlide();
-  slide.background = { color: NAVY };
-  if(logoDataUrl) slide.addImage({ data: logoDataUrl, x:0.6, y:0.5, w:1.8, h:0.6 });
+  slide.background = bgDarkUrl ? { data: bgDarkUrl } : { color: NAVY };
+  if(logoDarkUrl) slide.addImage({ data: logoDarkUrl, x:0.6, y:0.5, w:1.8, h:0.6 });
   slide.addText('Reporte General del Proyecto', { x:0.6, y:2.6, w:12, h:0.8, fontSize:30, bold:true, color:'FFFFFF', fontFace:'Arial' });
   slide.addText(currentProyecto, { x:0.6, y:3.4, w:12, h:0.6, fontSize:20, color:CYAN, fontFace:'Arial' });
   if(lb && lb.clienteNombre) slide.addText(lb.clienteNombre, { x:0.6, y:4.0, w:12, h:0.5, fontSize:14, color:'8A97AC', fontFace:'Arial' });
   slide.addText(new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' }), { x:0.6, y:4.5, w:12, h:0.5, fontSize:13, color:'8A97AC', fontFace:'Arial' });
 
   function header(s, title){
-    s.background = { color:'FFFFFF' };
-    s.addShape('rect', { x:0, y:0, w:13.333, h:0.9, fill:{color:NAVY} });
-    if(logoDataUrl) s.addImage({ data: logoDataUrl, x:11.3, y:0.15, w:1.6, h:0.55 });
-    s.addText(title, { x:0.5, y:0.15, w:9, h:0.6, fontSize:18, bold:true, color:'FFFFFF', fontFace:'Arial' });
+    s.background = bgContentUrl ? { data: bgContentUrl } : { color:'FFFFFF' };
+    if(logoLightUrl) s.addImage({ data: logoLightUrl, x:11.1, y:0.35, w:1.7, h:0.62 });
+    s.addText(currentProyecto.toUpperCase(), { x:0.6, y:0.35, w:9, h:0.3, fontSize:12.5, bold:true, color:CYAN, fontFace:'Arial', charSpacing:2 });
+    s.addText(title, { x:0.6, y:0.62, w:9.5, h:0.7, fontSize:26, bold:true, color:NAVY2, fontFace:'Arial' });
   }
 
   if(resumenGenerated){
     slide = pptx.addSlide();
     header(slide, 'Resumen Ejecutivo Maestro');
-    slide.addText(document.getElementById('resumenContent').textContent, { x:0.6, y:1.4, w:12, h:4, fontSize:15, color:INK, fontFace:'Arial', valign:'top' });
+    slide.addText(document.getElementById('resumenContent').textContent, { x:0.6, y:1.6, w:12, h:4, fontSize:15, color:INK, fontFace:'Arial', valign:'top' });
   }
 
   if(lb){
     slide = pptx.addSlide();
     header(slide, 'Línea Base del Proyecto');
-    let y = 1.4;
+    let y = 1.6;
     if(lb.alcanceResumen){ slide.addText('Alcance: '+lb.alcanceResumen, { x:0.6, y, w:12, h:1.2, fontSize:13, color:INK, fontFace:'Arial', valign:'top' }); y += 1.4; }
     if(lb.inversionTotal){ slide.addText('Inversión total: '+lb.inversionTotal+' '+(lb.moneda||''), { x:0.6, y, w:12, h:0.4, fontSize:13, color:INK, fontFace:'Arial' }); y += 0.6; }
     if(lb.fueraDeAlcance && lb.fueraDeAlcance.length){
@@ -330,42 +333,42 @@ async function exportarPPT(){
     { text:'% Avance', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
   ]];
   k.checklistData.forEach(f=>crows.push([f.fase, `${f.completados} / ${f.total}`, `${f.pct}%`]));
-  slide.addTable(crows, { x:0.5, y:1.3, w:8, colW:[4,2,2], fontSize:12, color:INK, border:{type:'solid', color:LINE, pt:0.5} });
+  slide.addTable(crows, { x:0.5, y:1.55, w:8, colW:[4,2,2], fontSize:12, color:INK, border:{type:'solid', color:LINE, pt:0.5} });
 
   if(raidVis.length){
     slide = pptx.addSlide();
     header(slide, 'Riesgos, Issues, Acciones y Decisiones');
     const rows = [[{text:'Tipo',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Descripción',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}]];
     raidVis.forEach(it=>rows.push([it.tipo, it.descripcion, it.estatus]));
-    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[1.8,8.5,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
+    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[1.8,8.5,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
   }
   if(depsVis.length){
     slide = pptx.addSlide();
     header(slide, 'Dependencias Críticas');
     const rows = [[{text:'Depende de',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Descripción',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}]];
     depsVis.forEach(it=>rows.push([it.tercero, it.descripcion, it.estatus]));
-    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[2.5,7.8,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
+    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[2.5,7.8,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
   }
   if(comsVis.length){
     slide = pptx.addSlide();
     header(slide, 'Compromisos');
     const rows = [[{text:'Quién',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Compromiso',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}]];
     comsVis.forEach(it=>rows.push([it.quien, it.compromiso, it.estatus]));
-    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[2.5,7.8,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
+    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[2.5,7.8,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
   }
   if(crVis.length){
     slide = pptx.addSlide();
     header(slide, 'Change Requests');
     const rows = [[{text:'Título',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Impacto',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}]];
     crVis.forEach(it=>rows.push([it.titulo, [it.impactoTiempo,it.impactoCosto].filter(Boolean).join(' · ') || '—', it.estatus]));
-    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[5.5,4.8,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
+    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[5.5,4.8,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
   }
 
-  try{
-    await pptx.writeFile({ fileName: `Reporte General - ${currentProyecto}.pptx` });
+  await pptx.writeFile({ fileName: `Reporte General - ${currentProyecto}.pptx` });
+
   }catch(e){
     console.error(e);
-    alert('No se pudo generar el archivo PPT. Intenta de nuevo — si sigue fallando, avísale a Sam.');
+    alert('No se pudo generar el archivo PPT: ' + (e && e.message ? e.message : e) + '. Avísale a Sam si el problema sigue.');
   }
 }
 

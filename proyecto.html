@@ -124,7 +124,8 @@
   <div class="proyecto-selector">
     <select id="proyectoSelect" onchange="selectProyecto(this.value)"><option value="">Selecciona un proyecto...</option></select>
     <button class="btn btn-ghost" onclick="nuevoProyecto()">+ Nuevo proyecto</button>
-    <button class="btn btn-ghost" id="exportBtn" onclick="exportarPPT()" style="display:none;">📤 Exportar PPT para cliente</button>
+    <button class="btn btn-ghost" id="exportBtn" onclick="exportarPPT(false)" style="display:none;">📤 Exportar PPT completo</button>
+    <button class="btn btn-ghost" id="exportClienteBtn" onclick="exportarPPT(true)" style="display:none;">📤 Exportar PPT para cliente</button>
     <a class="btn btn-ghost" id="checklistLink" href="#" style="display:none; text-decoration:none;">✅ Ver Checklist</a>
     <a class="btn btn-ghost" id="vistaGeneralLink" href="#" style="display:none; text-decoration:none;">🧭 Vista General</a>
     <button class="btn btn-danger" id="deleteProyectoBtn" onclick="deleteProyecto()" style="display:none;">🗑 Borrar este proyecto</button>
@@ -251,6 +252,7 @@ function computeKPIs(){
 function render(){
   const main = document.getElementById('main');
   document.getElementById('exportBtn').style.display = currentProyecto ? 'inline-block' : 'none';
+  document.getElementById('exportClienteBtn').style.display = currentProyecto ? 'inline-block' : 'none';
   document.getElementById('deleteProyectoBtn').style.display = currentProyecto ? 'inline-block' : 'none';
   const checklistLink = document.getElementById('checklistLink');
   if(currentProyecto){
@@ -656,20 +658,24 @@ async function generarResumen(){
   }
 }
 
-async function exportarPPT(){
+async function exportarPPT(soloCliente){
   if(typeof PptxGenJS === 'undefined'){
     alert('No se pudo cargar la librería para generar el PPT (pptxgenjs). Revisa tu conexión a internet y vuelve a intentar; si el problema persiste, avísale a Sam.');
     return;
   }
-  const raidVis = itemsFor('raid').filter(it=>it.visibleCliente);
-  const depsVis = itemsFor('dependencias').filter(it=>it.visibleCliente);
-  const comsVis = itemsFor('compromisos').filter(it=>it.visibleCliente);
-  const crVis = itemsFor('changeRequests').filter(it=>it.visibleCliente);
+  try{
+  const filtro = it => soloCliente ? it.visibleCliente : true;
+  const raidVis = itemsFor('raid').filter(filtro);
+  const depsVis = itemsFor('dependencias').filter(filtro);
+  const comsVis = itemsFor('compromisos').filter(filtro);
+  const crVis = itemsFor('changeRequests').filter(filtro);
   const resumenText = document.getElementById('resumenContent')?.textContent || '';
   const hasResumen = document.getElementById('resumenContent')?.className === 'resumen-text';
 
   if(!raidVis.length && !depsVis.length && !comsVis.length && !crVis.length && !hasResumen){
-    alert('No hay nada marcado como "Visible para cliente" todavía (ni un resumen ejecutivo generado). Marca al menos un registro o genera el resumen antes de exportar.');
+    alert(soloCliente
+      ? 'No hay nada marcado como "Visible para cliente" todavía (ni un resumen ejecutivo generado). Marca al menos un registro o genera el resumen antes de exportar.'
+      : 'Este proyecto no tiene registros todavía en ninguna pestaña, ni un resumen ejecutivo generado.');
     return;
   }
 
@@ -679,33 +685,35 @@ async function exportarPPT(){
   pptx.defineLayout({ name: 'SEIDOR', width: 13.333, height: 7.5 });
   pptx.layout = 'SEIDOR';
 
-  let logoDataUrl = null;
+  let logoDarkUrl = null, logoLightUrl = null, bgDarkUrl = null, bgContentUrl = null;
   try{
-    const resp = await fetch('/assets/logo_dark.png');
-    const blob = await resp.blob();
-    logoDataUrl = await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); });
+    const toDataUrl = async (url) => { const resp = await fetch(url); const blob = await resp.blob(); return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); }); };
+    [logoDarkUrl, logoLightUrl, bgDarkUrl, bgContentUrl] = await Promise.all([
+      toDataUrl('/assets/logo_dark.png'), toDataUrl('/assets/logo_light.png'),
+      toDataUrl('/assets/bg_dark_cover.png'), toDataUrl('/assets/bg_content.png')
+    ]);
   }catch(e){}
 
   // Portada
   let slide = pptx.addSlide();
-  slide.background = { color: NAVY };
-  if(logoDataUrl) slide.addImage({ data: logoDataUrl, x:0.6, y:0.5, w:1.8, h:0.6 });
+  slide.background = bgDarkUrl ? { data: bgDarkUrl } : { color: NAVY };
+  if(logoDarkUrl) slide.addImage({ data: logoDarkUrl, x:0.6, y:0.5, w:1.8, h:0.6 });
   slide.addText('Reporte de Estatus', { x:0.6, y:2.8, w:12, h:0.8, fontSize:32, bold:true, color:'FFFFFF', fontFace:'Arial' });
   slide.addText(currentProyecto, { x:0.6, y:3.6, w:12, h:0.6, fontSize:20, color:CYAN, fontFace:'Arial' });
   slide.addText(new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' }), { x:0.6, y:4.2, w:12, h:0.5, fontSize:13, color:'8A97AC', fontFace:'Arial' });
 
   function addContentSlideHeader(s, title){
-    s.background = { color:'FFFFFF' };
-    s.addShape('rect', { x:0, y:0, w:13.333, h:0.9, fill:{color:NAVY} });
-    if(logoDataUrl) s.addImage({ data: logoDataUrl, x:11.3, y:0.15, w:1.6, h:0.55 });
-    s.addText(title, { x:0.5, y:0.15, w:9, h:0.6, fontSize:18, bold:true, color:'FFFFFF', fontFace:'Arial' });
+    s.background = bgContentUrl ? { data: bgContentUrl } : { color:'FFFFFF' };
+    if(logoLightUrl) s.addImage({ data: logoLightUrl, x:11.1, y:0.35, w:1.7, h:0.62 });
+    s.addText(currentProyecto.toUpperCase(), { x:0.6, y:0.35, w:9, h:0.3, fontSize:12.5, bold:true, color:CYAN, fontFace:'Arial', charSpacing:2 });
+    s.addText(title, { x:0.6, y:0.62, w:9.5, h:0.7, fontSize:26, bold:true, color:NAVY2, fontFace:'Arial' });
   }
 
   // Resumen ejecutivo
   if(hasResumen && resumenText){
     slide = pptx.addSlide();
     addContentSlideHeader(slide, 'Resumen Ejecutivo');
-    slide.addText(resumenText, { x:0.6, y:1.4, w:12, h:4, fontSize:16, color:INK, fontFace:'Arial', valign:'top' });
+    slide.addText(resumenText, { x:0.6, y:1.6, w:12, h:4, fontSize:16, color:INK, fontFace:'Arial', valign:'top' });
   }
 
   // RAID
@@ -719,7 +727,7 @@ async function exportarPPT(){
       { text:'Fecha límite', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
     ]];
     raidVis.forEach(it=>rows.push([it.tipo, it.descripcion, it.estatus, it.fechaLimite ? fmtDate(it.fechaLimite) : '—']));
-    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[1.6,7,1.8,1.9], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
+    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[1.6,7,1.8,1.9], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
   }
 
   // Dependencias
@@ -733,7 +741,7 @@ async function exportarPPT(){
       { text:'Fecha esperada', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
     ]];
     depsVis.forEach(it=>rows.push([it.tercero, it.descripcion, it.estatus, it.fechaEsperada ? fmtDate(it.fechaEsperada) : '—']));
-    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[2.2,6.4,1.8,1.9], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
+    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[2.2,6.4,1.8,1.9], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
   }
 
   // Compromisos
@@ -747,7 +755,7 @@ async function exportarPPT(){
       { text:'Fecha límite', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
     ]];
     comsVis.forEach(it=>rows.push([it.quien, it.compromiso, it.estatus, it.fechaLimite ? fmtDate(it.fechaLimite) : '—']));
-    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[2.2,6.4,1.8,1.9], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
+    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[2.2,6.4,1.8,1.9], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
   }
 
   // Change Requests
@@ -761,14 +769,14 @@ async function exportarPPT(){
       { text:'Estatus', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
     ]];
     crVis.forEach(it=>rows.push([it.titulo, it.impactoTiempo || '—', it.impactoCosto || '—', it.estatus]));
-    slide.addTable(rows, { x:0.5, y:1.3, w:12.3, colW:[5.5,2.5,2.5,1.8], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
+    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[5.5,2.5,2.5,1.8], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true, autoPageLineWeight:0.5 });
   }
 
-  try{
-    await pptx.writeFile({ fileName: `Reporte de Estatus - ${currentProyecto}.pptx` });
+  await pptx.writeFile({ fileName: `Reporte de Estatus${soloCliente ? ' (Cliente)' : ''} - ${currentProyecto}.pptx` });
+
   }catch(e){
     console.error(e);
-    alert('No se pudo generar el archivo PPT. Intenta de nuevo — si sigue fallando, avísale a Sam.');
+    alert('No se pudo generar el archivo PPT: ' + (e && e.message ? e.message : e) + '. Avísale a Sam si el problema sigue.');
   }
 }
 
