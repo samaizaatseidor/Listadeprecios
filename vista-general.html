@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
@@ -266,6 +267,43 @@ async function generarResumen(){
   }
 }
 
+async function writeAndDownloadPptx(pptx, fileName){
+  // Limpieza de "referencias fantasma" en [Content_Types].xml — pptxgenjs a veces declara
+  // partes (masters/layouts) que nunca llega a crear, y eso hace que PowerPoint pida "reparar".
+  // Misma lógica que el validador de Sam, adaptada al navegador con JSZip.
+  const buf = await pptx.write('arraybuffer');
+  if(typeof JSZip === 'undefined'){
+    // Si por lo que sea JSZip no cargó, descargamos sin limpiar en vez de fallar por completo.
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    a.click();
+    return;
+  }
+  const zip = await JSZip.loadAsync(buf);
+  const names = Object.keys(zip.files);
+  const setNames = new Set(names);
+  const ctName = '[Content_Types].xml';
+  if(zip.file(ctName)){
+    const ct = await zip.file(ctName).async('string');
+    const ctNew = ct.replace(/<Override\b[^>]*\/>/g, (tag) => {
+      const pn = (tag.match(/PartName="([^"]+)"/) || [])[1];
+      if(pn && !setNames.has(pn.replace(/^\//, ''))) return '';
+      return tag;
+    });
+    if(ctNew !== ct) zip.file(ctName, ctNew);
+  }
+  const outBuf = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE',
+    mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(outBuf);
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 async function exportarPPT(){
   if(typeof PptxGenJS === 'undefined'){
     alert('No se pudo cargar la librería para generar el PPT (pptxgenjs). Revisa tu conexión a internet y vuelve a intentar; si el problema persiste, avísale a Sam.');
@@ -284,44 +322,57 @@ async function exportarPPT(){
   pptx.defineLayout({ name:'SEIDOR', width:13.333, height:7.5 });
   pptx.layout = 'SEIDOR';
 
-  let logoDarkUrl = null, logoLightUrl = null, bgDarkUrl = null, bgContentUrl = null;
+  const LOGO_RATIO = 1165 / 475;
+  let logoDarkUrl = null, logoLightUrl = null, bgCoverUrl = null, bgLightUrl = null;
   try{
     const toDataUrl = async (url) => { const resp = await fetch(url); const blob = await resp.blob(); return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); }); };
-    [logoDarkUrl, logoLightUrl, bgDarkUrl, bgContentUrl] = await Promise.all([
+    [logoDarkUrl, logoLightUrl, bgCoverUrl, bgLightUrl] = await Promise.all([
       toDataUrl('/assets/logo_dark.png'), toDataUrl('/assets/logo_light.png'),
-      toDataUrl('/assets/bg_dark_cover.png'), toDataUrl('/assets/bg_content.png')
+      toDataUrl('/assets/bg_cover.png'), toDataUrl('/assets/bg_light.png')
     ]);
   }catch(e){}
 
-  let slide = pptx.addSlide();
-  slide.background = bgDarkUrl ? { data: bgDarkUrl } : { color: NAVY };
-  if(logoDarkUrl) slide.addImage({ data: logoDarkUrl, x:0.6, y:0.5, w:1.8, h:0.6 });
-  slide.addText('Reporte General del Proyecto', { x:0.6, y:2.6, w:12, h:0.8, fontSize:30, bold:true, color:'FFFFFF', fontFace:'Arial' });
-  slide.addText(currentProyecto, { x:0.6, y:3.4, w:12, h:0.6, fontSize:20, color:CYAN, fontFace:'Arial' });
-  if(lb && lb.clienteNombre) slide.addText(lb.clienteNombre, { x:0.6, y:4.0, w:12, h:0.5, fontSize:14, color:'8A97AC', fontFace:'Arial' });
-  slide.addText(new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' }), { x:0.6, y:4.5, w:12, h:0.5, fontSize:13, color:'8A97AC', fontFace:'Arial' });
+  function brandMark(s, x, y, dark, w){
+    w = w || 1.55;
+    const url = dark ? logoDarkUrl : logoLightUrl;
+    if(url) s.addImage({ data: url, x, y, w, h: w / LOGO_RATIO });
+  }
+  function pageNum(s, n){
+    s.addText(String(n).padStart(2,'0'), { x:11.83, y:7.0, w:0.5, h:0.3, fontFace:'Poppins', fontSize:10, color:'8A97AC', align:'right', margin:0 });
+  }
 
+  let slide = pptx.addSlide();
+  slide.background = bgCoverUrl ? { data: bgCoverUrl } : { color: NAVY };
+  brandMark(slide, 11.1, 0.55, true);
+  slide.addText('Reporte General del Proyecto', { x:0.6, y:2.6, w:12, h:0.8, fontSize:30, bold:true, color:'FFFFFF', fontFace:'Poppins', margin:0 });
+  slide.addText(currentProyecto, { x:0.6, y:3.4, w:12, h:0.6, fontSize:20, color:CYAN, fontFace:'Poppins', margin:0 });
+  if(lb && lb.clienteNombre) slide.addText(lb.clienteNombre, { x:0.6, y:4.0, w:12, h:0.5, fontSize:14, color:'8A97AC', fontFace:'Poppins', margin:0 });
+  slide.addText(new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' }), { x:0.6, y:4.5, w:12, h:0.5, fontSize:13, color:'8A97AC', fontFace:'Poppins', margin:0 });
+
+  let pageCounter = 1;
   function header(s, title){
-    s.background = bgContentUrl ? { data: bgContentUrl } : { color:'FFFFFF' };
-    if(logoLightUrl) s.addImage({ data: logoLightUrl, x:11.1, y:0.35, w:1.7, h:0.62 });
-    s.addText(currentProyecto.toUpperCase(), { x:0.6, y:0.35, w:9, h:0.3, fontSize:12.5, bold:true, color:CYAN, fontFace:'Arial', charSpacing:2 });
-    s.addText(title, { x:0.6, y:0.62, w:9.5, h:0.7, fontSize:26, bold:true, color:NAVY2, fontFace:'Arial' });
+    s.background = bgLightUrl ? { data: bgLightUrl } : { color:'FFFFFF' };
+    s.addText(currentProyecto.toUpperCase(), { x:0.7, y:0.55, w:8, h:0.3, fontFace:'Poppins', fontSize:12.5, bold:true, color:CYAN, charSpacing:2, margin:0 });
+    s.addText(title, { x:0.7, y:0.82, w:9.5, h:0.7, fontFace:'Poppins', fontSize:28, bold:true, color:NAVY2, margin:0 });
+    brandMark(s, 11.0, 0.55, false);
+    pageCounter++;
+    pageNum(s, pageCounter);
   }
 
   if(resumenGenerated){
     slide = pptx.addSlide();
     header(slide, 'Resumen Ejecutivo Maestro');
-    slide.addText(document.getElementById('resumenContent').textContent, { x:0.6, y:1.6, w:12, h:4, fontSize:15, color:INK, fontFace:'Arial', valign:'top' });
+    slide.addText(document.getElementById('resumenContent').textContent, { x:0.6, y:1.6, w:12, h:4, fontSize:15, color:INK, fontFace:'Poppins', valign:'top' });
   }
 
   if(lb){
     slide = pptx.addSlide();
     header(slide, 'Línea Base del Proyecto');
     let y = 1.6;
-    if(lb.alcanceResumen){ slide.addText('Alcance: '+lb.alcanceResumen, { x:0.6, y, w:12, h:1.2, fontSize:13, color:INK, fontFace:'Arial', valign:'top' }); y += 1.4; }
-    if(lb.inversionTotal){ slide.addText('Inversión total: '+lb.inversionTotal+' '+(lb.moneda||''), { x:0.6, y, w:12, h:0.4, fontSize:13, color:INK, fontFace:'Arial' }); y += 0.6; }
+    if(lb.alcanceResumen){ slide.addText('Alcance: '+lb.alcanceResumen, { x:0.6, y, w:12, h:1.2, fontSize:13, color:INK, fontFace:'Poppins', valign:'top' }); y += 1.4; }
+    if(lb.inversionTotal){ slide.addText('Inversión total: '+lb.inversionTotal+' '+(lb.moneda||''), { x:0.6, y, w:12, h:0.4, fontSize:13, color:INK, fontFace:'Poppins' }); y += 0.6; }
     if(lb.fueraDeAlcance && lb.fueraDeAlcance.length){
-      slide.addText('Fuera de alcance: '+lb.fueraDeAlcance.join(' · '), { x:0.6, y, w:12, h:2, fontSize:12, color:INK, fontFace:'Arial', valign:'top' });
+      slide.addText('Fuera de alcance: '+lb.fueraDeAlcance.join(' · '), { x:0.6, y, w:12, h:2, fontSize:12, color:INK, fontFace:'Poppins', valign:'top' });
     }
   }
 
@@ -333,38 +384,40 @@ async function exportarPPT(){
     { text:'% Avance', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
   ]];
   k.checklistData.forEach(f=>crows.push([f.fase, `${f.completados} / ${f.total}`, `${f.pct}%`]));
-  slide.addTable(crows, { x:0.5, y:1.55, w:8, colW:[4,2,2], fontSize:12, color:INK, border:{type:'solid', color:LINE, pt:0.5} });
+  slide.addTable(crows, { x:0.5, y:1.55, w:8, colW:[4,2,2], fontSize:12, color:INK, fontFace:'Poppins', border:{type:'solid', color:LINE, pt:0.5} });
+
+  function addPaginatedTable(title, headerCells, dataRows, colW){
+    const CHUNK = 9;
+    for(let i=0; i<dataRows.length; i+=CHUNK){
+      const s = pptx.addSlide();
+      header(s, title);
+      const chunk = [headerCells, ...dataRows.slice(i, i+CHUNK)];
+      s.addTable(chunk, { x:0.5, y:1.55, w:12.3, colW, fontSize:11, color:INK, fontFace:'Poppins', border:{type:'solid', color:LINE, pt:0.5} });
+    }
+  }
 
   if(raidVis.length){
-    slide = pptx.addSlide();
-    header(slide, 'Riesgos, Issues, Acciones y Decisiones');
-    const rows = [[{text:'Tipo',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Descripción',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}]];
-    raidVis.forEach(it=>rows.push([it.tipo, it.descripcion, it.estatus]));
-    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[1.8,8.5,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
+    const headerCells = [{text:'Tipo',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Descripción',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}];
+    const dataRows = raidVis.map(it=>[it.tipo, it.descripcion, it.estatus]);
+    addPaginatedTable('Riesgos, Issues, Acciones y Decisiones', headerCells, dataRows, [1.8,8.5,2]);
   }
   if(depsVis.length){
-    slide = pptx.addSlide();
-    header(slide, 'Dependencias Críticas');
-    const rows = [[{text:'Depende de',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Descripción',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}]];
-    depsVis.forEach(it=>rows.push([it.tercero, it.descripcion, it.estatus]));
-    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[2.5,7.8,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
+    const headerCells = [{text:'Depende de',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Descripción',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}];
+    const dataRows = depsVis.map(it=>[it.tercero, it.descripcion, it.estatus]);
+    addPaginatedTable('Dependencias Críticas', headerCells, dataRows, [2.5,7.8,2]);
   }
   if(comsVis.length){
-    slide = pptx.addSlide();
-    header(slide, 'Compromisos');
-    const rows = [[{text:'Quién',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Compromiso',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}]];
-    comsVis.forEach(it=>rows.push([it.quien, it.compromiso, it.estatus]));
-    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[2.5,7.8,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
+    const headerCells = [{text:'Quién',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Compromiso',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}];
+    const dataRows = comsVis.map(it=>[it.quien, it.compromiso, it.estatus]);
+    addPaginatedTable('Compromisos', headerCells, dataRows, [2.5,7.8,2]);
   }
   if(crVis.length){
-    slide = pptx.addSlide();
-    header(slide, 'Change Requests');
-    const rows = [[{text:'Título',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Impacto',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}]];
-    crVis.forEach(it=>rows.push([it.titulo, [it.impactoTiempo,it.impactoCosto].filter(Boolean).join(' · ') || '—', it.estatus]));
-    slide.addTable(rows, { x:0.5, y:1.55, w:12.3, colW:[5.5,4.8,2], fontSize:11, color:INK, border:{type:'solid', color:LINE, pt:0.5}, autoPage:true });
+    const headerCells = [{text:'Título',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Impacto',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}];
+    const dataRows = crVis.map(it=>[it.titulo, [it.impactoTiempo,it.impactoCosto].filter(Boolean).join(' · ') || '—', it.estatus]);
+    addPaginatedTable('Change Requests', headerCells, dataRows, [5.5,4.8,2]);
   }
 
-  await pptx.writeFile({ fileName: `Reporte General - ${currentProyecto}.pptx` });
+  await writeAndDownloadPptx(pptx, `Reporte General - ${currentProyecto}.pptx`);
 
   }catch(e){
     console.error(e);
