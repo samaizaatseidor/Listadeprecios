@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
@@ -196,6 +197,10 @@ function isPastDue(fecha, estatus, doneStatus){
 }
 
 let lineasBase = {};
+let consumoHorasStore = {};
+let consumoHoras = { presupuesto: [], registros: [] };
+let progresoChecklistGlobal = {};
+const FASES_ITEM_COUNTS = { prepare:8, explore:7, realize:7, deploy:7, cutover:11, run:7 };
 
 async function loadData(){
   try{
@@ -211,6 +216,16 @@ async function loadData(){
     const r2 = await fetch('/api/linea-base');
     const d2 = await r2.json();
     lineasBase = d2.proyectos || {};
+  }catch(e){}
+  try{
+    const r3 = await fetch('/api/checklist');
+    const d3 = await r3.json();
+    progresoChecklistGlobal = d3.progreso || {};
+  }catch(e){}
+  try{
+    const r4 = await fetch('/api/consumo-horas');
+    const d4 = await r4.json();
+    consumoHorasStore = d4.proyectos || {};
   }catch(e){}
   populateProyectoSelect();
   const urlParams = new URLSearchParams(window.location.search);
@@ -261,6 +276,8 @@ function nuevoProyecto(){
 
 function selectProyecto(p){
   currentProyecto = p || null;
+  const stored = currentProyecto ? consumoHorasStore[currentProyecto] : null;
+  consumoHoras = stored ? { presupuesto: stored.presupuesto || [], registros: stored.registros || [] } : { presupuesto: [], registros: [] };
   document.getElementById('proyectoSelect').value = p || '';
   render();
 }
@@ -355,9 +372,10 @@ function render(){
       <button class="${activeTab==='dependencias'?'active':''}" onclick="setTab('dependencias')">Dependencias Críticas</button>
       <button class="${activeTab==='compromisos'?'active':''}" onclick="setTab('compromisos')">Compromisos</button>
       <button class="${activeTab==='changeRequests'?'active':''}" onclick="setTab('changeRequests')">Change Requests</button>
+      <button class="${activeTab==='horas'?'active':''}" onclick="setTab('horas')">Consumo de Horas</button>
     </div>
     <div class="tabcontent">
-      <div class="tab-toolbar">
+      <div class="tab-toolbar" id="tabToolbar" style="${activeTab==='horas' ? 'display:none;' : ''}">
         <input type="text" id="search" placeholder="Buscar…" oninput="renderTabBody()">
         <button class="btn btn-primary" onclick="openSheet(null)">+ Nuevo</button>
       </div>
@@ -454,6 +472,216 @@ function renderTabBody(){
       </div>`;
     }).join('')}</div>`;
   }
+
+  if(activeTab === 'horas'){
+    renderHorasTab(body);
+  }
+}
+
+function checklistPctForProyecto(){
+  const prog = progresoChecklistGlobal[currentProyecto] || {};
+  let completados = 0, total = 0;
+  Object.keys(FASES_ITEM_COUNTS).forEach(faseId=>{
+    total += FASES_ITEM_COUNTS[faseId];
+    const faseProg = prog[faseId] || {};
+    completados += Object.values(faseProg).filter(x=>x && x.checked).length;
+  });
+  return total ? Math.round(completados/total*100) : null;
+}
+
+function renderHorasTab(body){
+  const presupuesto = consumoHoras.presupuesto || [];
+  const registros = consumoHoras.registros || [];
+
+  const consumidoPorRol = {};
+  registros.forEach(r=>{ consumidoPorRol[r.rol] = (consumidoPorRol[r.rol]||0) + Number(r.horas||0); });
+
+  const totalPresupuestado = presupuesto.reduce((s,p)=>s+Number(p.horas||0),0);
+  const totalConsumido = registros.reduce((s,r)=>s+Number(r.horas||0),0);
+  const pctConsumido = totalPresupuestado ? Math.round(totalConsumido/totalPresupuestado*100) : null;
+  const pctAvance = checklistPctForProyecto();
+  const alerta = (pctConsumido !== null && pctAvance !== null && pctConsumido - pctAvance >= 15);
+
+  const rolesTodos = Array.from(new Set([...presupuesto.map(p=>p.rol), ...Object.keys(consumidoPorRol)]));
+
+  body.innerHTML = `
+    <div class="kpi-grid" style="margin-bottom:16px;">
+      <div class="kpi-card"><div class="n">${totalPresupuestado || '—'}</div><div class="l">Horas presupuestadas</div></div>
+      <div class="kpi-card"><div class="n">${totalConsumido || 0}</div><div class="l">Horas consumidas</div></div>
+      <div class="kpi-card"><div class="n ${alerta?'warn':''}">${pctConsumido===null?'—':pctConsumido+'%'}</div><div class="l">% de horas consumidas</div></div>
+      <div class="kpi-card"><div class="n">${pctAvance===null?'—':pctAvance+'%'}</div><div class="l">% avance (Checklist)</div></div>
+    </div>
+    ${alerta ? `<div style="background:#FBE7E7; color:#B23A3A; border-radius:10px; padding:12px 16px; font-size:13px; margin-bottom:16px;">⚠️ El consumo de horas (${pctConsumido}%) va bastante más adelantado que el avance del proyecto (${pctAvance}%) — vale la pena revisar el ritmo de facturación de horas vs. entregables.</div>` : ''}
+
+    <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px;">
+      <h2 style="font-size:14px; color:var(--navy2); margin:0 0 10px;">Presupuesto y consumo por rol</h2>
+      <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+        <tr style="text-align:left; color:var(--grey); border-bottom:1px solid var(--line);">
+          <th style="padding:6px 4px;">Rol</th><th style="padding:6px 4px;">Presupuestado</th><th style="padding:6px 4px;">Consumido</th><th style="padding:6px 4px;">Restante</th><th style="padding:6px 4px;">%</th><th></th>
+        </tr>
+        ${rolesTodos.length ? rolesTodos.map(rol=>{
+          const p = presupuesto.find(x=>x.rol===rol);
+          const pres = p ? Number(p.horas||0) : 0;
+          const cons = consumidoPorRol[rol] || 0;
+          const rest = pres - cons;
+          const pct = pres ? Math.round(cons/pres*100) : null;
+          return `<tr style="border-bottom:1px solid var(--line);">
+            <td style="padding:8px 4px;">${esc(rol)}</td>
+            <td style="padding:8px 4px;">${pres || '—'}</td>
+            <td style="padding:8px 4px;">${cons}</td>
+            <td style="padding:8px 4px; ${rest<0?'color:#B23A3A; font-weight:600;':''}">${p ? rest : '—'}</td>
+            <td style="padding:8px 4px; ${pct!==null && pct>100?'color:#B23A3A; font-weight:600;':''}">${pct===null?'—':pct+'%'}</td>
+            <td style="padding:8px 4px;"><button class="btn btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="removeRolPresupuesto('${esc(rol).replace(/'/g,"\\'")}')">Quitar</button></td>
+          </tr>`;
+        }).join('') : `<tr><td colspan="6" style="padding:14px 4px; color:var(--greyl);">Sin roles todavía — agrega uno abajo o créalo automáticamente desde "Iniciar Proyecto desde SOW/DDA".</td></tr>`}
+      </table>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <input type="text" id="nuevoRolNombre" placeholder="Rol (ej. Consultor SR FI)" style="flex:1; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
+        <input type="text" id="nuevoRolHoras" placeholder="Horas presupuestadas" style="width:160px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
+        <button class="btn btn-primary" onclick="addRolPresupuesto()">+ Agregar rol</button>
+      </div>
+    </div>
+
+    <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+        <h2 style="font-size:14px; color:var(--navy2); margin:0;">Registro de horas reales</h2>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="document.getElementById('excelHorasInput').click()">📤 Subir Excel</button>
+          <input type="file" id="excelHorasInput" accept=".xlsx,.xls" style="display:none;" onchange="handleExcelHoras(this.files[0])">
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+        <input type="date" id="nuevoRegistroFecha" style="padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
+        <input type="text" id="nuevoRegistroRol" placeholder="Rol" style="flex:1; min-width:140px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
+        <input type="text" id="nuevoRegistroHoras" placeholder="Horas" style="width:100px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
+        <input type="text" id="nuevoRegistroNota" placeholder="Nota (opcional)" style="flex:1; min-width:140px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
+        <button class="btn btn-primary" onclick="addRegistroHoras()">+ Agregar</button>
+      </div>
+      <div id="excelPreview"></div>
+      <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+        <tr style="text-align:left; color:var(--grey); border-bottom:1px solid var(--line);">
+          <th style="padding:6px 4px;">Fecha</th><th style="padding:6px 4px;">Rol</th><th style="padding:6px 4px;">Horas</th><th style="padding:6px 4px;">Nota</th><th style="padding:6px 4px;">Fuente</th><th></th>
+        </tr>
+        ${registros.length ? registros.slice().sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(r=>`
+          <tr style="border-bottom:1px solid var(--line);">
+            <td style="padding:8px 4px;">${r.fecha ? fmtDate(r.fecha) : '—'}</td>
+            <td style="padding:8px 4px;">${esc(r.rol)}</td>
+            <td style="padding:8px 4px;">${r.horas}</td>
+            <td style="padding:8px 4px; color:var(--greyl);">${esc(r.nota||'')}</td>
+            <td style="padding:8px 4px; color:var(--greyl); font-size:11px;">${r.fuente==='excel'?'Excel':'Manual'}</td>
+            <td style="padding:8px 4px;"><button class="btn btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="removeRegistroHoras('${r.id}')">×</button></td>
+          </tr>
+        `).join('') : `<tr><td colspan="6" style="padding:14px 4px; color:var(--greyl);">Sin registros todavía.</td></tr>`}
+      </table>
+    </div>
+  `;
+}
+
+async function saveConsumoHoras(){
+  try{
+    await fetch('/api/consumo-horas', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ proyecto: currentProyecto, datos: consumoHoras })
+    });
+    consumoHorasStore[currentProyecto] = consumoHoras;
+  }catch(e){ console.error(e); }
+}
+
+async function addRolPresupuesto(){
+  const rol = document.getElementById('nuevoRolNombre').value.trim();
+  const horas = document.getElementById('nuevoRolHoras').value.trim();
+  if(!rol || !horas){ alert('Falta el rol o las horas'); return; }
+  consumoHoras.presupuesto.push({ rol, horas });
+  await logAudit('Agregó presupuesto de horas', `Proyecto "${currentProyecto}" — ${rol}: ${horas}h`);
+  await saveConsumoHoras();
+  renderTabBody();
+}
+
+async function removeRolPresupuesto(rol){
+  if(!confirm(`¿Quitar el presupuesto de horas de "${rol}"?`)) return;
+  consumoHoras.presupuesto = consumoHoras.presupuesto.filter(p=>p.rol!==rol);
+  await logAudit('Quitó presupuesto de horas', `Proyecto "${currentProyecto}" — ${rol}`);
+  await saveConsumoHoras();
+  renderTabBody();
+}
+
+async function addRegistroHoras(){
+  const fecha = document.getElementById('nuevoRegistroFecha').value;
+  const rol = document.getElementById('nuevoRegistroRol').value.trim();
+  const horas = document.getElementById('nuevoRegistroHoras').value.trim();
+  const nota = document.getElementById('nuevoRegistroNota').value.trim();
+  if(!rol || !horas){ alert('Falta el rol o las horas'); return; }
+  consumoHoras.registros.push({ id: 'hr-'+Date.now().toString(36), fecha, rol, horas: Number(horas), nota, fuente: 'manual', createdAt: new Date().toISOString() });
+  await logAudit('Registró horas', `Proyecto "${currentProyecto}" — ${rol}: ${horas}h`);
+  await saveConsumoHoras();
+  renderTabBody();
+}
+
+async function removeRegistroHoras(id){
+  if(!confirm('¿Eliminar este registro de horas?')) return;
+  consumoHoras.registros = consumoHoras.registros.filter(r=>r.id!==id);
+  await logAudit('Eliminó registro de horas', `Proyecto "${currentProyecto}"`);
+  await saveConsumoHoras();
+  renderTabBody();
+}
+
+function handleExcelHoras(file){
+  if(!file) return;
+  if(typeof XLSX === 'undefined'){
+    alert('No se pudo cargar la librería para leer Excel. Revisa tu conexión a internet.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const wb = XLSX.read(e.target.result, { type:'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+      const parsed = rows.map(row=>{
+        const keys = Object.keys(row);
+        const findKey = (names) => keys.find(k => names.some(n => k.toLowerCase().trim() === n));
+        const fechaKey = findKey(['fecha']);
+        const rolKey = findKey(['rol','role']);
+        const horasKey = findKey(['horas','hours']);
+        const notaKey = findKey(['nota','notas','comentario','comentarios']);
+        let fecha = fechaKey ? row[fechaKey] : '';
+        if(fecha instanceof Date) fecha = fecha.toISOString().slice(0,10);
+        return { fecha: String(fecha||''), rol: String(rolKey ? row[rolKey] : '').trim(), horas: Number(horasKey ? row[horasKey] : 0) || 0, nota: String(notaKey ? row[notaKey] : '').trim() };
+      }).filter(r=>r.rol && r.horas);
+
+      if(!parsed.length){
+        document.getElementById('excelPreview').innerHTML = '<div class="error" style="background:#FBE7E7; color:#B23A3A; border-radius:8px; padding:10px 12px; font-size:12.5px; margin-bottom:10px;">No se encontraron filas válidas. Asegúrate de que el Excel tenga columnas "Fecha", "Rol" y "Horas".</div>';
+        return;
+      }
+      document.getElementById('excelPreview').innerHTML = `
+        <div style="background:var(--card); border-radius:8px; padding:12px 14px; margin-bottom:10px; font-size:12.5px;">
+          Se encontraron <b>${parsed.length}</b> registro(s) en el Excel. ${parsed.map(r=>`${esc(r.rol)}: ${r.horas}h`).slice(0,5).join(' · ')}${parsed.length>5?'…':''}
+          <div style="margin-top:8px;">
+            <button class="btn btn-primary" onclick="confirmImportExcel()">Importar estos registros</button>
+            <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px;" onclick="document.getElementById('excelPreview').innerHTML=''">Cancelar</button>
+          </div>
+        </div>
+      `;
+      window.__pendingExcelImport = parsed;
+    }catch(err){
+      console.error(err);
+      alert('No se pudo leer el archivo. Verifica que sea un Excel válido.');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function confirmImportExcel(){
+  const parsed = window.__pendingExcelImport || [];
+  const now = new Date().toISOString();
+  parsed.forEach(r=>{
+    consumoHoras.registros.push({ id: 'hr-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6), fecha: r.fecha, rol: r.rol, horas: r.horas, nota: r.nota, fuente: 'excel', createdAt: now });
+  });
+  await logAudit('Importó horas desde Excel', `Proyecto "${currentProyecto}" — ${parsed.length} registros`);
+  await saveConsumoHoras();
+  window.__pendingExcelImport = null;
+  document.getElementById('excelPreview').innerHTML = '';
+  renderTabBody();
 }
 
 function openSheet(id){

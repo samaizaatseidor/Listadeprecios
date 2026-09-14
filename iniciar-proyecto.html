@@ -227,6 +227,7 @@ function normalizeExtracted(ex){
     riesgos: Array.isArray(ex.riesgos) ? ex.riesgos : [],
     integraciones: Array.isArray(ex.integraciones) ? ex.integraciones : [],
     fases: Array.isArray(ex.fases) ? ex.fases : [],
+    presupuestoHoras: Array.isArray(ex.presupuestoHoras) ? ex.presupuestoHoras : [],
     inversionTotal: ex.inversionTotal || '',
     moneda: ex.moneda || ''
   };
@@ -258,6 +259,12 @@ function renderReview(){
       <tr><th>Sistema</th><th>Descripción</th><th>Dirección</th><th>Tecnología</th><th></th></tr>
     </table>
     <button class="btn btn-ghost" onclick="addIntegracion({sistema:'',descripcion:'',direccion:'',tecnologia:''})">+ Agregar integración</button>
+
+    <label style="display:block; font-size:12.5px; color:var(--grey); margin:20px 0 6px; font-weight:500;">Presupuesto de horas por rol (para Consumo de Horas)</label>
+    <table class="table-editor" id="horasTable">
+      <tr><th>Rol</th><th>Horas presupuestadas</th><th></th></tr>
+    </table>
+    <button class="btn btn-ghost" onclick="addHoras({rol:'',horas:''})">+ Agregar rol</button>
   `;
 
   document.getElementById('fueraAlcanceList').innerHTML = '';
@@ -268,6 +275,9 @@ function renderReview(){
 
   document.getElementById('integracionesTable').innerHTML = '<tr><th>Sistema</th><th>Descripción</th><th>Dirección</th><th>Tecnología</th><th></th></tr>';
   extracted.integraciones.forEach(i => addIntegracion(i));
+
+  document.getElementById('horasTable').innerHTML = '<tr><th>Rol</th><th>Horas presupuestadas</th><th></th></tr>';
+  extracted.presupuestoHoras.forEach(h => addHoras(h));
 }
 
 function addFueraAlcance(value){
@@ -304,6 +314,17 @@ function addIntegracion(i){
   table.appendChild(tr);
 }
 
+function addHoras(h){
+  const table = document.getElementById('horasTable');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${esc(h.rol)}" placeholder="Ej. Consultor SR FI"></td>
+    <td><input type="text" value="${esc(h.horas)}" style="width:120px;" placeholder="Ej. 120"></td>
+    <td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  table.appendChild(tr);
+}
+
 function mapImpactoToPrioridad(impacto){
   const i = (impacto||'').toLowerCase();
   if(i.startsWith('alt')) return 'Alta';
@@ -329,6 +350,11 @@ async function confirmarYCrear(){
     const cells = tr.querySelectorAll('input, textarea');
     return { sistema: cells[0].value.trim(), descripcion: cells[1].value.trim(), direccion: cells[2].value.trim(), tecnologia: cells[3].value.trim() };
   }).filter(i=>i.sistema || i.descripcion);
+  const horasRows = Array.from(document.querySelectorAll('#horasTable tr')).slice(1);
+  const presupuestoHoras = horasRows.map(tr=>{
+    const cells = tr.querySelectorAll('input');
+    return { rol: cells[0].value.trim(), horas: cells[1].value.trim() };
+  }).filter(h=>h.rol && h.horas);
 
   try{
     // 1. Traer el estado compartido actual
@@ -390,10 +416,21 @@ async function confirmarYCrear(){
       })
     });
 
-    // 3. Auditoría
+    // 3. Guardar el presupuesto de horas (Consumo de Horas)
+    if(presupuestoHoras.length){
+      await fetch('/api/consumo-horas', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          proyecto: nombreProyecto,
+          datos: { presupuesto: presupuestoHoras, registros: [] }
+        })
+      });
+    }
+
+    // 4. Auditoría
     await fetch('/api/audit', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ page:'Iniciar Proyecto', action:'Creó proyecto desde SOW/DDA', detail:`"${nombreProyecto}" — ${riesgos.length} riesgos, ${integraciones.length} integraciones` })
+      body: JSON.stringify({ page:'Iniciar Proyecto', action:'Creó proyecto desde SOW/DDA', detail:`"${nombreProyecto}" — ${riesgos.length} riesgos, ${integraciones.length} integraciones, ${presupuestoHoras.length} roles con presupuesto` })
     });
 
     status.innerHTML = `<div class="success-box">Proyecto "${esc(nombreProyecto)}" creado con ${riesgos.length} riesgo(s) y ${integraciones.length} dependencia(s).<br><br><a href="/proyecto.html?proyecto=${encodeURIComponent(nombreProyecto)}">Ver en el Dashboard de Proyecto →</a> &nbsp;|&nbsp; <a href="/checklist.html?proyecto=${encodeURIComponent(nombreProyecto)}">Ir al Checklist de Quality Gates →</a> &nbsp;|&nbsp; <a href="/vista-general.html?proyecto=${encodeURIComponent(nombreProyecto)}">Ver Vista General →</a></div>`;
