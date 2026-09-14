@@ -732,7 +732,7 @@ ${JSON.stringify(fases)}`;
       const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
       const sessionId = crypto.randomUUID();
 
-      const extractPrompt = `Analiza los documentos adjuntos de un proyecto de implementación SAP (un SOW obligatorio, y opcionalmente un DDA/Digital Discovery Assessment y/o una propuesta comercial). Extrae SOLO estos datos y responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown:
+      const extractPrompt = `Analiza los documentos adjuntos de un proyecto de implementación SAP (un SOW obligatorio, y opcionalmente un DDA/Digital Discovery Assessment y/o una propuesta comercial/estimación). Extrae SOLO estos datos y responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown:
 
 {
   "clienteNombre": "",
@@ -742,11 +742,12 @@ ${JSON.stringify(fases)}`;
   "riesgos": [{"riesgo":"", "probabilidad":"", "impacto":"", "mitigacion":""}],
   "integraciones": [{"sistema":"", "descripcion":"", "direccion":"", "tecnologia":""}],
   "fases": [{"fase":"", "duracion":"", "fechas":"", "entregables":""}],
+  "presupuestoHoras": [{"rol":"", "horas":""}],
   "inversionTotal": "",
   "moneda": ""
 }
 
-Usa "" o [] si un dato no aparece. No inventes información. Si el SOW tiene una tabla explícita de riesgos, úsala tal cual para "riesgos". Si tiene una tabla de integraciones o interfaces (RICEF/RICEFW), úsala para "integraciones".`;
+Usa "" o [] si un dato no aparece. No inventes información. Si el SOW tiene una tabla explícita de riesgos, úsala tal cual para "riesgos". Si tiene una tabla de integraciones o interfaces (RICEF/RICEFW), úsala para "integraciones". Si el SOW o la estimación tienen una tabla de equipo/esfuerzo con horas por rol o por consultor, úsala para "presupuestoHoras" (agrupa por rol si hay varias personas con el mismo rol, sumando sus horas).`;
 
       try {
         const fileRefs = [];
@@ -761,6 +762,27 @@ Usa "" o [] si un dato no aparece. No inventes información. Si el SOW tiene una
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
       }
+    }
+
+    if (url.pathname === '/api/consumo-horas' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('consumo_horas');
+      return new Response(raw || '{"proyectos":{}}', { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/consumo-horas' && request.method === 'POST') {
+      let body;
+      try {
+        body = await request.json();
+        if (!body || typeof body.proyecto !== 'string' || typeof body.datos !== 'object') throw new Error('shape inválido');
+      } catch (e) {
+        return new Response('JSON inválido', { status: 400 });
+      }
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      const raw = await env.PM_KV.get('consumo_horas');
+      const store = raw ? JSON.parse(raw) : { proyectos: {} };
+      store.proyectos[body.proyecto] = { ...body.datos, guardadoPor: email, guardadoAt: new Date().toISOString() };
+      await env.PM_KV.put('consumo_horas', JSON.stringify(store));
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname === '/api/linea-base' && request.method === 'GET') {
