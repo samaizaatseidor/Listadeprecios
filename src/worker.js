@@ -784,6 +784,44 @@ Usa "" o [] si un dato no aparece. No inventes información. Si el SOW tiene una
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
 
+    if (url.pathname === '/api/resumen-general' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { proyecto, lineaBase, raid, dependencias, compromisos, changeRequests, checklist } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un asistente de Project Management para SEIDOR México. Con base en TODO el estado del proyecto "${proyecto}" (línea base contractual, RAID, dependencias críticas, compromisos, change requests, y avance del checklist de Quality Gates), escribe un resumen ejecutivo de 4 a 6 oraciones, en español, en prosa corrida (sin encabezados ni viñetas), para presentar a un Steering Committee o dirección. Cubre: salud general del proyecto, el riesgo o bloqueo más importante si existe, estado de change requests pendientes, y qué tan listo está para su siguiente fase o para cutover según el checklist. No inventes información que no esté en los datos.
+
+LÍNEA BASE:
+${JSON.stringify(lineaBase || {})}
+
+RAID:
+${JSON.stringify(raid || [])}
+
+DEPENDENCIAS CRÍTICAS:
+${JSON.stringify(dependencias || [])}
+
+COMPROMISOS:
+${JSON.stringify(compromisos || [])}
+
+CHANGE REQUESTS:
+${JSON.stringify(changeRequests || [])}
+
+AVANCE DE CHECKLIST (Quality Gates):
+${JSON.stringify(checklist || [])}`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
     if (url.pathname === '/api/whoami') {
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
       return new Response(JSON.stringify({ email }), { headers: { 'Content-Type': 'application/json' } });
