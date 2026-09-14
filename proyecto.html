@@ -546,18 +546,25 @@ function renderHorasTab(body){
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
         <h2 style="font-size:14px; color:var(--navy2); margin:0;">Registro de horas reales</h2>
         <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="descargarPlantillaHoras()">⬇️ Descargar plantilla</button>
           <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="document.getElementById('excelHorasInput').click()">📤 Subir Excel</button>
           <input type="file" id="excelHorasInput" accept=".xlsx,.xls" style="display:none;" onchange="handleExcelHoras(this.files[0])">
         </div>
       </div>
-      <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+      <p style="font-size:11.5px; color:var(--greyl); margin:-4px 0 14px;">El Excel debe traer columnas <b>Fecha</b>, <b>Rol</b>, <b>Horas</b> y opcionalmente <b>Nota</b> (en la primera hoja) — usa la plantilla para no fallar el formato.</p>
+      <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
         <input type="date" id="nuevoRegistroFecha" style="padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
-        <input type="text" id="nuevoRegistroRol" placeholder="Rol" style="flex:1; min-width:140px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
+        <select id="nuevoRegistroRol" onchange="document.getElementById('nuevoRegistroRolOtro').style.display = this.value==='__otro__' ? 'block' : 'none';" style="flex:1; min-width:140px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
+          ${(consumoHoras.presupuesto||[]).map(p=>`<option value="${esc(p.rol)}">${esc(p.rol)}</option>`).join('')}
+          <option value="__otro__">Otro rol (no presupuestado)…</option>
+        </select>
         <input type="text" id="nuevoRegistroHoras" placeholder="Horas" style="width:100px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
         <input type="text" id="nuevoRegistroNota" placeholder="Nota (opcional)" style="flex:1; min-width:140px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
         <button class="btn btn-primary" onclick="addRegistroHoras()">+ Agregar</button>
       </div>
+      <input type="text" id="nuevoRegistroRolOtro" placeholder="Escribe el nombre del rol nuevo" style="display:none; width:100%; margin-bottom:14px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px;">
       <div id="excelPreview"></div>
+      ${!(consumoHoras.presupuesto||[]).length ? `<p style="font-size:11.5px; color:var(--greyl); margin:-4px 0 14px;">Todavía no hay roles presupuestados — cualquier rol que captures aquí quedará como "no presupuestado" hasta que agregues el presupuesto arriba.</p>` : ''}
       <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
         <tr style="text-align:left; color:var(--grey); border-bottom:1px solid var(--line);">
           <th style="padding:6px 4px;">Fecha</th><th style="padding:6px 4px;">Rol</th><th style="padding:6px 4px;">Horas</th><th style="padding:6px 4px;">Nota</th><th style="padding:6px 4px;">Fuente</th><th></th>
@@ -607,7 +614,8 @@ async function removeRolPresupuesto(rol){
 
 async function addRegistroHoras(){
   const fecha = document.getElementById('nuevoRegistroFecha').value;
-  const rol = document.getElementById('nuevoRegistroRol').value.trim();
+  const rolSelect = document.getElementById('nuevoRegistroRol').value;
+  const rol = rolSelect === '__otro__' ? document.getElementById('nuevoRegistroRolOtro').value.trim() : rolSelect;
   const horas = document.getElementById('nuevoRegistroHoras').value.trim();
   const nota = document.getElementById('nuevoRegistroNota').value.trim();
   if(!rol || !horas){ alert('Falta el rol o las horas'); return; }
@@ -623,6 +631,24 @@ async function removeRegistroHoras(id){
   await logAudit('Eliminó registro de horas', `Proyecto "${currentProyecto}"`);
   await saveConsumoHoras();
   renderTabBody();
+}
+
+function descargarPlantillaHoras(){
+  if(typeof XLSX === 'undefined'){
+    alert('No se pudo cargar la librería de Excel. Revisa tu conexión a internet.');
+    return;
+  }
+  const rolesRef = (consumoHoras.presupuesto || []).map(p=>p.rol).filter(Boolean);
+  const rolEjemplo = rolesRef[0] || 'Consultor SR FI';
+  const data = [
+    ['Fecha', 'Rol', 'Horas', 'Nota'],
+    [new Date().toISOString().slice(0,10), rolEjemplo, 8, 'Ejemplo — bórrame']
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:12},{wch:28},{wch:8},{wch:30}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Horas');
+  XLSX.writeFile(wb, `Plantilla Consumo de Horas - ${currentProyecto||'Proyecto'}.xlsx`);
 }
 
 function handleExcelHoras(file){
@@ -653,16 +679,18 @@ function handleExcelHoras(file){
         document.getElementById('excelPreview').innerHTML = '<div class="error" style="background:#FBE7E7; color:#B23A3A; border-radius:8px; padding:10px 12px; font-size:12.5px; margin-bottom:10px;">No se encontraron filas válidas. Asegúrate de que el Excel tenga columnas "Fecha", "Rol" y "Horas".</div>';
         return;
       }
-      document.getElementById('excelPreview').innerHTML = `
-        <div style="background:var(--card); border-radius:8px; padding:12px 14px; margin-bottom:10px; font-size:12.5px;">
-          Se encontraron <b>${parsed.length}</b> registro(s) en el Excel. ${parsed.map(r=>`${esc(r.rol)}: ${r.horas}h`).slice(0,5).join(' · ')}${parsed.length>5?'…':''}
-          <div style="margin-top:8px;">
-            <button class="btn btn-primary" onclick="confirmImportExcel()">Importar estos registros</button>
-            <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px;" onclick="document.getElementById('excelPreview').innerHTML=''">Cancelar</button>
-          </div>
-        </div>
-      `;
-      window.__pendingExcelImport = parsed;
+
+      const presupuestoRoles = (consumoHoras.presupuesto || []).map(p=>p.rol);
+      const normaliza = s => (s||'').trim().toLowerCase();
+      const rolesNoReconocidos = Array.from(new Set(
+        parsed.map(r=>r.rol).filter(rol => !presupuestoRoles.some(pr => normaliza(pr) === normaliza(rol)))
+      ));
+
+      if(presupuestoRoles.length && rolesNoReconocidos.length){
+        renderReconciliacionRoles(parsed, rolesNoReconocidos, presupuestoRoles);
+      }else{
+        renderDedupPreview(parsed);
+      }
     }catch(err){
       console.error(err);
       alert('No se pudo leer el archivo. Verifica que sea un Excel válido.');
@@ -671,13 +699,70 @@ function handleExcelHoras(file){
   reader.readAsArrayBuffer(file);
 }
 
-async function confirmImportExcel(){
-  const parsed = window.__pendingExcelImport || [];
+function renderReconciliacionRoles(parsed, rolesNoReconocidos, presupuestoRoles){
+  document.getElementById('excelPreview').innerHTML = `
+    <div style="background:var(--card); border-radius:8px; padding:12px 14px; margin-bottom:10px; font-size:12.5px;">
+      <div style="margin-bottom:10px;">El Excel trae ${rolesNoReconocidos.length} rol(es) que no coinciden exactamente con tus roles presupuestados. Revisa si son el mismo rol con otro nombre, para que el consumo se compare bien contra el presupuesto:</div>
+      ${rolesNoReconocidos.map((rol,i)=>`
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+          <span style="flex:1; font-weight:600; color:var(--navy2);">"${esc(rol)}"</span>
+          <span style="color:var(--greyl);">→</span>
+          <select id="mapRol${i}" style="flex:1; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;">
+            <option value="__nuevo__">Dejarlo como rol nuevo (sin presupuesto)</option>
+            ${presupuestoRoles.map(pr=>`<option value="${esc(pr)}">Es lo mismo que "${esc(pr)}"</option>`).join('')}
+          </select>
+        </div>
+      `).join('')}
+      <div style="margin-top:10px; display:flex; gap:8px;">
+        <button class="btn btn-primary" onclick="aplicarReconciliacionRoles()">Continuar</button>
+        <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px;" onclick="document.getElementById('excelPreview').innerHTML=''">Cancelar</button>
+      </div>
+    </div>
+  `;
+  window.__pendingReconciliacion = { parsed, rolesNoReconocidos };
+}
+
+function aplicarReconciliacionRoles(){
+  const { parsed, rolesNoReconocidos } = window.__pendingReconciliacion;
+  const mapa = {};
+  rolesNoReconocidos.forEach((rol,i)=>{
+    const val = document.getElementById('mapRol'+i).value;
+    if(val !== '__nuevo__') mapa[rol] = val;
+  });
+  const remapeado = parsed.map(r => mapa[r.rol] ? { ...r, rol: mapa[r.rol] } : r);
+  window.__pendingReconciliacion = null;
+  renderDedupPreview(remapeado);
+}
+
+function renderDedupPreview(parsed){
+  const esDuplicado = (row) => (consumoHoras.registros || []).some(ex =>
+    (ex.fecha||'') === row.fecha && ex.rol.trim().toLowerCase() === row.rol.trim().toLowerCase() && Number(ex.horas) === Number(row.horas)
+  );
+  const nuevos = parsed.filter(r => !esDuplicado(r));
+  const duplicados = parsed.filter(r => esDuplicado(r));
+
+  document.getElementById('excelPreview').innerHTML = `
+    <div style="background:var(--card); border-radius:8px; padding:12px 14px; margin-bottom:10px; font-size:12.5px;">
+      Se encontraron <b>${parsed.length}</b> registro(s) en el Excel: <b>${nuevos.length}</b> nuevo(s)${duplicados.length ? ` y <b style="color:#B23A3A;">${duplicados.length} posible(s) duplicado(s)</b> (mismo rol, fecha y horas que un registro ya cargado)` : ''}.
+      ${duplicados.length ? `<div style="margin-top:6px; color:var(--grey);">Duplicados: ${duplicados.map(r=>`${esc(r.rol)} · ${r.fecha||'sin fecha'} · ${r.horas}h`).slice(0,5).join(' — ')}${duplicados.length>5?'…':''}</div>` : ''}
+      <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+        ${nuevos.length ? `<button class="btn btn-primary" onclick="confirmImportExcel(false)">Importar solo los ${nuevos.length} nuevo(s)</button>` : ''}
+        ${duplicados.length ? `<button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px;" onclick="confirmImportExcel(true)">Importar los ${parsed.length} de todas formas</button>` : ''}
+        <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px;" onclick="document.getElementById('excelPreview').innerHTML=''">Cancelar</button>
+      </div>
+    </div>
+  `;
+  window.__pendingExcelImport = { nuevos, todos: parsed };
+}
+
+async function confirmImportExcel(incluirDuplicados){
+  const pending = window.__pendingExcelImport || { nuevos: [], todos: [] };
+  const parsed = incluirDuplicados ? pending.todos : pending.nuevos;
   const now = new Date().toISOString();
   parsed.forEach(r=>{
     consumoHoras.registros.push({ id: 'hr-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6), fecha: r.fecha, rol: r.rol, horas: r.horas, nota: r.nota, fuente: 'excel', createdAt: now });
   });
-  await logAudit('Importó horas desde Excel', `Proyecto "${currentProyecto}" — ${parsed.length} registros`);
+  await logAudit('Importó horas desde Excel', `Proyecto "${currentProyecto}" — ${parsed.length} registros${incluirDuplicados ? ' (incluyendo posibles duplicados)' : ''}`);
   await saveConsumoHoras();
   window.__pendingExcelImport = null;
   document.getElementById('excelPreview').innerHTML = '';
