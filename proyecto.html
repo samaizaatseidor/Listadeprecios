@@ -126,6 +126,7 @@
     <button class="btn btn-ghost" onclick="nuevoProyecto()">+ Nuevo proyecto</button>
     <button class="btn btn-ghost" id="exportBtn" onclick="exportarPPT()" style="display:none;">📤 Exportar PPT para cliente</button>
     <a class="btn btn-ghost" id="checklistLink" href="#" style="display:none; text-decoration:none;">✅ Ver Checklist</a>
+    <a class="btn btn-ghost" id="vistaGeneralLink" href="#" style="display:none; text-decoration:none;">🧭 Vista General</a>
     <button class="btn btn-danger" id="deleteProyectoBtn" onclick="deleteProyecto()" style="display:none;">🗑 Borrar este proyecto</button>
   </div>
 </header>
@@ -257,6 +258,13 @@ function render(){
     checklistLink.href = '/checklist.html?proyecto=' + encodeURIComponent(currentProyecto);
   }else{
     checklistLink.style.display = 'none';
+  }
+  const vistaGeneralLink = document.getElementById('vistaGeneralLink');
+  if(currentProyecto){
+    vistaGeneralLink.style.display = 'inline-block';
+    vistaGeneralLink.href = '/vista-general.html?proyecto=' + encodeURIComponent(currentProyecto);
+  }else{
+    vistaGeneralLink.style.display = 'none';
   }
   if(!currentProyecto){
     main.innerHTML = '<div class="no-proyecto">Selecciona o crea un proyecto para ver su dashboard.</div>';
