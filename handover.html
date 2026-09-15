@@ -250,28 +250,35 @@ function renderFormulario(){
       </div>
       <div class="field"><label>Nombre del proyecto</label><input type="text" id="h-nombreProyecto" value="${esc(currentProyecto)}" readonly style="background:var(--card);"></div>
       <div class="row2">
-        <div class="field"><label>Cliente</label><input type="text" id="h-cliente" value="${esc(lb.clienteNombre)}"></div>
-        <div class="field"><label>Comercial (AE)</label><input type="text" id="h-comercial" value="${esc(lb.comercialAE)}"></div>
+        <div class="field"><label>Cliente</label><input type="text" id="h-cliente" value="${esc(lb.clienteNombre)}" placeholder="Ej. Agroecología Intensiva para el Campo"></div>
+        <div class="field"><label>Comercial (AE)</label>
+          <select id="h-comercial" onchange="document.getElementById('h-comercialOtro').style.display = this.value==='__otro__' ? 'block' : 'none';">
+            <option value="">Selecciona...</option>
+            ${['Fernanda Richards','Manuel Apón','Natalia Ossa','Omar Dávila','Estefanía Muñoz','Freda Juárez','Fernanda Villagómez','Josselyn González'].map(ae=>`<option value="${ae}" ${lb.comercialAE===ae?'selected':''}>${ae}</option>`).join('')}
+            <option value="__otro__" ${lb.comercialAE && !['Fernanda Richards','Manuel Apón','Natalia Ossa','Omar Dávila','Estefanía Muñoz','Freda Juárez','Fernanda Villagómez','Josselyn González'].includes(lb.comercialAE) ? 'selected' : ''}>Otro...</option>
+          </select>
+          <input type="text" id="h-comercialOtro" placeholder="Nombre del AE" value="${lb.comercialAE && !['Fernanda Richards','Manuel Apón','Natalia Ossa','Omar Dávila','Estefanía Muñoz','Freda Juárez','Fernanda Villagómez','Josselyn González'].includes(lb.comercialAE) ? esc(lb.comercialAE) : ''}" style="display:${lb.comercialAE && !['Fernanda Richards','Manuel Apón','Natalia Ossa','Omar Dávila','Estefanía Muñoz','Freda Juárez','Fernanda Villagómez','Josselyn González'].includes(lb.comercialAE) ? 'block' : 'none'}; margin-top:6px;" oninput="">
+        </div>
       </div>
       <div class="row2">
         <div class="field"><label>Fecha de inicio propuesta</label><input type="date" id="h-fechaInicio" value="${lb.fechaInicioPropuesta||''}"></div>
         <div class="field"><label>Fecha fin propuesta</label><input type="date" id="h-fechaFin" value="${lb.fechaFinPropuesta||''}"></div>
         <div class="field"><label>Moneda</label><input type="text" id="h-moneda" value="${esc(lb.moneda)}" style="max-width:100px;"></div>
       </div>
-      <div class="field"><label>Resumen de alcance</label><textarea id="h-alcance" rows="3">${esc(lb.alcanceResumen)}</textarea></div>
-      <div class="field"><label>Inversión total</label><input type="text" id="h-inversion" value="${esc(lb.inversionTotal)}"></div>
+      <div class="field"><label>Resumen de alcance</label><textarea id="h-alcance" rows="3" placeholder="Ej. Implementación de SAP S/4HANA Cloud Public Edition, módulos de Finanzas, Ventas y Compras, con integración a báscula y portal de clientes.">${esc(lb.alcanceResumen)}</textarea></div>
+      <div class="field"><label>Inversión total</label><input type="text" id="h-inversion" value="${esc(lb.inversionTotal)}" placeholder="Ej. $185,000 USD"></div>
     </div>
 
     <div class="section">
       <h2>3. Contractual</h2>
       <div class="row2">
-        <div class="field"><label>Prime Contractor</label><input type="text" id="h-primeContractor" value="${esc(lb.primeContractor)}"></div>
+        <div class="field"><label>Prime Contractor</label><input type="text" id="h-primeContractor" value="${esc(lb.primeContractor || 'SEIDOR')}"></div>
         <div class="field"><label>Propuesta firmada</label><select id="h-propuestaFirmada"><option value="Sí" ${lb.propuestaFirmada==='Sí'?'selected':''}>Sí</option><option value="No" ${lb.propuestaFirmada==='No'?'selected':''}>No</option></select></div>
         <div class="field"><label>Contrato/SOW firmado</label><select id="h-sowFirmado"><option value="Sí" ${lb.sowFirmado==='Sí'?'selected':''}>Sí</option><option value="No" ${lb.sowFirmado==='No'?'selected':''}>No</option></select></div>
       </div>
       <div class="field"><label>Hitos de pago</label><textarea id="h-hitosPago" rows="2" placeholder="Ej. 30% al inicio, 40% al Go-Live, 30% a los 30 días">${esc(lb.hitosDePago)}</textarea></div>
-      <div class="field"><label>Info de Partner de Ejecución (si aplica)</label><textarea id="h-partnerInfo" rows="2">${esc(lb.partnerInfo)}</textarea></div>
-      <div class="field"><label>Contrato con Partner (si aplica)</label><textarea id="h-contratoPartner" rows="2">${esc(lb.contratoPartner)}</textarea></div>
+      <div class="field"><label>Info de Partner de Ejecución (si aplica)</label><textarea id="h-partnerInfo" rows="2" placeholder="Ej. No aplica — SEIDOR ejecuta directo. / Ej. Partner local X ejecutará el componente de Localización.">${esc(lb.partnerInfo)}</textarea></div>
+      <div class="field"><label>Contrato con Partner (si aplica)</label><textarea id="h-contratoPartner" rows="2" placeholder="Ej. No aplica. / Ej. Contrato firmado el 12/03/2026, vence en 12 meses.">${esc(lb.contratoPartner)}</textarea></div>
     </div>
 
     <div class="section">
@@ -285,10 +292,10 @@ function renderFormulario(){
 
     <div class="section">
       <h2>5. Contexto operativo</h2>
-      <div class="field"><label>Pain Points del cliente</label><textarea id="h-painPoints" rows="3">${esc(lb.painPoints)}</textarea></div>
-      <div class="field"><label>Garantías</label><textarea id="h-garantias" rows="2">${esc(lb.garantias)}</textarea></div>
-      <div class="field"><label>Hypercare</label><textarea id="h-hypercare" rows="2">${esc(lb.hypercare)}</textarea></div>
-      <div class="field"><label>Información adicional del proyecto</label><textarea id="h-infoAdicional" rows="2">${esc(lb.infoAdicional)}</textarea></div>
+      <div class="field"><label>Pain Points del cliente</label><textarea id="h-painPoints" rows="3" placeholder="Ej. Conciliación bancaria manual, sin visibilidad de inventario en tiempo real, procesos de facturación con muchos errores.">${esc(lb.painPoints)}</textarea></div>
+      <div class="field"><label>Garantías</label><textarea id="h-garantias" rows="2" placeholder="Ej. 30 días de garantía post Go-Live sobre defectos de configuración.">${esc(lb.garantias)}</textarea></div>
+      <div class="field"><label>Hypercare</label><textarea id="h-hypercare" rows="2" placeholder="Ej. 4 semanas de soporte reforzado post Go-Live, con consultor dedicado tiempo completo.">${esc(lb.hypercare)}</textarea></div>
+      <div class="field"><label>Información adicional del proyecto</label><textarea id="h-infoAdicional" rows="2" placeholder="Ej. El cliente tiene otra implementación SAP en su matriz en Colombia que puede servir de referencia.">${esc(lb.infoAdicional)}</textarea></div>
     </div>
 
     <div class="section" style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -307,8 +314,8 @@ function addStakeholder(s){
   const table = document.getElementById('stakeholdersTable');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" value="${esc(s.nombre)}"></td>
-    <td><input type="text" value="${esc(s.puesto)}"></td>
+    <td><input type="text" value="${esc(s.nombre)}" placeholder="Ej. Juan Pérez"></td>
+    <td><input type="text" value="${esc(s.puesto)}" placeholder="Ej. Director de Finanzas"></td>
     <td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>
   `;
   table.appendChild(tr);
@@ -323,7 +330,7 @@ function collectFormData(){
 
   return {
     clienteNombre: document.getElementById('h-cliente').value.trim(),
-    comercialAE: document.getElementById('h-comercial').value.trim(),
+    comercialAE: document.getElementById('h-comercial').value === '__otro__' ? document.getElementById('h-comercialOtro').value.trim() : document.getElementById('h-comercial').value,
     fechaInicioPropuesta: document.getElementById('h-fechaInicio').value,
     fechaFinPropuesta: document.getElementById('h-fechaFin').value,
     moneda: document.getElementById('h-moneda').value.trim(),
@@ -435,6 +442,23 @@ async function exportarHandoverPPT(){
     brandMark(s,11.0,0.55,false);
     pageCounter++; pageNum(s,pageCounter);
   }
+  function addInfoCard(s, x, y, w, h, label, value){
+    s.addShape('roundRect', {
+      x, y, w, h, rectRadius: 0.08,
+      fill: { color: 'FFFFFF' },
+      line: { color: LINE, width: 0.75 },
+      shadow: { type: 'outer', color: '9FB3CC', blur: 9, offset: 3, angle: 90, opacity: 0.18 }
+    });
+    s.addText(String(label||'').toUpperCase(), { x:x+0.18, y:y+0.12, w:w-0.36, h:0.25, fontFace:'Poppins', fontSize:9.5, bold:true, color:CYAN, charSpacing:1, margin:0 });
+    s.addText(value||'—', { x:x+0.18, y:y+0.4, w:w-0.36, h:h-0.5, fontFace:'Poppins', fontSize:13, color:NAVY2, valign:'top', margin:0 });
+  }
+  function addTextSection(s, y, label, value){
+    s.addText(String(label||'').toUpperCase(), { x:0.7, y, w:11.8, h:0.28, fontFace:'Poppins', fontSize:11, bold:true, color:CYAN, charSpacing:1, margin:0 });
+    const lines = estimateRowLines(value, 11.8, 13);
+    const h = Math.max(0.4, lines*0.24 + 0.1);
+    s.addText(value||'—', { x:0.7, y:y+0.3, w:11.8, h, fontFace:'Poppins', fontSize:13, color:INK, valign:'top', margin:0 });
+    return y + 0.3 + h + 0.25;
+  }
   function estimateRowLines(text, colWidthIn, fontSize){
     fontSize = fontSize||11;
     const charsPerLine = Math.max(8, Math.floor(colWidthIn*13.5*(11/fontSize)));
@@ -470,22 +494,29 @@ async function exportarHandoverPPT(){
   if(d.clienteNombre) slide.addText(d.clienteNombre, {x:0.6,y:4.0,w:12,h:0.5,fontSize:14,color:'8A97AC',fontFace:'Poppins',margin:0});
   slide.addText(new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'}), {x:0.6,y:4.5,w:12,h:0.5,fontSize:13,color:'8A97AC',fontFace:'Poppins',margin:0});
 
-  // Datos generales
+  // Datos generales — tarjetas de información
   slide = pptx.addSlide();
   header(slide, 'Datos Generales y Contractuales');
-  const infoLines = [
-    `Cliente: ${d.clienteNombre||'—'}`,
-    `Comercial (AE): ${d.comercialAE||'—'}`,
-    `Fechas propuestas: ${d.fechaInicioPropuesta||'—'} a ${d.fechaFinPropuesta||'—'}`,
-    `Moneda: ${d.moneda||'—'}    Inversión total: ${d.inversionTotal||'—'}`,
-    `Prime Contractor: ${d.primeContractor||'—'}`,
-    `Propuesta firmada: ${d.propuestaFirmada||'—'}    Contrato/SOW firmado: ${d.sowFirmado||'—'}`,
-    `Hitos de pago: ${d.hitosDePago||'—'}`
-  ];
-  slide.addText(infoLines.join('\n'), {x:0.7,y:1.6,w:11.8,h:2.2,fontSize:14,color:INK,fontFace:'Poppins',valign:'top',lineSpacingMultiple:1.4,margin:0});
+  {
+    const colW = 5.9, gap = 0.3, rowH = 0.95, rowGap = 0.2;
+    const x1 = 0.6, x2 = x1 + colW + gap;
+    let y = 1.55;
+    addInfoCard(slide, x1, y, colW, rowH, 'Cliente', d.clienteNombre);
+    addInfoCard(slide, x2, y, colW, rowH, 'Comercial (AE)', d.comercialAE);
+    y += rowH + rowGap;
+    addInfoCard(slide, x1, y, colW, rowH, 'Fechas propuestas', `${d.fechaInicioPropuesta||'—'}  —  ${d.fechaFinPropuesta||'—'}`);
+    addInfoCard(slide, x2, y, colW, rowH, 'Moneda / Inversión', `${d.moneda||'—'}   ${d.inversionTotal||''}`);
+    y += rowH + rowGap;
+    addInfoCard(slide, x1, y, colW, rowH, 'Prime Contractor', d.primeContractor);
+    addInfoCard(slide, x2, y, colW, rowH, 'Estatus contractual', `Propuesta firmada: ${d.propuestaFirmada||'—'}\nSOW firmado: ${d.sowFirmado||'—'}`);
+    y += rowH + rowGap;
+    addInfoCard(slide, x1, y, colW*2+gap, rowH, 'Hitos de pago', d.hitosDePago);
+  }
+
   if(d.alcanceResumen){
-    slide.addText('Alcance:', {x:0.7,y:4.0,w:11.8,h:0.3,fontSize:13,bold:true,color:NAVY2,fontFace:'Poppins',margin:0});
-    slide.addText(d.alcanceResumen, {x:0.7,y:4.3,w:11.8,h:2.2,fontSize:12,color:INK,fontFace:'Poppins',valign:'top',margin:0});
+    slide = pptx.addSlide();
+    header(slide, 'Alcance del Proyecto');
+    slide.addText(d.alcanceResumen, {x:0.7,y:1.6,w:11.8,h:5,fontSize:14,color:INK,fontFace:'Poppins',valign:'top',margin:0});
   }
 
   // Stakeholders
@@ -495,16 +526,15 @@ async function exportarHandoverPPT(){
     addPaginatedTable('Stakeholders del Cliente', headerCells, dataRows, [6,6.3]);
   }
 
-  // Contexto operativo
+  // Contexto operativo — secciones separadas, no un solo bloque de texto
   if(d.painPoints || d.garantias || d.hypercare || d.infoAdicional){
     slide = pptx.addSlide();
     header(slide, 'Contexto Operativo');
-    const bloques = [];
-    if(d.painPoints) bloques.push('Pain Points:\n'+d.painPoints);
-    if(d.garantias) bloques.push('Garantías:\n'+d.garantias);
-    if(d.hypercare) bloques.push('Hypercare:\n'+d.hypercare);
-    if(d.infoAdicional) bloques.push('Información adicional:\n'+d.infoAdicional);
-    slide.addText(bloques.join('\n\n'), {x:0.7,y:1.6,w:11.8,h:5,fontSize:13,color:INK,fontFace:'Poppins',valign:'top',margin:0});
+    let y = 1.6;
+    if(d.painPoints) y = addTextSection(slide, y, 'Pain Points del cliente', d.painPoints);
+    if(d.garantias) y = addTextSection(slide, y, 'Garantías', d.garantias);
+    if(d.hypercare) y = addTextSection(slide, y, 'Hypercare', d.hypercare);
+    if(d.infoAdicional) y = addTextSection(slide, y, 'Información adicional', d.infoAdicional);
   }
 
   // Riesgos y dependencias (referencia rápida desde el Dashboard)
