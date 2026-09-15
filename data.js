@@ -10,7 +10,7 @@
    - "price" en paquetes = precio baseline total (referencia).
    ============================================================ */
 
-const LAST_UPDATED = "Agosto 2026";
+const LAST_UPDATED = "Septiembre 2026";
 
 /* --- Servicios individuales (tarifa por hora) --- */
 const INDIVIDUAL_SERVICES = [
@@ -53,6 +53,38 @@ const INDIVIDUAL_SERVICES = [
     rate: 128,
     unit: "hora",
     notes: "Soporte funcional nivel 2-3, mejoras menores",
+  },
+  {
+    category: "T&M",
+    role: "Consultor Funcional Back Office (FI-MM-SD)",
+    level: "Senior",
+    rate: 72,
+    unit: "hora",
+    notes: "Servicio paquetizado Time & Material, 80 HH/mes mín., remoto",
+  },
+  {
+    category: "T&M",
+    role: "Consultor Técnico Basis",
+    level: "Senior",
+    rate: 74,
+    unit: "hora",
+    notes: "Servicio paquetizado Time & Material, 80 HH/mes mín., remoto",
+  },
+  {
+    category: "T&M",
+    role: "Consultor Técnico Seguridad & Roles y Perfiles",
+    level: "Senior",
+    rate: 62,
+    unit: "hora",
+    notes: "Servicio paquetizado Time & Material, 80 HH/mes mín., remoto",
+  },
+  {
+    category: "T&M",
+    role: "Consultor Técnico ABAP",
+    level: "Senior",
+    rate: 65,
+    unit: "hora",
+    notes: "Servicio paquetizado Time & Material, 80 HH/mes mín., remoto",
   },
   {
     category: "Implementación",
@@ -120,6 +152,30 @@ const PACKAGES = [
       "Proyectos, reingenierías, upgrades o rollouts",
       "Licenciamiento SAP, VPN u otro software del cliente",
       "Calidad e integridad de datos maestros",
+    ],
+  },
+  {
+    id: "tm",
+    badge: "Time & Material — Baseline",
+    title: "Paquete baseline Time & Material",
+    subtitle: "Bloques de horas por perfil · 80 HH/mes mínimo · Consultoría remota",
+    price: 4960,
+    priceUnit: "mes por perfil, desde",
+    duration: "Servicio abierto, renovable mes a mes (sin plazo fijo)",
+    team: "Tarifa por perfil (80 HH/mes mín. c/u): FI-MM-SD USD 72/h · Basis USD 74/h · Seguridad & Roles y Perfiles USD 62/h · ABAP USD 65/h",
+    pptFile: "decks/SEIDOR_Alcance_Time_and_Material.pptx",
+    includes: [
+      "Consultores SAP certificados por bloques de horas mensuales, sin incorporar personal ni levantar un proyecto",
+      "Perfiles disponibles: Funcional Back Office (FI-MM-SD), Basis, Seguridad & Roles y Perfiles, ABAP",
+      "Atención de incidencias, requerimientos del día a día y mejoras/evolutivos de procesos ya implementados",
+      "Reporte de horas consumidas por perfil y gestión del reemplazo del consultor",
+      "Facturación mensual según el bloque contratado",
+    ],
+    excludes: [
+      "Proyectos con alcance cerrado, entregables o plazos comprometidos",
+      "Perfiles no incluidos en la tabla (requieren solicitar cotización)",
+      "Trabajo fuera de horario hábil, fines de semana o festivos (recargo del 50% si se solicita)",
+      "Licenciamiento SAP u otro software del cliente",
     ],
   },
   {
