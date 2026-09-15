@@ -855,6 +855,43 @@ ${JSON.stringify(proyectos || [])}`;
       }
     }
 
+    if (url.pathname === '/api/metricas-sap' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      const form = await request.formData();
+      const texto = form.get('texto');
+      const imagen = form.get('imagen');
+      if ((!texto || !String(texto).trim()) && (!imagen || typeof imagen === 'string')) {
+        return new Response(JSON.stringify({ ok: false, error: 'Falta el texto o la captura de pantalla' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const promptBase = `Eres un experto en licenciamiento y métricas de consumo de SAP Cloud (SAP Cloud ALM, S/4HANA Cloud, BTP, y demás soluciones de nube pública de SAP). Te voy a dar una lista de métricas de consumo tal como aparecen en un tablero de SAP Cloud ALM (nombre y/o código, por ejemplo "C415", "CP228 - Transactions - SAP Integration Suite"). Para CADA métrica, busca en documentación pública de SAP (SAP Help Portal, SAP Notes, documentación de licenciamiento) y responde ÚNICAMENTE con un arreglo JSON válido, sin texto adicional, sin markdown, con este formato exacto:
+
+[{"codigo":"", "nombre":"", "queMide":"", "comoInterpretar":"", "producto":"", "confianza":"alta|media|baja"}]
+
+"queMide": explicación clara para alguien no técnico, 1-2 oraciones. "comoInterpretar": qué significan columnas como Suscrito/Medido/Delta para ESTA métrica en particular. "producto": el producto o componente SAP al que pertenece (ej. "S/4HANA Cloud Public Edition", "SAP Integration Suite"). "confianza": "alta" si encontraste documentación pública clara y específica sobre ese código/métrica, "media" si es una inferencia razonable basada en el nombre y tu conocimiento general, "baja" si no encontraste nada confiable y estás adivinando por el nombre — en ese caso sé honesto, no inventes detalles específicos que no puedas sustentar.
+
+${texto && String(texto).trim() ? 'MÉTRICAS A EXPLICAR (una por línea o separadas por coma):\n' + texto : 'Las métricas a explicar están en la captura de pantalla adjunta, de un tablero de consumo de SAP Cloud ALM. Lee los nombres y códigos visibles en la imagen y explica cada fila que encuentres.'}`;
+
+      const fileRefs = [];
+      if (imagen && typeof imagen !== 'string') {
+        try {
+          fileRefs.push(await delfosUploadFile(token, sessionId, username, imagen));
+        } catch (e) {
+          return new Response(JSON.stringify({ ok: false, error: 'No se pudo subir la imagen: ' + String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+        }
+      }
+
+      const stream = ndjsonStream();
+      ctx.waitUntil(delfosStreamToClient(token, { sessionId, username, text: promptBase, fileRefs, useOnlineSearch: true }, stream).catch(async e => {
+        await stream.write({ type: 'error', text: String(e.message || e) });
+      }).finally(() => stream.close()));
+      return new Response(stream.readable, { headers: { 'Content-Type': 'application/x-ndjson' } });
+    }
+
     if (url.pathname === '/api/wbs' && request.method === 'GET') {
       const raw = await env.PM_KV.get('wbs_log');
       return new Response(raw || '{"proyectos":{}}', { headers: { 'Content-Type': 'application/json' } });
