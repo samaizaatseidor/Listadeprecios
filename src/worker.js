@@ -844,6 +844,28 @@ ${JSON.stringify(checklist || [])}`;
       }
     }
 
+    if (url.pathname === '/api/backup-completo' && request.method === 'GET') {
+      const keys = ['projects', 'documentos', 'proyecto_dashboard', 'checklist_log', 'lineas_base', 'consumo_horas', 'audit_log'];
+      const backup = { generadoEn: new Date().toISOString(), generadoPor: request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido' };
+      for (const key of keys) {
+        const raw = await env.PM_KV.get(key);
+        backup[key] = raw ? JSON.parse(raw) : null;
+      }
+      const fecha = new Date().toISOString().slice(0,10);
+      const rawAudit = await env.PM_KV.get('audit_log');
+      const auditStore = rawAudit ? JSON.parse(rawAudit) : { entries: [] };
+      auditStore.entries.push({ at: new Date().toISOString(), by: backup.generadoPor, page: 'Auditoría', action: 'Descargó respaldo completo de KV', detail: '' });
+      if (auditStore.entries.length > 1000) auditStore.entries = auditStore.entries.slice(-1000);
+      await env.PM_KV.put('audit_log', JSON.stringify(auditStore));
+
+      return new Response(JSON.stringify(backup, null, 2), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Disposition': `attachment; filename="Respaldo KV - ${fecha}.json"`
+        }
+      });
+    }
+
     if (url.pathname === '/api/whoami') {
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
       return new Response(JSON.stringify({ email }), { headers: { 'Content-Type': 'application/json' } });
