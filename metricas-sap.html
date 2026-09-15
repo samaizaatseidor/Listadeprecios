@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explicador de Métricas SAP · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-link.active{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:900px; margin:0 auto; padding:16px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:14px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
+
+  .tabbar{display:flex; gap:6px; margin-bottom:14px;}
+  .tabbar button{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font-family:inherit; font-size:13px; font-weight:600; color:var(--grey); cursor:pointer;}
+  .tabbar button.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+
+  textarea{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px; resize:vertical;}
+  .dropzone{border:2px dashed var(--line); border-radius:10px; padding:20px; text-align:center; cursor:pointer;}
+  .dropzone:hover{border-color:var(--blue);}
+  .dropzone p{margin:6px 0 0; color:var(--grey); font-size:12.5px;}
+  .filename{font-size:12.5px; color:var(--navy2); font-weight:600; margin-top:8px;}
+  .preview-img{max-width:100%; max-height:260px; border-radius:8px; margin-top:10px; box-shadow:var(--shadow);}
+
+  .btn{border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-primary:disabled{background:var(--line); color:var(--greyl); cursor:not-allowed;}
+
+  .loading{color:var(--grey); text-align:center; padding:20px; font-size:13px;}
+  .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+  .error{color:#B23A3A; font-size:13px; background:#FBE7E7; border-radius:8px; padding:10px 12px;}
+
+  .metric-card{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:10px;}
+  .metric-card .top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px;}
+  .metric-card h3{margin:0; font-size:14px; color:var(--navy2);}
+  .metric-card .codigo{font-size:11px; color:var(--greyl); font-family:monospace;}
+  .metric-card .producto{font-size:11.5px; color:var(--blue); margin:2px 0 8px;}
+  .metric-card p{margin:4px 0; font-size:13px; color:var(--ink); line-height:1.5;}
+  .metric-card p b{color:var(--grey); font-weight:600;}
+  .conf{font-size:10.5px; padding:2px 9px; border-radius:20px; font-weight:600; white-space:nowrap;}
+  .conf.alta{background:#E7F7EE; color:#1F8A4C;}
+  .conf.media{background:#FBF1DE; color:#8A6414;}
+  .conf.baja{background:#FBE7E7; color:#B23A3A;}
+  .disclaimer{background:#FBF1DE; color:#8A6414; border-radius:8px; padding:10px 12px; font-size:12px; margin-bottom:14px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html" class="active">Explicador de Métricas SAP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+        </div>
+      </div>
+    </div>
+  </div></nav>
+
+<header>
+  <h1>Explicador de Métricas de Consumo SAP</h1>
+  <p>Para BX — entiende de un jalón qué mide cada métrica de un tablero de SAP Cloud ALM, sin dar click una por una</p>
+</header>
+
+<main>
+  <div class="section">
+    <div class="tabbar">
+      <button id="tab-texto" class="active" onclick="setModo('texto')">Pegar texto</button>
+      <button id="tab-imagen" onclick="setModo('imagen')">Subir captura de pantalla</button>
+    </div>
+    <div id="inputArea"></div>
+    <button class="btn btn-primary" id="explicarBtn" onclick="explicar()" style="margin-top:12px;" disabled>Explicar métricas</button>
+  </div>
+  <div id="resultSection"></div>
+</main>
+
+<script>
+let modo = 'texto';
+let imagenFile = null;
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+function setModo(m){
+  modo = m;
+  document.getElementById('tab-texto').classList.toggle('active', m==='texto');
+  document.getElementById('tab-imagen').classList.toggle('active', m==='imagen');
+  renderInputArea();
+  updateBtnState();
+}
+
+function renderInputArea(){
+  const box = document.getElementById('inputArea');
+  if(modo === 'texto'){
+    box.innerHTML = `
+      <p class="sub" style="margin-top:0;">Pega los nombres o códigos que ves en pantalla, uno por línea o separados por coma.</p>
+      <textarea id="textoInput" rows="6" placeholder="Ej.\nC415 - Users - S/4HANA Cloud for cash management\nCP228 - Transactions - SAP Integration Suite\nCC18 - GB of Memory - Commerce Cloud" oninput="updateBtnState()"></textarea>
+    `;
+  }else{
+    box.innerHTML = `
+      <label class="dropzone" style="display:block;">
+        <div style="font-size:22px;">🖼️</div>
+        <p>Sube una captura de tu tablero de consumo — click para elegir</p>
+        <input type="file" id="imagenInput" accept="image/*" style="display:none;" onchange="handleImagen(this.files[0])">
+      </label>
+      <div id="imagenPreviewBox"></div>
+    `;
+  }
+}
+
+function handleImagen(file){
+  imagenFile = file;
+  const box = document.getElementById('imagenPreviewBox');
+  if(file){
+    const url = URL.createObjectURL(file);
+    box.innerHTML = `<div class="filename">${esc(file.name)}</div><img class="preview-img" src="${url}">`;
+  }else{
+    box.innerHTML = '';
+  }
+  updateBtnState();
+}
+
+function updateBtnState(){
+  const btn = document.getElementById('explicarBtn');
+  if(modo === 'texto'){
+    const val = document.getElementById('textoInput') ? document.getElementById('textoInput').value.trim() : '';
+    btn.disabled = !val;
+  }else{
+    btn.disabled = !imagenFile;
+  }
+}
+
+async function explicar(){
+  const resultSection = document.getElementById('resultSection');
+  resultSection.innerHTML = '<div class="section"><div class="loading"><span class="spinner"></span>Preparando…</div></div>';
+
+  const form = new FormData();
+  if(modo === 'texto'){
+    form.append('texto', document.getElementById('textoInput').value.trim());
+  }else{
+    form.append('imagen', imagenFile);
+  }
+
+  try{
+    const r = await fetch('/api/metricas-sap', { method:'POST', body: form });
+    if(!r.body){ throw new Error('sin stream'); }
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+    let gotError = false;
+
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for(const line of lines){
+        if(!line.trim()) continue;
+        let obj;
+        try{ obj = JSON.parse(line); }catch(e){ continue; }
+        if(obj.type === 'status'){
+          resultSection.innerHTML = `<div class="section"><div class="loading"><span class="spinner"></span>${esc(obj.text)}</div></div>`;
+        }else if(obj.type === 'delta'){
+          fullText += obj.text;
+        }else if(obj.type === 'error'){
+          gotError = true;
+          resultSection.innerHTML = `<div class="section"><div class="error">${esc(obj.text)}</div></div>`;
+        }else if(obj.type === 'done'){
+          if(!gotError){
+            renderResultado(fullText);
+          }
+        }
+      }
+    }
+  }catch(e){
+    resultSection.innerHTML = '<div class="section"><div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div></div>';
+  }
+}
+
+function renderResultado(fullText){
+  const resultSection = document.getElementById('resultSection');
+  const match = fullText.match(/\[[\s\S]*\]/);
+  let metricas = [];
+  try{ metricas = match ? JSON.parse(match[0]) : []; }catch(e){ metricas = []; }
+
+  if(!metricas.length){
+    resultSection.innerHTML = '<div class="section"><div class="error">No se pudo interpretar la respuesta. Intenta de nuevo, o si subiste una imagen, prueba pegando el texto en su lugar.</div></div>';
+    return;
+  }
+
+  const hayBaja = metricas.some(m=>m.confianza==='baja');
+  resultSection.innerHTML = `
+    <div class="section">
+      <h2>${metricas.length} métrica(s) explicada(s)</h2>
+      <div class="disclaimer">⚠️ Explicaciones basadas en documentación pública de SAP — no son la descripción oficial interna de SAP Cloud ALM. ${hayBaja ? 'Algunas métricas salieron con confianza <b>baja</b>: para esas, verifica directamente en el tablero antes de usarlas con el cliente.' : ''}</div>
+      ${metricas.map(m=>`
+        <div class="metric-card">
+          <div class="top">
+            <div>
+              <h3>${esc(m.nombre || m.codigo || 'Métrica')}</h3>
+              ${m.codigo ? `<div class="codigo">${esc(m.codigo)}</div>` : ''}
+            </div>
+            <span class="conf ${esc(m.confianza||'media')}">Confianza: ${esc(m.confianza||'media')}</span>
+          </div>
+          ${m.producto ? `<div class="producto">${esc(m.producto)}</div>` : ''}
+          <p><b>Qué mide:</b> ${esc(m.queMide)}</p>
+          ${m.comoInterpretar ? `<p><b>Cómo interpretarla:</b> ${esc(m.comoInterpretar)}</p>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+renderInputArea();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+</body>
+</html>
