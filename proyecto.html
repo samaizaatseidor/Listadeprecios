@@ -193,6 +193,30 @@ let activeTab = 'raid';
 let currentId = null;
 
 function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+const CR_STAGES = ['Identificado','En estimación','Validación comercial','Presentado al cliente','Aceptado'];
+
+function renderCrStepperHtml(estatusActual){
+  const currentIdx = CR_STAGES.indexOf(estatusActual);
+  return `
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; margin:14px 0 18px;">
+      ${CR_STAGES.map((stage,i)=>{
+        let circleStyle, textColor;
+        if(i < currentIdx){ circleStyle='background:#2E9E5B; color:#fff;'; textColor='var(--navy2)'; }
+        else if(i === currentIdx){ circleStyle='background:var(--blue); color:#fff;'; textColor='var(--navy2)'; }
+        else { circleStyle='background:#fff; border:1px solid var(--line); color:var(--greyl);'; textColor='var(--greyl)'; }
+        const connector = i < CR_STAGES.length-1 ? `<div style="flex:1; height:2px; margin-top:13px; background:${i<currentIdx ? '#2E9E5B' : 'var(--line)'};"></div>` : '';
+        return `
+          <div style="display:flex; flex-direction:column; align-items:center; ${i===0 || i===CR_STAGES.length-1 ? '' : 'flex:0.01;'}">
+            <div style="width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; ${circleStyle}">${i+1}</div>
+            <div style="font-size:9.5px; color:${textColor}; margin-top:4px; text-align:center; width:70px; ${i===currentIdx?'font-weight:600;':''}">${stage}</div>
+          </div>
+          ${connector}
+        `;
+      }).join('')}
+    </div>
+  `;
+}
 function fmtDate(s){ return s ? new Date(s+'T00:00:00').toLocaleDateString('es-MX') : ''; }
 function isPastDue(fecha, estatus, doneStatus){
   if(!fecha || estatus === doneStatus) return false;
@@ -1064,6 +1088,7 @@ function openSheet(id){
     sheet.innerHTML = `
       <button class="close-x" onclick="closeSheet()">&times;</button>
       <p class="sheet-title">${id ? 'Editar Change Request' : 'Nuevo Change Request'}</p>
+      ${renderCrStepperHtml(it.estatus)}
       <label>Título</label><input type="text" id="f-titulo" value="${esc(it.titulo)}" placeholder="Ej. Reporte adicional de inventarios">
       <label>Descripción</label><textarea id="f-descripcion" rows="3">${esc(it.descripcion)}</textarea>
       <div class="sheet-row">
@@ -1457,16 +1482,51 @@ async function exportarPPT(soloCliente){
     addPaginatedTable('Compromisos', headerCells, dataRows, [2.2,6.4,1.8,1.9]);
   }
 
-  // Change Requests
+  // Change Requests — con stepper visual en vez de tabla plana
   if(crVis.length){
-    const headerCells = [
-      { text:'Título', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
-      { text:'Impacto tiempo', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
-      { text:'Impacto costo', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
-      { text:'Estatus', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
-    ];
-    const dataRows = crVis.map(it=>[it.titulo, it.impactoTiempo || '—', it.impactoCosto || '—', it.estatus]);
-    addPaginatedTable('Change Requests', headerCells, dataRows, [5.5,2.5,2.5,1.8]);
+    function addCrStepperBlock(s, y, cr){
+      const currentIdx = CR_STAGES.indexOf(cr.estatus);
+      const stageCount = CR_STAGES.length;
+      const blockW = 11.6, startX = 0.7, circleR = 0.13;
+      const spacing = blockW / (stageCount - 1);
+      s.addText(cr.titulo, { x:startX, y:y, w:blockW, h:0.3, fontFace:'Poppins', fontSize:14, bold:true, color:NAVY2, margin:0 });
+      const stepperY = y + 0.45;
+      for(let i=0;i<stageCount-1;i++){
+        const x1 = startX + spacing*i + circleR;
+        const x2 = startX + spacing*(i+1) - circleR;
+        const lineColor = i < currentIdx ? '2E9E5B' : LINE;
+        s.addShape('line', { x:x1, y:stepperY, w:x2-x1, h:0, line:{color:lineColor, width:2} });
+      }
+      CR_STAGES.forEach((stage,i)=>{
+        const cx = startX + spacing*i;
+        let fillColor, textColor, borderColor;
+        if(i < currentIdx){ fillColor='2E9E5B'; textColor='FFFFFF'; borderColor='2E9E5B'; }
+        else if(i === currentIdx){ fillColor=BLUE; textColor='FFFFFF'; borderColor=BLUE; }
+        else { fillColor='FFFFFF'; textColor='8A97AC'; borderColor=LINE; }
+        s.addShape('ellipse', { x:cx-circleR, y:stepperY-circleR, w:circleR*2, h:circleR*2, fill:{color:fillColor}, line:{color:borderColor, width:1} });
+        s.addText(String(i+1), { x:cx-circleR, y:stepperY-circleR-0.01, w:circleR*2, h:circleR*2, fontFace:'Poppins', fontSize:9, bold:true, color:textColor, align:'center', valign:'middle', margin:0 });
+        s.addText(stage, { x:cx-0.75, y:stepperY+circleR+0.06, w:1.5, h:0.35, fontFace:'Poppins', fontSize:7.5, color: i===currentIdx?NAVY2:'8A97AC', align:'center', valign:'top', margin:0 });
+      });
+      let nextY = stepperY + circleR + 0.55;
+      if(cr.impactoTiempo || cr.impactoCosto){
+        const impactoText = [cr.impactoTiempo, cr.impactoCosto].filter(Boolean).join(' · ');
+        s.addText('Impacto: ' + impactoText, { x:startX, y:nextY, w:blockW, h:0.25, fontFace:'Poppins', fontSize:10.5, color:INK, margin:0 });
+        nextY += 0.35;
+      }
+      return nextY + 0.15;
+    }
+    const CR_BLOCK_H = 1.7, AVAILABLE_H_CR = 5.3;
+    let i = 0;
+    while(i < crVis.length){
+      const s = pptx.addSlide();
+      addContentSlideHeader(s, 'Change Requests');
+      let y = 1.55; let j = i;
+      while(j < crVis.length && (y - 1.55 + CR_BLOCK_H) <= AVAILABLE_H_CR){
+        y = addCrStepperBlock(s, y, crVis[j]);
+        j++;
+      }
+      i = j > i ? j : i+1;
+    }
   }
 
   await writeAndDownloadPptx(pptx, `Reporte de Estatus${soloCliente ? ' (Cliente)' : ''} - ${currentProyecto}.pptx`);
