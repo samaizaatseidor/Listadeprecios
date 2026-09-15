@@ -764,6 +764,133 @@ Usa "" o [] si un dato no aparece. No inventes información. Si el SOW tiene una
       }
     }
 
+    if (url.pathname === '/api/estimador/public' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      const form = await request.formData();
+      const ddaFile = form.get('dda');
+      if (!ddaFile || typeof ddaFile === 'string') {
+        return new Response(JSON.stringify({ ok: false, error: 'Falta el DDA' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Analiza este documento de SAP Cloud ERP Digital Discovery Assessment (DDA). Extrae la tabla de "Resumen" que lista prioridades empresariales / áreas funcionales junto con el número de "Posiciones en alcance" de cada una. Responde ÚNICAMENTE con un arreglo JSON válido, sin texto adicional, sin markdown, con este formato:
+
+[{"area":"", "posiciones": 0}]
+
+Incluye solo las áreas con posiciones mayores a 0. No inventes datos.`;
+
+      try {
+        const fileRef = await delfosUploadFile(token, sessionId, username, ddaFile);
+        const raw = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [fileRef], useOnlineSearch: false });
+        const match = raw.match(/\[[\s\S]*\]/);
+        const areas = match ? JSON.parse(match[0]) : [];
+        return new Response(JSON.stringify({ ok: true, areas }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/estimador/private' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      const form = await request.formData();
+      const simplificationFile = form.get('simplification');
+      const interfaceFile = form.get('interfaces');
+      const customCodeFile = form.get('customCode');
+      if (!simplificationFile || typeof simplificationFile === 'string') {
+        return new Response(JSON.stringify({ ok: false, error: 'Falta el archivo de Simplification Items' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Analiza estos exports de SAP Readiness Check (Simplification Items obligatorio; Interface Impact Analysis y Custom Code Analysis opcionales si se adjuntaron). Cuenta y agrupa la información. Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, con este formato:
+
+{
+  "simplificationItems": [{"area":"", "cantidad": 0}],
+  "interfaces": [{"criticidad":"", "cantidad": 0}],
+  "customCode": [{"severidad":"", "cantidad": 0}]
+}
+
+Para "simplificationItems", agrupa por área funcional/componente de aplicación. Para "interfaces", agrupa por criticidad si el archivo la indica (si no, usa "No especificada" con el total). Para "customCode", agrupa por severidad/prioridad de hallazgo si el archivo la indica. Si no se adjuntó el archivo de interfaces o de custom code, deja ese arreglo vacío []. No inventes datos.`;
+
+      try {
+        const fileRefs = [];
+        fileRefs.push(await delfosUploadFile(token, sessionId, username, simplificationFile));
+        if (interfaceFile && typeof interfaceFile !== 'string') fileRefs.push(await delfosUploadFile(token, sessionId, username, interfaceFile));
+        if (customCodeFile && typeof customCodeFile !== 'string') fileRefs.push(await delfosUploadFile(token, sessionId, username, customCodeFile));
+
+        const raw = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs, useOnlineSearch: false });
+        const match = raw.match(/\{[\s\S]*\}/);
+        const resultado = match ? JSON.parse(match[0]) : { simplificationItems: [], interfaces: [], customCode: [] };
+        return new Response(JSON.stringify({ ok: true, resultado }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/wbs' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbs_log');
+      return new Response(raw || '{"proyectos":{}}', { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbs' && request.method === 'POST') {
+      let body;
+      try {
+        body = await request.json();
+        if (!body || typeof body.proyecto !== 'string' || !Array.isArray(body.tareas)) throw new Error('shape inválido');
+      } catch (e) {
+        return new Response('JSON inválido', { status: 400 });
+      }
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      const raw = await env.PM_KV.get('wbs_log');
+      const store = raw ? JSON.parse(raw) : { proyectos: {} };
+      store.proyectos[body.proyecto] = { tareas: body.tareas, guardadoPor: email, guardadoAt: new Date().toISOString() };
+      await env.PM_KV.put('wbs_log', JSON.stringify(store));
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbs-generar' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { proyecto, alcanceResumen, fases, integraciones, presupuestoHoras } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un Project Manager experto en implementaciones SAP bajo la metodología SAP Activate (Prepare, Explore, Realize, Deploy, Run). Con base en el alcance, fases e integraciones de este proyecto, genera un desglose de tareas (WBS) razonable y concreto. Responde ÚNICAMENTE con un arreglo JSON válido, sin texto adicional, sin markdown, con este formato exacto:
+
+[{"fase":"Prepare","tarea":"","entregable":"","rolResponsable":"","duracionEstimada":""}]
+
+Usa como fases: Prepare, Explore, Realize, Deploy, Cutover, Run. Genera entre 3 y 6 tareas por fase, concretas y accionables (no genéricas), considerando el alcance e integraciones dados. "duracionEstimada" debe ser texto corto como "3 días" o "1 semana". "rolResponsable" debe ser un rol típico de un proyecto SAP (ej. "PM", "Consultor Funcional FI", "Consultor Técnico BASIS", "Arquitecto de Integración"). No inventes texto genérico tipo "Tarea 1" — basa cada tarea en el alcance real dado.
+
+ALCANCE:
+${alcanceResumen || 'No especificado'}
+
+FASES DEL SOW:
+${JSON.stringify(fases || [])}
+
+INTEGRACIONES:
+${JSON.stringify(integraciones || [])}
+
+PRESUPUESTO DE HORAS POR ROL:
+${JSON.stringify(presupuestoHoras || [])}`;
+
+      try {
+        const raw = await delfosGetCompletion(token, { sessionId, username, text: prompt, useOnlineSearch: false });
+        const match = raw.match(/\[[\s\S]*\]/);
+        const tareas = match ? JSON.parse(match[0]) : [];
+        return new Response(JSON.stringify({ ok: true, tareas }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
     if (url.pathname === '/api/consumo-horas' && request.method === 'GET') {
       const raw = await env.PM_KV.get('consumo_horas');
       return new Response(raw || '{"proyectos":{}}', { headers: { 'Content-Type': 'application/json' } });
