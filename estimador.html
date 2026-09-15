@@ -25,6 +25,23 @@
   .topnav-links a:hover{color:var(--blue);}
   .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
 
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-link.active{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
   header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
   header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
@@ -100,6 +117,7 @@
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html" class="active">Estimador de Esfuerzo</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -359,6 +377,7 @@ let seleccionManual = {};
 function renderManual(main){
   main.innerHTML = `
     <div class="section">
+      <div style="background:#FBE7E7; color:#B23A3A; border-radius:8px; padding:10px 12px; font-size:12.5px; margin-bottom:14px; font-weight:600;">🚧 Esta sección está en construcción — los días por módulo son un punto de partida muy general y todavía no están calibrados. No la uses como cifra final para cotizar; úsala solo como referencia de orden de magnitud.</div>
       <h2>Selecciona módulos y su complejidad</h2>
       <p class="sub">Para estimaciones muy tempranas, cuando aún no hay ningún documento que subir.</p>
       ${MODULOS_MANUAL.map(m=>`
@@ -440,6 +459,22 @@ function exportarEstimacion(tipo){
 }
 
 render();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
 </script>
 </body>
 </html>
