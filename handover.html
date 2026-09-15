@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handover Comercial → Operaciones · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-link.active{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0 0 14px; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:820px; margin:0 auto; padding:16px 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:14px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
+
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:4px; font-weight:500;}
+  .field input[type=text], .field input[type=date], .field textarea, .field select{width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px; color:var(--ink); resize:vertical;}
+  .row2{display:flex; gap:10px;}
+  .row2 > div{flex:1;}
+
+  .btn{border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
+
+  .table-editor{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:8px;}
+  .table-editor th{text-align:left; color:var(--grey); font-weight:600; padding:4px 6px; font-size:11px;}
+  .table-editor td{padding:4px 6px; vertical-align:top;}
+  .table-editor input[type=text]{width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;}
+  .del-row{border:none; background:none; color:#B23A3A; cursor:pointer; font-size:16px;}
+
+  .kpi-mini{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px;}
+  .kpi-mini .chip{background:var(--card); border-radius:20px; padding:6px 12px; font-size:12px; color:var(--grey);}
+  .kpi-mini .chip b{color:var(--navy2);}
+
+  .loading{color:var(--grey); text-align:center; padding:20px; font-size:13px;}
+  .no-proyecto{text-align:center; padding:60px 20px; color:var(--grey);}
+  .warn-box{background:#FBF1DE; color:#8A6414; border-radius:8px; padding:10px 12px; font-size:12.5px; margin-top:6px;}
+  .success-box{background:#E7F7EE; color:#1F8A4C; border-radius:8px; padding:14px 16px; font-size:13.5px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html" class="active">Handover Comercial → Operaciones</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+        </div>
+      </div>
+    </div>
+  </div></nav>
+
+<header>
+  <h1>Handover: Comercial → Operaciones</h1>
+  <p>Todo lo que Operaciones necesita saber al recibir un proyecto recién ganado</p>
+</header>
+
+<main id="main"><div class="loading">Cargando…</div></main>
+
+<script>
+let proyectos = [];
+let dash = { raid:[], dependencias:[] };
+let lineasBase = {};
+let currentProyecto = null;
+let isNewProyecto = false;
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function loadAll(){
+  try{
+    const r = await fetch('/api/proyecto-dashboard');
+    const d = await r.json();
+    proyectos = d.proyectos || [];
+    dash = { raid: d.raid||[], dependencias: d.dependencias||[] };
+  }catch(e){}
+  try{
+    const r2 = await fetch('/api/linea-base');
+    const d2 = await r2.json();
+    lineasBase = d2.proyectos || {};
+  }catch(e){}
+  render();
+  const urlParams = new URLSearchParams(window.location.search);
+  const proyectoFromUrl = urlParams.get('proyecto');
+  if(proyectoFromUrl && proyectos.includes(proyectoFromUrl)){
+    document.getElementById('selectorProyecto').value = proyectoFromUrl;
+    isNewProyecto = false;
+    currentProyecto = proyectoFromUrl;
+    renderFormulario();
+  }
+}
+
+function render(){
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="section">
+      <h2>1. ¿Qué proyecto es?</h2>
+      <p class="sub">Si ya lo creaste con "Iniciar Proyecto desde SOW/DDA" o ya existe en el Dashboard, selecciónalo — así completamos su información en el mismo lugar, sin duplicar nada.</p>
+      <div class="field">
+        <select id="selectorProyecto" onchange="onSelectorChange()">
+          <option value="">Selecciona un proyecto existente...</option>
+          ${proyectos.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('')}
+          <option value="__nuevo__">Es un proyecto nuevo (no está en la lista)</option>
+        </select>
+      </div>
+      <div id="nuevoProyectoBox" style="display:none;">
+        <div class="field">
+          <label>Nombre del nuevo proyecto</label>
+          <input type="text" id="nuevoProyectoNombre" oninput="checkDuplicado()" placeholder="Ej. Implementación SAP S/4HANA Cloud — Cliente X">
+        </div>
+        <div id="duplicadoWarning"></div>
+        <button class="btn btn-primary" onclick="confirmarNuevoProyecto()">Continuar con este proyecto</button>
+      </div>
+    </div>
+    <div id="formularioBox"></div>
+  `;
+}
+
+function normaliza(s){ return (s||'').trim().toLowerCase().replace(/\s+/g,' '); }
+
+function checkDuplicado(){
+  const nombre = document.getElementById('nuevoProyectoNombre').value;
+  const n = normaliza(nombre);
+  const box = document.getElementById('duplicadoWarning');
+  if(!n){ box.innerHTML=''; return; }
+  const parecidos = proyectos.filter(p => {
+    const pn = normaliza(p);
+    return pn === n || pn.includes(n) || n.includes(pn);
+  });
+  if(parecidos.length){
+    box.innerHTML = `<div class="warn-box">⚠️ Ya existe un proyecto parecido: ${parecidos.map(p=>`<b>"${esc(p)}"</b>`).join(', ')}. Si es el mismo, mejor selecciónalo arriba en vez de crear uno nuevo.</div>`;
+  }else{
+    box.innerHTML = '';
+  }
+}
+
+function onSelectorChange(){
+  const val = document.getElementById('selectorProyecto').value;
+  document.getElementById('nuevoProyectoBox').style.display = val === '__nuevo__' ? 'block' : 'none';
+  if(val === '__nuevo__'){
+    isNewProyecto = true;
+    currentProyecto = null;
+    document.getElementById('formularioBox').innerHTML = '';
+  }else if(val){
+    isNewProyecto = false;
+    currentProyecto = val;
+    renderFormulario();
+  }else{
+    currentProyecto = null;
+    document.getElementById('formularioBox').innerHTML = '';
+  }
+}
+
+function confirmarNuevoProyecto(){
+  const nombre = document.getElementById('nuevoProyectoNombre').value.trim();
+  if(!nombre){ alert('Escribe el nombre del proyecto'); return; }
+  currentProyecto = nombre;
+  document.getElementById('nuevoProyectoBox').style.display = 'none';
+  renderFormulario();
+}
+
+function renderFormulario(){
+  const lb = (currentProyecto && lineasBase[currentProyecto]) || {};
+  const raidCount = dash.raid.filter(it=>it.proyecto===currentProyecto).length;
+  const depsCount = dash.dependencias.filter(it=>it.proyecto===currentProyecto).length;
+  const box = document.getElementById('formularioBox');
+
+  box.innerHTML = `
+    <div class="section">
+      <h2>2. Datos generales ${lb.clienteNombre || lb.alcanceResumen ? '<span style="font-weight:400; color:var(--greyl); font-size:11px;">(prellenado desde Línea Base — puedes corregir)</span>' : ''}</h2>
+      <div class="kpi-mini">
+        <div class="chip">RAID: <b>${raidCount}</b> registro(s)</div>
+        <div class="chip">Dependencias: <b>${depsCount}</b> registro(s)</div>
+      </div>
+      <div class="field"><label>Nombre del proyecto</label><input type="text" id="h-nombreProyecto" value="${esc(currentProyecto)}" readonly style="background:var(--card);"></div>
+      <div class="row2">
+        <div class="field"><label>Cliente</label><input type="text" id="h-cliente" value="${esc(lb.clienteNombre)}"></div>
+        <div class="field"><label>Comercial (AE)</label><input type="text" id="h-comercial" value="${esc(lb.comercialAE)}"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Fecha de inicio propuesta</label><input type="date" id="h-fechaInicio" value="${lb.fechaInicioPropuesta||''}"></div>
+        <div class="field"><label>Fecha fin propuesta</label><input type="date" id="h-fechaFin" value="${lb.fechaFinPropuesta||''}"></div>
+        <div class="field"><label>Moneda</label><input type="text" id="h-moneda" value="${esc(lb.moneda)}" style="max-width:100px;"></div>
+      </div>
+      <div class="field"><label>Resumen de alcance</label><textarea id="h-alcance" rows="3">${esc(lb.alcanceResumen)}</textarea></div>
+      <div class="field"><label>Inversión total</label><input type="text" id="h-inversion" value="${esc(lb.inversionTotal)}"></div>
+    </div>
+
+    <div class="section">
+      <h2>3. Contractual</h2>
+      <div class="row2">
+        <div class="field"><label>Prime Contractor</label><input type="text" id="h-primeContractor" value="${esc(lb.primeContractor)}"></div>
+        <div class="field"><label>Propuesta firmada</label><select id="h-propuestaFirmada"><option value="Sí" ${lb.propuestaFirmada==='Sí'?'selected':''}>Sí</option><option value="No" ${lb.propuestaFirmada==='No'?'selected':''}>No</option></select></div>
+        <div class="field"><label>Contrato/SOW firmado</label><select id="h-sowFirmado"><option value="Sí" ${lb.sowFirmado==='Sí'?'selected':''}>Sí</option><option value="No" ${lb.sowFirmado==='No'?'selected':''}>No</option></select></div>
+      </div>
+      <div class="field"><label>Hitos de pago</label><textarea id="h-hitosPago" rows="2" placeholder="Ej. 30% al inicio, 40% al Go-Live, 30% a los 30 días">${esc(lb.hitosDePago)}</textarea></div>
+      <div class="field"><label>Info de Partner de Ejecución (si aplica)</label><textarea id="h-partnerInfo" rows="2">${esc(lb.partnerInfo)}</textarea></div>
+      <div class="field"><label>Contrato con Partner (si aplica)</label><textarea id="h-contratoPartner" rows="2">${esc(lb.contratoPartner)}</textarea></div>
+    </div>
+
+    <div class="section">
+      <h2>4. Stakeholders del cliente</h2>
+      <p class="sub">Esto sí hay que capturarlo a mano — normalmente sale en la junta de handover.</p>
+      <table class="table-editor" id="stakeholdersTable">
+        <tr><th>Nombre</th><th>Puesto</th><th></th></tr>
+      </table>
+      <button class="btn btn-ghost" onclick="addStakeholder({nombre:'',puesto:''})">+ Agregar stakeholder</button>
+    </div>
+
+    <div class="section">
+      <h2>5. Contexto operativo</h2>
+      <div class="field"><label>Pain Points del cliente</label><textarea id="h-painPoints" rows="3">${esc(lb.painPoints)}</textarea></div>
+      <div class="field"><label>Garantías</label><textarea id="h-garantias" rows="2">${esc(lb.garantias)}</textarea></div>
+      <div class="field"><label>Hypercare</label><textarea id="h-hypercare" rows="2">${esc(lb.hypercare)}</textarea></div>
+      <div class="field"><label>Información adicional del proyecto</label><textarea id="h-infoAdicional" rows="2">${esc(lb.infoAdicional)}</textarea></div>
+    </div>
+
+    <div class="section" style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="guardarHandover()">Guardar</button>
+      <button class="btn btn-ghost" onclick="exportarHandoverPPT()">📤 Generar documento de Handover (PPT)</button>
+      <a href="/proyecto.html?proyecto=${encodeURIComponent(currentProyecto)}" class="btn btn-ghost" style="text-decoration:none; display:inline-block;">📐 Ver en Dashboard de Proyecto</a>
+    </div>
+    <div id="statusBox"></div>
+  `;
+
+  document.getElementById('stakeholdersTable').innerHTML = '<tr><th>Nombre</th><th>Puesto</th><th></th></tr>';
+  (lb.stakeholders || []).forEach(s => addStakeholder(s));
+}
+
+function addStakeholder(s){
+  const table = document.getElementById('stakeholdersTable');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${esc(s.nombre)}"></td>
+    <td><input type="text" value="${esc(s.puesto)}"></td>
+    <td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  table.appendChild(tr);
+}
+
+function collectFormData(){
+  const stakeholderRows = Array.from(document.querySelectorAll('#stakeholdersTable tr')).slice(1);
+  const stakeholders = stakeholderRows.map(tr=>{
+    const cells = tr.querySelectorAll('input');
+    return { nombre: cells[0].value.trim(), puesto: cells[1].value.trim() };
+  }).filter(s=>s.nombre);
+
+  return {
+    clienteNombre: document.getElementById('h-cliente').value.trim(),
+    comercialAE: document.getElementById('h-comercial').value.trim(),
+    fechaInicioPropuesta: document.getElementById('h-fechaInicio').value,
+    fechaFinPropuesta: document.getElementById('h-fechaFin').value,
+    moneda: document.getElementById('h-moneda').value.trim(),
+    alcanceResumen: document.getElementById('h-alcance').value.trim(),
+    inversionTotal: document.getElementById('h-inversion').value.trim(),
+    primeContractor: document.getElementById('h-primeContractor').value.trim(),
+    propuestaFirmada: document.getElementById('h-propuestaFirmada').value,
+    sowFirmado: document.getElementById('h-sowFirmado').value,
+    hitosDePago: document.getElementById('h-hitosPago').value.trim(),
+    partnerInfo: document.getElementById('h-partnerInfo').value.trim(),
+    contratoPartner: document.getElementById('h-contratoPartner').value.trim(),
+    stakeholders,
+    painPoints: document.getElementById('h-painPoints').value.trim(),
+    garantias: document.getElementById('h-garantias').value.trim(),
+    hypercare: document.getElementById('h-hypercare').value.trim(),
+    infoAdicional: document.getElementById('h-infoAdicional').value.trim()
+  };
+}
+
+async function guardarHandover(){
+  const statusBox = document.getElementById('statusBox');
+  statusBox.innerHTML = '<div class="loading">Guardando…</div>';
+  const datosNuevos = collectFormData();
+  const lbExistente = lineasBase[currentProyecto] || {};
+  const datosFinales = { ...lbExistente, ...datosNuevos };
+
+  try{
+    if(!proyectos.includes(currentProyecto)){
+      const r = await fetch('/api/proyecto-dashboard');
+      const d = await r.json();
+      const nuevaLista = Array.from(new Set([...(d.proyectos||[]), currentProyecto]));
+      await fetch('/api/proyecto-dashboard', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ proyectos: nuevaLista, raid: d.raid||[], dependencias: d.dependencias||[], compromisos: d.compromisos||[], changeRequests: d.changeRequests||[] })
+      });
+      proyectos = nuevaLista;
+    }
+    await fetch('/api/linea-base', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ proyecto: currentProyecto, datos: datosFinales })
+    });
+    lineasBase[currentProyecto] = datosFinales;
+    await fetch('/api/audit', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ page:'Handover', action:'Guardó Handover', detail: `"${currentProyecto}"` })
+    });
+    statusBox.innerHTML = '<div class="success-box">Guardado correctamente.</div>';
+  }catch(e){
+    console.error(e);
+    statusBox.innerHTML = '<div class="warn-box">No se pudo guardar. Intenta de nuevo.</div>';
+  }
+}
+
+async function writeAndDownloadPptx(pptx, fileName){
+  const buf = await pptx.write('arraybuffer');
+  if(typeof JSZip === 'undefined'){
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName; a.click();
+    return;
+  }
+  const zip = await JSZip.loadAsync(buf);
+  const names = Object.keys(zip.files);
+  const setNames = new Set(names);
+  const ctName = '[Content_Types].xml';
+  if(zip.file(ctName)){
+    const ct = await zip.file(ctName).async('string');
+    const ctNew = ct.replace(/<Override\b[^>]*\/>/g, (tag) => {
+      const pn = (tag.match(/PartName="([^"]+)"/) || [])[1];
+      if(pn && !setNames.has(pn.replace(/^\//, ''))) return '';
+      return tag;
+    });
+    if(ctNew !== ct) zip.file(ctName, ctNew);
+  }
+  const outBuf = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(outBuf); a.download = fileName;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+async function exportarHandoverPPT(){
+  if(typeof PptxGenJS === 'undefined'){
+    alert('No se pudo cargar la librería para generar el PPT. Revisa tu conexión a internet.');
+    return;
+  }
+  await guardarHandover();
+  const d = collectFormData();
+  try{
+  const NAVY='0A1226', NAVY2='0E1E3F', BLUE='1E5BB8', CYAN='33B4DD', INK='16223A', LINE='D8E2EE';
+  const LOGO_RATIO = 1165/475;
+  const pptx = new PptxGenJS();
+  pptx.defineLayout({ name:'SEIDOR', width:13.333, height:7.5 });
+  pptx.layout = 'SEIDOR';
+
+  let logoDarkUrl=null, logoLightUrl=null, bgCoverUrl=null, bgLightUrl=null;
+  try{
+    const toDataUrl = async (url) => { const resp = await fetch(url); const blob = await resp.blob(); return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); }); };
+    [logoDarkUrl, logoLightUrl, bgCoverUrl, bgLightUrl] = await Promise.all([
+      toDataUrl('/assets/logo_dark.png'), toDataUrl('/assets/logo_light.png'),
+      toDataUrl('/assets/bg_cover.png'), toDataUrl('/assets/bg_light.png')
+    ]);
+  }catch(e){}
+
+  function brandMark(s,x,y,dark,w){ w=w||1.55; const url=dark?logoDarkUrl:logoLightUrl; if(url) s.addImage({data:url,x,y,w,h:w/LOGO_RATIO}); }
+  let pageCounter = 1;
+  function pageNum(s,n){ s.addText(String(n).padStart(2,'0'), {x:11.83,y:7.0,w:0.5,h:0.3,fontFace:'Poppins',fontSize:10,color:'8A97AC',align:'right',margin:0}); }
+  function header(s,title){
+    s.background = bgLightUrl ? {data:bgLightUrl} : {color:'#FFFFFF'};
+    s.addText((currentProyecto||'').toUpperCase(), {x:0.7,y:0.55,w:9,h:0.3,fontFace:'Poppins',fontSize:12.5,bold:true,color:CYAN,charSpacing:2,margin:0});
+    s.addText(title, {x:0.7,y:0.82,w:9.5,h:0.7,fontFace:'Poppins',fontSize:28,bold:true,color:NAVY2,margin:0});
+    brandMark(s,11.0,0.55,false);
+    pageCounter++; pageNum(s,pageCounter);
+  }
+  function estimateRowLines(text, colWidthIn, fontSize){
+    fontSize = fontSize||11;
+    const charsPerLine = Math.max(8, Math.floor(colWidthIn*13.5*(11/fontSize)));
+    const lines = String(text||'').split('\n');
+    let total=0; lines.forEach(l=>{ total += Math.max(1, Math.ceil(l.length/charsPerLine)); });
+    return total;
+  }
+  function addPaginatedTable(title, headerCells, dataRows, colW){
+    const AVAILABLE_H=5.3, ROW_PAD=0.14, LINE_H=0.235;
+    let i=0;
+    while(i<dataRows.length){
+      const s = pptx.addSlide();
+      header(s, title);
+      const chunk=[headerCells]; let used=0.4; let j=i;
+      while(j<dataRows.length){
+        const row=dataRows[j];
+        const lines = Math.max(...row.map((c,ci)=>estimateRowLines(c,colW[ci])));
+        const rowH = ROW_PAD + lines*LINE_H;
+        if(used+rowH>AVAILABLE_H && chunk.length>1) break;
+        chunk.push(row); used+=rowH; j++;
+      }
+      s.addTable(chunk, {x:0.5,y:1.55,w:12.3,colW,fontSize:11,color:INK,fontFace:'Poppins',border:{type:'solid',color:LINE,pt:0.5}});
+      i=j;
+    }
+  }
+
+  // Portada
+  let slide = pptx.addSlide();
+  slide.background = bgCoverUrl ? {data:bgCoverUrl} : {color:NAVY};
+  brandMark(slide,11.1,0.55,true);
+  slide.addText('Handover: Comercial → Operaciones', {x:0.6,y:2.6,w:12,h:0.8,fontSize:28,bold:true,color:'FFFFFF',fontFace:'Poppins',margin:0});
+  slide.addText(currentProyecto, {x:0.6,y:3.4,w:12,h:0.6,fontSize:20,color:CYAN,fontFace:'Poppins',margin:0});
+  if(d.clienteNombre) slide.addText(d.clienteNombre, {x:0.6,y:4.0,w:12,h:0.5,fontSize:14,color:'8A97AC',fontFace:'Poppins',margin:0});
+  slide.addText(new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'}), {x:0.6,y:4.5,w:12,h:0.5,fontSize:13,color:'8A97AC',fontFace:'Poppins',margin:0});
+
+  // Datos generales
+  slide = pptx.addSlide();
+  header(slide, 'Datos Generales y Contractuales');
+  const infoLines = [
+    `Cliente: ${d.clienteNombre||'—'}`,
+    `Comercial (AE): ${d.comercialAE||'—'}`,
+    `Fechas propuestas: ${d.fechaInicioPropuesta||'—'} a ${d.fechaFinPropuesta||'—'}`,
+    `Moneda: ${d.moneda||'—'}    Inversión total: ${d.inversionTotal||'—'}`,
+    `Prime Contractor: ${d.primeContractor||'—'}`,
+    `Propuesta firmada: ${d.propuestaFirmada||'—'}    Contrato/SOW firmado: ${d.sowFirmado||'—'}`,
+    `Hitos de pago: ${d.hitosDePago||'—'}`
+  ];
+  slide.addText(infoLines.join('\n'), {x:0.7,y:1.6,w:11.8,h:2.2,fontSize:14,color:INK,fontFace:'Poppins',valign:'top',lineSpacingMultiple:1.4,margin:0});
+  if(d.alcanceResumen){
+    slide.addText('Alcance:', {x:0.7,y:4.0,w:11.8,h:0.3,fontSize:13,bold:true,color:NAVY2,fontFace:'Poppins',margin:0});
+    slide.addText(d.alcanceResumen, {x:0.7,y:4.3,w:11.8,h:2.2,fontSize:12,color:INK,fontFace:'Poppins',valign:'top',margin:0});
+  }
+
+  // Stakeholders
+  if(d.stakeholders.length){
+    const headerCells=[{text:'Nombre',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Puesto',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}];
+    const dataRows = d.stakeholders.map(s=>[s.nombre, s.puesto]);
+    addPaginatedTable('Stakeholders del Cliente', headerCells, dataRows, [6,6.3]);
+  }
+
+  // Contexto operativo
+  if(d.painPoints || d.garantias || d.hypercare || d.infoAdicional){
+    slide = pptx.addSlide();
+    header(slide, 'Contexto Operativo');
+    const bloques = [];
+    if(d.painPoints) bloques.push('Pain Points:\n'+d.painPoints);
+    if(d.garantias) bloques.push('Garantías:\n'+d.garantias);
+    if(d.hypercare) bloques.push('Hypercare:\n'+d.hypercare);
+    if(d.infoAdicional) bloques.push('Información adicional:\n'+d.infoAdicional);
+    slide.addText(bloques.join('\n\n'), {x:0.7,y:1.6,w:11.8,h:5,fontSize:13,color:INK,fontFace:'Poppins',valign:'top',margin:0});
+  }
+
+  // Riesgos y dependencias (referencia rápida desde el Dashboard)
+  const raidDelProyecto = dash.raid.filter(it=>it.proyecto===currentProyecto);
+  const depsDelProyecto = dash.dependencias.filter(it=>it.proyecto===currentProyecto);
+  if(raidDelProyecto.length){
+    const headerCells=[{text:'Tipo',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Descripción',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}];
+    const dataRows = raidDelProyecto.map(it=>[it.tipo, it.descripcion, it.estatus]);
+    addPaginatedTable('Riesgos Identificados (referencia)', headerCells, dataRows, [1.8,8.5,2]);
+  }
+  if(depsDelProyecto.length){
+    const headerCells=[{text:'Depende de',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Descripción',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}];
+    const dataRows = depsDelProyecto.map(it=>[it.tercero, it.descripcion, it.estatus]);
+    addPaginatedTable('Dependencias Críticas (referencia)', headerCells, dataRows, [2.5,7.8,2]);
+  }
+
+  await writeAndDownloadPptx(pptx, `Handover - ${currentProyecto}.pptx`);
+  }catch(e){
+    console.error(e);
+    alert('No se pudo generar el archivo PPT: ' + (e && e.message ? e.message : e) + '. Avísale a Sam si el problema sigue.');
+  }
+}
+
+loadAll();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+</body>
+</html>

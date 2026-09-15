@@ -140,6 +140,7 @@
           <a href="/kpis.html">Tablero de Control</a>
           <div class="nav-dropdown-sep"></div>
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -173,6 +174,7 @@
     <button class="btn btn-ghost" id="exportClienteBtn" onclick="exportarPPT(true)" style="display:none;">📤 Exportar PPT para cliente</button>
     <a class="btn btn-ghost" id="checklistLink" href="#" style="display:none; text-decoration:none;">✅ Ver Checklist</a>
     <a class="btn btn-ghost" id="vistaGeneralLink" href="#" style="display:none; text-decoration:none;">🧭 Vista General</a>
+    <a class="btn btn-ghost" id="handoverLink" href="#" style="display:none; text-decoration:none;">🤝 Handover</a>
     <button class="btn btn-danger" id="deleteProyectoBtn" onclick="deleteProyecto()" style="display:none;">🗑 Borrar este proyecto</button>
   </div>
 </header>
@@ -328,6 +330,13 @@ function render(){
     vistaGeneralLink.href = '/vista-general.html?proyecto=' + encodeURIComponent(currentProyecto);
   }else{
     vistaGeneralLink.style.display = 'none';
+  }
+  const handoverLink = document.getElementById('handoverLink');
+  if(currentProyecto){
+    handoverLink.style.display = 'inline-block';
+    handoverLink.href = '/handover.html?proyecto=' + encodeURIComponent(currentProyecto);
+  }else{
+    handoverLink.style.display = 'none';
   }
   if(!currentProyecto){
     main.innerHTML = '<div class="no-proyecto">Selecciona o crea un proyecto para ver su dashboard.</div>';
