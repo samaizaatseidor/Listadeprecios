@@ -832,6 +832,29 @@ Para "simplificationItems", agrupa por área funcional/componente de aplicación
       }
     }
 
+    if (url.pathname === '/api/resumen-cuenta' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { cliente, proyectos } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un asistente de Project Management para SEIDOR México. Con base en el estado de TODOS los proyectos activos del cliente "${cliente}", escribe un resumen ejecutivo de cuenta de 4 a 6 oraciones, en español, en prosa corrida (sin encabezados ni viñetas), pensado para una revisión trimestral de negocio (QBR) con dirección. Cubre: salud general de la cuenta en conjunto, cuál proyecto está más en riesgo o más atrasado si alguno destaca, y el panorama de Change Requests pendientes. No inventes información que no esté en los datos.
+
+PROYECTOS DEL CLIENTE:
+${JSON.stringify(proyectos || [])}`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
     if (url.pathname === '/api/wbs' && request.method === 'GET') {
       const raw = await env.PM_KV.get('wbs_log');
       return new Response(raw || '{"proyectos":{}}', { headers: { 'Content-Type': 'application/json' } });
