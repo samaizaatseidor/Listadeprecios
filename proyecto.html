@@ -141,6 +141,7 @@
           <div class="nav-dropdown-sep"></div>
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
           <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -201,6 +202,8 @@ function isPastDue(fecha, estatus, doneStatus){
 let lineasBase = {};
 let consumoHorasStore = {};
 let consumoHoras = { presupuesto: [], registros: [] };
+let wbsStore = {};
+let wbsTareas = [];
 let progresoChecklistGlobal = {};
 const FASES_ITEM_COUNTS = { prepare:8, explore:7, realize:7, deploy:7, cutover:11, run:7 };
 
@@ -228,6 +231,11 @@ async function loadData(){
     const r4 = await fetch('/api/consumo-horas');
     const d4 = await r4.json();
     consumoHorasStore = d4.proyectos || {};
+  }catch(e){}
+  try{
+    const r5 = await fetch('/api/wbs');
+    const d5 = await r5.json();
+    wbsStore = d5.proyectos || {};
   }catch(e){}
   populateProyectoSelect();
   const urlParams = new URLSearchParams(window.location.search);
@@ -280,6 +288,8 @@ function selectProyecto(p){
   currentProyecto = p || null;
   const stored = currentProyecto ? consumoHorasStore[currentProyecto] : null;
   consumoHoras = stored ? { presupuesto: stored.presupuesto || [], registros: stored.registros || [] } : { presupuesto: [], registros: [] };
+  const wbsStored = currentProyecto ? wbsStore[currentProyecto] : null;
+  wbsTareas = wbsStored ? (wbsStored.tareas || []) : [];
   document.getElementById('proyectoSelect').value = p || '';
   render();
 }
@@ -382,9 +392,10 @@ function render(){
       <button class="${activeTab==='compromisos'?'active':''}" onclick="setTab('compromisos')">Compromisos</button>
       <button class="${activeTab==='changeRequests'?'active':''}" onclick="setTab('changeRequests')">Change Requests</button>
       <button class="${activeTab==='horas'?'active':''}" onclick="setTab('horas')">Consumo de Horas</button>
+      <button class="${activeTab==='wbs'?'active':''}" onclick="setTab('wbs')">Desglose de Tareas (WBS)</button>
     </div>
     <div class="tabcontent">
-      <div class="tab-toolbar" id="tabToolbar" style="${activeTab==='horas' ? 'display:none;' : ''}">
+      <div class="tab-toolbar" id="tabToolbar" style="${(activeTab==='horas'||activeTab==='wbs') ? 'display:none;' : ''}">
         <input type="text" id="search" placeholder="Buscar…" oninput="renderTabBody()">
         <button class="btn btn-primary" onclick="openSheet(null)">+ Nuevo</button>
       </div>
@@ -484,6 +495,10 @@ function renderTabBody(){
 
   if(activeTab === 'horas'){
     renderHorasTab(body);
+  }
+
+  if(activeTab === 'wbs'){
+    renderWbsTab(body);
   }
 }
 
@@ -658,6 +673,197 @@ function descargarPlantillaHoras(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Horas');
   XLSX.writeFile(wb, `Plantilla Consumo de Horas - ${currentProyecto||'Proyecto'}.xlsx`);
+}
+
+function renderWbsTab(body){
+  const FASES_WBS = ['Prepare','Explore','Realize','Deploy','Cutover','Run'];
+  body.innerHTML = `
+    <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <h2 style="font-size:14px; color:var(--navy2); margin:0 0 4px;">Desglose de Tareas (WBS)</h2>
+          <p style="font-size:12px; color:var(--greyl); margin:0;">Delfos arma un borrador a partir del alcance y las fases del SOW — revísalo y ajústalo, es un punto de partida.</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="generarWBS()">✨ Generar con Delfos</button>
+          <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="exportarWbsExcel()">⬇️ Exportar a Excel</button>
+          <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="exportarWbsMsProject()">⬇️ Exportar para MS Project</button>
+        </div>
+      </div>
+      <div id="wbsStatus" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow);">
+      <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+        <tr style="text-align:left; color:var(--grey); border-bottom:1px solid var(--line);">
+          <th style="padding:6px 4px;">Fase</th><th style="padding:6px 4px;">Tarea</th><th style="padding:6px 4px;">Entregable</th><th style="padding:6px 4px;">Rol responsable</th><th style="padding:6px 4px;">Duración est.</th><th></th>
+        </tr>
+        <tbody id="wbsTableBody">
+        ${wbsTareas.length ? wbsTareas.map((t,i)=>`
+          <tr style="border-bottom:1px solid var(--line);">
+            <td style="padding:6px 4px; min-width:110px;">
+              <select onchange="updateWbsField(${i},'fase',this.value)">
+                ${FASES_WBS.map(f=>`<option value="${f}" ${t.fase===f?'selected':''}>${f}</option>`).join('')}
+              </select>
+            </td>
+            <td style="padding:6px 4px;"><input type="text" value="${esc(t.tarea)}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'tarea',this.value)"></td>
+            <td style="padding:6px 4px;"><input type="text" value="${esc(t.entregable)}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'entregable',this.value)"></td>
+            <td style="padding:6px 4px; min-width:150px;"><input type="text" value="${esc(t.rolResponsable)}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'rolResponsable',this.value)"></td>
+            <td style="padding:6px 4px; min-width:100px;"><input type="text" value="${esc(t.duracionEstimada)}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'duracionEstimada',this.value)"></td>
+            <td style="padding:6px 4px;"><button class="btn btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="removeWbsTarea(${i})">×</button></td>
+          </tr>
+        `).join('') : `<tr><td colspan="6" style="padding:20px 4px; color:var(--greyl); text-align:center;">Sin tareas todavía — genera un borrador con Delfos o agrega una manualmente.</td></tr>`}
+        </tbody>
+      </table>
+      <button class="btn btn-ghost" style="margin-top:10px; border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="addWbsTarea()">+ Agregar tarea</button>
+    </div>
+  `;
+}
+
+async function saveWbs(){
+  try{
+    await fetch('/api/wbs', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ proyecto: currentProyecto, tareas: wbsTareas })
+    });
+    wbsStore[currentProyecto] = { tareas: wbsTareas };
+  }catch(e){ console.error(e); }
+}
+
+function updateWbsField(idx, field, value){
+  wbsTareas[idx][field] = value;
+  saveWbs();
+}
+
+async function addWbsTarea(){
+  wbsTareas.push({ fase:'Prepare', tarea:'', entregable:'', rolResponsable:'', duracionEstimada:'' });
+  await saveWbs();
+  renderTabBody();
+}
+
+async function removeWbsTarea(idx){
+  if(!confirm('¿Eliminar esta tarea del WBS?')) return;
+  wbsTareas.splice(idx,1);
+  await saveWbs();
+  renderTabBody();
+}
+
+async function generarWBS(){
+  const statusBox = document.getElementById('wbsStatus');
+  if(wbsTareas.length && !confirm('Ya hay tareas capturadas. ¿Generar un borrador nuevo y agregarlo al final de la lista?')) return;
+  statusBox.innerHTML = '<span class="spinner"></span>Generando borrador con Delfos…';
+  const lb = lineasBase[currentProyecto] || {};
+  const depsDelProyecto = itemsFor('dependencias').map(d=>({sistema:d.tercero, descripcion:d.descripcion}));
+  const presupuesto = (consumoHorasStore[currentProyecto] && consumoHorasStore[currentProyecto].presupuesto) || [];
+  try{
+    const r = await fetch('/api/wbs-generar', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        proyecto: currentProyecto,
+        alcanceResumen: lb.alcanceResumen || '',
+        fases: lb.fases || [],
+        integraciones: depsDelProyecto,
+        presupuestoHoras: presupuesto
+      })
+    });
+    const d = await r.json();
+    if(!d.ok || !Array.isArray(d.tareas) || !d.tareas.length){
+      statusBox.innerHTML = `<span style="color:#B23A3A;">${esc(d.error || 'No se pudo generar. Revisa que el proyecto tenga alcance o fases capturadas en su Línea Base.')}</span>`;
+      return;
+    }
+    wbsTareas = wbsTareas.concat(d.tareas);
+    await saveWbs();
+    await logAudit('Generó WBS con Delfos', `Proyecto "${currentProyecto}" — ${d.tareas.length} tareas`);
+    statusBox.innerHTML = '';
+    renderTabBody();
+  }catch(e){
+    console.error(e);
+    statusBox.innerHTML = '<span style="color:#B23A3A;">No se pudo conectar con Delfos.</span>';
+  }
+}
+
+function exportarWbsExcel(){
+  if(typeof XLSX === 'undefined'){
+    alert('No se pudo cargar la librería de Excel. Revisa tu conexión a internet.');
+    return;
+  }
+  if(!wbsTareas.length){
+    alert('No hay tareas para exportar todavía.');
+    return;
+  }
+  const data = [
+    ['Fase','Tarea','Entregable','Rol Responsable','Duración Estimada'],
+    ...wbsTareas.map(t=>[t.fase, t.tarea, t.entregable, t.rolResponsable, t.duracionEstimada])
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:12},{wch:45},{wch:30},{wch:22},{wch:16}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'WBS');
+  XLSX.writeFile(wb, `WBS - ${currentProyecto}.xlsx`);
+}
+
+function parseDuracionAHoras(texto){
+  const t = (texto||'').toLowerCase();
+  const m = t.match(/(\d+(?:\.\d+)?)/);
+  const num = m ? parseFloat(m[1]) : 1;
+  if(t.includes('sem')) return num * 40;
+  if(t.includes('mes')) return num * 160;
+  if(t.includes('hora') || t.includes('hr')) return num;
+  return num * 8; // default: días (8h/día)
+}
+
+function xmlEscape(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function exportarWbsMsProject(){
+  if(!wbsTareas.length){
+    alert('No hay tareas para exportar todavía.');
+    return;
+  }
+  const FASES_ORDEN = ['Prepare','Explore','Realize','Deploy','Cutover','Run'];
+  let uid = 1;
+  const tasksXml = [];
+
+  FASES_ORDEN.forEach(fase => {
+    const tareasFase = wbsTareas.filter(t=>t.fase===fase);
+    if(!tareasFase.length) return;
+    const faseUid = uid++;
+    tasksXml.push(`
+    <Task>
+      <UID>${faseUid}</UID>
+      <ID>${faseUid}</ID>
+      <Name>${xmlEscape(fase)}</Name>
+      <OutlineLevel>1</OutlineLevel>
+      <Summary>1</Summary>
+    </Task>`);
+    tareasFase.forEach(t=>{
+      const horas = parseDuracionAHoras(t.duracionEstimada);
+      const taskUid = uid++;
+      const notas = [t.entregable ? 'Entregable: '+t.entregable : '', t.rolResponsable ? 'Rol: '+t.rolResponsable : ''].filter(Boolean).join(' — ');
+      tasksXml.push(`
+    <Task>
+      <UID>${taskUid}</UID>
+      <ID>${taskUid}</ID>
+      <Name>${xmlEscape(t.tarea || '(sin nombre)')}</Name>
+      <OutlineLevel>2</OutlineLevel>
+      <Duration>PT${horas}H0M0S</Duration>
+      <Notes>${xmlEscape(notas)}</Notes>
+    </Task>`);
+    });
+  });
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/project">
+  <Name>${xmlEscape('WBS - ' + currentProyecto)}</Name>
+  <Title>${xmlEscape(currentProyecto)}</Title>
+  <Tasks>${tasksXml.join('')}
+  </Tasks>
+</Project>`;
+
+  const blob = new Blob([xml], { type: 'application/xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `WBS - ${currentProyecto}.xml`;
+  document.body.appendChild(a); a.click(); a.remove();
 }
 
 function handleExcelHoras(file){
