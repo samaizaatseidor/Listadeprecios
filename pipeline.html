@@ -40,6 +40,16 @@
   .card{background:#fff; border-radius:10px; padding:12px; margin-bottom:9px; cursor:pointer; box-shadow:var(--shadow); border-left:3px solid var(--line);}
   .card.risk-alto{border-left-color:#C24545;}
   .card.risk-medio{border-left-color:#D9A441;}
+  .card.stage-prospeccion{background:#F7F8FA;}
+  .card.stage-asignada_preventa{background:#F3F8FD;}
+  .card.stage-propuesta{background:#FFFBF1;}
+  .card.stage-scoping{background:#F6F3FC;}
+  .card.stage-implementacion{background:#F1FAF4;}
+  .card.stage-pausado{background:#FAF7F0;}
+  .card.stage-no_go{background:#FEF6F6;}
+  .card[draggable="true"]{cursor:grab;}
+  .card.dragging{opacity:0.4;}
+  .col.drag-over{background:#E3ECF9; outline:2px dashed var(--blue); outline-offset:-2px;}
   .card h3{margin:0 0 4px; font-size:13.5px; font-weight:600; color:var(--navy2);}
   .card p{margin:0; font-size:12px; color:var(--grey); line-height:1.4;}
   .chips{display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;}
@@ -289,6 +299,14 @@ function render(){
     const items = visible.filter(p=>p.stage===st.id);
     const col = document.createElement('div');
     col.className = 'col';
+    col.addEventListener('dragover', (e)=>{ e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', ()=> col.classList.remove('drag-over'));
+    col.addEventListener('drop', async (e)=>{
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain');
+      await moveCardToStage(id, st.id);
+    });
     col.innerHTML = `<h2>${st.label} <span class="count">${items.length}</span></h2>`;
     if(items.length===0) col.innerHTML += `<div class="empty">Sin proyectos</div>`;
     items.forEach(p=>{
@@ -302,7 +320,15 @@ function render(){
       const daysSinceMove = daysInCurrentStage(p);
       const isStale = daysSinceMove !== null && daysSinceMove >= STALE_DAYS && st.id !== 'pausado' && st.id !== 'no_go';
       const card = document.createElement('div');
-      card.className = 'card '+riskClass+(isStale?' stale':'');
+      card.className = 'card stage-'+st.id+' '+riskClass+(isStale?' stale':'');
+      card.draggable = true;
+      card.dataset.dragId = p.id;
+      card.addEventListener('dragstart', (e)=>{
+        e.dataTransfer.setData('text/plain', p.id);
+        e.dataTransfer.effectAllowed = 'move';
+        card.classList.add('dragging');
+      });
+      card.addEventListener('dragend', ()=> card.classList.remove('dragging'));
       card.innerHTML = `
         <div onclick="openSheet('${p.id}')">
           <h3>${esc(p.client)}</h3>
@@ -444,6 +470,21 @@ function buildActivityDiff(existing, newVals){
   if(existing.handoverFormal !== newVals.handoverFormal && newVals.handoverFormal) entries.push({at:stamp, by:currentUser, note:`Handover formal: ${newVals.handoverFormal}`});
   if(existing.valor !== newVals.valor && newVals.valor) entries.push({at:stamp, by:currentUser, note:`Actualizó valor estimado a ${newVals.valor}`});
   return entries;
+}
+
+async function moveCardToStage(id, newStageId){
+  const idx = projects.findIndex(x=>x.id===id);
+  if(idx === -1) return;
+  const p = projects[idx];
+  if(p.stage === newStageId) return;
+  const oldLabel = (STAGES.find(s=>s.id===p.stage)||{}).label || p.stage;
+  const newLabel = (STAGES.find(s=>s.id===newStageId)||{}).label || newStageId;
+  p.stage = newStageId;
+  p.stageHistory = p.stageHistory || [];
+  p.stageHistory.push({ stage: newStageId, at: new Date().toISOString() });
+  await logAudit('Movió tarjeta (arrastrar y soltar)', `${p.client} — Movió de "${oldLabel}" a "${newLabel}"`);
+  await saveToServer();
+  render();
 }
 
 async function saveCard(){

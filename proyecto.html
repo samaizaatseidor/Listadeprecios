@@ -78,11 +78,19 @@
   .col h3 .count{background:#fff; color:var(--grey); border-radius:20px; padding:1px 7px; font-size:10.5px;}
 
   .row{background:#fff; border-radius:9px; padding:11px 13px; margin-bottom:8px; box-shadow:var(--shadow); border-left:3px solid var(--line); cursor:pointer;}
-  .row.riesgo-alto, .row.tipo-riesgo{border-left-color:#C24545;}
-  .row.riesgo-medio, .row.tipo-issue{border-left-color:#D9A441;}
-  .row.riesgo-bajo{border-left-color:#2E9E5B;}
-  .row.tipo-accion{border-left-color:#1E5BB8;}
-  .row.tipo-decision{border-left-color:#2E9E5B;}
+  .row.riesgo-alto, .row.tipo-riesgo{border-left-color:#C24545; background:#FEF6F6;}
+  .row.riesgo-medio, .row.tipo-issue{border-left-color:#D9A441; background:#FFFBF1;}
+  .row.riesgo-bajo{border-left-color:#2E9E5B; background:#F1FAF4;}
+  .row.tipo-accion{border-left-color:#1E5BB8; background:#F3F8FD;}
+  .row.tipo-decision{border-left-color:#2E9E5B; background:#F1FAF4;}
+  .row.cr-identificado{border-left-color:#8A97AC; background:#F7F8FA;}
+  .row.cr-estimacion{border-left-color:#D9A441; background:#FFFBF1;}
+  .row.cr-validacion{border-left-color:#1E5BB8; background:#F3F8FD;}
+  .row.cr-presentado{border-left-color:#33B4DD; background:#EFFAFD;}
+  .row.cr-aceptado{border-left-color:#2E9E5B; background:#F1FAF4;}
+  .row[draggable="true"]{cursor:grab;}
+  .row.dragging{opacity:0.4;}
+  .col.drag-over{background:#E3ECF9; outline:2px dashed var(--blue); outline-offset:-2px;}
   .row h4{margin:0; font-size:12.5px; color:var(--navy2); font-weight:600;}
   .row .meta-top{font-size:10.5px; color:var(--greyl); margin-bottom:3px;}
   .row .meta-bottom{font-size:10.5px; color:var(--greyl); margin-top:6px;}
@@ -195,6 +203,45 @@ let currentId = null;
 function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
 
 const CR_STAGES = ['Identificado','En estimación','Validación comercial','Presentado al cliente','Aceptado'];
+
+function handleDragStart(e){
+  e.dataTransfer.setData('text/plain', e.currentTarget.dataset.dragId);
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging');
+}
+function handleDragEnd(e){ e.currentTarget.classList.remove('dragging'); }
+function handleDragOver(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function handleDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+
+async function handleDropRaid(e, nuevoEstatus){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const id = e.dataTransfer.getData('text/plain');
+  const it = data.raid.find(x=>x.id===id);
+  if(!it || it.estatus === nuevoEstatus) return;
+  const oldEstatus = it.estatus;
+  it.estatus = nuevoEstatus;
+  it.updatedAt = new Date().toISOString();
+  await logAudit('Movió RAID (arrastrar y soltar)', `Proyecto "${currentProyecto}" — ${it.descripcion.slice(0,60)} — ${oldEstatus} → ${nuevoEstatus}`);
+  await saveData();
+  render();
+}
+
+async function handleDropCR(e, nuevoEstatus){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const id = e.dataTransfer.getData('text/plain');
+  const it = data.changeRequests.find(x=>x.id===id);
+  if(!it || it.estatus === nuevoEstatus) return;
+  const oldEstatus = it.estatus;
+  const wasAccepted = nuevoEstatus === 'Aceptado' && oldEstatus !== 'Aceptado';
+  it.estatus = nuevoEstatus;
+  it.updatedAt = new Date().toISOString();
+  await logAudit('Movió Change Request (arrastrar y soltar)', `Proyecto "${currentProyecto}" — ${it.titulo} — ${oldEstatus} → ${nuevoEstatus}`);
+  await saveData();
+  if(wasAccepted) await onCRAccepted(it);
+  render();
+}
 
 function renderCrStepperHtml(estatusActual){
   const currentIdx = CR_STAGES.indexOf(estatusActual);
@@ -441,9 +488,9 @@ function renderTabBody(){
     const prioOrder = {'Alta':0,'Media':1,'Baja':2};
     body.innerHTML = `<div class="board">${cols.map(estatus=>{
       const colItems = items.filter(it=>it.estatus===estatus).sort((a,b)=>(prioOrder[a.prioridad]??1)-(prioOrder[b.prioridad]??1));
-      return `<div class="col"><h3>${estatus} <span class="count">${colItems.length}</span></h3>
+      return `<div class="col" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropRaid(event, '${estatus}')"><h3>${estatus} <span class="count">${colItems.length}</span></h3>
         ${colItems.map(it=>`
-          <div class="row ${tipoClass(it.tipo)}" onclick="openSheet('${it.id}')">
+          <div class="row ${tipoClass(it.tipo)}" draggable="true" data-drag-id="${it.id}" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openSheet('${it.id}')">
             <div class="meta-top">${esc(it.tipo)}</div>
             <h4>${esc(it.descripcion.slice(0,70))}${it.descripcion.length>70?'…':''}</h4>
             ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}
@@ -496,18 +543,18 @@ function renderTabBody(){
     const items = itemsFor('changeRequests').filter(it => !q || it.titulo.toLowerCase().includes(q) || it.descripcion.toLowerCase().includes(q));
     if(!items.length){ body.innerHTML = '<div class="empty">Sin Change Requests registrados para este proyecto.</div>'; return; }
     const CR_COLS = [
-      { key:'Identificado', owner:'PM' },
-      { key:'En estimación', owner:'Consultores' },
-      { key:'Validación comercial', owner:'AE' },
-      { key:'Presentado al cliente', owner:'PM' },
-      { key:'Aceptado', owner:'Cerrado' }
+      { key:'Identificado', owner:'PM', cls:'cr-identificado' },
+      { key:'En estimación', owner:'Consultores', cls:'cr-estimacion' },
+      { key:'Validación comercial', owner:'AE', cls:'cr-validacion' },
+      { key:'Presentado al cliente', owner:'PM', cls:'cr-presentado' },
+      { key:'Aceptado', owner:'Cerrado', cls:'cr-aceptado' }
     ];
     body.innerHTML = `<div class="board">${CR_COLS.map(col=>{
       const colItems = items.filter(it=>it.estatus===col.key);
-      return `<div class="col"><h3>${col.key} <span class="count">${colItems.length}</span></h3>
+      return `<div class="col" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropCR(event, '${col.key}')"><h3>${col.key} <span class="count">${colItems.length}</span></h3>
         <div style="font-size:10px; color:var(--greyl); margin:-4px 4px 8px;">Responsable: ${col.owner}</div>
         ${colItems.map(it=>`
-          <div class="row" onclick="openSheet('${it.id}')">
+          <div class="row ${col.cls}" draggable="true" data-drag-id="${it.id}" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openSheet('${it.id}')">
             <div class="meta-top">${it.solicitadoPor ? esc(it.solicitadoPor) : 'Sin solicitante'}${it.fechaSolicitud ? ' · '+fmtDate(it.fechaSolicitud) : ''}</div>
             <h4>${esc(it.titulo.slice(0,70))}${it.titulo.length>70?'…':''} ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}</h4>
             ${it.impactoTiempo || it.impactoCosto ? `<div class="meta-bottom">${it.impactoTiempo ? esc(it.impactoTiempo) : ''}${it.impactoTiempo && it.impactoCosto ? ' · ' : ''}${it.impactoCosto ? esc(it.impactoCosto) : ''}</div>` : ''}
