@@ -406,10 +406,131 @@ table.rate-table {
   color: #b7c6dd;
 }
 
+.pkg-carousel {
+  position: relative;
+}
+
+/* Fundido en los bordes para insinuar que hay más tarjetas */
+.pkg-carousel::before,
+.pkg-carousel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.pkg-carousel::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(10, 18, 38, 0.9), transparent);
+}
+
+.pkg-carousel::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(10, 18, 38, 0.9), transparent);
+}
+
 .pkg-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  display: flex;
   gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 4px;
+  padding: 4px 4px 14px;
+  margin: -4px -4px 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pkg-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.pkg-card {
+  flex: 0 0 auto;
+  width: min(360px, 84vw);
+  scroll-snap-align: start;
+}
+
+.pkg-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(14, 30, 63, 0.9);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 4;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s ease, opacity 0.2s ease, transform 0.15s ease;
+}
+
+.pkg-nav:hover {
+  background: var(--blue);
+}
+
+.pkg-nav:active {
+  transform: translateY(-50%) scale(0.94);
+}
+
+.pkg-nav.prev {
+  left: -10px;
+}
+
+.pkg-nav.next {
+  right: -10px;
+}
+
+.pkg-nav:disabled {
+  opacity: 0.28;
+  cursor: default;
+  pointer-events: none;
+}
+
+.pkg-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.pkg-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.pkg-dot:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.pkg-dot.active {
+  background: var(--cyan);
+  transform: scale(1.25);
+}
+
+@media (max-width: 640px) {
+  .pkg-nav {
+    display: none;
+  }
+  .pkg-carousel::before,
+  .pkg-carousel::after {
+    width: 24px;
+  }
 }
 
 .pkg-card {

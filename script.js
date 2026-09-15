@@ -120,6 +120,64 @@ function renderPackages() {
 
 renderPackages();
 
+/* ---------------- Packages carousel (fototeca) ---------------- */
+(function initPkgCarousel() {
+  const track = pkgGrid;
+  const prevBtn = document.getElementById("pkgPrev");
+  const nextBtn = document.getElementById("pkgNext");
+  const dotsWrap = document.getElementById("pkgDots");
+  const cards = Array.from(track.children);
+  if (!cards.length) return;
+
+  cards.forEach((_, i) => {
+    const dot = document.createElement("button");
+    dot.type = "button";
+    dot.className = "pkg-dot" + (i === 0 ? " active" : "");
+    dot.setAttribute("aria-label", `Ir al paquete ${i + 1}`);
+    dot.addEventListener("click", () => {
+      cards[i].scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+    });
+    dotsWrap.appendChild(dot);
+  });
+  const dots = Array.from(dotsWrap.children);
+
+  function cardStep() {
+    const style = getComputedStyle(track);
+    const gap = parseFloat(style.columnGap || style.gap || "24");
+    return cards[0].getBoundingClientRect().width + gap;
+  }
+
+  function closestCardIndex() {
+    let idx = 0;
+    let best = Infinity;
+    cards.forEach((c, i) => {
+      const d = Math.abs(c.offsetLeft - track.scrollLeft);
+      if (d < best) { best = d; idx = i; }
+    });
+    return idx;
+  }
+
+  function updateState() {
+    const maxScroll = track.scrollWidth - track.clientWidth - 1;
+    prevBtn.disabled = track.scrollLeft <= 0;
+    nextBtn.disabled = track.scrollLeft >= maxScroll;
+    const active = closestCardIndex();
+    dots.forEach((d, i) => d.classList.toggle("active", i === active));
+  }
+
+  prevBtn.addEventListener("click", () => track.scrollBy({ left: -cardStep(), behavior: "smooth" }));
+  nextBtn.addEventListener("click", () => track.scrollBy({ left: cardStep(), behavior: "smooth" }));
+
+  let scrollTimer;
+  track.addEventListener("scroll", () => {
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(updateState, 60);
+  });
+  window.addEventListener("resize", updateState);
+
+  updateState();
+})();
+
 /* ---------------- Sticky nav reveal on scroll ---------------- */
 const nav = document.getElementById("nav");
 const heroHeight = () => document.querySelector(".hero").offsetHeight;

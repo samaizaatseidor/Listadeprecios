@@ -157,9 +157,18 @@
         antes de ajustar por los requerimientos específicos del cliente.</p>
     </div>
 
-    <div class="pkg-grid" id="pkgGrid">
-      <!-- tarjetas insertadas por JS -->
+    <div class="pkg-carousel">
+      <button type="button" class="pkg-nav prev" id="pkgPrev" aria-label="Paquete anterior">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="pkg-grid" id="pkgGrid">
+        <!-- tarjetas insertadas por JS -->
+      </div>
+      <button type="button" class="pkg-nav next" id="pkgNext" aria-label="Paquete siguiente">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
     </div>
+    <div class="pkg-dots" id="pkgDots"><!-- puntos insertados por JS --></div>
   </div>
 </section>
 
