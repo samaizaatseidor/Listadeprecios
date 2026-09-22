@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formularios KYC / Diligencia Debida · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.7/dist/pizzip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docxtemplater@3.44.0/js/docxtemplater.js"></script>
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-link.active{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  .tabbar{display:flex; gap:6px; padding:16px 16px 0; max-width:820px; margin:0 auto;}
+  .tabbar button{background:var(--card); border:1px solid var(--line); border-radius:8px 8px 0 0; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; color:var(--grey); cursor:pointer;}
+  .tabbar button.active{background:#fff; color:var(--blue); border-bottom-color:#fff;}
+
+  main{max-width:820px; margin:0 auto; padding:0 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:14px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
+
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:4px; font-weight:500;}
+  .field input[type=text], .field textarea, .field select{width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px; color:var(--ink); resize:vertical;}
+  .row2{display:flex; gap:10px;}
+  .row2 > div{flex:1;}
+
+  .btn{border:none; border-radius:8px; padding:11px 18px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
+
+  .disclaimer{background:#FBF1DE; color:#8A6414; border-radius:8px; padding:10px 12px; font-size:12px; margin-bottom:16px;}
+  .loading{color:var(--grey); text-align:center; padding:10px; font-size:13px;}
+  .error{color:#B23A3A; font-size:13px; background:#FBE7E7; border-radius:8px; padding:10px 12px;}
+  .success-box{background:#E7F7EE; color:#1F8A4C; border-radius:8px; padding:10px 12px; font-size:13px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html" class="active">Formularios KYC / Diligencia Debida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Formularios KYC / Diligencia Debida</h1>
+  <p>Identificación de terceros (clientes o proveedores) antes de contratar — Anexo I y Anexo II</p>
+</header>
+
+<div class="tabbar">
+  <button id="tab-fisica" class="active" onclick="setTipo('fisica')">Persona Física</button>
+  <button id="tab-juridica" onclick="setTipo('juridica')">Persona Jurídica</button>
+</div>
+
+<main>
+  <div class="disclaimer">⚠️ Recuerda comprobar el listado vigente de jurisdicciones de riesgo del GAFI si el tercero (o su representante) es nacional o reside en una jurisdicción marcada como de alto riesgo o bajo monitoreo reforzado.</div>
+  <div id="formArea"></div>
+</main>
+
+<script>
+let tipo = 'fisica';
+
+function setTipo(t){
+  tipo = t;
+  document.getElementById('tab-fisica').classList.toggle('active', t==='fisica');
+  document.getElementById('tab-juridica').classList.toggle('active', t==='juridica');
+  render();
+}
+
+function render(){
+  const box = document.getElementById('formArea');
+  const comunes = `
+    <div class="section">
+      <h2>1. Responsable de la cumplimentación</h2>
+      <div class="row2">
+        <div class="field"><label>Área</label><input type="text" id="k-area" placeholder="Ej. Presales México"></div>
+        <div class="field"><label>Responsable</label><input type="text" id="k-responsable" placeholder="Ej. Samuel Aiza"></div>
+      </div>
+      <div class="field"><label>Descripción servicio/producto/suministro</label><textarea id="k-descripcion" rows="2" placeholder="Ej. Implementación de SAP S/4HANA Cloud Public Edition, módulos FI/CO/SD">${''}</textarea></div>
+      <div class="row2">
+        <div class="field"><label>Fecha</label><input type="text" id="k-fecha" placeholder="Ej. 21/09/2026"></div>
+      </div>
+      <div class="field"><label>Conocimiento de la actividad del Tercero</label><textarea id="k-conocimiento-actividad" rows="2" placeholder="Ej. Empresa agroindustrial mexicana, productora de insumos agrícolas para el mercado nacional">${''}</textarea></div>
+      <div class="field"><label>Conocimiento del origen de fondos del Tercero/operación</label><textarea id="k-origen-fondos" rows="2" placeholder="Ej. Recursos propios de la operación del cliente, pago conforme a hitos contractuales">${''}</textarea></div>
+    </div>
+  `;
+
+  if(tipo === 'fisica'){
+    box.innerHTML = comunes + `
+      <div class="section">
+        <h2>2. Datos de la persona física</h2>
+        <div class="row2">
+          <div class="field"><label>Nombre y apellidos</label><input type="text" id="k-pf-nombre" placeholder="Ej. Juan Carlos Pérez López"></div>
+          <div class="field"><label>Nº documento de identificación *</label><input type="text" id="k-pf-num-documento" placeholder="Ej. INE 1234567890123"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Nacionalidad</label><input type="text" id="k-pf-nacionalidad" placeholder="Ej. Mexicana"></div>
+          <div class="field"><label>Residencia</label><input type="text" id="k-pf-residencia" placeholder="Ej. México"></div>
+        </div>
+        <div class="field"><label>Persona Políticamente Expuesta (PEP) — identificar cargo si aplica</label><input type="text" id="k-pf-pep" placeholder="Ej. No / Sí — Regidor municipal 2021-2024"></div>
+        <div class="field"><label>Domicilio</label><input type="text" id="k-pf-domicilio" placeholder="Ej. Av. Reforma 123, Col. Centro, CDMX"></div>
+        <div class="row2">
+          <div class="field"><label>Teléfono</label><input type="text" id="k-pf-telefono" placeholder="Ej. +52 55 1234 5678"></div>
+          <div class="field"><label>Correo electrónico</label><input type="text" id="k-pf-email" placeholder="Ej. juan.perez@cliente.com"></div>
+        </div>
+        <div class="field"><label>Certificado de titularidad bancaria *</label><input type="text" id="k-pf-certificado" placeholder="Ej. Adjunto / Pendiente de solicitar"></div>
+        <p class="sub" style="margin-top:6px;">* Solicitar copia del documento.</p>
+      </div>
+
+      <div class="section">
+        <h2>2.1. Datos del representante (solo si el cliente actúa a través de representante)</h2>
+        <div class="row2">
+          <div class="field"><label>Nombre y apellidos</label><input type="text" id="k-rep-nombre" placeholder="Ej. María González Torres"></div>
+          <div class="field"><label>Nº documento identificación y documento acreditativo *</label><input type="text" id="k-rep-num-documento" placeholder="Ej. INE + Carta Poder Notarial 6789"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Nacionalidad</label><input type="text" id="k-rep-nacionalidad" placeholder="Ej. Mexicana"></div>
+          <div class="field"><label>Residencia</label><input type="text" id="k-rep-residencia" placeholder="Ej. México"></div>
+        </div>
+        <div class="field"><label>Domicilio</label><input type="text" id="k-rep-domicilio" placeholder="Ej. Guanajuato, México"></div>
+        <div class="field"><label>Conocimiento de la actividad del representante</label><input type="text" id="k-rep-conocimiento" placeholder="Ej. Apoderado legal de la empresa"></div>
+      </div>
+
+      <div class="section" style="display:flex; gap:10px;">
+        <button class="btn btn-primary" onclick="descargarDocx()">⬇️ Descargar Anexo I lleno</button>
+      </div>
+      <div id="statusBox"></div>
+    `;
+  }else{
+    box.innerHTML = comunes + `
+      <div class="section">
+        <h2>2. Datos de la persona jurídica</h2>
+        <div class="row2">
+          <div class="field"><label>Denominación social</label><input type="text" id="k-pj-denominacion" placeholder="Ej. Agroecología Intensiva para el Campo S.A. de C.V."></div>
+          <div class="field"><label>Nº documento de identificación (RFC) *</label><input type="text" id="k-pj-num-documento" placeholder="Ej. RFC AIC123456ABC"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Nacionalidad</label><input type="text" id="k-pj-nacionalidad" placeholder="Ej. Mexicana"></div>
+          <div class="field"><label>Domicilio social</label><input type="text" id="k-pj-domicilio" placeholder="Ej. Carretera Federal 45, Guanajuato, México"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Grupo al que pertenece</label><input type="text" id="k-pj-grupo" placeholder="Ej. No aplica / Grupo XYZ Holding"></div>
+          <div class="field"><label>Constitución *</label><input type="text" id="k-pj-constitucion" placeholder="Ej. Escritura pública 12345, Notaría 10, Guanajuato"></div>
+        </div>
+        <div class="field"><label>Objeto social</label><textarea id="k-pj-objeto" rows="2" placeholder="Ej. Producción y comercialización de insumos agroindustriales">${''}</textarea></div>
+        <div class="row2">
+          <div class="field"><label>Web corporativa</label><input type="text" id="k-pj-web" placeholder="Ej. https://www.agroecologia.mx"></div>
+          <div class="field"><label>Correo electrónico</label><input type="text" id="k-pj-email" placeholder="Ej. contacto@agroecologia.mx"></div>
+        </div>
+        <div class="field"><label>¿Políticas internas de compliance publicadas? (Sí/No)</label><input type="text" id="k-pj-compliance" placeholder="Ej. No / Sí — ver web corporativa"></div>
+        <div class="field"><label>Certificado de titularidad bancaria *</label><input type="text" id="k-pj-certificado" placeholder="Ej. Adjunto / Pendiente de solicitar"></div>
+        <p class="sub" style="margin-top:6px;">* Solicitar copia del documento.</p>
+      </div>
+
+      <div class="section">
+        <h2>2.1. Datos del representante</h2>
+        <div class="row2">
+          <div class="field"><label>Nombre y apellidos</label><input type="text" id="k-rep-nombre" placeholder="Ej. María González Torres"></div>
+          <div class="field"><label>Nº documento identificación y documento acreditativo *</label><input type="text" id="k-rep-num-documento" placeholder="Ej. INE + Poder Notarial 6789"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Nacionalidad</label><input type="text" id="k-rep-nacionalidad" placeholder="Ej. Mexicana"></div>
+          <div class="field"><label>Residencia</label><input type="text" id="k-rep-residencia" placeholder="Ej. México"></div>
+        </div>
+        <div class="field"><label>Domicilio</label><input type="text" id="k-rep-domicilio" placeholder="Ej. Guanajuato, México"></div>
+        <div class="field"><label>Conocimiento de la actividad del representante</label><input type="text" id="k-rep-conocimiento" placeholder="Ej. Directora General de la empresa"></div>
+      </div>
+
+      <div class="section">
+        <h2>3. Titular Real (UBO)</h2>
+        <p class="sub">Si no aplica el levantamiento individual (empresa de bajo riesgo, cotizada, o grupo internacional reconocido), descríbelo en el detalle en vez de llenar persona por persona.</p>
+        <div class="field"><label>Estructura accionarial y de control</label><textarea id="k-ubo-estructura" rows="2" placeholder="Ej. Empresa familiar, capital 100% mexicano, sin participación de terceros.">${''}</textarea></div>
+        <div class="field"><label>Titular(es) Real(es) — detalle</label><textarea id="k-ubo-titulares" rows="2" placeholder="Ej. José Ramírez (60%), Ana Ramírez (40%). / No aplicable levantamiento individual por tratarse de proveedor de bajo riesgo reputacional.">${''}</textarea></div>
+        <div class="field"><label>Nota de Compliance</label><textarea id="k-ubo-nota" rows="2" placeholder="Ej. Cliente de bajo riesgo, sin coincidencias en listas de sanciones ni PEP.">${''}</textarea></div>
+      </div>
+
+      <div class="section" style="display:flex; gap:10px;">
+        <button class="btn btn-primary" onclick="descargarDocx()">⬇️ Descargar Anexo II lleno</button>
+      </div>
+      <div id="statusBox"></div>
+    `;
+  }
+}
+
+function val(id){ const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+async function descargarDocx(){
+  const statusBox = document.getElementById('statusBox');
+  if(typeof PizZip === 'undefined' || typeof docxtemplater === 'undefined'){
+    statusBox.innerHTML = '<div class="error">No se pudo cargar la librería para generar el Word. Revisa tu conexión a internet.</div>';
+    return;
+  }
+  statusBox.innerHTML = '<div class="loading">Generando documento…</div>';
+
+  const comunes = {
+    area_responsable: val('k-area'),
+    nombre_responsable: val('k-responsable'),
+    descripcion_servicio: val('k-descripcion'),
+    fecha_cumplimentacion: val('k-fecha'),
+    conocimiento_actividad: val('k-conocimiento-actividad'),
+    conocimiento_origen_fondos: val('k-origen-fondos'),
+    firma_responsable: '',
+  };
+
+  let data, templatePath, fileName;
+  if(tipo === 'fisica'){
+    data = {
+      ...comunes,
+      pf_nombre: val('k-pf-nombre'), pf_num_documento: val('k-pf-num-documento'),
+      pf_nacionalidad: val('k-pf-nacionalidad'), pf_residencia: val('k-pf-residencia'),
+      pf_pep: val('k-pf-pep'), pf_domicilio: val('k-pf-domicilio'),
+      pf_telefono: val('k-pf-telefono'), pf_email: val('k-pf-email'),
+      pf_certificado_bancario: val('k-pf-certificado'),
+      rep_nombre: val('k-rep-nombre'), rep_nacionalidad: val('k-rep-nacionalidad'),
+      rep_residencia: val('k-rep-residencia'), rep_domicilio: val('k-rep-domicilio'),
+      rep_conocimiento_actividad: val('k-rep-conocimiento'), rep_num_documento: val('k-rep-num-documento'),
+    };
+    templatePath = '/templates/KYC_Anexo_I_Persona_Fisica.docx';
+    fileName = `KYC Anexo I - ${data.pf_nombre || 'Persona Fisica'}.docx`;
+  }else{
+    data = {
+      ...comunes,
+      pj_denominacion: val('k-pj-denominacion'), pj_num_documento: val('k-pj-num-documento'),
+      pj_nacionalidad: val('k-pj-nacionalidad'), pj_domicilio: val('k-pj-domicilio'),
+      pj_grupo: val('k-pj-grupo'), pj_constitucion: val('k-pj-constitucion'),
+      pj_objeto_social: val('k-pj-objeto'), pj_web: val('k-pj-web'), pj_email: val('k-pj-email'),
+      pj_politicas_compliance: val('k-pj-compliance'), pj_certificado_bancario: val('k-pj-certificado'),
+      rep_nombre: val('k-rep-nombre'), rep_nacionalidad: val('k-rep-nacionalidad'),
+      rep_residencia: val('k-rep-residencia'), rep_domicilio: val('k-rep-domicilio'),
+      rep_conocimiento_actividad: val('k-rep-conocimiento'), rep_num_documento: val('k-rep-num-documento'),
+      ubo_estructura_accionarial: val('k-ubo-estructura'), ubo_titulares_detalle: val('k-ubo-titulares'),
+      ubo_nota_compliance: val('k-ubo-nota'),
+    };
+    templatePath = '/templates/KYC_Anexo_II_Persona_Juridica.docx';
+    fileName = `KYC Anexo II - ${data.pj_denominacion || 'Persona Juridica'}.docx`;
+  }
+
+  try{
+    const resp = await fetch(templatePath);
+    if(!resp.ok) throw new Error('No se encontró la plantilla en ' + templatePath);
+    const buf = await resp.arrayBuffer();
+    const zip = new PizZip(buf);
+    const doc = new docxtemplater(zip, { paragraphLoop: true, linebreaks: true, nullGetter: () => '' });
+    doc.render(data);
+    const out = doc.getZip().generate({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(out);
+    a.download = fileName;
+    document.body.appendChild(a); a.click(); a.remove();
+    statusBox.innerHTML = '<div class="success-box">Documento generado.</div>';
+
+    await fetch('/api/audit', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ page:'KYC / Diligencia Debida', action:'Generó formulario KYC', detail: `${tipo === 'fisica' ? 'Persona Física' : 'Persona Jurídica'} — ${tipo==='fisica' ? data.pf_nombre : data.pj_denominacion}` })
+    });
+  }catch(e){
+    console.error(e);
+    statusBox.innerHTML = `<div class="error">No se pudo generar el documento: ${(e.message||String(e))}</div>`;
+  }
+}
+
+render();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+</body>
+</html>
