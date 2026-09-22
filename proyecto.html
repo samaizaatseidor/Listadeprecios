@@ -118,6 +118,25 @@
   .sheet-row{display:flex; gap:8px;}
   .sheet-row > div{flex:1;}
   .sheet-actions{display:flex; gap:8px; margin-top:20px;}
+
+  .cr-tl-header{display:flex; align-items:center; gap:12px; background:var(--card); border-radius:10px; padding:12px 14px; margin-bottom:20px;}
+  .cr-tl-header-icon{width:34px; height:34px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--blue); flex-shrink:0;}
+  .cr-timeline{padding-left:2px; margin-bottom:20px;}
+  .cr-tl-step{position:relative; padding-left:36px; padding-bottom:22px;}
+  .cr-tl-step:last-child{padding-bottom:0;}
+  .cr-tl-step::after{content:''; position:absolute; left:12px; top:26px; bottom:-4px; width:2px; background:var(--line);}
+  .cr-tl-step.done::after{background:#2E9E5B;}
+  .cr-tl-step:last-child::after{display:none;}
+  .cr-tl-dot{position:absolute; left:0; top:0; width:25px; height:25px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600;}
+  .cr-tl-dot.done{background:#2E9E5B; color:#fff;}
+  .cr-tl-dot.current{background:var(--blue); color:#fff;}
+  .cr-tl-dot.pending{background:#fff; border:2px solid var(--line); color:var(--greyl);}
+  .cr-tl-title{font-size:14px; font-weight:600; color:var(--navy2); padding-top:3px;}
+  .cr-tl-title.pending{color:var(--greyl); font-weight:500;}
+  .cr-tl-date{font-size:11.5px; color:var(--grey); margin-top:2px;}
+  .cr-tl-summary{background:var(--card); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:10px;}
+  .cr-tl-summary-row b{display:block; font-size:11px; color:var(--greyl); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:2px;}
+  .cr-tl-summary-row span{font-size:13px; color:var(--ink);}
   .close-x{float:right; background:none; border:none; font-size:20px; color:var(--greyl); cursor:pointer; line-height:1;}
   .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
   @keyframes spin{ to { transform:rotate(360deg); } }
@@ -241,30 +260,58 @@ async function handleDropCR(e, nuevoEstatus){
   const wasAccepted = nuevoEstatus === 'Aceptado' && oldEstatus !== 'Aceptado';
   it.estatus = nuevoEstatus;
   it.updatedAt = new Date().toISOString();
+  it.stageHistory = it.stageHistory || [];
+  it.stageHistory.push({ stage: nuevoEstatus, at: it.updatedAt });
   await logAudit('Movió Change Request (arrastrar y soltar)', `Proyecto "${currentProyecto}" — ${it.titulo} — ${oldEstatus} → ${nuevoEstatus}`);
   await saveData();
   if(wasAccepted) await onCRAccepted(it);
   render();
 }
 
-function renderCrStepperHtml(estatusActual){
-  const currentIdx = CR_STAGES.indexOf(estatusActual);
+const CR_MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function formatCrFecha(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  return `${d.getDate()} de ${CR_MESES[d.getMonth()]} · ${hh}:${mm}`;
+}
+
+let crEditMode = false;
+
+function renderCrTrackingHtml(it){
+  const currentIdx = CR_STAGES.indexOf(it.estatus);
+  const stageHistory = it.stageHistory || [];
+  const fechaFor = (stage) => { const found = stageHistory.find(h=>h.stage===stage); return found ? formatCrFecha(found.at) : ''; };
+
+  const steps = CR_STAGES.map((stage,i)=>{
+    const cls = i < currentIdx ? 'done' : (i === currentIdx ? (i === CR_STAGES.length-1 ? 'done' : 'current') : 'pending');
+    const dot = cls === 'done' ? '&#10003;' : (i+1);
+    const fecha = cls === 'pending' ? 'Pendiente' : (cls === 'current' ? (fechaFor(stage) ? `Desde el ${fechaFor(stage)}` : 'Etapa actual') : (fechaFor(stage) || ''));
+    return `
+      <div class="cr-tl-step ${cls}">
+        <div class="cr-tl-dot ${cls}">${dot}</div>
+        <div class="cr-tl-title ${cls}">${esc(stage)}</div>
+        <div class="cr-tl-date">${esc(fecha)}</div>
+      </div>
+    `;
+  }).join('');
+
+  const CR_ESTATUS_OWNER = {'Identificado':'PM','En estimación':'Consultores','Validación comercial':'AE','Presentado al cliente':'PM','Aceptado':'Cerrado'};
   return `
-    <div style="display:flex; align-items:flex-start; justify-content:space-between; margin:14px 0 18px;">
-      ${CR_STAGES.map((stage,i)=>{
-        let circleStyle, textColor;
-        if(i < currentIdx){ circleStyle='background:#2E9E5B; color:#fff;'; textColor='var(--navy2)'; }
-        else if(i === currentIdx){ circleStyle='background:var(--blue); color:#fff;'; textColor='var(--navy2)'; }
-        else { circleStyle='background:#fff; border:1px solid var(--line); color:var(--greyl);'; textColor='var(--greyl)'; }
-        const connector = i < CR_STAGES.length-1 ? `<div style="flex:1; height:2px; margin-top:13px; background:${i<currentIdx ? '#2E9E5B' : 'var(--line)'};"></div>` : '';
-        return `
-          <div style="display:flex; flex-direction:column; align-items:center; ${i===0 || i===CR_STAGES.length-1 ? '' : 'flex:0.01;'}">
-            <div style="width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; ${circleStyle}">${i+1}</div>
-            <div style="font-size:9.5px; color:${textColor}; margin-top:4px; text-align:center; width:70px; ${i===currentIdx?'font-weight:600;':''}">${stage}</div>
-          </div>
-          ${connector}
-        `;
-      }).join('')}
+    <div class="cr-tl-header">
+      <div class="cr-tl-header-icon">${it.estatus==='Aceptado' ? '&#10003;' : '&#9203;'}</div>
+      <div>
+        <div style="font-weight:600; color:var(--navy2); font-size:14px;">${it.estatus==='Aceptado' ? '¡Change Request aceptado!' : `En etapa: ${esc(it.estatus)}`}</div>
+        <div style="font-size:12px; color:var(--grey); margin-top:2px;">Responsable de esta etapa: ${esc(CR_ESTATUS_OWNER[it.estatus]||'—')}</div>
+      </div>
+    </div>
+    <div class="cr-timeline">${steps}</div>
+    <div class="cr-tl-summary">
+      ${it.descripcion ? `<div class="cr-tl-summary-row"><b>Descripción</b><span>${esc(it.descripcion)}</span></div>` : ''}
+      ${it.solicitadoPor ? `<div class="cr-tl-summary-row"><b>Solicitado por</b><span>${esc(it.solicitadoPor)}${it.fechaSolicitud ? ' — ' + esc(it.fechaSolicitud) : ''}</span></div>` : ''}
+      ${it.impactoAlcance ? `<div class="cr-tl-summary-row"><b>Impacto en alcance</b><span>${esc(it.impactoAlcance)}</span></div>` : ''}
+      ${(it.impactoTiempo || it.impactoCosto) ? `<div class="cr-tl-summary-row"><b>Impacto en tiempo / costo</b><span>${esc(it.impactoTiempo)}${it.impactoTiempo && it.impactoCosto ? ' · ' : ''}${esc(it.impactoCosto)}</span></div>` : ''}
     </div>
   `;
 }
@@ -1059,8 +1106,9 @@ async function confirmImportExcel(incluirDuplicados){
   renderTabBody();
 }
 
-function openSheet(id){
+function openSheet(id, keepCrEditMode){
   currentId = id;
+  if(!keepCrEditMode) crEditMode = false;
   const sheet = document.getElementById('sheet');
 
   if(activeTab === 'raid'){
@@ -1133,33 +1181,52 @@ function openSheet(id){
   }
 
   if(activeTab === 'changeRequests'){
-    const it = id ? data.changeRequests.find(x=>x.id===id) : { proyecto:currentProyecto, titulo:'', descripcion:'', solicitadoPor:'', fechaSolicitud:'', impactoAlcance:'', impactoTiempo:'', impactoCosto:'', estatus:'Identificado' };
+    const it = id ? data.changeRequests.find(x=>x.id===id) : { proyecto:currentProyecto, titulo:'', descripcion:'', solicitadoPor:'', fechaSolicitud:'', impactoAlcance:'', impactoTiempo:'', impactoCosto:'', estatus:'Identificado', stageHistory:[] };
     const CR_ESTATUS_OWNER = {'Identificado':'PM','En estimación':'Consultores','Validación comercial':'AE','Presentado al cliente':'PM','Aceptado':'Cerrado'};
     const estatusOpts = Object.keys(CR_ESTATUS_OWNER).map(e=>`<option value="${e}" ${it.estatus===e?'selected':''}>${e} (${CR_ESTATUS_OWNER[e]})</option>`).join('');
-    sheet.innerHTML = `
-      <button class="close-x" onclick="closeSheet()">&times;</button>
-      <p class="sheet-title">${id ? 'Editar Change Request' : 'Nuevo Change Request'}</p>
-      ${renderCrStepperHtml(it.estatus)}
-      <label>Título</label><input type="text" id="f-titulo" value="${esc(it.titulo)}" placeholder="Ej. Reporte adicional de inventarios">
-      <label>Descripción</label><textarea id="f-descripcion" rows="3">${esc(it.descripcion)}</textarea>
-      <div class="sheet-row">
-        <div><label>Solicitado por</label><input type="text" id="f-solicitadoPor" value="${esc(it.solicitadoPor)}" placeholder="Cliente / Interno"></div>
-        <div><label>Fecha de solicitud</label><input type="date" id="f-fechaSolicitud" value="${it.fechaSolicitud||''}"></div>
-      </div>
-      <label>Impacto en alcance</label><textarea id="f-impactoAlcance" rows="2">${esc(it.impactoAlcance)}</textarea>
-      <div class="sheet-row">
-        <div><label>Impacto en tiempo</label><input type="text" id="f-impactoTiempo" value="${esc(it.impactoTiempo)}" placeholder="Ej. +2 semanas"></div>
-        <div><label>Impacto en costo</label><input type="text" id="f-impactoCosto" value="${esc(it.impactoCosto)}" placeholder="Ej. $45,000 MXN"></div>
-      </div>
-      <label>Estatus</label><select id="f-estatus">${estatusOpts}</select>
-      <label style="display:flex; align-items:center; gap:6px; margin-top:14px;"><input type="checkbox" id="f-visibleCliente" style="width:auto;" ${it.visibleCliente?'checked':''}> Visible para cliente (se incluye en el PPT exportable)</label>
-      <div class="sheet-actions">
-        <button class="btn btn-primary" onclick="saveCR()">Guardar</button>
-        ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
-      </div>
-    `;
+
+    if(!id || crEditMode){
+      sheet.innerHTML = `
+        <button class="close-x" onclick="closeSheet()">&times;</button>
+        <p class="sheet-title">${id ? 'Editar Change Request' : 'Nuevo Change Request'}</p>
+        <label>Título</label><input type="text" id="f-titulo" value="${esc(it.titulo)}" placeholder="Ej. Reporte adicional de inventarios">
+        <label>Descripción</label><textarea id="f-descripcion" rows="3">${esc(it.descripcion)}</textarea>
+        <div class="sheet-row">
+          <div><label>Solicitado por</label><input type="text" id="f-solicitadoPor" value="${esc(it.solicitadoPor)}" placeholder="Cliente / Interno"></div>
+          <div><label>Fecha de solicitud</label><input type="date" id="f-fechaSolicitud" value="${it.fechaSolicitud||''}"></div>
+        </div>
+        <label>Impacto en alcance</label><textarea id="f-impactoAlcance" rows="2">${esc(it.impactoAlcance)}</textarea>
+        <div class="sheet-row">
+          <div><label>Impacto en tiempo</label><input type="text" id="f-impactoTiempo" value="${esc(it.impactoTiempo)}" placeholder="Ej. +2 semanas"></div>
+          <div><label>Impacto en costo</label><input type="text" id="f-impactoCosto" value="${esc(it.impactoCosto)}" placeholder="Ej. $45,000 MXN"></div>
+        </div>
+        <label>Estatus</label><select id="f-estatus">${estatusOpts}</select>
+        <label style="display:flex; align-items:center; gap:6px; margin-top:14px;"><input type="checkbox" id="f-visibleCliente" style="width:auto;" ${it.visibleCliente?'checked':''}> Visible para cliente (se incluye en el PPT exportable)</label>
+        <div class="sheet-actions">
+          <button class="btn btn-primary" onclick="saveCR()">Guardar</button>
+          ${id ? '<button class="btn btn-ghost" onclick="toggleCrEditMode(false)">Cancelar</button>' : ''}
+          ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
+        </div>
+      `;
+    }else{
+      sheet.innerHTML = `
+        <button class="close-x" onclick="closeSheet()">&times;</button>
+        <p class="sheet-title">Change Request</p>
+        <h2 style="margin:0 0 16px; font-size:17px; color:var(--navy2);">${esc(it.titulo)}</h2>
+        ${renderCrTrackingHtml(it)}
+        <div class="sheet-actions">
+          <button class="btn btn-primary" onclick="toggleCrEditMode(true)">✏️ Editar</button>
+          <button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>
+        </div>
+      `;
+    }
   }
   document.getElementById('overlay').classList.add('open');
+}
+
+function toggleCrEditMode(on){
+  crEditMode = on;
+  openSheet(currentId, true);
 }
 
 function closeSheet(){ document.getElementById('overlay').classList.remove('open'); currentId = null; }
@@ -1235,6 +1302,12 @@ async function saveCR(){
   const titulo = document.getElementById('f-titulo').value.trim();
   if(!titulo){ alert('Falta el título del Change Request'); return; }
   const existing = currentId ? data.changeRequests.find(x=>x.id===currentId) : null;
+  const nuevoEstatus = document.getElementById('f-estatus').value;
+  const now = new Date().toISOString();
+  const stageHistory = existing && existing.stageHistory ? existing.stageHistory.slice() : [];
+  if(!stageHistory.length || stageHistory[stageHistory.length-1].stage !== nuevoEstatus){
+    stageHistory.push({ stage: nuevoEstatus, at: now });
+  }
   const item = {
     id: currentId || ('cr-'+Date.now().toString(36)),
     proyecto: currentProyecto,
@@ -1245,10 +1318,11 @@ async function saveCR(){
     impactoAlcance: document.getElementById('f-impactoAlcance').value.trim(),
     impactoTiempo: document.getElementById('f-impactoTiempo').value.trim(),
     impactoCosto: document.getElementById('f-impactoCosto').value.trim(),
-    estatus: document.getElementById('f-estatus').value,
+    estatus: nuevoEstatus,
+    stageHistory,
     visibleCliente: document.getElementById('f-visibleCliente').checked,
-    createdAt: existing ? existing.createdAt : new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: existing ? existing.createdAt : now,
+    updatedAt: now
   };
   const wasEdit = !!currentId;
   const justAccepted = item.estatus === 'Aceptado' && (!existing || existing.estatus !== 'Aceptado');
