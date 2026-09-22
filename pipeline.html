@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
 <title>CRM PresalesMX · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -40,6 +45,16 @@
   .card{background:#fff; border-radius:10px; padding:12px; margin-bottom:9px; cursor:pointer; box-shadow:var(--shadow); border-left:3px solid var(--line);}
   .card.risk-alto{border-left-color:#C24545;}
   .card.risk-medio{border-left-color:#D9A441;}
+  .card.stage-prospeccion{background:#F7F8FA;}
+  .card.stage-asignada_preventa{background:#F3F8FD;}
+  .card.stage-propuesta{background:#FFFBF1;}
+  .card.stage-scoping{background:#F6F3FC;}
+  .card.stage-implementacion{background:#F1FAF4;}
+  .card.stage-pausado{background:#FAF7F0;}
+  .card.stage-no_go{background:#FEF6F6;}
+  .card[draggable="true"]{cursor:grab;}
+  .card.dragging{opacity:0.4;}
+  .col.drag-over{background:#E3ECF9; outline:2px dashed var(--blue); outline-offset:-2px;}
   .card h3{margin:0 0 4px; font-size:13.5px; font-weight:600; color:var(--navy2);}
   .card p{margin:0; font-size:12px; color:var(--grey); line-height:1.4;}
   .chips{display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;}
@@ -124,6 +139,9 @@
           <div class="nav-dropdown-sep"></div>
           <a href="/prospecto.html">Investigación de Prospecto</a>
           <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -134,6 +152,9 @@
           <a href="/kpis.html">Tablero de Control</a>
           <div class="nav-dropdown-sep"></div>
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -146,6 +167,7 @@
           <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
           <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
           <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -287,6 +309,14 @@ function render(){
     const items = visible.filter(p=>p.stage===st.id);
     const col = document.createElement('div');
     col.className = 'col';
+    col.addEventListener('dragover', (e)=>{ e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', ()=> col.classList.remove('drag-over'));
+    col.addEventListener('drop', async (e)=>{
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain');
+      await moveCardToStage(id, st.id);
+    });
     col.innerHTML = `<h2>${st.label} <span class="count">${items.length}</span></h2>`;
     if(items.length===0) col.innerHTML += `<div class="empty">Sin proyectos</div>`;
     items.forEach(p=>{
@@ -300,7 +330,15 @@ function render(){
       const daysSinceMove = daysInCurrentStage(p);
       const isStale = daysSinceMove !== null && daysSinceMove >= STALE_DAYS && st.id !== 'pausado' && st.id !== 'no_go';
       const card = document.createElement('div');
-      card.className = 'card '+riskClass+(isStale?' stale':'');
+      card.className = 'card stage-'+st.id+' '+riskClass+(isStale?' stale':'');
+      card.draggable = true;
+      card.dataset.dragId = p.id;
+      card.addEventListener('dragstart', (e)=>{
+        e.dataTransfer.setData('text/plain', p.id);
+        e.dataTransfer.effectAllowed = 'move';
+        card.classList.add('dragging');
+      });
+      card.addEventListener('dragend', ()=> card.classList.remove('dragging'));
       card.innerHTML = `
         <div onclick="openSheet('${p.id}')">
           <h3>${esc(p.client)}</h3>
@@ -442,6 +480,21 @@ function buildActivityDiff(existing, newVals){
   if(existing.handoverFormal !== newVals.handoverFormal && newVals.handoverFormal) entries.push({at:stamp, by:currentUser, note:`Handover formal: ${newVals.handoverFormal}`});
   if(existing.valor !== newVals.valor && newVals.valor) entries.push({at:stamp, by:currentUser, note:`Actualizó valor estimado a ${newVals.valor}`});
   return entries;
+}
+
+async function moveCardToStage(id, newStageId){
+  const idx = projects.findIndex(x=>x.id===id);
+  if(idx === -1) return;
+  const p = projects[idx];
+  if(p.stage === newStageId) return;
+  const oldLabel = (STAGES.find(s=>s.id===p.stage)||{}).label || p.stage;
+  const newLabel = (STAGES.find(s=>s.id===newStageId)||{}).label || newStageId;
+  p.stage = newStageId;
+  p.stageHistory = p.stageHistory || [];
+  p.stageHistory.push({ stage: newStageId, at: new Date().toISOString() });
+  await logAudit('Movió tarjeta (arrastrar y soltar)', `${p.client} — Movió de "${oldLabel}" a "${newLabel}"`);
+  await saveToServer();
+  render();
 }
 
 async function saveCard(){
@@ -590,6 +643,13 @@ loadFromServer();
     document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
   });
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>

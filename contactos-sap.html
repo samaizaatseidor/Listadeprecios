@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>Contactos SAP · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-link.active{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+  .btn{border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:#fff; color:var(--navy2);}
+  .btn-ghost{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35);}
+
+  main{max-width:1200px; margin:0 auto; padding:24px 16px 60px;}
+  .empty{text-align:center; padding:60px 20px; color:var(--greyl); font-size:13.5px;}
+  .tree-scroll{overflow-x:auto; padding:30px 10px;}
+
+  .org-tree, .org-tree ul, .org-tree li{list-style:none; margin:0; padding:0; position:relative;}
+  .org-tree{display:flex; justify-content:center; min-width:min-content;}
+  .org-tree ul{display:flex; padding-top:26px;}
+  .org-tree li{display:flex; flex-direction:column; align-items:center; padding:0 12px; position:relative;}
+  .org-tree li::before, .org-tree li::after{content:''; position:absolute; top:0; right:50%; border-top:2px solid var(--line); width:50%; height:26px;}
+  .org-tree li::after{right:auto; left:50%; border-left:2px solid var(--line);}
+  .org-tree li:only-child::after, .org-tree li:only-child::before{display:none;}
+  .org-tree li:only-child{padding-top:0;}
+  .org-tree li:first-child::before, .org-tree li:last-child::after{border:0 none;}
+  .org-tree li:last-child::before{border-right:2px solid var(--line); border-radius:0 6px 0 0;}
+  .org-tree li:first-child::after{border-radius:6px 0 0 0;}
+  .org-tree ul::before{content:''; position:absolute; top:0; left:50%; border-left:2px solid var(--line); width:0; height:26px;}
+  .org-box{display:inline-block; background:#fff; border:1px solid var(--line); border-radius:10px; padding:11px 15px; box-shadow:var(--shadow); cursor:pointer; min-width:165px; text-align:left;}
+  .org-box:hover{border-color:var(--blue);}
+  .org-name{font-size:13.5px; font-weight:600; color:var(--navy2);}
+  .org-puesto{font-size:11.5px; color:var(--grey); margin-top:2px;}
+  .org-area{display:inline-block; margin-top:6px; background:var(--card); color:var(--blue); font-size:9.5px; font-weight:600; padding:2px 9px; border-radius:10px;}
+  .org-contact{font-size:10.5px; color:var(--greyl); margin-top:5px;}
+
+  .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:50; align-items:flex-end; justify-content:center;}
+  .overlay.open{display:flex;}
+  .sheet{background:#fff; width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:22px; max-height:88vh; overflow-y:auto;}
+  .sheet label{display:block; font-size:12.5px; color:var(--grey); margin:12px 0 4px; font-weight:500;}
+  .sheet input, .sheet select, .sheet textarea{width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px;}
+  .sheet-title{font-size:16px; font-weight:600; color:var(--navy2); margin:0;}
+  .close-x{float:right; background:none; border:none; font-size:20px; color:var(--greyl); cursor:pointer; line-height:1;}
+  .sheet-actions{display:flex; gap:8px; margin-top:20px;}
+  .btn-sheet-primary{background:var(--blue); color:#fff;}
+  .btn-sheet-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
+  .btn-sheet-danger{background:#fff; color:#B23A3A; border:1px solid #E8C7C7;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html" class="active">Contactos SAP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div>
+    <h1>Contactos SAP</h1>
+    <p>Organigrama de las personas de SAP (el fabricante) a las que recurre el equipo comercial</p>
+  </div>
+  <div style="display:flex; gap:10px;">
+    <button class="btn btn-ghost" onclick="openSheet(null)">+ Agregar contacto</button>
+  </div>
+</header>
+
+<main>
+  <div class="tree-scroll">
+    <ul class="org-tree" id="tree"></ul>
+  </div>
+  <div class="empty" id="emptyMsg" style="display:none;">Todavía no hay contactos capturados — dale "+ Agregar contacto" para empezar.</div>
+</main>
+
+<div class="overlay" id="overlay" onclick="if(event.target===this) closeSheet()">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+let personas = [];
+let currentId = null;
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function loadData(){
+  try{
+    const r = await fetch('/api/contactos-sap');
+    const d = await r.json();
+    personas = d.personas || [];
+  }catch(e){ personas = []; }
+  render();
+}
+
+async function saveData(){
+  try{
+    await fetch('/api/contactos-sap', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ personas })
+    });
+  }catch(e){ console.error(e); }
+}
+
+function buildNode(persona){
+  const hijos = personas.filter(p => p.reportaA === persona.id);
+  const contacto = [persona.email, persona.telefono].filter(Boolean).join(' · ');
+  return `<li>
+    <div class="org-box" onclick="openSheet('${persona.id}')">
+      <div class="org-name">${esc(persona.nombre)}</div>
+      <div class="org-puesto">${esc(persona.puesto)}</div>
+      ${persona.area ? `<div class="org-area">${esc(persona.area)}</div>` : ''}
+      ${contacto ? `<div class="org-contact">${esc(contacto)}</div>` : ''}
+    </div>
+    ${hijos.length ? `<ul>${hijos.map(buildNode).join('')}</ul>` : ''}
+  </li>`;
+}
+
+function render(){
+  const tree = document.getElementById('tree');
+  const empty = document.getElementById('emptyMsg');
+  if(!personas.length){
+    tree.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  // Raíces: sin reportaA, o cuyo reportaA ya no existe (evita que un registro huérfano desaparezca)
+  const ids = new Set(personas.map(p=>p.id));
+  const raices = personas.filter(p => !p.reportaA || !ids.has(p.reportaA));
+  tree.innerHTML = raices.map(buildNode).join('');
+}
+
+function openSheet(id){
+  currentId = id;
+  const p = id ? personas.find(x=>x.id===id) : { nombre:'', puesto:'', area:'', email:'', telefono:'', reportaA:'', notas:'' };
+  const opcionesReporta = personas.filter(x=>x.id!==id).map(x=>`<option value="${x.id}" ${p.reportaA===x.id?'selected':''}>${esc(x.nombre)} — ${esc(x.puesto)}</option>`).join('');
+
+  document.getElementById('sheet').innerHTML = `
+    <button class="close-x" onclick="closeSheet()">&times;</button>
+    <p class="sheet-title">${id ? 'Editar contacto' : 'Nuevo contacto'}</p>
+    <label>Nombre</label><input type="text" id="f-nombre" value="${esc(p.nombre)}" placeholder="Ej. Laura Méndez">
+    <label>Puesto</label><input type="text" id="f-puesto" value="${esc(p.puesto)}" placeholder="Ej. Account Executive, Public Cloud">
+    <label>Área / especialidad</label><input type="text" id="f-area" value="${esc(p.area)}" placeholder="Ej. Public Cloud, BTP, Partner Management">
+    <label>Reporta a</label>
+    <select id="f-reportaA">
+      <option value="">— Nadie (nivel más alto) —</option>
+      ${opcionesReporta}
+    </select>
+    <label>Correo</label><input type="text" id="f-email" value="${esc(p.email)}" placeholder="nombre@sap.com">
+    <label>Teléfono</label><input type="text" id="f-telefono" value="${esc(p.telefono)}" placeholder="+52 55 1234 5678">
+    <label>Notas</label><textarea id="f-notas" rows="2" placeholder="Ej. Contactar para temas de licenciamiento Public Cloud">${esc(p.notas)}</textarea>
+    <div class="sheet-actions">
+      <button class="btn-sheet-primary" style="border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;" onclick="saveContacto()">Guardar</button>
+      ${id ? '<button class="btn-sheet-ghost" style="border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;" onclick="closeSheet()">Cancelar</button>' : ''}
+      ${id ? '<button class="btn-sheet-danger" style="border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;" onclick="deleteContacto()">Eliminar</button>' : ''}
+    </div>
+  `;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeSheet(){
+  document.getElementById('overlay').classList.remove('open');
+  currentId = null;
+}
+
+async function saveContacto(){
+  const nombre = document.getElementById('f-nombre').value.trim();
+  if(!nombre){ alert('Falta el nombre'); return; }
+  const item = {
+    id: currentId || ('sap-'+Date.now().toString(36)),
+    nombre,
+    puesto: document.getElementById('f-puesto').value.trim(),
+    area: document.getElementById('f-area').value.trim(),
+    reportaA: document.getElementById('f-reportaA').value || null,
+    email: document.getElementById('f-email').value.trim(),
+    telefono: document.getElementById('f-telefono').value.trim(),
+    notas: document.getElementById('f-notas').value.trim(),
+  };
+  if(item.reportaA === item.id){ alert('Una persona no puede reportarse a sí misma.'); return; }
+  if(currentId){
+    personas[personas.findIndex(x=>x.id===currentId)] = item;
+  }else{
+    personas.push(item);
+  }
+  await saveData();
+  closeSheet();
+  render();
+}
+
+async function deleteContacto(){
+  if(!confirm('¿Eliminar este contacto? Si alguien más le reporta, quedará al nivel más alto.')) return;
+  personas = personas.filter(x=>x.id!==currentId);
+  await saveData();
+  closeSheet();
+  render();
+}
+
+loadData();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

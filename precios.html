@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
 <meta name="robots" content="noindex, nofollow" />
 <title>Tarifario Baseline — SEIDOR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,6 +50,9 @@
       <div class="nav-dropdown-sep"></div>
       <a href="/prospecto.html">Investigación de Prospecto</a>
       <a href="/alta.html">Generador de Formato de Alta</a>
+      <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
     </div>
   </div>
   <div class="nav-dropdown">
@@ -55,6 +63,9 @@
       <a href="/kpis.html">Tablero de Control</a>
       <div class="nav-dropdown-sep"></div>
       <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+      <a href="/handover.html">Handover Comercial → Operaciones</a>
+      <a href="/estimador.html">Estimador de Esfuerzo</a>
+      <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
     </div>
   </div>
   <div class="nav-dropdown">
@@ -67,6 +78,7 @@
       <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
       <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
       <a href="/vista-general.html">Vista General del Proyecto</a>
+      <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
     </div>
   </div>
   <div class="nav-dropdown">
@@ -186,5 +198,12 @@
 </script>
 <script src="data.js"></script>
 <script src="script.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
 </body>
 </html>

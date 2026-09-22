@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
 <title>Portal SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -68,6 +73,9 @@
           <div class="nav-dropdown-sep"></div>
           <a href="/prospecto.html">Investigación de Prospecto</a>
           <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -78,6 +86,9 @@
           <a href="/kpis.html">Tablero de Control</a>
           <div class="nav-dropdown-sep"></div>
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -90,6 +101,7 @@
           <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
           <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
           <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -105,6 +117,7 @@
   <img src="/assets/logo_dark.png" alt="SEIDOR">
   <h1>Portal SEIDOR México</h1>
   <p>Todo lo que el equipo comercial, de preventas y de proyectos necesita en un solo lugar</p>
+  <p style="margin-top:8px;"><a href="/instalar.html" style="color:#fff; text-decoration:underline; font-size:12.5px;">📲 Instala esta app en tu celular o compu</a></p>
 </header>
 
 <main>
@@ -144,6 +157,24 @@
       <h3>Revisor de SOW y Estimaciones</h3>
       <p>Riesgos, discrepancias, información faltante y sugerencias de mejora.</p>
     </a>
+    <a href="/handover.html" class="app-card">
+      <div class="app-icon">🤝</div>
+      <span class="app-badge">Presales</span>
+      <h3>Handover Comercial → Operaciones</h3>
+      <p>Formulario prellenado + captura de stakeholders y contexto, con export a PPT.</p>
+    </a>
+    <a href="/estimador.html" class="app-card">
+      <div class="app-icon">📐</div>
+      <span class="app-badge">Presales</span>
+      <h3>Estimador de Esfuerzo</h3>
+      <p>Días-persona desde DDA, Readiness Check o selección manual de módulos.</p>
+    </a>
+    <a href="/tecnicas-presentacion.html" class="app-card">
+      <div class="app-icon">🎤</div>
+      <span class="app-badge">Presales</span>
+      <h3>Técnicas de Presentación</h3>
+      <p>18 técnicas de presentación y demo, con tips y video de ejemplo para cada una.</p>
+    </a>
     <a href="/prospecto.html" class="app-card">
       <div class="app-icon">🔎</div>
       <span class="app-badge">Comercial</span>
@@ -155,6 +186,24 @@
       <span class="app-badge">Comercial</span>
       <h3>Generador de Formato de Alta</h3>
       <p>Del SOW firmado al Excel de facturación, con formulario inteligente para lo interno.</p>
+    </a>
+    <a href="/metricas-sap.html" class="app-card">
+      <div class="app-icon">📖</div>
+      <span class="app-badge">BX</span>
+      <h3>Explicador de Métricas SAP</h3>
+      <p>Pega texto o sube una captura de un tablero de consumo y recibe qué mide cada métrica.</p>
+    </a>
+    <a href="/kyc.html" class="app-card">
+      <div class="app-icon">🛂</div>
+      <span class="app-badge">Comercial</span>
+      <h3>Formularios KYC / Diligencia Debida</h3>
+      <p>Llena y descarga el Anexo I (persona física) o Anexo II (persona jurídica) antes de contratar a un tercero.</p>
+    </a>
+    <a href="/contactos-sap.html" class="app-card">
+      <div class="app-icon">🗂️</div>
+      <span class="app-badge">Comercial</span>
+      <h3>Contactos SAP</h3>
+      <p>Organigrama de las personas de SAP a las que recurre el equipo comercial — AEs, partner managers y más.</p>
     </a>
     <a href="/dias-habiles.html" class="app-card">
       <div class="app-icon">📅</div>
@@ -178,7 +227,7 @@
       <div class="app-icon">📐</div>
       <span class="app-badge">Operaciones</span>
       <h3>Dashboard de Proyecto</h3>
-      <p>RAID, dependencias críticas, compromisos, Change Requests (kanban) y consumo de horas vs. presupuesto por proyecto, con KPIs y resumen ejecutivo con IA.</p>
+      <p>RAID, dependencias críticas, compromisos, Change Requests (kanban), consumo de horas vs. presupuesto y desglose de tareas (WBS) por proyecto, con KPIs y resumen ejecutivo con IA.</p>
     </a>
     <a href="/checklist.html" class="app-card">
       <div class="app-icon">✅</div>
@@ -197,6 +246,12 @@
       <span class="app-badge">Operaciones</span>
       <h3>Vista General del Proyecto</h3>
       <p>Línea base, KPIs, checklist y resumen ejecutivo maestro en un solo lugar.</p>
+    </a>
+    <a href="/reporte-cuenta.html" class="app-card">
+      <div class="app-icon">📊</div>
+      <span class="app-badge">Operaciones</span>
+      <h3>Reporte de Cuenta (QBR)</h3>
+      <p>Proyectos de un cliente en una sola vista, con KPIs y resumen para revisiones trimestrales.</p>
     </a>
   </div>
 
@@ -236,6 +291,13 @@
     document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
   });
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>

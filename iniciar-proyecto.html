@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
 <title>Iniciar Proyecto desde SOW/DDA · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -94,6 +99,9 @@
           <div class="nav-dropdown-sep"></div>
           <a href="/prospecto.html">Investigación de Prospecto</a>
           <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -104,6 +112,9 @@
           <a href="/kpis.html">Tablero de Control</a>
           <div class="nav-dropdown-sep"></div>
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -116,6 +127,7 @@
           <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
           <a href="/iniciar-proyecto.html" class="active">Iniciar Proyecto desde SOW/DDA</a>
           <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -179,6 +191,14 @@
 <script>
 const files = { sow: null, dda: null, propuesta: null };
 let extracted = null;
+let clientesExistentes = [];
+(async function(){
+  try{
+    const r = await fetch('/api/linea-base');
+    const d = await r.json();
+    clientesExistentes = Array.from(new Set(Object.values(d.proyectos || {}).map(l=>l.clienteNombre).filter(Boolean)));
+  }catch(e){}
+})();
 
 function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
 
@@ -237,7 +257,8 @@ function renderReview(){
   const body = document.getElementById('reviewBody');
   body.innerHTML = `
     <div class="field"><label>Nombre del proyecto</label><input type="text" id="f-nombreProyecto" value="${esc(extracted.nombreProyecto)}"></div>
-    <div class="field"><label>Cliente</label><input type="text" id="f-clienteNombre" value="${esc(extracted.clienteNombre)}"></div>
+    <div class="field"><label>Cliente</label><input type="text" id="f-clienteNombre" list="clientesExistentesLista" value="${esc(extracted.clienteNombre)}"></div>
+    <datalist id="clientesExistentesLista">${clientesExistentes.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
     <div class="field"><label>Resumen de alcance</label><textarea id="f-alcanceResumen" rows="3">${esc(extracted.alcanceResumen)}</textarea></div>
     <div class="field" style="display:flex; gap:8px;">
       <div style="flex:1;"><label>Inversión total</label><input type="text" id="f-inversionTotal" value="${esc(extracted.inversionTotal)}"></div>
@@ -455,6 +476,13 @@ async function confirmarYCrear(){
     document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
   });
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>

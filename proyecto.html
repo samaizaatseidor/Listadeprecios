@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
 <title>Dashboard de Proyecto · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -78,11 +83,19 @@
   .col h3 .count{background:#fff; color:var(--grey); border-radius:20px; padding:1px 7px; font-size:10.5px;}
 
   .row{background:#fff; border-radius:9px; padding:11px 13px; margin-bottom:8px; box-shadow:var(--shadow); border-left:3px solid var(--line); cursor:pointer;}
-  .row.riesgo-alto, .row.tipo-riesgo{border-left-color:#C24545;}
-  .row.riesgo-medio, .row.tipo-issue{border-left-color:#D9A441;}
-  .row.riesgo-bajo{border-left-color:#2E9E5B;}
-  .row.tipo-accion{border-left-color:#1E5BB8;}
-  .row.tipo-decision{border-left-color:#2E9E5B;}
+  .row.riesgo-alto, .row.tipo-riesgo{border-left-color:#C24545; background:#FEF6F6;}
+  .row.riesgo-medio, .row.tipo-issue{border-left-color:#D9A441; background:#FFFBF1;}
+  .row.riesgo-bajo{border-left-color:#2E9E5B; background:#F1FAF4;}
+  .row.tipo-accion{border-left-color:#1E5BB8; background:#F3F8FD;}
+  .row.tipo-decision{border-left-color:#2E9E5B; background:#F1FAF4;}
+  .row.cr-identificado{border-left-color:#8A97AC; background:#F7F8FA;}
+  .row.cr-estimacion{border-left-color:#D9A441; background:#FFFBF1;}
+  .row.cr-validacion{border-left-color:#1E5BB8; background:#F3F8FD;}
+  .row.cr-presentado{border-left-color:#33B4DD; background:#EFFAFD;}
+  .row.cr-aceptado{border-left-color:#2E9E5B; background:#F1FAF4;}
+  .row[draggable="true"]{cursor:grab;}
+  .row.dragging{opacity:0.4;}
+  .col.drag-over{background:#E3ECF9; outline:2px dashed var(--blue); outline-offset:-2px;}
   .row h4{margin:0; font-size:12.5px; color:var(--navy2); font-weight:600;}
   .row .meta-top{font-size:10.5px; color:var(--greyl); margin-bottom:3px;}
   .row .meta-bottom{font-size:10.5px; color:var(--greyl); margin-top:6px;}
@@ -110,8 +123,37 @@
   .sheet-row{display:flex; gap:8px;}
   .sheet-row > div{flex:1;}
   .sheet-actions{display:flex; gap:8px; margin-top:20px;}
+
+  .cr-tl-header{display:flex; align-items:center; gap:12px; background:var(--card); border-radius:10px; padding:12px 14px; margin-bottom:20px;}
+  .cr-tl-header-icon{width:34px; height:34px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--blue); flex-shrink:0;}
+  .cr-timeline{padding-left:2px; margin-bottom:20px;}
+  .cr-tl-step{position:relative; padding-left:36px; padding-bottom:22px;}
+  .cr-tl-step:last-child{padding-bottom:0;}
+  .cr-tl-step::after{content:''; position:absolute; left:12px; top:26px; bottom:-4px; width:2px; background:var(--line);}
+  .cr-tl-step.done::after{background:#2E9E5B;}
+  .cr-tl-step:last-child::after{display:none;}
+  .cr-tl-dot{position:absolute; left:0; top:0; width:25px; height:25px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600;}
+  .cr-tl-dot.done{background:#2E9E5B; color:#fff;}
+  .cr-tl-dot.current{background:var(--blue); color:#fff;}
+  .cr-tl-dot.pending{background:#fff; border:2px solid var(--line); color:var(--greyl);}
+  .cr-tl-title{font-size:14px; font-weight:600; color:var(--navy2); padding-top:3px;}
+  .cr-tl-title.pending{color:var(--greyl); font-weight:500;}
+  .cr-tl-date{font-size:11.5px; color:var(--grey); margin-top:2px;}
+  .cr-tl-summary{background:var(--card); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:10px;}
+  .cr-tl-summary-row b{display:block; font-size:11px; color:var(--greyl); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:2px;}
+  .cr-tl-summary-row span{font-size:13px; color:var(--ink);}
   .close-x{float:right; background:none; border:none; font-size:20px; color:var(--greyl); cursor:pointer; line-height:1;}
   .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
+
+  .section{background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px;}
+  .section h2{font-size:14px; color:var(--navy2); margin:0 0 4px;}
+  .section h3{color:var(--navy2); margin:0 0 6px;}
+  .section .sub, .sub{font-size:12px; color:var(--greyl); margin:0 0 10px;}
+  .chip{display:inline-block; background:var(--card); color:var(--navy2); font-size:12px; font-weight:600; padding:6px 12px; border-radius:20px;}
+  .kpi-mini{display:flex; gap:8px; flex-wrap:wrap;}
+  .table-editor{width:100%; border-collapse:collapse; font-size:12.5px; margin-top:8px;}
+  .table-editor th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:6px 4px; font-weight:600;}
+  .table-editor td{padding:6px 4px; border-bottom:1px solid var(--line);}
   @keyframes spin{ to { transform:rotate(360deg); } }
 </style>
 </head>
@@ -130,6 +172,9 @@
           <div class="nav-dropdown-sep"></div>
           <a href="/prospecto.html">Investigación de Prospecto</a>
           <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -140,6 +185,9 @@
           <a href="/kpis.html">Tablero de Control</a>
           <div class="nav-dropdown-sep"></div>
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -152,6 +200,7 @@
           <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
           <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
           <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -173,6 +222,7 @@
     <button class="btn btn-ghost" id="exportClienteBtn" onclick="exportarPPT(true)" style="display:none;">📤 Exportar PPT para cliente</button>
     <a class="btn btn-ghost" id="checklistLink" href="#" style="display:none; text-decoration:none;">✅ Ver Checklist</a>
     <a class="btn btn-ghost" id="vistaGeneralLink" href="#" style="display:none; text-decoration:none;">🧭 Vista General</a>
+    <a class="btn btn-ghost" id="handoverLink" href="#" style="display:none; text-decoration:none;">🤝 Handover</a>
     <button class="btn btn-danger" id="deleteProyectoBtn" onclick="deleteProyecto()" style="display:none;">🗑 Borrar este proyecto</button>
   </div>
 </header>
@@ -185,11 +235,106 @@
 
 <script>
 let data = { proyectos: [], raid: [], dependencias: [], compromisos: [], changeRequests: [] };
+let currentUser = 'desconocido';
 let currentProyecto = null;
 let activeTab = 'raid';
 let currentId = null;
 
 function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+const CR_STAGES = ['Identificado','En estimación','Validación comercial','Presentado al cliente','Aceptado'];
+
+function handleDragStart(e){
+  e.dataTransfer.setData('text/plain', e.currentTarget.dataset.dragId);
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging');
+}
+function handleDragEnd(e){ e.currentTarget.classList.remove('dragging'); }
+function handleDragOver(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function handleDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+
+async function handleDropRaid(e, nuevoEstatus){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const id = e.dataTransfer.getData('text/plain');
+  const it = data.raid.find(x=>x.id===id);
+  if(!it || it.estatus === nuevoEstatus) return;
+  const oldEstatus = it.estatus;
+  it.estatus = nuevoEstatus;
+  it.updatedAt = new Date().toISOString();
+  await logAudit('Movió RAID (arrastrar y soltar)', `Proyecto "${currentProyecto}" — ${it.descripcion.slice(0,60)} — ${oldEstatus} → ${nuevoEstatus}`);
+  await saveData();
+  render();
+}
+
+async function handleDropCR(e, nuevoEstatus){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const id = e.dataTransfer.getData('text/plain');
+  const it = data.changeRequests.find(x=>x.id===id);
+  if(!it || it.estatus === nuevoEstatus) return;
+  const oldEstatus = it.estatus;
+  const wasAccepted = nuevoEstatus === 'Aceptado' && oldEstatus !== 'Aceptado';
+  it.estatus = nuevoEstatus;
+  it.updatedAt = new Date().toISOString();
+  it.stageHistory = it.stageHistory || [];
+  it.stageHistory.push({ stage: nuevoEstatus, at: it.updatedAt, by: currentUser });
+  await logAudit('Movió Change Request (arrastrar y soltar)', `Proyecto "${currentProyecto}" — ${it.titulo} — ${oldEstatus} → ${nuevoEstatus}`);
+  await saveData();
+  if(wasAccepted) await onCRAccepted(it);
+  render();
+}
+
+const CR_MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function formatCrFecha(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  return `${d.getDate()} de ${CR_MESES[d.getMonth()]} · ${hh}:${mm}`;
+}
+
+let crEditMode = false;
+
+function renderCrTrackingHtml(it){
+  const currentIdx = CR_STAGES.indexOf(it.estatus);
+  const stageHistory = it.stageHistory || [];
+  const entryFor = (stage) => stageHistory.find(h=>h.stage===stage);
+
+  const steps = CR_STAGES.map((stage,i)=>{
+    const cls = i < currentIdx ? 'done' : (i === currentIdx ? (i === CR_STAGES.length-1 ? 'done' : 'current') : 'pending');
+    const dot = cls === 'done' ? '&#10003;' : (i+1);
+    const entry = entryFor(stage);
+    const fechaTxt = entry ? formatCrFecha(entry.at) : '';
+    const porTxt = entry && entry.by && entry.by !== 'desconocido' ? ` · ${entry.by}` : '';
+    const fecha = cls === 'pending' ? 'Pendiente' : (cls === 'current' ? (fechaTxt ? `Desde el ${fechaTxt}${porTxt}` : 'Etapa actual') : (fechaTxt ? `${fechaTxt}${porTxt}` : ''));
+    return `
+      <div class="cr-tl-step ${cls}">
+        <div class="cr-tl-dot ${cls}">${dot}</div>
+        <div class="cr-tl-title ${cls}">${esc(stage)}</div>
+        <div class="cr-tl-date">${esc(fecha)}</div>
+      </div>
+    `;
+  }).join('');
+
+  const CR_ESTATUS_OWNER = {'Identificado':'PM','En estimación':'Consultores','Validación comercial':'AE','Presentado al cliente':'PM','Aceptado':'Cerrado'};
+  return `
+    <div class="cr-tl-header">
+      <div class="cr-tl-header-icon">${it.estatus==='Aceptado' ? '&#10003;' : '&#9203;'}</div>
+      <div>
+        <div style="font-weight:600; color:var(--navy2); font-size:14px;">${it.estatus==='Aceptado' ? '¡Change Request aceptado!' : `En etapa: ${esc(it.estatus)}`}</div>
+        <div style="font-size:12px; color:var(--grey); margin-top:2px;">Responsable de esta etapa: ${esc(CR_ESTATUS_OWNER[it.estatus]||'—')}</div>
+      </div>
+    </div>
+    <div class="cr-timeline">${steps}</div>
+    <div class="cr-tl-summary">
+      ${it.descripcion ? `<div class="cr-tl-summary-row"><b>Descripción</b><span>${esc(it.descripcion)}</span></div>` : ''}
+      ${it.solicitadoPor ? `<div class="cr-tl-summary-row"><b>Solicitado por</b><span>${esc(it.solicitadoPor)}${it.fechaSolicitud ? ' — ' + esc(it.fechaSolicitud) : ''}</span></div>` : ''}
+      ${it.impactoAlcance ? `<div class="cr-tl-summary-row"><b>Impacto en alcance</b><span>${esc(it.impactoAlcance)}</span></div>` : ''}
+      ${(it.impactoTiempo || it.impactoCosto) ? `<div class="cr-tl-summary-row"><b>Impacto en tiempo / costo</b><span>${esc(it.impactoTiempo)}${it.impactoTiempo && it.impactoCosto ? ' · ' : ''}${esc(it.impactoCosto)}</span></div>` : ''}
+    </div>
+  `;
+}
 function fmtDate(s){ return s ? new Date(s+'T00:00:00').toLocaleDateString('es-MX') : ''; }
 function isPastDue(fecha, estatus, doneStatus){
   if(!fecha || estatus === doneStatus) return false;
@@ -199,10 +344,17 @@ function isPastDue(fecha, estatus, doneStatus){
 let lineasBase = {};
 let consumoHorasStore = {};
 let consumoHoras = { presupuesto: [], registros: [] };
+let wbsStore = {};
+let wbsTareas = [];
 let progresoChecklistGlobal = {};
 const FASES_ITEM_COUNTS = { prepare:8, explore:7, realize:7, deploy:7, cutover:11, run:7 };
 
 async function loadData(){
+  try{
+    const rw = await fetch('/api/whoami');
+    const dw = await rw.json();
+    currentUser = dw.email || 'desconocido';
+  }catch(e){}
   try{
     const r = await fetch('/api/proyecto-dashboard');
     const d = await r.json();
@@ -226,6 +378,11 @@ async function loadData(){
     const r4 = await fetch('/api/consumo-horas');
     const d4 = await r4.json();
     consumoHorasStore = d4.proyectos || {};
+  }catch(e){}
+  try{
+    const r5 = await fetch('/api/wbs');
+    const d5 = await r5.json();
+    wbsStore = d5.proyectos || {};
   }catch(e){}
   populateProyectoSelect();
   const urlParams = new URLSearchParams(window.location.search);
@@ -278,6 +435,8 @@ function selectProyecto(p){
   currentProyecto = p || null;
   const stored = currentProyecto ? consumoHorasStore[currentProyecto] : null;
   consumoHoras = stored ? { presupuesto: stored.presupuesto || [], registros: stored.registros || [] } : { presupuesto: [], registros: [] };
+  const wbsStored = currentProyecto ? wbsStore[currentProyecto] : null;
+  wbsTareas = wbsStored ? (wbsStored.tareas || []) : [];
   document.getElementById('proyectoSelect').value = p || '';
   render();
 }
@@ -329,6 +488,13 @@ function render(){
   }else{
     vistaGeneralLink.style.display = 'none';
   }
+  const handoverLink = document.getElementById('handoverLink');
+  if(currentProyecto){
+    handoverLink.style.display = 'inline-block';
+    handoverLink.href = '/handover.html?proyecto=' + encodeURIComponent(currentProyecto);
+  }else{
+    handoverLink.style.display = 'none';
+  }
   if(!currentProyecto){
     main.innerHTML = '<div class="no-proyecto">Selecciona o crea un proyecto para ver su dashboard.</div>';
     return;
@@ -373,9 +539,11 @@ function render(){
       <button class="${activeTab==='compromisos'?'active':''}" onclick="setTab('compromisos')">Compromisos</button>
       <button class="${activeTab==='changeRequests'?'active':''}" onclick="setTab('changeRequests')">Change Requests</button>
       <button class="${activeTab==='horas'?'active':''}" onclick="setTab('horas')">Consumo de Horas</button>
+      <button class="${activeTab==='wbs'?'active':''}" onclick="setTab('wbs')">Desglose de Tareas (WBS)</button>
+      <button class="${activeTab==='cronograma'?'active':''}" onclick="setTab('cronograma')">Revisor de Cronograma</button>
     </div>
     <div class="tabcontent">
-      <div class="tab-toolbar" id="tabToolbar" style="${activeTab==='horas' ? 'display:none;' : ''}">
+      <div class="tab-toolbar" id="tabToolbar" style="${(activeTab==='horas'||activeTab==='wbs') ? 'display:none;' : ''}">
         <input type="text" id="search" placeholder="Buscar…" oninput="renderTabBody()">
         <button class="btn btn-primary" onclick="openSheet(null)">+ Nuevo</button>
       </div>
@@ -397,9 +565,9 @@ function renderTabBody(){
     const prioOrder = {'Alta':0,'Media':1,'Baja':2};
     body.innerHTML = `<div class="board">${cols.map(estatus=>{
       const colItems = items.filter(it=>it.estatus===estatus).sort((a,b)=>(prioOrder[a.prioridad]??1)-(prioOrder[b.prioridad]??1));
-      return `<div class="col"><h3>${estatus} <span class="count">${colItems.length}</span></h3>
+      return `<div class="col" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropRaid(event, '${estatus}')"><h3>${estatus} <span class="count">${colItems.length}</span></h3>
         ${colItems.map(it=>`
-          <div class="row ${tipoClass(it.tipo)}" onclick="openSheet('${it.id}')">
+          <div class="row ${tipoClass(it.tipo)}" draggable="true" data-drag-id="${it.id}" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openSheet('${it.id}')">
             <div class="meta-top">${esc(it.tipo)}</div>
             <h4>${esc(it.descripcion.slice(0,70))}${it.descripcion.length>70?'…':''}</h4>
             ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}
@@ -452,18 +620,18 @@ function renderTabBody(){
     const items = itemsFor('changeRequests').filter(it => !q || it.titulo.toLowerCase().includes(q) || it.descripcion.toLowerCase().includes(q));
     if(!items.length){ body.innerHTML = '<div class="empty">Sin Change Requests registrados para este proyecto.</div>'; return; }
     const CR_COLS = [
-      { key:'Identificado', owner:'PM' },
-      { key:'En estimación', owner:'Consultores' },
-      { key:'Validación comercial', owner:'AE' },
-      { key:'Presentado al cliente', owner:'PM' },
-      { key:'Aceptado', owner:'Cerrado' }
+      { key:'Identificado', owner:'PM', cls:'cr-identificado' },
+      { key:'En estimación', owner:'Consultores', cls:'cr-estimacion' },
+      { key:'Validación comercial', owner:'AE', cls:'cr-validacion' },
+      { key:'Presentado al cliente', owner:'PM', cls:'cr-presentado' },
+      { key:'Aceptado', owner:'Cerrado', cls:'cr-aceptado' }
     ];
     body.innerHTML = `<div class="board">${CR_COLS.map(col=>{
       const colItems = items.filter(it=>it.estatus===col.key);
-      return `<div class="col"><h3>${col.key} <span class="count">${colItems.length}</span></h3>
+      return `<div class="col" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropCR(event, '${col.key}')"><h3>${col.key} <span class="count">${colItems.length}</span></h3>
         <div style="font-size:10px; color:var(--greyl); margin:-4px 4px 8px;">Responsable: ${col.owner}</div>
         ${colItems.map(it=>`
-          <div class="row" onclick="openSheet('${it.id}')">
+          <div class="row ${col.cls}" draggable="true" data-drag-id="${it.id}" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openSheet('${it.id}')">
             <div class="meta-top">${it.solicitadoPor ? esc(it.solicitadoPor) : 'Sin solicitante'}${it.fechaSolicitud ? ' · '+fmtDate(it.fechaSolicitud) : ''}</div>
             <h4>${esc(it.titulo.slice(0,70))}${it.titulo.length>70?'…':''} ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}</h4>
             ${it.impactoTiempo || it.impactoCosto ? `<div class="meta-bottom">${it.impactoTiempo ? esc(it.impactoTiempo) : ''}${it.impactoTiempo && it.impactoCosto ? ' · ' : ''}${it.impactoCosto ? esc(it.impactoCosto) : ''}</div>` : ''}
@@ -475,6 +643,14 @@ function renderTabBody(){
 
   if(activeTab === 'horas'){
     renderHorasTab(body);
+  }
+
+  if(activeTab === 'wbs'){
+    renderWbsTab(body);
+  }
+
+  if(activeTab === 'cronograma'){
+    renderCronogramaTab(body);
   }
 }
 
@@ -651,6 +827,197 @@ function descargarPlantillaHoras(){
   XLSX.writeFile(wb, `Plantilla Consumo de Horas - ${currentProyecto||'Proyecto'}.xlsx`);
 }
 
+function renderWbsTab(body){
+  const FASES_WBS = ['Prepare','Explore','Realize','Deploy','Cutover','Run'];
+  body.innerHTML = `
+    <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <h2 style="font-size:14px; color:var(--navy2); margin:0 0 4px;">Desglose de Tareas (WBS)</h2>
+          <p style="font-size:12px; color:var(--greyl); margin:0;">Delfos arma un borrador a partir del alcance y las fases del SOW — revísalo y ajústalo, es un punto de partida.</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="generarWBS()">✨ Generar con Delfos</button>
+          <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="exportarWbsExcel()">⬇️ Exportar a Excel</button>
+          <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="exportarWbsMsProject()">⬇️ Exportar para MS Project</button>
+        </div>
+      </div>
+      <div id="wbsStatus" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow);">
+      <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+        <tr style="text-align:left; color:var(--grey); border-bottom:1px solid var(--line);">
+          <th style="padding:6px 4px;">Fase</th><th style="padding:6px 4px;">Tarea</th><th style="padding:6px 4px;">Entregable</th><th style="padding:6px 4px;">Rol responsable</th><th style="padding:6px 4px;">Duración est.</th><th></th>
+        </tr>
+        <tbody id="wbsTableBody">
+        ${wbsTareas.length ? wbsTareas.map((t,i)=>`
+          <tr style="border-bottom:1px solid var(--line);">
+            <td style="padding:6px 4px; min-width:110px;">
+              <select onchange="updateWbsField(${i},'fase',this.value)">
+                ${FASES_WBS.map(f=>`<option value="${f}" ${t.fase===f?'selected':''}>${f}</option>`).join('')}
+              </select>
+            </td>
+            <td style="padding:6px 4px;"><input type="text" value="${esc(t.tarea)}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'tarea',this.value)"></td>
+            <td style="padding:6px 4px;"><input type="text" value="${esc(t.entregable)}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'entregable',this.value)"></td>
+            <td style="padding:6px 4px; min-width:150px;"><input type="text" value="${esc(t.rolResponsable)}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'rolResponsable',this.value)"></td>
+            <td style="padding:6px 4px; min-width:100px;"><input type="text" value="${esc(t.duracionEstimada)}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'duracionEstimada',this.value)"></td>
+            <td style="padding:6px 4px;"><button class="btn btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="removeWbsTarea(${i})">×</button></td>
+          </tr>
+        `).join('') : `<tr><td colspan="6" style="padding:20px 4px; color:var(--greyl); text-align:center;">Sin tareas todavía — genera un borrador con Delfos o agrega una manualmente.</td></tr>`}
+        </tbody>
+      </table>
+      <button class="btn btn-ghost" style="margin-top:10px; border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="addWbsTarea()">+ Agregar tarea</button>
+    </div>
+  `;
+}
+
+async function saveWbs(){
+  try{
+    await fetch('/api/wbs', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ proyecto: currentProyecto, tareas: wbsTareas })
+    });
+    wbsStore[currentProyecto] = { tareas: wbsTareas };
+  }catch(e){ console.error(e); }
+}
+
+function updateWbsField(idx, field, value){
+  wbsTareas[idx][field] = value;
+  saveWbs();
+}
+
+async function addWbsTarea(){
+  wbsTareas.push({ fase:'Prepare', tarea:'', entregable:'', rolResponsable:'', duracionEstimada:'' });
+  await saveWbs();
+  renderTabBody();
+}
+
+async function removeWbsTarea(idx){
+  if(!confirm('¿Eliminar esta tarea del WBS?')) return;
+  wbsTareas.splice(idx,1);
+  await saveWbs();
+  renderTabBody();
+}
+
+async function generarWBS(){
+  const statusBox = document.getElementById('wbsStatus');
+  if(wbsTareas.length && !confirm('Ya hay tareas capturadas. ¿Generar un borrador nuevo y agregarlo al final de la lista?')) return;
+  statusBox.innerHTML = '<span class="spinner"></span>Generando borrador con Delfos…';
+  const lb = lineasBase[currentProyecto] || {};
+  const depsDelProyecto = itemsFor('dependencias').map(d=>({sistema:d.tercero, descripcion:d.descripcion}));
+  const presupuesto = (consumoHorasStore[currentProyecto] && consumoHorasStore[currentProyecto].presupuesto) || [];
+  try{
+    const r = await fetch('/api/wbs-generar', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        proyecto: currentProyecto,
+        alcanceResumen: lb.alcanceResumen || '',
+        fases: lb.fases || [],
+        integraciones: depsDelProyecto,
+        presupuestoHoras: presupuesto
+      })
+    });
+    const d = await r.json();
+    if(!d.ok || !Array.isArray(d.tareas) || !d.tareas.length){
+      statusBox.innerHTML = `<span style="color:#B23A3A;">${esc(d.error || 'No se pudo generar. Revisa que el proyecto tenga alcance o fases capturadas en su Línea Base.')}</span>`;
+      return;
+    }
+    wbsTareas = wbsTareas.concat(d.tareas);
+    await saveWbs();
+    await logAudit('Generó WBS con Delfos', `Proyecto "${currentProyecto}" — ${d.tareas.length} tareas`);
+    statusBox.innerHTML = '';
+    renderTabBody();
+  }catch(e){
+    console.error(e);
+    statusBox.innerHTML = '<span style="color:#B23A3A;">No se pudo conectar con Delfos.</span>';
+  }
+}
+
+function exportarWbsExcel(){
+  if(typeof XLSX === 'undefined'){
+    alert('No se pudo cargar la librería de Excel. Revisa tu conexión a internet.');
+    return;
+  }
+  if(!wbsTareas.length){
+    alert('No hay tareas para exportar todavía.');
+    return;
+  }
+  const data = [
+    ['Fase','Tarea','Entregable','Rol Responsable','Duración Estimada'],
+    ...wbsTareas.map(t=>[t.fase, t.tarea, t.entregable, t.rolResponsable, t.duracionEstimada])
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:12},{wch:45},{wch:30},{wch:22},{wch:16}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'WBS');
+  XLSX.writeFile(wb, `WBS - ${currentProyecto}.xlsx`);
+}
+
+function parseDuracionAHoras(texto){
+  const t = (texto||'').toLowerCase();
+  const m = t.match(/(\d+(?:\.\d+)?)/);
+  const num = m ? parseFloat(m[1]) : 1;
+  if(t.includes('sem')) return num * 40;
+  if(t.includes('mes')) return num * 160;
+  if(t.includes('hora') || t.includes('hr')) return num;
+  return num * 8; // default: días (8h/día)
+}
+
+function xmlEscape(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function exportarWbsMsProject(){
+  if(!wbsTareas.length){
+    alert('No hay tareas para exportar todavía.');
+    return;
+  }
+  const FASES_ORDEN = ['Prepare','Explore','Realize','Deploy','Cutover','Run'];
+  let uid = 1;
+  const tasksXml = [];
+
+  FASES_ORDEN.forEach(fase => {
+    const tareasFase = wbsTareas.filter(t=>t.fase===fase);
+    if(!tareasFase.length) return;
+    const faseUid = uid++;
+    tasksXml.push(`
+    <Task>
+      <UID>${faseUid}</UID>
+      <ID>${faseUid}</ID>
+      <Name>${xmlEscape(fase)}</Name>
+      <OutlineLevel>1</OutlineLevel>
+      <Summary>1</Summary>
+    </Task>`);
+    tareasFase.forEach(t=>{
+      const horas = parseDuracionAHoras(t.duracionEstimada);
+      const taskUid = uid++;
+      const notas = [t.entregable ? 'Entregable: '+t.entregable : '', t.rolResponsable ? 'Rol: '+t.rolResponsable : ''].filter(Boolean).join(' — ');
+      tasksXml.push(`
+    <Task>
+      <UID>${taskUid}</UID>
+      <ID>${taskUid}</ID>
+      <Name>${xmlEscape(t.tarea || '(sin nombre)')}</Name>
+      <OutlineLevel>2</OutlineLevel>
+      <Duration>PT${horas}H0M0S</Duration>
+      <Notes>${xmlEscape(notas)}</Notes>
+    </Task>`);
+    });
+  });
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/project">
+  <Name>${xmlEscape('WBS - ' + currentProyecto)}</Name>
+  <Title>${xmlEscape(currentProyecto)}</Title>
+  <Tasks>${tasksXml.join('')}
+  </Tasks>
+</Project>`;
+
+  const blob = new Blob([xml], { type: 'application/xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `WBS - ${currentProyecto}.xml`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
 function handleExcelHoras(file){
   if(!file) return;
   if(typeof XLSX === 'undefined'){
@@ -769,8 +1136,9 @@ async function confirmImportExcel(incluirDuplicados){
   renderTabBody();
 }
 
-function openSheet(id){
+function openSheet(id, keepCrEditMode){
   currentId = id;
+  if(!keepCrEditMode) crEditMode = false;
   const sheet = document.getElementById('sheet');
 
   if(activeTab === 'raid'){
@@ -843,32 +1211,52 @@ function openSheet(id){
   }
 
   if(activeTab === 'changeRequests'){
-    const it = id ? data.changeRequests.find(x=>x.id===id) : { proyecto:currentProyecto, titulo:'', descripcion:'', solicitadoPor:'', fechaSolicitud:'', impactoAlcance:'', impactoTiempo:'', impactoCosto:'', estatus:'Identificado' };
+    const it = id ? data.changeRequests.find(x=>x.id===id) : { proyecto:currentProyecto, titulo:'', descripcion:'', solicitadoPor:'', fechaSolicitud:'', impactoAlcance:'', impactoTiempo:'', impactoCosto:'', estatus:'Identificado', stageHistory:[] };
     const CR_ESTATUS_OWNER = {'Identificado':'PM','En estimación':'Consultores','Validación comercial':'AE','Presentado al cliente':'PM','Aceptado':'Cerrado'};
     const estatusOpts = Object.keys(CR_ESTATUS_OWNER).map(e=>`<option value="${e}" ${it.estatus===e?'selected':''}>${e} (${CR_ESTATUS_OWNER[e]})</option>`).join('');
-    sheet.innerHTML = `
-      <button class="close-x" onclick="closeSheet()">&times;</button>
-      <p class="sheet-title">${id ? 'Editar Change Request' : 'Nuevo Change Request'}</p>
-      <label>Título</label><input type="text" id="f-titulo" value="${esc(it.titulo)}" placeholder="Ej. Reporte adicional de inventarios">
-      <label>Descripción</label><textarea id="f-descripcion" rows="3">${esc(it.descripcion)}</textarea>
-      <div class="sheet-row">
-        <div><label>Solicitado por</label><input type="text" id="f-solicitadoPor" value="${esc(it.solicitadoPor)}" placeholder="Cliente / Interno"></div>
-        <div><label>Fecha de solicitud</label><input type="date" id="f-fechaSolicitud" value="${it.fechaSolicitud||''}"></div>
-      </div>
-      <label>Impacto en alcance</label><textarea id="f-impactoAlcance" rows="2">${esc(it.impactoAlcance)}</textarea>
-      <div class="sheet-row">
-        <div><label>Impacto en tiempo</label><input type="text" id="f-impactoTiempo" value="${esc(it.impactoTiempo)}" placeholder="Ej. +2 semanas"></div>
-        <div><label>Impacto en costo</label><input type="text" id="f-impactoCosto" value="${esc(it.impactoCosto)}" placeholder="Ej. $45,000 MXN"></div>
-      </div>
-      <label>Estatus</label><select id="f-estatus">${estatusOpts}</select>
-      <label style="display:flex; align-items:center; gap:6px; margin-top:14px;"><input type="checkbox" id="f-visibleCliente" style="width:auto;" ${it.visibleCliente?'checked':''}> Visible para cliente (se incluye en el PPT exportable)</label>
-      <div class="sheet-actions">
-        <button class="btn btn-primary" onclick="saveCR()">Guardar</button>
-        ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
-      </div>
-    `;
+
+    if(!id || crEditMode){
+      sheet.innerHTML = `
+        <button class="close-x" onclick="closeSheet()">&times;</button>
+        <p class="sheet-title">${id ? 'Editar Change Request' : 'Nuevo Change Request'}</p>
+        <label>Título</label><input type="text" id="f-titulo" value="${esc(it.titulo)}" placeholder="Ej. Reporte adicional de inventarios">
+        <label>Descripción</label><textarea id="f-descripcion" rows="3">${esc(it.descripcion)}</textarea>
+        <div class="sheet-row">
+          <div><label>Solicitado por</label><input type="text" id="f-solicitadoPor" value="${esc(it.solicitadoPor)}" placeholder="Cliente / Interno"></div>
+          <div><label>Fecha de solicitud</label><input type="date" id="f-fechaSolicitud" value="${it.fechaSolicitud||''}"></div>
+        </div>
+        <label>Impacto en alcance</label><textarea id="f-impactoAlcance" rows="2">${esc(it.impactoAlcance)}</textarea>
+        <div class="sheet-row">
+          <div><label>Impacto en tiempo</label><input type="text" id="f-impactoTiempo" value="${esc(it.impactoTiempo)}" placeholder="Ej. +2 semanas"></div>
+          <div><label>Impacto en costo</label><input type="text" id="f-impactoCosto" value="${esc(it.impactoCosto)}" placeholder="Ej. $45,000 MXN"></div>
+        </div>
+        <label>Estatus</label><select id="f-estatus">${estatusOpts}</select>
+        <label style="display:flex; align-items:center; gap:6px; margin-top:14px;"><input type="checkbox" id="f-visibleCliente" style="width:auto;" ${it.visibleCliente?'checked':''}> Visible para cliente (se incluye en el PPT exportable)</label>
+        <div class="sheet-actions">
+          <button class="btn btn-primary" onclick="saveCR()">Guardar</button>
+          ${id ? '<button class="btn btn-ghost" onclick="toggleCrEditMode(false)">Cancelar</button>' : ''}
+          ${id ? '<button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>' : ''}
+        </div>
+      `;
+    }else{
+      sheet.innerHTML = `
+        <button class="close-x" onclick="closeSheet()">&times;</button>
+        <p class="sheet-title">Change Request</p>
+        <h2 style="margin:0 0 16px; font-size:17px; color:var(--navy2);">${esc(it.titulo)}</h2>
+        ${renderCrTrackingHtml(it)}
+        <div class="sheet-actions">
+          <button class="btn btn-primary" onclick="toggleCrEditMode(true)">✏️ Editar</button>
+          <button class="btn btn-danger" onclick="deleteItem()">Eliminar</button>
+        </div>
+      `;
+    }
   }
   document.getElementById('overlay').classList.add('open');
+}
+
+function toggleCrEditMode(on){
+  crEditMode = on;
+  openSheet(currentId, true);
 }
 
 function closeSheet(){ document.getElementById('overlay').classList.remove('open'); currentId = null; }
@@ -944,6 +1332,12 @@ async function saveCR(){
   const titulo = document.getElementById('f-titulo').value.trim();
   if(!titulo){ alert('Falta el título del Change Request'); return; }
   const existing = currentId ? data.changeRequests.find(x=>x.id===currentId) : null;
+  const nuevoEstatus = document.getElementById('f-estatus').value;
+  const now = new Date().toISOString();
+  const stageHistory = existing && existing.stageHistory ? existing.stageHistory.slice() : [];
+  if(!stageHistory.length || stageHistory[stageHistory.length-1].stage !== nuevoEstatus){
+    stageHistory.push({ stage: nuevoEstatus, at: now, by: currentUser });
+  }
   const item = {
     id: currentId || ('cr-'+Date.now().toString(36)),
     proyecto: currentProyecto,
@@ -954,10 +1348,11 @@ async function saveCR(){
     impactoAlcance: document.getElementById('f-impactoAlcance').value.trim(),
     impactoTiempo: document.getElementById('f-impactoTiempo').value.trim(),
     impactoCosto: document.getElementById('f-impactoCosto').value.trim(),
-    estatus: document.getElementById('f-estatus').value,
+    estatus: nuevoEstatus,
+    stageHistory,
     visibleCliente: document.getElementById('f-visibleCliente').checked,
-    createdAt: existing ? existing.createdAt : new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: existing ? existing.createdAt : now,
+    updatedAt: now
   };
   const wasEdit = !!currentId;
   const justAccepted = item.estatus === 'Aceptado' && (!existing || existing.estatus !== 'Aceptado');
@@ -1242,16 +1637,51 @@ async function exportarPPT(soloCliente){
     addPaginatedTable('Compromisos', headerCells, dataRows, [2.2,6.4,1.8,1.9]);
   }
 
-  // Change Requests
+  // Change Requests — con stepper visual en vez de tabla plana
   if(crVis.length){
-    const headerCells = [
-      { text:'Título', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
-      { text:'Impacto tiempo', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
-      { text:'Impacto costo', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } },
-      { text:'Estatus', options:{ bold:true, color:'FFFFFF', fill:{color:NAVY2} } }
-    ];
-    const dataRows = crVis.map(it=>[it.titulo, it.impactoTiempo || '—', it.impactoCosto || '—', it.estatus]);
-    addPaginatedTable('Change Requests', headerCells, dataRows, [5.5,2.5,2.5,1.8]);
+    function addCrStepperBlock(s, y, cr){
+      const currentIdx = CR_STAGES.indexOf(cr.estatus);
+      const stageCount = CR_STAGES.length;
+      const blockW = 11.6, startX = 0.7, circleR = 0.13;
+      const spacing = blockW / (stageCount - 1);
+      s.addText(cr.titulo, { x:startX, y:y, w:blockW, h:0.3, fontFace:'Poppins', fontSize:14, bold:true, color:NAVY2, margin:0 });
+      const stepperY = y + 0.45;
+      for(let i=0;i<stageCount-1;i++){
+        const x1 = startX + spacing*i + circleR;
+        const x2 = startX + spacing*(i+1) - circleR;
+        const lineColor = i < currentIdx ? '2E9E5B' : LINE;
+        s.addShape('line', { x:x1, y:stepperY, w:x2-x1, h:0, line:{color:lineColor, width:2} });
+      }
+      CR_STAGES.forEach((stage,i)=>{
+        const cx = startX + spacing*i;
+        let fillColor, textColor, borderColor;
+        if(i < currentIdx){ fillColor='2E9E5B'; textColor='FFFFFF'; borderColor='2E9E5B'; }
+        else if(i === currentIdx){ fillColor=BLUE; textColor='FFFFFF'; borderColor=BLUE; }
+        else { fillColor='FFFFFF'; textColor='8A97AC'; borderColor=LINE; }
+        s.addShape('ellipse', { x:cx-circleR, y:stepperY-circleR, w:circleR*2, h:circleR*2, fill:{color:fillColor}, line:{color:borderColor, width:1} });
+        s.addText(String(i+1), { x:cx-circleR, y:stepperY-circleR-0.01, w:circleR*2, h:circleR*2, fontFace:'Poppins', fontSize:9, bold:true, color:textColor, align:'center', valign:'middle', margin:0 });
+        s.addText(stage, { x:cx-0.75, y:stepperY+circleR+0.06, w:1.5, h:0.35, fontFace:'Poppins', fontSize:7.5, color: i===currentIdx?NAVY2:'8A97AC', align:'center', valign:'top', margin:0 });
+      });
+      let nextY = stepperY + circleR + 0.55;
+      if(cr.impactoTiempo || cr.impactoCosto){
+        const impactoText = [cr.impactoTiempo, cr.impactoCosto].filter(Boolean).join(' · ');
+        s.addText('Impacto: ' + impactoText, { x:startX, y:nextY, w:blockW, h:0.25, fontFace:'Poppins', fontSize:10.5, color:INK, margin:0 });
+        nextY += 0.35;
+      }
+      return nextY + 0.15;
+    }
+    const CR_BLOCK_H = 1.7, AVAILABLE_H_CR = 5.3;
+    let i = 0;
+    while(i < crVis.length){
+      const s = pptx.addSlide();
+      addContentSlideHeader(s, 'Change Requests');
+      let y = 1.55; let j = i;
+      while(j < crVis.length && (y - 1.55 + CR_BLOCK_H) <= AVAILABLE_H_CR){
+        y = addCrStepperBlock(s, y, crVis[j]);
+        j++;
+      }
+      i = j > i ? j : i+1;
+    }
   }
 
   await writeAndDownloadPptx(pptx, `Reporte de Estatus${soloCliente ? ' (Cliente)' : ''} - ${currentProyecto}.pptx`);
@@ -1261,6 +1691,337 @@ async function exportarPPT(soloCliente){
     alert('No se pudo generar el archivo PPT: ' + (e && e.message ? e.message : e) + '. Avísale a Sam si el problema sigue.');
   }
 }
+
+/* ======================= REVISOR DE CRONOGRAMA ======================= */
+let cronogramaTasks = [];
+let cronogramaHallazgos = [];
+let cronogramaRuta = [];
+let cronogramaResumenDelfos = '';
+let cronogramaArchivoNombre = '';
+
+function renderCronogramaTab(body){
+  const lb = lineasBase[currentProyecto] || {};
+  body.innerHTML = `
+    <div class="section">
+      <h2>Revisor de Cronograma</h2>
+      <p class="sub">Sube el cronograma del proyecto (.xml exportado de MS Project, o un Excel con columnas Tarea/Fase/Fecha Inicio/Fecha Fin/Predecesora/Responsable) y revisamos fechas en fin de semana o feriado, fechas inconsistentes, traslapes con predecesoras, ruta crítica, y si respeta las fechas de Kick-off/Go-Live comprometidas.</p>
+      <input type="file" id="cronogramaFileInput" accept=".xml,.xlsx,.xls,.mpp" onchange="handleCronogramaFile(this.files[0])">
+      <p class="sub" style="margin-top:8px;">¿Solo tienes el .mpp? En MS Project: Archivo → Guardar como → tipo "XML (*.xml)" — y sube ese archivo aquí.</p>
+      <div id="cronogramaStatus" style="margin-top:10px;"></div>
+    </div>
+    <div id="cronogramaResultados"></div>
+  `;
+  if(cronogramaTasks.length) renderResultadosCronograma();
+}
+
+/* ---- Feriados México (mismo cálculo que Días Hábiles México) ---- */
+function crNthMonday(year, month, n){
+  const d = new Date(year, month-1, 1);
+  let count = 0;
+  while(true){ if(d.getDay() === 1){ count++; if(count === n) return new Date(d); } d.setDate(d.getDate()+1); }
+}
+function crLftHolidays(year){
+  return [ new Date(year,0,1), crNthMonday(year,2,1), crNthMonday(year,3,3), new Date(year,4,1), new Date(year,8,16), crNthMonday(year,11,3), new Date(year,11,25) ];
+}
+function crObservedHolidays(year){ return [ new Date(year,4,5), new Date(year,10,2), new Date(year,11,12) ]; }
+function crIsSameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function crGetHolidaySet(years){ let h=[]; years.forEach(y=>{ h=h.concat(crLftHolidays(y), crObservedHolidays(y)); }); return h; }
+function crIsHoliday(date, holidays){ return holidays.some(h=>crIsSameDay(h,date)); }
+function crIsWeekend(date){ const day = date.getDay(); return day===0 || day===6; }
+
+/* ---- Parseo MS Project XML ---- */
+function parseMsProjectXml(xmlString){
+  const dom = new DOMParser().parseFromString(xmlString, 'text/xml');
+  const taskNodes = Array.from(dom.getElementsByTagName('Task'));
+  return taskNodes.map(node=>{
+    const get = (tag) => { const el = node.getElementsByTagName(tag)[0]; return el ? el.textContent : ''; };
+    const preds = Array.from(node.getElementsByTagName('PredecessorLink')).map(p=>{
+      const puid = p.getElementsByTagName('PredecessorUID')[0];
+      return puid ? puid.textContent : null;
+    }).filter(Boolean);
+    return {
+      uid: get('UID'), name: get('Name'),
+      start: get('Start') ? new Date(get('Start')) : null,
+      finish: get('Finish') ? new Date(get('Finish')) : null,
+      outlineLevel: parseInt(get('OutlineLevel')||'1',10),
+      summary: get('Summary') === '1',
+      milestone: get('Milestone') === '1',
+      responsable: '',
+      predecessors: preds
+    };
+  }).filter(t=>!t.summary && t.name);
+}
+
+/* ---- Parseo Excel ---- */
+function parseExcelCronogramaRows(rows){
+  const keys = rows.length ? Object.keys(rows[0]) : [];
+  const findKey = (names) => keys.find(k => names.some(n => k.toLowerCase().trim() === n));
+  const kTarea = findKey(['tarea','nombre','actividad','task','name']);
+  const kFase = findKey(['fase','phase']);
+  const kInicio = findKey(['fecha inicio','inicio','start','fecha de inicio']);
+  const kFin = findKey(['fecha fin','fin','finish','fecha de fin','fecha final']);
+  const kPred = findKey(['predecesora','predecesoras','predecessor','predecessors']);
+  const kResp = findKey(['responsable','rol','owner','assignee']);
+  const kMilestone = findKey(['hito','milestone']);
+
+  const parseFecha = (v) => {
+    if(!v) return null;
+    if(v instanceof Date) return v;
+    if(typeof v === 'number'){ const epoch = new Date(Date.UTC(1899,11,30)); return new Date(epoch.getTime() + v*86400000); }
+    const d = new Date(v);
+    return isNaN(d) ? null : d;
+  };
+
+  const tasks = rows.map((row,i)=>({
+    uid: 'r'+i,
+    name: String(kTarea ? row[kTarea] : '').trim(),
+    fase: kFase ? String(row[kFase]).trim() : '',
+    start: kInicio ? parseFecha(row[kInicio]) : null,
+    finish: kFin ? parseFecha(row[kFin]) : null,
+    responsable: kResp ? String(row[kResp]).trim() : '',
+    milestone: kMilestone ? /^(s|si|sí|yes|true|1)$/i.test(String(row[kMilestone]).trim()) : false,
+    predecessorNames: kPred ? String(row[kPred]||'').split(/[,;]/).map(s=>s.trim()).filter(Boolean) : []
+  })).filter(t=>t.name);
+
+  const byName = Object.fromEntries(tasks.map(t=>[t.name.toLowerCase(), t.uid]));
+  tasks.forEach(t=>{ t.predecessors = t.predecessorNames.map(n=>byName[n.toLowerCase()]).filter(Boolean); });
+  return tasks;
+}
+
+/* ---- Checks duros ---- */
+function crCheckFinesDeSemanaFeriados(tasks){
+  const years = Array.from(new Set(tasks.flatMap(t=>[t.start,t.finish]).filter(Boolean).map(d=>d.getFullYear())));
+  const holidays = crGetHolidaySet(years);
+  const hallazgos = [];
+  tasks.forEach(t=>{
+    if(t.start && (crIsWeekend(t.start) || crIsHoliday(t.start, holidays))){
+      hallazgos.push({ severidad:'atencion', tarea:t.name, mensaje:`Inicia en día no hábil (${t.start.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'})})` });
+    }
+    if(t.finish && !t.milestone && (crIsWeekend(t.finish) || crIsHoliday(t.finish, holidays))){
+      hallazgos.push({ severidad:'atencion', tarea:t.name, mensaje:`Termina en día no hábil (${t.finish.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'})})` });
+    }
+  });
+  return hallazgos;
+}
+function crCheckFechasInvalidas(tasks){
+  const hallazgos = [];
+  tasks.forEach(t=>{
+    if(t.start && t.finish && t.finish < t.start){
+      hallazgos.push({ severidad:'critico', tarea:t.name, mensaje:'Fecha de fin es anterior a la fecha de inicio' });
+    }
+    if(!t.start || !t.finish){
+      hallazgos.push({ severidad:'atencion', tarea:t.name, mensaje:'Falta fecha de inicio o de fin' });
+    }
+  });
+  return hallazgos;
+}
+function crCheckTraslapes(tasks){
+  const byUid = Object.fromEntries(tasks.map(t=>[t.uid,t]));
+  const hallazgos = [];
+  tasks.forEach(t=>{
+    t.predecessors.forEach(puid=>{
+      const pred = byUid[puid];
+      if(!pred || !pred.finish || !t.start) return;
+      if(t.start < pred.finish){
+        hallazgos.push({ severidad:'critico', tarea:t.name, mensaje:`Empieza (${t.start.toLocaleDateString('es-MX')}) antes de que termine su predecesora "${pred.name}" (${pred.finish.toLocaleDateString('es-MX')})` });
+      }
+    });
+  });
+  return hallazgos;
+}
+function crCompararLineaBase(tasks, lb){
+  const hallazgos = [];
+  const starts = tasks.filter(t=>t.start).map(t=>t.start.getTime());
+  const finishes = tasks.filter(t=>t.finish).map(t=>t.finish.getTime());
+  if(!starts.length || !finishes.length) return hallazgos;
+  const inicioReal = new Date(Math.min(...starts));
+  const finReal = new Date(Math.max(...finishes));
+  const DIA = 86400000;
+  if(lb.fechaInicioKickoff){
+    const comprometido = new Date(lb.fechaInicioKickoff+'T00:00:00');
+    const diff = Math.round((inicioReal - comprometido) / DIA);
+    if(Math.abs(diff) > 3){
+      hallazgos.push({ severidad: diff>0 ? 'critico':'atencion', tarea:'(general)', mensaje:`El cronograma inicia ${diff>0?diff+' días después':Math.abs(diff)+' días antes'} del Kick-off comprometido en el Handover (${comprometido.toLocaleDateString('es-MX')})` });
+    }
+  }
+  if(lb.fechaGoLive){
+    const comprometido = new Date(lb.fechaGoLive+'T00:00:00');
+    const diff = Math.round((finReal - comprometido) / DIA);
+    if(Math.abs(diff) > 3){
+      hallazgos.push({ severidad: diff>0 ? 'critico':'atencion', tarea:'(general)', mensaje:`El cronograma termina ${diff>0?diff+' días después':Math.abs(diff)+' días antes'} del Go-Live comprometido en el Handover (${comprometido.toLocaleDateString('es-MX')})` });
+    }
+  }
+  return hallazgos;
+}
+
+/* ---- Ruta crítica (CPM sobre duración de calendario real dada en el archivo) ---- */
+function crCalcularRutaCritica(tasks){
+  const byUid = Object.fromEntries(tasks.map(t=>[t.uid,t]));
+  const successors = {};
+  tasks.forEach(t=>{ t.predecessors.forEach(puid=>{ successors[puid] = successors[puid]||[]; successors[puid].push(t.uid); }); });
+  const calDurMs = {};
+  tasks.forEach(t=>{ calDurMs[t.uid] = (t.start && t.finish) ? Math.max(0, t.finish.getTime() - t.start.getTime()) : 0; });
+
+  const ES = {}, EF = {};
+  const visited = new Set();
+  function forward(uid){
+    if(visited.has(uid)) return; visited.add(uid);
+    const t = byUid[uid]; if(!t) return;
+    if(!t.predecessors.length){ ES[uid] = t.start ? t.start.getTime() : 0; }
+    else{ t.predecessors.forEach(p=>forward(p)); ES[uid] = Math.max(...t.predecessors.map(p=>EF[p] ?? 0)); }
+    EF[uid] = ES[uid] + (calDurMs[uid]||0);
+  }
+  tasks.forEach(t=>forward(t.uid));
+
+  const finishes = tasks.filter(t=>t.finish).map(t=>t.finish.getTime());
+  if(!finishes.length) return [];
+  const projectEnd = Math.max(...finishes);
+
+  const LF = {}, LS = {};
+  const visited2 = new Set();
+  function backward(uid){
+    if(visited2.has(uid)) return; visited2.add(uid);
+    const succs = successors[uid] || [];
+    if(!succs.length){ LF[uid] = projectEnd; }
+    else{ succs.forEach(s=>backward(s)); LF[uid] = Math.min(...succs.map(s=>LS[s] ?? projectEnd)); }
+    LS[uid] = LF[uid] - (calDurMs[uid]||0);
+  }
+  tasks.forEach(t=>backward(t.uid));
+
+  return tasks.map(t=>{
+    const floatHoras = ((LS[t.uid] ?? 0) - (ES[t.uid] ?? 0)) / (3600*1000);
+    return { uid:t.uid, name:t.name, floatHoras: Math.round(floatHoras*10)/10, critica: Math.abs(floatHoras) < 4 };
+  });
+}
+
+async function handleCronogramaFile(file){
+  if(!file) return;
+  cronogramaArchivoNombre = file.name;
+  const statusBox = document.getElementById('cronogramaStatus');
+
+  if(/\.mpp$/i.test(file.name)){
+    statusBox.innerHTML = '<div class="error" style="background:#FBE7E7; color:#B23A3A; border-radius:8px; padding:10px 12px; font-size:12.5px;">El .mpp no se puede leer directo (es un formato binario propietario de MS Project). En MS Project: Archivo → Guardar como → tipo "XML (*.xml)" — y sube ese archivo.</div>';
+    return;
+  }
+
+  statusBox.innerHTML = '<div class="loading">Leyendo archivo…</div>';
+
+  try{
+    let tasks;
+    if(/\.xml$/i.test(file.name)){
+      const text = await file.text();
+      tasks = parseMsProjectXml(text);
+    }else{
+      if(typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería para leer Excel.');
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type:'array', cellDates:true });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+      tasks = parseExcelCronogramaRows(rows);
+    }
+    if(!tasks.length){
+      statusBox.innerHTML = '<div class="error" style="background:#FBE7E7; color:#B23A3A; border-radius:8px; padding:10px 12px; font-size:12.5px;">No se encontraron tareas en el archivo. Revisa el formato.</div>';
+      return;
+    }
+    cronogramaTasks = tasks;
+    const lb = lineasBase[currentProyecto] || {};
+    cronogramaHallazgos = [
+      ...crCheckFechasInvalidas(tasks),
+      ...crCheckTraslapes(tasks),
+      ...crCheckFinesDeSemanaFeriados(tasks),
+      ...crCompararLineaBase(tasks, lb)
+    ];
+    cronogramaRuta = crCalcularRutaCritica(tasks);
+    cronogramaResumenDelfos = '';
+    statusBox.innerHTML = `<div style="color:#1F8A4C; font-size:12.5px;">${tasks.length} tareas leídas de "${esc(file.name)}".</div>`;
+    renderResultadosCronograma();
+    await pedirRevisionDelfosCronograma();
+  }catch(e){
+    console.error(e);
+    statusBox.innerHTML = `<div class="error" style="background:#FBE7E7; color:#B23A3A; border-radius:8px; padding:10px 12px; font-size:12.5px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
+  }
+}
+
+async function pedirRevisionDelfosCronograma(){
+  const box = document.getElementById('cronogramaDelfosBox');
+  if(box) box.innerHTML = '<div class="loading"><span class="spinner"></span>Delfos está revisando el cronograma…</div>';
+  try{
+    const criticas = cronogramaRuta.filter(r=>r.critica).map(r=>r.name);
+    const r = await fetch('/api/revisor-cronograma', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        proyecto: currentProyecto,
+        tareas: cronogramaTasks.map(t=>({ nombre:t.name, fase:t.fase||'', inicio: t.start?t.start.toISOString().slice(0,10):'', fin: t.finish?t.finish.toISOString().slice(0,10):'', hito: !!t.milestone })),
+        hallazgosDuros: cronogramaHallazgos.map(h=>`${h.tarea}: ${h.mensaje}`),
+        rutaCritica: criticas
+      })
+    });
+    const d = await r.json();
+    if(d.ok){ cronogramaResumenDelfos = d.resumen; }
+    else{ cronogramaResumenDelfos = ''; }
+  }catch(e){ cronogramaResumenDelfos = ''; }
+  renderResultadosCronograma();
+}
+
+function renderResultadosCronograma(){
+  const box = document.getElementById('cronogramaResultados');
+  if(!box) return;
+  const criticos = cronogramaHallazgos.filter(h=>h.severidad==='critico');
+  const atencion = cronogramaHallazgos.filter(h=>h.severidad==='atencion');
+  const rutaCriticaTareas = cronogramaRuta.filter(r=>r.critica);
+
+  const fila = (h, color) => `<div style="padding:8px 0; border-bottom:1px solid var(--line); font-size:13px;"><b style="color:${color};">${esc(h.tarea)}</b> — ${esc(h.mensaje)}</div>`;
+
+  box.innerHTML = `
+    <div class="section">
+      <h2>Resultado — ${cronogramaTasks.length} tareas analizadas</h2>
+      <div class="kpi-mini" style="margin-bottom:14px;">
+        <div class="chip" style="background:#FBE7E7; color:#B23A3A;">🔴 Crítico: <b>${criticos.length}</b></div>
+        <div class="chip" style="background:#FBF1DE; color:#8A6414;">🟡 Atención: <b>${atencion.length}</b></div>
+        <div class="chip">🛤️ En ruta crítica: <b>${rutaCriticaTareas.length}</b> tarea(s)</div>
+      </div>
+
+      ${criticos.length ? `<h3 style="font-size:13px; color:#B23A3A; margin:14px 0 4px;">🔴 Crítico</h3>${criticos.map(h=>fila(h,'#B23A3A')).join('')}` : ''}
+      ${atencion.length ? `<h3 style="font-size:13px; color:#8A6414; margin:14px 0 4px;">🟡 Atención</h3>${atencion.map(h=>fila(h,'#8A6414')).join('')}` : ''}
+      ${!criticos.length && !atencion.length ? '<p style="color:#1F8A4C; font-size:13px;">✅ No se encontraron problemas de fechas ni traslapes.</p>' : ''}
+
+      <h3 style="font-size:13px; color:var(--navy2); margin:18px 0 8px;">🛤️ Ruta crítica</h3>
+      <p class="sub" style="margin-top:-4px;">Estas tareas no tienen holgura — si se atrasan, atrasan la fecha final del proyecto.</p>
+      <table class="table-editor">
+        <tr><th>Tarea</th><th>Holgura</th><th>¿Crítica?</th></tr>
+        ${cronogramaRuta.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.floatHoras>=0 ? Math.round(r.floatHoras/24*10)/10+' días' : '—'}</td><td>${r.critica ? '🔴 Sí' : '—'}</td></tr>`).join('')}
+      </table>
+
+      <h3 style="font-size:13px; color:var(--navy2); margin:18px 0 8px;">🤖 Revisión de Delfos</h3>
+      <div id="cronogramaDelfosBox">${cronogramaResumenDelfos ? `<div style="font-size:13.5px; color:var(--ink); white-space:pre-wrap;">${esc(cronogramaResumenDelfos)}</div>` : '<p class="sub">Se solicita automáticamente tras leer el archivo.</p>'}</div>
+
+      <div style="margin-top:18px;">
+        <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="exportarHallazgosCronograma()">⬇️ Exportar hallazgos a Excel</button>
+      </div>
+    </div>
+  `;
+}
+
+function exportarHallazgosCronograma(){
+  if(typeof XLSX === 'undefined'){ alert('No se pudo cargar la librería de Excel.'); return; }
+  const wsHallazgos = XLSX.utils.aoa_to_sheet([
+    ['Severidad','Tarea','Hallazgo'],
+    ...cronogramaHallazgos.map(h=>[h.severidad==='critico'?'Crítico':'Atención', h.tarea, h.mensaje])
+  ]);
+  const wsRuta = XLSX.utils.aoa_to_sheet([
+    ['Tarea','Holgura (días)','¿Crítica?'],
+    ...cronogramaRuta.map(r=>[r.name, r.floatHoras>=0 ? Math.round(r.floatHoras/24*10)/10 : '', r.critica?'Sí':'No'])
+  ]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, wsHallazgos, 'Hallazgos');
+  XLSX.utils.book_append_sheet(wb, wsRuta, 'Ruta crítica');
+  if(cronogramaResumenDelfos){
+    const wsResumen = XLSX.utils.aoa_to_sheet([['Resumen de Delfos'],[cronogramaResumenDelfos]]);
+    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+  }
+  XLSX.writeFile(wb, `Revisión de Cronograma - ${currentProyecto}.xlsx`);
+}
+/* ==================== FIN REVISOR DE CRONOGRAMA ==================== */
 
 loadData();
 </script>
@@ -1279,6 +2040,13 @@ loadData();
     document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
   });
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>

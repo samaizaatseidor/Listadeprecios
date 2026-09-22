@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
 <title>Agentes powered by DELFOS · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -70,6 +75,9 @@
           <div class="nav-dropdown-sep"></div>
           <a href="/prospecto.html">Investigación de Prospecto</a>
           <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -80,6 +88,9 @@
           <a href="/kpis.html">Tablero de Control</a>
           <div class="nav-dropdown-sep"></div>
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -92,6 +103,7 @@
           <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
           <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
           <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -117,6 +129,24 @@
       <h3>Revisor de SOW y Estimaciones</h3>
       <p>Sube un Word o Excel y recibe riesgos, discrepancias, información faltante y sugerencias de mejora.</p>
     </a>
+    <a href="/handover.html" class="app-card">
+      <div class="app-icon">🤝</div>
+      <span class="app-badge">Preventas</span>
+      <h3>Handover Comercial → Operaciones</h3>
+      <p>Formulario prellenado desde la Línea Base + captura de stakeholders, pain points y garantías, con export a PPT.</p>
+    </a>
+    <a href="/estimador.html" class="app-card">
+      <div class="app-icon">📐</div>
+      <span class="app-badge">Preventas</span>
+      <h3>Estimador de Esfuerzo</h3>
+      <p>Días-persona estimados desde el DDA (Public), Readiness Check (Private/Upgrade) o selección manual de módulos.</p>
+    </a>
+    <a href="/tecnicas-presentacion.html" class="app-card">
+      <div class="app-icon">🎤</div>
+      <span class="app-badge">Preventas</span>
+      <h3>Técnicas de Presentación</h3>
+      <p>18 técnicas de presentación y demo, con tips accionables y video de ejemplo para cada una.</p>
+    </a>
   </div>
 
   <div class="category-title">Comercial</div>
@@ -133,6 +163,12 @@
       <span class="app-badge">Facturación</span>
       <h3>Generador de Formato de Alta</h3>
       <p>Sube el SOW o estimación firmada y completa el resto con un formulario inteligente — genera el Excel listo para facturación.</p>
+    </a>
+    <a href="/metricas-sap.html" class="app-card">
+      <div class="app-icon">📖</div>
+      <span class="app-badge">BX</span>
+      <h3>Explicador de Métricas SAP</h3>
+      <p>Pega texto o sube una captura de un tablero de consumo de SAP Cloud ALM y recibe qué mide cada métrica, sin dar click una por una.</p>
     </a>
   </div>
 
@@ -163,7 +199,7 @@
       <div class="app-icon">📐</div>
       <span class="app-badge">PM</span>
       <h3>Dashboard de Proyecto</h3>
-      <p>RAID, dependencias críticas, compromisos, Change Requests (kanban) y consumo de horas vs. presupuesto por proyecto, con KPIs y resumen ejecutivo generado por IA.</p>
+      <p>RAID, dependencias críticas, compromisos, Change Requests (kanban), consumo de horas vs. presupuesto y desglose de tareas (WBS) por proyecto, con KPIs y resumen ejecutivo generado por IA.</p>
     </a>
 
     <a href="/checklist.html" class="app-card">
@@ -187,11 +223,18 @@
       <p>Línea base, KPIs, avance del checklist y resumen ejecutivo maestro — con su propio PPT combinado.</p>
     </a>
 
+    <a href="/reporte-cuenta.html" class="app-card">
+      <div class="app-icon">📊</div>
+      <span class="app-badge">PM</span>
+      <h3>Reporte de Cuenta (QBR)</h3>
+      <p>Todos los proyectos activos de un cliente en una sola vista, con KPIs consolidados y resumen ejecutivo, para revisiones trimestrales.</p>
+    </a>
+
     <div class="app-card soon">
       <div class="app-icon">✨</div>
       <span class="app-badge">Próximamente</span>
       <h3>Más herramientas de PM en camino</h3>
-      <p>Change Requests, consumo de horas vs. presupuesto, y revisor de cronograma.</p>
+      <p>Reporte de cuenta multi-proyecto y revisor de cronograma.</p>
     </div>
   </div>
 
@@ -221,6 +264,13 @@
     document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
   });
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>

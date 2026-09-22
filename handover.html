@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>Handover Comercial → Operaciones · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-link.active{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0 0 14px; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:820px; margin:0 auto; padding:16px 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:14px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
+
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:4px; font-weight:500;}
+  .field input[type=text], .field input[type=date], .field textarea, .field select{width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px; color:var(--ink); resize:vertical;}
+  .row2{display:flex; gap:10px;}
+  .row2 > div{flex:1;}
+
+  .btn{border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
+
+  .table-editor{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:8px;}
+  .table-editor th{text-align:left; color:var(--grey); font-weight:600; padding:4px 6px; font-size:11px;}
+  .table-editor td{padding:4px 6px; vertical-align:top;}
+  .table-editor input[type=text]{width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;}
+  .del-row{border:none; background:none; color:#B23A3A; cursor:pointer; font-size:16px;}
+
+  .kpi-mini{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px;}
+  .kpi-mini .chip{background:var(--card); border-radius:20px; padding:6px 12px; font-size:12px; color:var(--grey);}
+  .kpi-mini .chip b{color:var(--navy2);}
+
+  .loading{color:var(--grey); text-align:center; padding:20px; font-size:13px;}
+  .no-proyecto{text-align:center; padding:60px 20px; color:var(--grey);}
+  .warn-box{background:#FBF1DE; color:#8A6414; border-radius:8px; padding:10px 12px; font-size:12.5px; margin-top:6px;}
+  .success-box{background:#E7F7EE; color:#1F8A4C; border-radius:8px; padding:14px 16px; font-size:13.5px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html" class="active">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+        </div>
+      </div>
+    </div>
+  </div></nav>
+
+<header>
+  <h1>Handover: Comercial → Operaciones</h1>
+  <p>Todo lo que Operaciones necesita saber al recibir un proyecto recién ganado</p>
+</header>
+
+<main id="main"><div class="loading">Cargando…</div></main>
+
+<script>
+let proyectos = [];
+let dash = { raid:[], dependencias:[] };
+let lineasBase = {};
+let currentProyecto = null;
+let isNewProyecto = false;
+
+const CHECKLIST_ITEMS = [
+  { categoria:'Documentación', items:[
+    {row:6, label:'Propuesta comercial firmada y en SharePoint'},
+    {row:7, label:'SOW / Contrato firmado'},
+    {row:8, label:'Orden de Compra del cliente recibida'},
+    {row:9, label:'Propuesta técnica detallada disponible'},
+    {row:10, label:'Este documento de handover completo'},
+  ]},
+  { categoria:'Acuerdos Económicos', items:[
+    {row:14, label:'Valor total, moneda y tipo de cambio definidos'},
+    {row:15, label:'Hitos de facturación acordados con cliente'},
+    {row:16, label:'Condiciones de pago claras (días, forma, OC)'},
+    {row:17, label:'Margen validado internamente'},
+  ]},
+  { categoria:'Alcance Técnico', items:[
+    {row:21, label:'Módulos y funcionalidades en alcance definidos'},
+    {row:22, label:'Exclusiones explícitas documentadas'},
+    {row:23, label:'Supuestos del proyecto listados'},
+    {row:24, label:'Integraciones identificadas'},
+    {row:25, label:'Volumen de datos a migrar estimado'},
+  ]},
+  { categoria:'Equipo y Accesos', items:[
+    {row:29, label:'Gerente de Proyecto de Operaciones asignado'},
+    {row:30, label:'Key Users del cliente identificados'},
+    {row:31, label:'Espacio en SharePoint / Teams creado para el proyecto'},
+  ]},
+  { categoria:'Comunicación', items:[
+    {row:35, label:'Reunión de Kick-off agendada'},
+    {row:36, label:'Contacts list del cliente compartida'},
+  ]},
+];
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function loadAll(){
+  try{
+    const r = await fetch('/api/proyecto-dashboard');
+    const d = await r.json();
+    proyectos = d.proyectos || [];
+    dash = { raid: d.raid||[], dependencias: d.dependencias||[] };
+  }catch(e){}
+  try{
+    const r2 = await fetch('/api/linea-base');
+    const d2 = await r2.json();
+    lineasBase = d2.proyectos || {};
+  }catch(e){}
+  render();
+  const urlParams = new URLSearchParams(window.location.search);
+  const proyectoFromUrl = urlParams.get('proyecto');
+  if(proyectoFromUrl && proyectos.includes(proyectoFromUrl)){
+    document.getElementById('selectorProyecto').value = proyectoFromUrl;
+    isNewProyecto = false;
+    currentProyecto = proyectoFromUrl;
+    renderFormulario();
+  }
+}
+
+function render(){
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="section">
+      <h2>1. ¿Qué proyecto es?</h2>
+      <p class="sub">Si ya lo creaste con "Iniciar Proyecto desde SOW/DDA" o ya existe en el Dashboard, selecciónalo — así completamos su información en el mismo lugar, sin duplicar nada.</p>
+      <div class="field">
+        <select id="selectorProyecto" onchange="onSelectorChange()">
+          <option value="">Selecciona un proyecto existente...</option>
+          ${proyectos.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('')}
+          <option value="__nuevo__">Es un proyecto nuevo (no está en la lista)</option>
+        </select>
+      </div>
+      <div id="nuevoProyectoBox" style="display:none;">
+        <div class="field">
+          <label>Nombre del nuevo proyecto</label>
+          <input type="text" id="nuevoProyectoNombre" oninput="checkDuplicado()" placeholder="Ej. Implementación SAP S/4HANA Cloud — Cliente X">
+        </div>
+        <div id="duplicadoWarning"></div>
+        <button class="btn btn-primary" onclick="confirmarNuevoProyecto()">Continuar con este proyecto</button>
+      </div>
+    </div>
+    <div id="formularioBox"></div>
+  `;
+}
+
+function normaliza(s){ return (s||'').trim().toLowerCase().replace(/\s+/g,' '); }
+
+function checkDuplicado(){
+  const nombre = document.getElementById('nuevoProyectoNombre').value;
+  const n = normaliza(nombre);
+  const box = document.getElementById('duplicadoWarning');
+  if(!n){ box.innerHTML=''; return; }
+  const parecidos = proyectos.filter(p => {
+    const pn = normaliza(p);
+    return pn === n || pn.includes(n) || n.includes(pn);
+  });
+  if(parecidos.length){
+    box.innerHTML = `<div class="warn-box">⚠️ Ya existe un proyecto parecido: ${parecidos.map(p=>`<b>"${esc(p)}"</b>`).join(', ')}. Si es el mismo, mejor selecciónalo arriba en vez de crear uno nuevo.</div>`;
+  }else{
+    box.innerHTML = '';
+  }
+}
+
+function onSelectorChange(){
+  const val = document.getElementById('selectorProyecto').value;
+  document.getElementById('nuevoProyectoBox').style.display = val === '__nuevo__' ? 'block' : 'none';
+  if(val === '__nuevo__'){
+    isNewProyecto = true;
+    currentProyecto = null;
+    document.getElementById('formularioBox').innerHTML = '';
+  }else if(val){
+    isNewProyecto = false;
+    currentProyecto = val;
+    renderFormulario();
+  }else{
+    currentProyecto = null;
+    document.getElementById('formularioBox').innerHTML = '';
+  }
+}
+
+function confirmarNuevoProyecto(){
+  const nombre = document.getElementById('nuevoProyectoNombre').value.trim();
+  if(!nombre){ alert('Escribe el nombre del proyecto'); return; }
+  currentProyecto = nombre;
+  document.getElementById('nuevoProyectoBox').style.display = 'none';
+  renderFormulario();
+}
+
+function renderFormulario(){
+  const lb = (currentProyecto && lineasBase[currentProyecto]) || {};
+  const raidCount = dash.raid.filter(it=>it.proyecto===currentProyecto).length;
+  const depsCount = dash.dependencias.filter(it=>it.proyecto===currentProyecto).length;
+  const box = document.getElementById('formularioBox');
+  const AE_LIST = ['Fernanda Richards','Manuel Apón','Natalia Ossa','Omar Dávila','Estefanía Muñoz','Freda Juárez','Fernanda Villagómez','Josselyn González'];
+  const alc = lb.alcance || {};
+  const tec = lb.tecnico || {};
+  const dm = lb.datosMigrar || {};
+  const cp = lb.condicionesPago || {};
+  const checklistState = lb.checklistHandover || {};
+
+  box.innerHTML = `
+    <div class="section">
+      <h2>📄 ¿Ya tienes el SOW? Extrae todo lo posible de un jalón</h2>
+      <p class="sub">Sube el SOW (obligatorio) y, si quieres que también se llenen los datos económicos internos (costo, margen), sube además la Estimación — esos dos campos nunca salen de un SOW comercial.</p>
+      <div class="row2">
+        <div>
+          <label style="display:block; font-size:12px; color:var(--grey); margin-bottom:4px;">SOW <span style="color:#B23A3A;">*</span></label>
+          <input type="file" id="sowFileInput" accept=".pdf,.doc,.docx">
+        </div>
+        <div>
+          <label style="display:block; font-size:12px; color:var(--grey); margin-bottom:4px;">Estimación / propuesta económica (opcional)</label>
+          <input type="file" id="estimacionFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx">
+        </div>
+      </div>
+      <button class="btn btn-ghost" style="margin-top:10px;" onclick="extraerDesdeSOW()">Extraer y prellenar</button>
+      <div id="extraccionStatus" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="section">
+      <h2>1. Datos generales ${lb.clienteNombre || lb.alcanceResumen ? '<span style="font-weight:400; color:var(--greyl); font-size:11px;">(prellenado — puedes corregir)</span>' : ''}</h2>
+      <div class="kpi-mini">
+        <div class="chip">RAID: <b>${raidCount}</b> registro(s)</div>
+        <div class="chip">Dependencias: <b>${depsCount}</b> registro(s)</div>
+      </div>
+      <div class="field"><label>Nombre del proyecto</label><input type="text" id="h-nombreProyecto" value="${esc(currentProyecto)}" readonly style="background:var(--card);"></div>
+      <div class="row2">
+        <div class="field"><label>Cliente</label><input type="text" id="h-cliente" list="clientesExistentes" value="${esc(lb.clienteNombre)}" placeholder="Ej. Agroecología Intensiva para el Campo"></div>
+        <datalist id="clientesExistentes">${Array.from(new Set(Object.values(lineasBase).map(l=>l.clienteNombre).filter(Boolean))).map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+        <div class="field"><label>Oportunidad / # Deal</label><input type="text" id="h-dealId" value="${esc(lb.dealId)}" placeholder="Ej. ID en HubSpot"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Tipo de proyecto</label><input type="text" id="h-tipoProyecto" value="${esc(lb.tipoProyecto)}" placeholder="Ej. Implementación / AMS / Upgrade"></div>
+        <div class="field"><label>Solución SAP</label><input type="text" id="h-solucionSAP" value="${esc(lb.solucionSAP)}" placeholder="Ej. S/4HANA Cloud Public Edition"></div>
+        <div class="field"><label>Modalidad de entrega</label>
+          <select id="h-modalidadEntrega">
+            <option value="">Selecciona...</option>
+            <option value="Remoto" ${lb.modalidadEntrega==='Remoto'?'selected':''}>Remoto</option>
+            <option value="Híbrido" ${lb.modalidadEntrega==='Híbrido'?'selected':''}>Híbrido</option>
+            <option value="Presencial" ${lb.modalidadEntrega==='Presencial'?'selected':''}>Presencial</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Plazo estimado</label><input type="text" id="h-plazoEstimado" value="${esc(lb.plazoEstimado)}" placeholder="Ej. 16 semanas" style="max-width:220px;"></div>
+      <div class="field"><label>Resumen de alcance</label><textarea id="h-alcance" rows="3" placeholder="Ej. Implementación de SAP S/4HANA Cloud Public Edition...">${esc(lb.alcanceResumen)}</textarea></div>
+      <p class="sub" style="margin-top:-6px;">Las fechas de inicio (Kick-off) y fin (Go-Live) se capturan más abajo en "Plan y equipo cliente" — no hace falta repetirlas aquí.</p>
+    </div>
+
+    <div class="section">
+      <h2>2. Equipo involucrado (SEIDOR)</h2>
+      <div class="row2">
+        <div class="field"><label>Comercial (AE)</label>
+          <select id="h-comercial" onchange="document.getElementById('h-comercialOtro').style.display = this.value==='__otro__' ? 'block' : 'none';">
+            <option value="">Selecciona...</option>
+            ${AE_LIST.map(ae=>`<option value="${ae}" ${lb.comercialAE===ae?'selected':''}>${ae}</option>`).join('')}
+            <option value="__otro__" ${lb.comercialAE && !AE_LIST.includes(lb.comercialAE) ? 'selected' : ''}>Otro...</option>
+          </select>
+          <input type="text" id="h-comercialOtro" placeholder="Nombre del AE" value="${lb.comercialAE && !AE_LIST.includes(lb.comercialAE) ? esc(lb.comercialAE) : ''}" style="display:${lb.comercialAE && !AE_LIST.includes(lb.comercialAE) ? 'block' : 'none'}; margin-top:6px;">
+        </div>
+        <div class="field"><label>Solution Architect</label><input type="text" id="h-solutionArchitect" value="${esc(lb.solutionArchitect)}"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Gerente Preventa</label><input type="text" id="h-gerentePreventa" value="${esc(lb.gerentePreventa)}"></div>
+        <div class="field"><label>Gerente de Proyecto (Ops)</label><input type="text" id="h-gerenteProyectoOps" value="${esc(lb.gerenteProyectoOps)}" placeholder="Por asignar"></div>
+        <div class="field"><label>Gerente de Consultoría</label><input type="text" id="h-gerenteConsultoria" value="${esc(lb.gerenteConsultoria)}" placeholder="Por asignar"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>3. Contactos clave del cliente</h2>
+      <p class="sub">Se captura a mano — normalmente sale en la junta de handover.</p>
+      <table class="table-editor" id="stakeholdersTable">
+        <tr><th>Nombre</th><th>Cargo</th><th>E-mail</th><th>Teléfono</th><th></th></tr>
+      </table>
+      <button class="btn btn-ghost" onclick="addStakeholder({nombre:'',puesto:'',email:'',telefono:''})">+ Agregar contacto</button>
+    </div>
+
+    <div class="section">
+      <h2>4. Alcance, supuestos y exclusiones</h2>
+      <div class="field"><label>Problema / necesidad del cliente</label><textarea id="h-problemaCliente" rows="2" placeholder="Ej. Conciliación bancaria manual, sin visibilidad de inventario en tiempo real.">${esc(lb.problemaCliente)}</textarea></div>
+      <div class="field"><label>Objetivo del proyecto</label><textarea id="h-objetivoProyecto" rows="2">${esc(lb.objetivoProyecto)}</textarea></div>
+      <div class="field"><label>Contexto relevante</label><textarea id="h-contextoRelevante" rows="2" placeholder="Historia con SAP, situación actual, política interna, etc.">${esc(lb.contextoRelevante)}</textarea></div>
+      <label style="display:block; font-size:12.5px; color:var(--grey); margin:14px 0 8px; font-weight:500;">Alcance contratado (detalle por componente)</label>
+      <div class="field"><label>Módulos / funcionalidades</label><input type="text" id="h-alc-modulos" value="${esc(alc.modulosFuncionalidades)}" placeholder="Ej. FI, CO, SD, MM"></div>
+      <div class="field"><label>Desarrollos (RICEFW)</label><input type="text" id="h-alc-desarrollos" value="${esc(alc.desarrollosRicefw)}"></div>
+      <div class="field"><label>Integraciones</label><input type="text" id="h-alc-integraciones" value="${esc(alc.integracionesAlcance)}"></div>
+      <div class="field"><label>Migración de datos</label><input type="text" id="h-alc-migracion" value="${esc(alc.migracionDatos)}"></div>
+      <div class="field"><label>Usuarios / licencias</label><input type="text" id="h-alc-usuarios" value="${esc(alc.usuariosLicencias)}"></div>
+      <div class="field"><label>Localización MX</label><input type="text" id="h-alc-localizacion" value="${esc(alc.localizacionMX)}"></div>
+      <div class="field"><label>Gestión del cambio / training</label><input type="text" id="h-alc-gestioncambio" value="${esc(alc.gestionCambio)}"></div>
+      <div class="field"><label>Entornos (landscapes)</label><input type="text" id="h-alc-entornos" value="${esc(alc.entornos)}"></div>
+      <div class="field"><label>AMS / soporte post Go-Live</label><input type="text" id="h-alc-ams" value="${esc(alc.amsSoporte)}"></div>
+      <div class="field"><label>Exclusiones explícitas</label><textarea id="h-exclusiones" rows="2" placeholder="• Módulo X no incluido&#10;• Integración Y fuera de alcance">${esc(lb.exclusiones)}</textarea></div>
+      <label style="display:block; font-size:12.5px; color:var(--grey); margin:14px 0 8px; font-weight:500;">Supuestos del proyecto</label>
+      <div id="supuestosBox"></div>
+      <button class="btn btn-ghost" onclick="addSupuesto('')">+ Agregar supuesto</button>
+    </div>
+
+    <div class="section">
+      <h2>5. Económico</h2>
+      <div class="row2">
+        <div class="field"><label>Valor de venta (MXN)</label><input type="text" id="h-valorVenta" value="${esc(lb.valorVentaMXN || lb.inversionTotal || '')}"></div>
+        <div class="field"><label>Costo interno estimado (MXN)</label><input type="text" id="h-costoInterno" value="${esc(lb.costoInternoMXN)}"></div>
+        <div class="field"><label>Margen bruto esperado (%)</label><input type="text" id="h-margenBruto" value="${esc(lb.margenBruto)}"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Moneda</label><input type="text" id="h-moneda" value="${esc(lb.moneda)}" style="max-width:120px;"></div>
+        <div class="field"><label>Tipo de cambio pactado (si aplica)</label><input type="text" id="h-tipoCambio" value="${esc(lb.tipoCambio)}"></div>
+        <div class="field"><label>Inversión total (para referencia)</label><input type="text" id="h-inversion" value="${esc(lb.inversionTotal)}" placeholder="Ej. $185,000 USD" oninput="if(!document.getElementById('h-valorVenta').value.trim()) document.getElementById('h-valorVenta').value = this.value;"></div>
+      </div>
+      <p class="sub" style="margin-top:-6px;">Si llenas "Inversión total" y "Valor de venta (MXN)" está vacío, se copia solo — pero si difieren (por tipo de cambio, por ejemplo), puedes corregir "Valor de venta" a mano.</p>
+      <div class="field"><label>Consideraciones y acuerdos comerciales</label><textarea id="h-condicionesComerciales" rows="2" placeholder="Ej. Recorte de horas, condición de pago especial, paquete, descuento.">${esc(lb.condicionesComerciales)}</textarea></div>
+      <label style="display:block; font-size:12.5px; color:var(--grey); margin:14px 0 8px; font-weight:500;">Hitos de facturación</label>
+      <table class="table-editor" id="hitosTable">
+        <tr><th>Mes/Hito</th><th>Fase</th><th>Entregable</th><th>Monto</th><th>%</th><th>Condición de cobro</th><th></th></tr>
+      </table>
+      <button class="btn btn-ghost" onclick="addGenericRow('hitosTable', HITOS_FIELDS)">+ Agregar hito</button>
+      <div class="row2" style="margin-top:14px;">
+        <div class="field"><label>Días de pago</label><input type="text" id="h-diasPago" value="${esc(cp.dias)}" placeholder="Ej. 30"></div>
+        <div class="field"><label>Forma de pago</label><input type="text" id="h-formaPago" value="${esc(cp.forma)}" placeholder="Ej. Transferencia"></div>
+        <div class="field"><label>¿Requiere OC?</label><input type="text" id="h-requiereOC" value="${esc(cp.requiereOC)}" placeholder="Sí / No"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>6. Plan y equipo cliente</h2>
+      <div class="row2">
+        <div class="field"><label>Fecha inicio (Kick-off)</label><input type="date" id="h-fechaKickoff" value="${lb.fechaInicioKickoff||''}"></div>
+        <div class="field"><label>Fecha Go-Live</label><input type="date" id="h-fechaGoLive" value="${lb.fechaGoLive||''}"></div>
+      </div>
+      <label style="display:block; font-size:12.5px; color:var(--grey); margin:14px 0 8px; font-weight:500;">Equipo cliente (Key Users y Sponsors)</label>
+      <table class="table-editor" id="equipoClienteTable">
+        <tr><th>Nombre</th><th>Área</th><th>Rol</th><th>Disponibilidad</th><th></th></tr>
+      </table>
+      <button class="btn btn-ghost" onclick="addGenericRow('equipoClienteTable', EQUIPO_CLIENTE_FIELDS)">+ Agregar persona</button>
+    </div>
+
+    <div class="section">
+      <h2>7. Contexto técnico</h2>
+      <div class="row2">
+        <div class="field"><label>ERP actual del cliente</label><input type="text" id="h-erpActual" value="${esc(tec.erpActual)}"></div>
+        <div class="field"><label>Versión SAP actual</label><input type="text" id="h-versionActual" value="${esc(tec.versionActual)}"></div>
+        <div class="field"><label>Versión SAP objetivo</label><input type="text" id="h-versionObjetivo" value="${esc(tec.versionObjetivo)}"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Deployment model</label><input type="text" id="h-deploymentModel" value="${esc(tec.deploymentModel)}" placeholder="RISE / GROW / Private / On-Premise"></div>
+        <div class="field"><label>Landscape (entornos)</label><input type="text" id="h-landscape" value="${esc(tec.landscape)}" placeholder="DEV / QAS / PRD"></div>
+        <div class="field"><label>Middleware / integración</label><input type="text" id="h-middleware" value="${esc(tec.middleware)}"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Facturador electrónico (PAC)</label><input type="text" id="h-pac" value="${esc(tec.pac)}"></div>
+        <div class="field"><label>Soluciones SAP adicionales</label><input type="text" id="h-solucionesAdicionales" value="${esc(tec.solucionesAdicionales)}" placeholder="BTP / BDC / SuccessFactors"></div>
+      </div>
+      <label style="display:block; font-size:12.5px; color:var(--grey); margin:14px 0 8px; font-weight:500;">Integraciones detectadas</label>
+      <table class="table-editor" id="integracionesDetectadasTable">
+        <tr><th>Sistema externo</th><th>Descripción / flujo</th><th></th></tr>
+      </table>
+      <button class="btn btn-ghost" onclick="addGenericRow('integracionesDetectadasTable', INTEGRACIONES_FIELDS)">+ Agregar integración</button>
+      <label style="display:block; font-size:12.5px; color:var(--grey); margin:14px 0 8px; font-weight:500;">Datos maestros a migrar</label>
+      <div class="row2">
+        <div class="field"><label>Cuentas contables</label><input type="text" id="h-dm-cuentas" value="${esc(dm.cuentasContables)}"></div>
+        <div class="field"><label>Clientes</label><input type="text" id="h-dm-clientes" value="${esc(dm.clientes)}"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Proveedores</label><input type="text" id="h-dm-proveedores" value="${esc(dm.proveedores)}"></div>
+        <div class="field"><label>Materiales / productos</label><input type="text" id="h-dm-materiales" value="${esc(dm.materiales)}"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Activos fijos</label><input type="text" id="h-dm-activos" value="${esc(dm.activosFijos)}"></div>
+        <div class="field"><label>Centros de costo</label><input type="text" id="h-dm-centroscosto" value="${esc(dm.centrosCosto)}"></div>
+      </div>
+      <div class="field"><label>Notas técnicas adicionales</label><textarea id="h-notasTecnicas" rows="2">${esc(tec.notasTecnicas)}</textarea></div>
+    </div>
+
+    <div class="section">
+      <h2>8. Checklist de arranque</h2>
+      <p class="sub">Márcalo en vivo durante la junta de handover.</p>
+      ${CHECKLIST_ITEMS.map(grupo=>`
+        <div style="margin-bottom:12px;">
+          <div style="font-size:12px; font-weight:600; color:var(--navy2); margin-bottom:6px;">${esc(grupo.categoria)}</div>
+          ${grupo.items.map(item=>`
+            <label style="display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13px; color:var(--ink);">
+              <input type="checkbox" id="chk-${item.row}" ${checklistState[item.row] ? 'checked' : ''}>
+              ${esc(item.label)}
+            </label>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="section">
+      <h2>9. Contexto operativo</h2>
+      <div class="field"><label>Pain Points del cliente</label><textarea id="h-painPoints" rows="3">${esc(lb.painPoints)}</textarea></div>
+      <div class="field"><label>Garantías</label><textarea id="h-garantias" rows="2">${esc(lb.garantias)}</textarea></div>
+      <div class="field"><label>Hypercare</label><textarea id="h-hypercare" rows="2">${esc(lb.hypercare)}</textarea></div>
+      <div class="field"><label>Prime Contractor</label><input type="text" id="h-primeContractor" value="${esc(lb.primeContractor || 'SEIDOR')}"></div>
+      <div class="field"><label>Info de Partner de Ejecución (si aplica)</label><textarea id="h-partnerInfo" rows="2">${esc(lb.partnerInfo)}</textarea></div>
+      <div class="field"><label>Contrato con Partner (si aplica)</label><textarea id="h-contratoPartner" rows="2">${esc(lb.contratoPartner)}</textarea></div>
+      <div class="field"><label>Información adicional del proyecto</label><textarea id="h-infoAdicional" rows="2">${esc(lb.infoAdicional)}</textarea></div>
+    </div>
+
+    <div class="section" style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="guardarHandover()">Guardar</button>
+      <button class="btn btn-ghost" onclick="exportarHandoverExcel()">⬇️ Descargar Excel de Handover</button>
+      <button class="btn btn-ghost" onclick="exportarHandoverPPT()">📤 Generar documento de Handover (PPT)</button>
+      <a href="/proyecto.html?proyecto=${encodeURIComponent(currentProyecto)}" class="btn btn-ghost" style="text-decoration:none; display:inline-block;">📐 Ver en Dashboard de Proyecto</a>
+    </div>
+    <div id="statusBox"></div>
+  `;
+
+  document.getElementById('stakeholdersTable').innerHTML = '<tr><th>Nombre</th><th>Cargo</th><th>E-mail</th><th>Teléfono</th><th></th></tr>';
+  (lb.stakeholders || []).forEach(s => addStakeholder(s));
+
+  document.getElementById('supuestosBox').innerHTML = '';
+  (lb.supuestos && lb.supuestos.length ? lb.supuestos : []).forEach(s => addSupuesto(s));
+
+  document.getElementById('hitosTable').innerHTML = '<tr><th>Mes/Hito</th><th>Fase</th><th>Entregable</th><th>Monto</th><th>%</th><th>Condición de cobro</th><th></th></tr>';
+  (lb.hitosFacturacion || []).forEach(h => fillGenericRow('hitosTable', HITOS_FIELDS, h));
+
+  document.getElementById('equipoClienteTable').innerHTML = '<tr><th>Nombre</th><th>Área</th><th>Rol</th><th>Disponibilidad</th><th></th></tr>';
+  (lb.equipoCliente || []).forEach(p => fillGenericRow('equipoClienteTable', EQUIPO_CLIENTE_FIELDS, p));
+
+  document.getElementById('integracionesDetectadasTable').innerHTML = '<tr><th>Sistema externo</th><th>Descripción / flujo</th><th></th></tr>';
+  (lb.integracionesDetectadas || []).forEach(i => fillGenericRow('integracionesDetectadasTable', INTEGRACIONES_FIELDS, i));
+}
+
+const HITOS_FIELDS = [
+  {key:'mes', placeholder:'Ej. MES 1'}, {key:'fase', placeholder:'Ej. Preparación'}, {key:'entregable', placeholder:'Entregable'},
+  {key:'monto', placeholder:'$ MXN'}, {key:'porcentaje', placeholder:'%'}, {key:'condicion', placeholder:'Condición de cobro'}
+];
+const EQUIPO_CLIENTE_FIELDS = [
+  {key:'nombre', placeholder:'Nombre'}, {key:'area', placeholder:'Área'}, {key:'rol', placeholder:'Key User / Sponsor'}, {key:'disponibilidad', placeholder:'Full / Part time'}
+];
+const INTEGRACIONES_FIELDS = [
+  {key:'sistema', placeholder:'Ej. Banco, Portal, ERP legado'}, {key:'descripcion', placeholder:'Descripción del flujo'}
+];
+
+function addSupuesto(texto){
+  const box = document.getElementById('supuestosBox');
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex; gap:8px; margin-bottom:6px;';
+  row.innerHTML = `<input type="text" value="${esc(texto)}" placeholder="Ej. El cliente proveerá Key Users disponibles al menos 10h/semana" style="flex:1; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px;"><button class="del-row" onclick="this.closest('div').remove()">×</button>`;
+  box.appendChild(row);
+}
+
+function addGenericRow(tableId, fields){
+  const table = document.getElementById(tableId);
+  const tr = document.createElement('tr');
+  tr.innerHTML = fields.map(f => `<td><input type="text" value="" placeholder="${esc(f.placeholder||'')}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;"></td>`).join('') + `<td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>`;
+  table.appendChild(tr);
+}
+function fillGenericRow(tableId, fields, values){
+  const table = document.getElementById(tableId);
+  const tr = document.createElement('tr');
+  tr.innerHTML = fields.map(f => `<td><input type="text" value="${esc(values[f.key]||'')}" placeholder="${esc(f.placeholder||'')}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;"></td>`).join('') + `<td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>`;
+  table.appendChild(tr);
+}
+function collectGenericRows(tableId, fields){
+  const rows = Array.from(document.querySelectorAll('#'+tableId+' tr')).slice(1);
+  return rows.map(tr=>{
+    const cells = tr.querySelectorAll('input');
+    const obj = {};
+    fields.forEach((f,i)=> obj[f.key] = cells[i].value.trim());
+    return obj;
+  }).filter(o => Object.values(o).some(v=>v));
+}
+
+function addStakeholder(s){
+  const table = document.getElementById('stakeholdersTable');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${esc(s.nombre)}" placeholder="Ej. Juan Pérez"></td>
+    <td><input type="text" value="${esc(s.puesto)}" placeholder="Ej. Director de Finanzas"></td>
+    <td><input type="text" value="${esc(s.email)}" placeholder="Ej. juan@cliente.com"></td>
+    <td><input type="text" value="${esc(s.telefono)}" placeholder="Ej. +52 55 1234 5678"></td>
+    <td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  table.appendChild(tr);
+}
+
+function collectFormData(){
+  const stakeholderRows = Array.from(document.querySelectorAll('#stakeholdersTable tr')).slice(1);
+  const stakeholders = stakeholderRows.map(tr=>{
+    const cells = tr.querySelectorAll('input');
+    return { nombre: cells[0].value.trim(), puesto: cells[1].value.trim(), email: cells[2].value.trim(), telefono: cells[3].value.trim() };
+  }).filter(s=>s.nombre);
+
+  const supuestos = Array.from(document.querySelectorAll('#supuestosBox input')).map(i=>i.value.trim()).filter(Boolean);
+  const hitosFacturacion = collectGenericRows('hitosTable', HITOS_FIELDS);
+  const equipoCliente = collectGenericRows('equipoClienteTable', EQUIPO_CLIENTE_FIELDS);
+  const integracionesDetectadas = collectGenericRows('integracionesDetectadasTable', INTEGRACIONES_FIELDS);
+
+  const checklistHandover = {};
+  CHECKLIST_ITEMS.forEach(grupo => grupo.items.forEach(item => {
+    const el = document.getElementById('chk-'+item.row);
+    if(el) checklistHandover[item.row] = el.checked;
+  }));
+
+  return {
+    clienteNombre: document.getElementById('h-cliente').value.trim(),
+    dealId: document.getElementById('h-dealId').value.trim(),
+    tipoProyecto: document.getElementById('h-tipoProyecto').value.trim(),
+    solucionSAP: document.getElementById('h-solucionSAP').value.trim(),
+    modalidadEntrega: document.getElementById('h-modalidadEntrega').value,
+    comercialAE: document.getElementById('h-comercial').value === '__otro__' ? document.getElementById('h-comercialOtro').value.trim() : document.getElementById('h-comercial').value,
+    solutionArchitect: document.getElementById('h-solutionArchitect').value.trim(),
+    gerentePreventa: document.getElementById('h-gerentePreventa').value.trim(),
+    gerenteProyectoOps: document.getElementById('h-gerenteProyectoOps').value.trim(),
+    gerenteConsultoria: document.getElementById('h-gerenteConsultoria').value.trim(),
+    plazoEstimado: document.getElementById('h-plazoEstimado').value.trim(),
+    moneda: document.getElementById('h-moneda').value.trim(),
+    alcanceResumen: document.getElementById('h-alcance').value.trim(),
+    inversionTotal: document.getElementById('h-inversion').value.trim(),
+    primeContractor: document.getElementById('h-primeContractor').value.trim(),
+    partnerInfo: document.getElementById('h-partnerInfo').value.trim(),
+    contratoPartner: document.getElementById('h-contratoPartner').value.trim(),
+    stakeholders,
+    problemaCliente: document.getElementById('h-problemaCliente').value.trim(),
+    objetivoProyecto: document.getElementById('h-objetivoProyecto').value.trim(),
+    contextoRelevante: document.getElementById('h-contextoRelevante').value.trim(),
+    alcance: {
+      modulosFuncionalidades: document.getElementById('h-alc-modulos').value.trim(),
+      desarrollosRicefw: document.getElementById('h-alc-desarrollos').value.trim(),
+      integracionesAlcance: document.getElementById('h-alc-integraciones').value.trim(),
+      migracionDatos: document.getElementById('h-alc-migracion').value.trim(),
+      usuariosLicencias: document.getElementById('h-alc-usuarios').value.trim(),
+      localizacionMX: document.getElementById('h-alc-localizacion').value.trim(),
+      gestionCambio: document.getElementById('h-alc-gestioncambio').value.trim(),
+      entornos: document.getElementById('h-alc-entornos').value.trim(),
+      amsSoporte: document.getElementById('h-alc-ams').value.trim(),
+    },
+    exclusiones: document.getElementById('h-exclusiones').value.trim(),
+    supuestos,
+    valorVentaMXN: document.getElementById('h-valorVenta').value.trim(),
+    costoInternoMXN: document.getElementById('h-costoInterno').value.trim(),
+    margenBruto: document.getElementById('h-margenBruto').value.trim(),
+    tipoCambio: document.getElementById('h-tipoCambio').value.trim(),
+    condicionesComerciales: document.getElementById('h-condicionesComerciales').value.trim(),
+    hitosFacturacion,
+    condicionesPago: {
+      dias: document.getElementById('h-diasPago').value.trim(),
+      forma: document.getElementById('h-formaPago').value.trim(),
+      requiereOC: document.getElementById('h-requiereOC').value.trim(),
+    },
+    fechaInicioKickoff: document.getElementById('h-fechaKickoff').value,
+    fechaGoLive: document.getElementById('h-fechaGoLive').value,
+    equipoCliente,
+    tecnico: {
+      erpActual: document.getElementById('h-erpActual').value.trim(),
+      versionActual: document.getElementById('h-versionActual').value.trim(),
+      versionObjetivo: document.getElementById('h-versionObjetivo').value.trim(),
+      deploymentModel: document.getElementById('h-deploymentModel').value.trim(),
+      landscape: document.getElementById('h-landscape').value.trim(),
+      middleware: document.getElementById('h-middleware').value.trim(),
+      pac: document.getElementById('h-pac').value.trim(),
+      solucionesAdicionales: document.getElementById('h-solucionesAdicionales').value.trim(),
+      notasTecnicas: document.getElementById('h-notasTecnicas').value.trim(),
+    },
+    integracionesDetectadas,
+    datosMigrar: {
+      cuentasContables: document.getElementById('h-dm-cuentas').value.trim(),
+      clientes: document.getElementById('h-dm-clientes').value.trim(),
+      proveedores: document.getElementById('h-dm-proveedores').value.trim(),
+      materiales: document.getElementById('h-dm-materiales').value.trim(),
+      activosFijos: document.getElementById('h-dm-activos').value.trim(),
+      centrosCosto: document.getElementById('h-dm-centroscosto').value.trim(),
+    },
+    checklistHandover,
+    painPoints: document.getElementById('h-painPoints').value.trim(),
+    garantias: document.getElementById('h-garantias').value.trim(),
+    hypercare: document.getElementById('h-hypercare').value.trim(),
+    infoAdicional: document.getElementById('h-infoAdicional').value.trim()
+  };
+}
+
+async function extraerDesdeSOW(){
+  const statusBox = document.getElementById('extraccionStatus');
+  const sowFile = document.getElementById('sowFileInput').files[0];
+  const estimacionFile = document.getElementById('estimacionFileInput').files[0];
+  if(!sowFile){ statusBox.innerHTML = '<span style="color:#B23A3A;">Sube el SOW primero.</span>'; return; }
+  if(!currentProyecto){ statusBox.innerHTML = '<span style="color:#B23A3A;">Primero selecciona o crea el proyecto arriba.</span>'; return; }
+
+  statusBox.innerHTML = '<span class="spinner"></span>Leyendo documentos, puede tardar un momento…';
+  const form = new FormData();
+  form.append('sow', sowFile);
+  if(estimacionFile) form.append('estimacion', estimacionFile);
+
+  try{
+    const r = await fetch('/api/handover-extraer', { method:'POST', body: form });
+    const d = await r.json();
+    if(!d.ok){ statusBox.innerHTML = `<span style="color:#B23A3A;">${esc(d.error||'No se pudo extraer.')}</span>`; return; }
+    const ex = d.extraido;
+
+    // Fusiona lo extraído con lo que ya hubiera en la Línea Base, sin borrar lo que el usuario ya haya llenado a mano
+    const lbActual = lineasBase[currentProyecto] || {};
+    const merged = { ...lbActual };
+    Object.keys(ex).forEach(k=>{
+      const v = ex[k];
+      const yaHabia = lbActual[k];
+      const vacio = v === '' || v === null || (Array.isArray(v) && v.length===0) || (typeof v === 'object' && v !== null && !Array.isArray(v) && Object.values(v).every(x=>!x));
+      if(!vacio && (!yaHabia || (typeof yaHabia === 'string' && !yaHabia.trim()))) merged[k] = v;
+      else if(!vacio && typeof v === 'object' && !Array.isArray(v) && typeof yaHabia === 'object'){
+        merged[k] = { ...v, ...Object.fromEntries(Object.entries(yaHabia||{}).filter(([,val])=>val)) };
+      }
+    });
+    lineasBase[currentProyecto] = merged;
+    statusBox.innerHTML = '<span style="color:#1F8A4C;">Listo — revisa los campos abajo, ya se prellenaron.</span>';
+    renderFormulario();
+  }catch(e){
+    statusBox.innerHTML = '<span style="color:#B23A3A;">No se pudo conectar con Delfos. Intenta de nuevo.</span>';
+  }
+}
+
+async function guardarHandover(){
+  const statusBox = document.getElementById('statusBox');
+  statusBox.innerHTML = '<div class="loading">Guardando…</div>';
+  const datosNuevos = collectFormData();
+  const lbExistente = lineasBase[currentProyecto] || {};
+  const datosFinales = { ...lbExistente, ...datosNuevos };
+
+  try{
+    if(!proyectos.includes(currentProyecto)){
+      const r = await fetch('/api/proyecto-dashboard');
+      const d = await r.json();
+      const nuevaLista = Array.from(new Set([...(d.proyectos||[]), currentProyecto]));
+      await fetch('/api/proyecto-dashboard', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ proyectos: nuevaLista, raid: d.raid||[], dependencias: d.dependencias||[], compromisos: d.compromisos||[], changeRequests: d.changeRequests||[] })
+      });
+      proyectos = nuevaLista;
+    }
+    await fetch('/api/linea-base', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ proyecto: currentProyecto, datos: datosFinales })
+    });
+    lineasBase[currentProyecto] = datosFinales;
+    await fetch('/api/audit', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ page:'Handover', action:'Guardó Handover', detail: `"${currentProyecto}"` })
+    });
+    statusBox.innerHTML = '<div class="success-box">Guardado correctamente.</div>';
+  }catch(e){
+    console.error(e);
+    statusBox.innerHTML = '<div class="warn-box">No se pudo guardar. Intenta de nuevo.</div>';
+  }
+}
+
+async function writeAndDownloadPptx(pptx, fileName){
+  const buf = await pptx.write('arraybuffer');
+  if(typeof JSZip === 'undefined'){
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName; a.click();
+    return;
+  }
+  const zip = await JSZip.loadAsync(buf);
+  const names = Object.keys(zip.files);
+  const setNames = new Set(names);
+  const ctName = '[Content_Types].xml';
+  if(zip.file(ctName)){
+    const ct = await zip.file(ctName).async('string');
+    const ctNew = ct.replace(/<Override\b[^>]*\/>/g, (tag) => {
+      const pn = (tag.match(/PartName="([^"]+)"/) || [])[1];
+      if(pn && !setNames.has(pn.replace(/^\//, ''))) return '';
+      return tag;
+    });
+    if(ctNew !== ct) zip.file(ctName, ctNew);
+  }
+  const outBuf = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(outBuf); a.download = fileName;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+async function exportarHandoverPPT(){
+  if(typeof PptxGenJS === 'undefined'){
+    alert('No se pudo cargar la librería para generar el PPT. Revisa tu conexión a internet.');
+    return;
+  }
+  await guardarHandover();
+  const d = collectFormData();
+  try{
+  const NAVY='0A1226', NAVY2='0E1E3F', BLUE='1E5BB8', CYAN='33B4DD', INK='16223A', LINE='D8E2EE';
+  const LOGO_RATIO = 1165/475;
+  const pptx = new PptxGenJS();
+  pptx.defineLayout({ name:'SEIDOR', width:13.333, height:7.5 });
+  pptx.layout = 'SEIDOR';
+
+  let logoDarkUrl=null, logoLightUrl=null, bgCoverUrl=null, bgLightUrl=null;
+  try{
+    const toDataUrl = async (url) => { const resp = await fetch(url); const blob = await resp.blob(); return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); }); };
+    [logoDarkUrl, logoLightUrl, bgCoverUrl, bgLightUrl] = await Promise.all([
+      toDataUrl('/assets/logo_dark.png'), toDataUrl('/assets/logo_light.png'),
+      toDataUrl('/assets/bg_cover.png'), toDataUrl('/assets/bg_light.png')
+    ]);
+  }catch(e){}
+
+  function brandMark(s,x,y,dark,w){ w=w||1.55; const url=dark?logoDarkUrl:logoLightUrl; if(url) s.addImage({data:url,x,y,w,h:w/LOGO_RATIO}); }
+  let pageCounter = 1;
+  function pageNum(s,n){ s.addText(String(n).padStart(2,'0'), {x:11.83,y:7.0,w:0.5,h:0.3,fontFace:'Poppins',fontSize:10,color:'8A97AC',align:'right',margin:0}); }
+  function header(s,title){
+    s.background = bgLightUrl ? {data:bgLightUrl} : {color:'#FFFFFF'};
+    s.addText((currentProyecto||'').toUpperCase(), {x:0.7,y:0.55,w:9,h:0.3,fontFace:'Poppins',fontSize:12.5,bold:true,color:CYAN,charSpacing:2,margin:0});
+    s.addText(title, {x:0.7,y:0.82,w:9.5,h:0.7,fontFace:'Poppins',fontSize:28,bold:true,color:NAVY2,margin:0});
+    brandMark(s,11.0,0.55,false);
+    pageCounter++; pageNum(s,pageCounter);
+  }
+  function addInfoCard(s, x, y, w, h, label, value){
+    s.addShape('roundRect', {
+      x, y, w, h, rectRadius: 0.08,
+      fill: { color: 'FFFFFF' },
+      line: { color: LINE, width: 0.75 },
+      shadow: { type: 'outer', color: '9FB3CC', blur: 9, offset: 3, angle: 90, opacity: 0.18 }
+    });
+    s.addText(String(label||'').toUpperCase(), { x:x+0.18, y:y+0.12, w:w-0.36, h:0.25, fontFace:'Poppins', fontSize:9.5, bold:true, color:CYAN, charSpacing:1, margin:0 });
+    s.addText(value||'—', { x:x+0.18, y:y+0.4, w:w-0.36, h:h-0.5, fontFace:'Poppins', fontSize:13, color:NAVY2, valign:'top', margin:0 });
+  }
+  function addTextSection(s, y, label, value){
+    s.addText(String(label||'').toUpperCase(), { x:0.7, y, w:11.8, h:0.28, fontFace:'Poppins', fontSize:11, bold:true, color:CYAN, charSpacing:1, margin:0 });
+    const lines = estimateRowLines(value, 11.8, 13);
+    const h = Math.max(0.4, lines*0.24 + 0.1);
+    s.addText(value||'—', { x:0.7, y:y+0.3, w:11.8, h, fontFace:'Poppins', fontSize:13, color:INK, valign:'top', margin:0 });
+    return y + 0.3 + h + 0.25;
+  }
+  function estimateRowLines(text, colWidthIn, fontSize){
+    fontSize = fontSize||11;
+    const charsPerLine = Math.max(8, Math.floor(colWidthIn*13.5*(11/fontSize)));
+    const lines = String(text||'').split('\n');
+    let total=0; lines.forEach(l=>{ total += Math.max(1, Math.ceil(l.length/charsPerLine)); });
+    return total;
+  }
+  function addPaginatedTable(title, headerCells, dataRows, colW){
+    const AVAILABLE_H=5.3, ROW_PAD=0.14, LINE_H=0.235;
+    let i=0;
+    while(i<dataRows.length){
+      const s = pptx.addSlide();
+      header(s, title);
+      const chunk=[headerCells]; let used=0.4; let j=i;
+      while(j<dataRows.length){
+        const row=dataRows[j];
+        const lines = Math.max(...row.map((c,ci)=>estimateRowLines(c,colW[ci])));
+        const rowH = ROW_PAD + lines*LINE_H;
+        if(used+rowH>AVAILABLE_H && chunk.length>1) break;
+        chunk.push(row); used+=rowH; j++;
+      }
+      s.addTable(chunk, {x:0.5,y:1.55,w:12.3,colW,fontSize:11,color:INK,fontFace:'Poppins',border:{type:'solid',color:LINE,pt:0.5}});
+      i=j;
+    }
+  }
+
+  // Portada
+  let slide = pptx.addSlide();
+  slide.background = bgCoverUrl ? {data:bgCoverUrl} : {color:NAVY};
+  brandMark(slide,11.1,0.55,true);
+  slide.addText('Handover: Comercial → Operaciones', {x:0.6,y:2.6,w:12,h:0.8,fontSize:28,bold:true,color:'FFFFFF',fontFace:'Poppins',margin:0});
+  slide.addText(currentProyecto, {x:0.6,y:3.4,w:12,h:0.6,fontSize:20,color:CYAN,fontFace:'Poppins',margin:0});
+  if(d.clienteNombre) slide.addText(d.clienteNombre, {x:0.6,y:4.0,w:12,h:0.5,fontSize:14,color:'8A97AC',fontFace:'Poppins',margin:0});
+  slide.addText(new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'}), {x:0.6,y:4.5,w:12,h:0.5,fontSize:13,color:'8A97AC',fontFace:'Poppins',margin:0});
+
+  // Datos generales — tarjetas de información
+  slide = pptx.addSlide();
+  header(slide, 'Datos Generales y Contractuales');
+  {
+    const colW = 5.9, gap = 0.3, rowH = 0.95, rowGap = 0.2;
+    const x1 = 0.6, x2 = x1 + colW + gap;
+    let y = 1.55;
+    addInfoCard(slide, x1, y, colW, rowH, 'Cliente', d.clienteNombre);
+    addInfoCard(slide, x2, y, colW, rowH, 'Comercial (AE)', d.comercialAE);
+    y += rowH + rowGap;
+    addInfoCard(slide, x1, y, colW, rowH, 'Fechas propuestas', `${d.fechaInicioPropuesta||'—'}  —  ${d.fechaFinPropuesta||'—'}`);
+    addInfoCard(slide, x2, y, colW, rowH, 'Moneda / Inversión', `${d.moneda||'—'}   ${d.inversionTotal||''}`);
+    y += rowH + rowGap;
+    addInfoCard(slide, x1, y, colW, rowH, 'Prime Contractor', d.primeContractor);
+    const propuestaFirmadaChk = d.checklistHandover && d.checklistHandover[6] ? 'Sí' : 'Pendiente';
+    const sowFirmadoChk = d.checklistHandover && d.checklistHandover[7] ? 'Sí' : 'Pendiente';
+    addInfoCard(slide, x2, y, colW, rowH, 'Estatus contractual', `Propuesta firmada: ${propuestaFirmadaChk}\nSOW firmado: ${sowFirmadoChk}`);
+    y += rowH + rowGap;
+    const hitosResumen = d.hitosFacturacion.map(h=>`${h.mes||h.fase}: ${h.porcentaje||''} ${h.monto?'('+h.monto+')':''}`).join(' · ') || d.hitosDePago || '—';
+    addInfoCard(slide, x1, y, colW*2+gap, rowH, 'Hitos de facturación', hitosResumen);
+  }
+
+  if(d.alcanceResumen){
+    slide = pptx.addSlide();
+    header(slide, 'Alcance del Proyecto');
+    slide.addText(d.alcanceResumen, {x:0.7,y:1.6,w:11.8,h:5,fontSize:14,color:INK,fontFace:'Poppins',valign:'top',margin:0});
+  }
+
+  // Stakeholders
+  if(d.stakeholders.length){
+    const headerCells=[{text:'Nombre',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Puesto',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}];
+    const dataRows = d.stakeholders.map(s=>[s.nombre, s.puesto]);
+    addPaginatedTable('Stakeholders del Cliente', headerCells, dataRows, [6,6.3]);
+  }
+
+  // Contexto operativo — secciones separadas, no un solo bloque de texto
+  if(d.painPoints || d.garantias || d.hypercare || d.infoAdicional){
+    slide = pptx.addSlide();
+    header(slide, 'Contexto Operativo');
+    let y = 1.6;
+    if(d.painPoints) y = addTextSection(slide, y, 'Pain Points del cliente', d.painPoints);
+    if(d.garantias) y = addTextSection(slide, y, 'Garantías', d.garantias);
+    if(d.hypercare) y = addTextSection(slide, y, 'Hypercare', d.hypercare);
+    if(d.infoAdicional) y = addTextSection(slide, y, 'Información adicional', d.infoAdicional);
+  }
+
+  // Riesgos y dependencias (referencia rápida desde el Dashboard)
+  const raidDelProyecto = dash.raid.filter(it=>it.proyecto===currentProyecto);
+  const depsDelProyecto = dash.dependencias.filter(it=>it.proyecto===currentProyecto);
+  if(raidDelProyecto.length){
+    const headerCells=[{text:'Tipo',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Descripción',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}];
+    const dataRows = raidDelProyecto.map(it=>[it.tipo, it.descripcion, it.estatus]);
+    addPaginatedTable('Riesgos Identificados (referencia)', headerCells, dataRows, [1.8,8.5,2]);
+  }
+  if(depsDelProyecto.length){
+    const headerCells=[{text:'Depende de',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Descripción',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}},{text:'Estatus',options:{bold:true,color:'FFFFFF',fill:{color:NAVY2}}}];
+    const dataRows = depsDelProyecto.map(it=>[it.tercero, it.descripcion, it.estatus]);
+    addPaginatedTable('Dependencias Críticas (referencia)', headerCells, dataRows, [2.5,7.8,2]);
+  }
+
+  await writeAndDownloadPptx(pptx, `Handover - ${currentProyecto}.pptx`);
+  }catch(e){
+    console.error(e);
+    alert('No se pudo generar el archivo PPT: ' + (e && e.message ? e.message : e) + '. Avísale a Sam si el problema sigue.');
+  }
+}
+
+function xlsxEscape(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+let FILLED_STYLE_ID = null;
+
+async function prepararEstiloRellenoXlsx(zip){
+  let styles = await zip.file('xl/styles.xml').async('string');
+  const fontsMatch = styles.match(/<fonts count="(\d+)">/);
+  const fontCount = parseInt(fontsMatch[1], 10);
+  const newFontId = fontCount;
+  const newFont = '<font><sz val="9"/><color rgb="FF1A1A1A"/><name val="Calibri"/><family val="2"/></font>';
+  styles = styles.replace(/(<fonts count=")(\d+)("[^>]*>)/, (m,a,n,c) => `${a}${fontCount+1}${c}`);
+  styles = styles.replace('</fonts>', newFont + '</fonts>');
+
+  const xfsMatch = styles.match(/<cellXfs count="(\d+)">/);
+  const xfCount = parseInt(xfsMatch[1], 10);
+  const newXfId = xfCount;
+  const newXf = `<xf numFmtId="0" fontId="${newFontId}" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>`;
+  styles = styles.replace(/(<cellXfs count=")(\d+)("[^>]*>)/, (m,a,n,c) => `${a}${xfCount+1}${c}`);
+  styles = styles.replace('</cellXfs>', newXf + '</cellXfs>');
+
+  zip.file('xl/styles.xml', styles);
+  FILLED_STYLE_ID = newXfId;
+}
+
+function setXlsxCell(xml, cellRef, value){
+  if(value === undefined || value === null || value === '') return xml;
+  const escaped = xlsxEscape(value).replace(/\n/g, '&#10;');
+  const re = new RegExp(`<c r="${cellRef}"([^>]*)(/>|>[\\s\\S]*?</c>)`);
+  if(!re.test(xml)) return xml;
+  return xml.replace(re, (match, attrs) => {
+    let cleanAttrs = attrs.replace(/\st="[^"]*"/g, '');
+    cleanAttrs = cleanAttrs.replace(/\ss="2"/, ` s="${FILLED_STYLE_ID}"`);
+    return `<c r="${cellRef}"${cleanAttrs} t="inlineStr"><is><t xml:space="preserve">${escaped}</t></is></c>`;
+  });
+}
+
+async function exportarHandoverExcel(){
+  if(typeof JSZip === 'undefined'){
+    alert('No se pudo cargar la librería para generar el Excel. Revisa tu conexión a internet.');
+    return;
+  }
+  await guardarHandover();
+  const d = collectFormData();
+  const statusBox = document.getElementById('statusBox');
+  statusBox.innerHTML = '<span class="spinner"></span>Generando Excel…';
+
+  try{
+    const resp = await fetch('/templates/SEIDOR_MX_Handover_Operaciones.xlsx');
+    if(!resp.ok) throw new Error('No se encontró la plantilla en /templates/');
+    const buf = await resp.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    await prepararEstiloRellenoXlsx(zip);
+
+    const SHEETS = {
+      portada: 'xl/worksheets/sheet1.xml',
+      alcance: 'xl/worksheets/sheet2.xml',
+      economico: 'xl/worksheets/sheet3.xml',
+      plan: 'xl/worksheets/sheet4.xml',
+      tecnico: 'xl/worksheets/sheet5.xml',
+      checklist: 'xl/worksheets/sheet6.xml',
+    };
+
+    // --- Portada ---
+    let s = await zip.file(SHEETS.portada).async('string');
+    s = setXlsxCell(s, 'D6', d.clienteNombre);
+    s = setXlsxCell(s, 'H6', d.dealId);
+    s = setXlsxCell(s, 'D7', d.tipoProyecto);
+    s = setXlsxCell(s, 'H7', new Date().toLocaleDateString('es-MX'));
+    s = setXlsxCell(s, 'D8', d.solucionSAP);
+    s = setXlsxCell(s, 'H8', d.modalidadEntrega);
+    s = setXlsxCell(s, 'D9', d.inversionTotal);
+    s = setXlsxCell(s, 'H9', d.plazoEstimado);
+    s = setXlsxCell(s, 'D12', d.comercialAE);
+    s = setXlsxCell(s, 'D13', d.solutionArchitect);
+    s = setXlsxCell(s, 'H13', d.gerentePreventa);
+    s = setXlsxCell(s, 'D14', d.gerenteProyectoOps);
+    s = setXlsxCell(s, 'H14', d.gerenteConsultoria);
+    d.stakeholders.slice(0,3).forEach((c,i)=>{
+      const row = 18+i;
+      s = setXlsxCell(s, 'B'+row, c.nombre);
+      s = setXlsxCell(s, 'D'+row, c.puesto);
+      s = setXlsxCell(s, 'F'+row, c.email);
+      s = setXlsxCell(s, 'H'+row, c.telefono);
+    });
+    zip.file(SHEETS.portada, s);
+
+    // --- Alcance y Supuestos ---
+    let s2 = await zip.file(SHEETS.alcance).async('string');
+    s2 = setXlsxCell(s2, 'D5', d.problemaCliente);
+    s2 = setXlsxCell(s2, 'D6', d.objetivoProyecto);
+    s2 = setXlsxCell(s2, 'D7', d.contextoRelevante);
+    s2 = setXlsxCell(s2, 'D11', d.alcance.modulosFuncionalidades);
+    s2 = setXlsxCell(s2, 'D12', d.alcance.desarrollosRicefw);
+    s2 = setXlsxCell(s2, 'D13', d.alcance.integracionesAlcance);
+    s2 = setXlsxCell(s2, 'D14', d.alcance.migracionDatos);
+    s2 = setXlsxCell(s2, 'D15', d.alcance.usuariosLicencias);
+    s2 = setXlsxCell(s2, 'D16', d.alcance.localizacionMX);
+    s2 = setXlsxCell(s2, 'D17', d.alcance.gestionCambio);
+    s2 = setXlsxCell(s2, 'D18', d.alcance.entornos);
+    s2 = setXlsxCell(s2, 'D19', d.alcance.amsSoporte);
+    if(d.exclusiones) s2 = setXlsxCell(s2, 'B22', d.exclusiones);
+    d.supuestos.slice(0,8).forEach((sup,i)=>{ s2 = setXlsxCell(s2, 'D'+(26+i), sup); });
+    const riesgosProyecto = dash.raid.filter(it=>it.proyecto===currentProyecto && it.tipo==='Riesgo').slice(0,4);
+    riesgosProyecto.forEach((r,i)=>{
+      const row = 37+i;
+      s2 = setXlsxCell(s2, 'B'+row, r.descripcion);
+      s2 = setXlsxCell(s2, 'D'+row, r.prioridad==='Alta'?'Alto':(r.prioridad==='Media'?'Medio':'Bajo'));
+    });
+    zip.file(SHEETS.alcance, s2);
+
+    // --- Económico ---
+    let s3 = await zip.file(SHEETS.economico).async('string');
+    s3 = setXlsxCell(s3, 'D6', d.valorVentaMXN);
+    s3 = setXlsxCell(s3, 'D7', d.costoInternoMXN);
+    s3 = setXlsxCell(s3, 'H8', d.margenBruto);
+    s3 = setXlsxCell(s3, 'H9', d.moneda);
+    s3 = setXlsxCell(s3, 'H10', d.tipoCambio);
+    if(d.condicionesComerciales) s3 = setXlsxCell(s3, 'B13', d.condicionesComerciales);
+    d.hitosFacturacion.slice(0,6).forEach((h,i)=>{
+      const row = 17+i;
+      s3 = setXlsxCell(s3, 'B'+row, h.mes);
+      s3 = setXlsxCell(s3, 'D'+row, h.fase);
+      s3 = setXlsxCell(s3, 'E'+row, h.entregable);
+      s3 = setXlsxCell(s3, 'F'+row, h.monto);
+      s3 = setXlsxCell(s3, 'G'+row, h.porcentaje);
+      s3 = setXlsxCell(s3, 'H'+row, h.condicion);
+    });
+    s3 = setXlsxCell(s3, 'B28', d.condicionesPago.dias);
+    s3 = setXlsxCell(s3, 'D28', d.condicionesPago.forma);
+    s3 = setXlsxCell(s3, 'F28', d.condicionesPago.requiereOC);
+    zip.file(SHEETS.economico, s3);
+
+    // --- Plan y Equipo ---
+    let s4 = await zip.file(SHEETS.plan).async('string');
+    if(d.fechaInicioKickoff) s4 = setXlsxCell(s4, 'F6', new Date(d.fechaInicioKickoff+'T00:00:00').toLocaleDateString('es-MX'));
+    if(d.fechaGoLive) s4 = setXlsxCell(s4, 'F7', new Date(d.fechaGoLive+'T00:00:00').toLocaleDateString('es-MX'));
+    d.equipoCliente.slice(0,6).forEach((p,i)=>{
+      const row = 12+i;
+      s4 = setXlsxCell(s4, 'B'+row, p.nombre);
+      s4 = setXlsxCell(s4, 'D'+row, p.area);
+      s4 = setXlsxCell(s4, 'F'+row, p.rol);
+      s4 = setXlsxCell(s4, 'H'+row, p.disponibilidad);
+    });
+    zip.file(SHEETS.plan, s4);
+
+    // --- Técnico ---
+    let s5 = await zip.file(SHEETS.tecnico).async('string');
+    s5 = setXlsxCell(s5, 'D5', d.tecnico.erpActual);
+    s5 = setXlsxCell(s5, 'D6', d.tecnico.versionActual);
+    s5 = setXlsxCell(s5, 'D7', d.tecnico.versionObjetivo);
+    s5 = setXlsxCell(s5, 'D8', d.tecnico.deploymentModel);
+    s5 = setXlsxCell(s5, 'D9', d.tecnico.landscape);
+    s5 = setXlsxCell(s5, 'D10', d.tecnico.middleware);
+    s5 = setXlsxCell(s5, 'D11', d.tecnico.pac);
+    s5 = setXlsxCell(s5, 'D12', d.tecnico.solucionesAdicionales);
+    d.integracionesDetectadas.slice(0,5).forEach((it,i)=>{
+      const row = 16+i;
+      s5 = setXlsxCell(s5, 'B'+row, it.sistema);
+      s5 = setXlsxCell(s5, 'D'+row, it.descripcion);
+    });
+    s5 = setXlsxCell(s5, 'D24', d.datosMigrar.cuentasContables);
+    s5 = setXlsxCell(s5, 'D25', d.datosMigrar.clientes);
+    s5 = setXlsxCell(s5, 'D26', d.datosMigrar.proveedores);
+    s5 = setXlsxCell(s5, 'D27', d.datosMigrar.materiales);
+    s5 = setXlsxCell(s5, 'D28', d.datosMigrar.activosFijos);
+    s5 = setXlsxCell(s5, 'D29', d.datosMigrar.centrosCosto);
+    if(d.tecnico.notasTecnicas) s5 = setXlsxCell(s5, 'B32', d.tecnico.notasTecnicas);
+    zip.file(SHEETS.tecnico, s5);
+
+    // --- Checklist ---
+    let s6 = await zip.file(SHEETS.checklist).async('string');
+    CHECKLIST_ITEMS.forEach(grupo => grupo.items.forEach(item=>{
+      const marcado = d.checklistHandover[item.row];
+      s6 = setXlsxCell(s6, 'D'+item.row, marcado ? '✅ Completo' : '⬜ Pendiente');
+    }));
+    zip.file(SHEETS.checklist, s6);
+
+    const out = await zip.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(out);
+    a.download = `Handover - ${currentProyecto}.xlsx`;
+    document.body.appendChild(a); a.click(); a.remove();
+    statusBox.innerHTML = '<span style="color:#1F8A4C;">Excel generado.</span>';
+  }catch(e){
+    console.error(e);
+    statusBox.innerHTML = `<span style="color:#B23A3A;">No se pudo generar el Excel: ${esc(e.message||String(e))}</span>`;
+  }
+}
+
+loadAll();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

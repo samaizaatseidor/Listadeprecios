@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>Estimador de Esfuerzo · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-link.active{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  .tabbar{background:#fff; border-bottom:1px solid var(--line); display:flex; padding:0 16px; flex-wrap:wrap;}
+  .tabbar button{background:none; border:none; padding:14px 16px; font-family:inherit; font-size:13.5px; font-weight:600; color:var(--grey); cursor:pointer; border-bottom:2px solid transparent;}
+  .tabbar button.active{color:var(--blue); border-bottom-color:var(--cyan);}
+
+  main{max-width:820px; margin:0 auto; padding:16px 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:14px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
+
+  .dropzone{border:2px dashed var(--line); border-radius:10px; padding:14px; text-align:center; cursor:pointer; margin-bottom:10px;}
+  .dropzone:hover{border-color:var(--blue);}
+  .dropzone p{margin:4px 0 0; color:var(--grey); font-size:12.5px;}
+  .dropzone .req{color:#B23A3A; font-weight:600;}
+  .filename{font-size:12.5px; color:var(--navy2); font-weight:600; margin:-4px 0 10px;}
+
+  .btn{border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-primary:disabled{background:var(--line); color:var(--greyl); cursor:not-allowed;}
+  .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
+
+  .disclaimer{background:#FBF1DE; color:#8A6414; border-radius:8px; padding:10px 12px; font-size:12px; margin-bottom:16px;}
+
+  table.result-table{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:10px;}
+  table.result-table th{text-align:left; color:var(--grey); font-weight:600; padding:6px 4px; border-bottom:1px solid var(--line); font-size:11px;}
+  table.result-table td{padding:8px 4px; border-bottom:1px solid var(--line);}
+
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px; margin-bottom:6px;}
+  .kpi-card{background:var(--card); border-radius:10px; padding:12px 14px;}
+  .kpi-card .n{font-size:20px; font-weight:700; color:var(--navy2);}
+  .kpi-card .l{font-size:11px; color:var(--grey); margin-top:2px;}
+
+  .field{margin-bottom:10px;}
+  .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:4px; font-weight:500;}
+  .module-row{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line);}
+  .module-row input[type=checkbox]{width:18px; height:18px;}
+  .module-row .mod-name{flex:1; font-size:13px; color:var(--ink);}
+  .module-row select{padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12.5px;}
+
+  .loading{color:var(--grey); text-align:center; padding:20px; font-size:13px;}
+  .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+  .error{color:#B23A3A; font-size:13px; background:#FBE7E7; border-radius:8px; padding:10px 12px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html" class="active">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+        </div>
+      </div>
+    </div>
+  </div></nav>
+
+<header>
+  <h1>Estimador de Esfuerzo</h1>
+  <p>Para usar en presales, antes de que exista un SOW o proyecto</p>
+</header>
+
+<div class="tabbar">
+  <button id="tab-public" class="active" onclick="setModo('public')">SAP Public Cloud (DDA)</button>
+  <button id="tab-private" onclick="setModo('private')">Private Cloud / Upgrade (Readiness Check)</button>
+  <button id="tab-manual" onclick="setModo('manual')">Estimación manual</button>
+</div>
+
+<main id="main"></main>
+
+<script>
+let modo = 'public';
+const BENCH_DIAS_POR_POSICION = 0.6;
+const OVERHEAD_MULTIPLIER = 1.5;
+const BENCH_DIAS_POR_SIMPLIFICATION_ITEM = 0.3;
+const BENCH_DIAS_POR_INTERFAZ = 3;
+const BENCH_DIAS_POR_CUSTOM_CODE_OBJ = 0.5;
+
+const MODULOS_MANUAL = [
+  'FI (Finanzas)','CO (Controlling)','SD (Ventas)','MM (Materiales/Compras)',
+  'PP (Producción)','QM (Calidad)','PM (Mantenimiento)','PS (Proyectos)',
+  'HR / Payroll','TRM (Tesorería)','RE-FX (Bienes Raíces)','BTP / Extensiones'
+];
+const DIAS_MANUAL = {
+  'Baja':  {'FI (Finanzas)':15,'CO (Controlling)':10,'SD (Ventas)':15,'MM (Materiales/Compras)':15,'PP (Producción)':20,'QM (Calidad)':10,'PM (Mantenimiento)':15,'PS (Proyectos)':15,'HR / Payroll':20,'TRM (Tesorería)':15,'RE-FX (Bienes Raíces)':15,'BTP / Extensiones':10},
+  'Media': {'FI (Finanzas)':30,'CO (Controlling)':20,'SD (Ventas)':30,'MM (Materiales/Compras)':30,'PP (Producción)':40,'QM (Calidad)':20,'PM (Mantenimiento)':25,'PS (Proyectos)':30,'HR / Payroll':40,'TRM (Tesorería)':30,'RE-FX (Bienes Raíces)':30,'BTP / Extensiones':25},
+  'Alta':  {'FI (Finanzas)':50,'CO (Controlling)':35,'SD (Ventas)':50,'MM (Materiales/Compras)':50,'PP (Producción)':70,'QM (Calidad)':35,'PM (Mantenimiento)':40,'PS (Proyectos)':50,'HR / Payroll':70,'TRM (Tesorería)':55,'RE-FX (Bienes Raíces)':50,'BTP / Extensiones':45}
+};
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+function setModo(m){
+  modo = m;
+  document.getElementById('tab-public').classList.toggle('active', m==='public');
+  document.getElementById('tab-private').classList.toggle('active', m==='private');
+  document.getElementById('tab-manual').classList.toggle('active', m==='manual');
+  render();
+}
+
+const DISCLAIMER = `<div class="disclaimer">⚠️ Estos son <b>benchmarks generales de la industria</b> como punto de partida — no están calibrados todavía con datos reales de tus proyectos. Ajusta el resultado con tu criterio antes de cotizar, y conforme cierres proyectos, vale la pena ir afinando estos números.</div>`;
+
+function render(){
+  const main = document.getElementById('main');
+  if(modo === 'public') renderPublic(main);
+  if(modo === 'private') renderPrivate(main);
+  if(modo === 'manual') renderManual(main);
+}
+
+// ===================== PUBLIC CLOUD =====================
+let ddaFile = null;
+let resultadoPublic = null;
+
+function renderPublic(main){
+  main.innerHTML = `
+    <div class="section">
+      <h2>Sube el DDA (Digital Discovery Assessment)</h2>
+      <p class="sub">Extraemos la tabla de "Resumen" con las posiciones de alcance por área.</p>
+      <label class="dropzone" style="display:block;">
+        <div style="font-size:20px;">📊</div>
+        <p>DDA <span class="req">(obligatorio)</span> — click para elegir</p>
+        <input type="file" id="ddaInput" accept=".pdf,.doc,.docx" style="display:none;" onchange="handleDdaFile(this.files[0])">
+      </label>
+      <div id="ddaFilename" class="filename"></div>
+      <button class="btn btn-primary" id="ddaBtn" onclick="estimarPublic()" disabled>Estimar esfuerzo</button>
+      <div id="publicStatus" style="margin-top:10px;"></div>
+    </div>
+    <div id="publicResult"></div>
+  `;
+}
+
+function handleDdaFile(file){
+  ddaFile = file;
+  document.getElementById('ddaFilename').textContent = file ? file.name : '';
+  document.getElementById('ddaBtn').disabled = !file;
+}
+
+async function estimarPublic(){
+  const status = document.getElementById('publicStatus');
+  status.innerHTML = '<div class="loading"><span class="spinner"></span>Leyendo el DDA…</div>';
+  const form = new FormData();
+  form.append('dda', ddaFile);
+  try{
+    const r = await fetch('/api/estimador/public', { method:'POST', body: form });
+    const data = await r.json();
+    if(!data.ok || !data.areas || !data.areas.length){
+      status.innerHTML = `<div class="error">${esc(data.error || 'No se encontraron posiciones de alcance en el documento.')}</div>`;
+      return;
+    }
+    resultadoPublic = data.areas;
+    status.innerHTML = '';
+    renderPublicResult();
+  }catch(e){
+    status.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
+  }
+}
+
+function renderPublicResult(){
+  const totalPosiciones = resultadoPublic.reduce((s,a)=>s+Number(a.posiciones||0),0);
+  const rows = resultadoPublic.map(a=>{
+    const diasBase = Math.round(Number(a.posiciones||0) * BENCH_DIAS_POR_POSICION * 10)/10;
+    const diasTotal = Math.round(diasBase * OVERHEAD_MULTIPLIER * 10)/10;
+    return { area: a.area, posiciones: a.posiciones, diasBase, diasTotal };
+  });
+  const totalDiasBase = rows.reduce((s,r)=>s+r.diasBase,0);
+  const totalDiasFinal = rows.reduce((s,r)=>s+r.diasTotal,0);
+  __lastRowsPublic = rows;
+
+  document.getElementById('publicResult').innerHTML = `
+    ${DISCLAIMER}
+    <div class="section">
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="n">${totalPosiciones}</div><div class="l">Posiciones de alcance</div></div>
+        <div class="kpi-card"><div class="n">${totalDiasBase.toFixed(1)}</div><div class="l">Días funcionales base</div></div>
+        <div class="kpi-card"><div class="n">${totalDiasFinal.toFixed(1)}</div><div class="l">Días totales (con overhead ${OVERHEAD_MULTIPLIER}x)</div></div>
+      </div>
+      <table class="result-table">
+        <tr><th>Área</th><th>Posiciones</th><th>Días base</th><th>Días totales</th></tr>
+        ${rows.map(r=>`<tr><td>${esc(r.area)}</td><td>${r.posiciones}</td><td>${r.diasBase}</td><td><b>${r.diasTotal}</b></td></tr>`).join('')}
+      </table>
+      <button class="btn btn-ghost" onclick="exportarEstimacion('public')">⬇️ Exportar a Excel</button>
+    </div>
+  `;
+}
+
+// ===================== PRIVATE / UPGRADE =====================
+let simplificationFile=null, interfaceFile=null, customCodeFile=null;
+let resultadoPrivate = null;
+
+function renderPrivate(main){
+  main.innerHTML = `
+    <div class="section">
+      <h2>Sube los exports de SAP Readiness Check</h2>
+      <p class="sub">El de Simplification Items es obligatorio. Interfaces y Custom Code son opcionales, pero recomendados — el código a la medida suele ser uno de los factores que más dispara el esfuerzo en una conversión.</p>
+
+      <label class="dropzone" style="display:block;">
+        <div style="font-size:20px;">📋</div>
+        <p>Relevant Simplification Items <span class="req">(obligatorio)</span></p>
+        <input type="file" id="simplificationInput" accept=".xlsx,.xls" style="display:none;" onchange="handlePrivateFile('simplification', this.files[0])">
+      </label>
+      <div id="simplificationFilename" class="filename"></div>
+
+      <label class="dropzone" style="display:block;">
+        <div style="font-size:20px;">🔗</div>
+        <p>Interface Impact Analysis (opcional)</p>
+        <input type="file" id="interfacesInput" accept=".xlsx,.xls" style="display:none;" onchange="handlePrivateFile('interfaces', this.files[0])">
+      </label>
+      <div id="interfacesFilename" class="filename"></div>
+
+      <label class="dropzone" style="display:block;">
+        <div style="font-size:20px;">🧩</div>
+        <p>Custom Code Analysis (opcional, muy recomendado)</p>
+        <input type="file" id="customCodeInput" accept=".xlsx,.xls" style="display:none;" onchange="handlePrivateFile('customCode', this.files[0])">
+      </label>
+      <div id="customCodeFilename" class="filename"></div>
+
+      <button class="btn btn-primary" id="privateBtn" onclick="estimarPrivate()" disabled>Estimar esfuerzo</button>
+      <div id="privateStatus" style="margin-top:10px;"></div>
+    </div>
+    <div id="privateResult"></div>
+  `;
+}
+
+function handlePrivateFile(kind, file){
+  if(kind==='simplification') simplificationFile = file;
+  if(kind==='interfaces') interfaceFile = file;
+  if(kind==='customCode') customCodeFile = file;
+  document.getElementById(kind+'Filename').textContent = file ? file.name : '';
+  document.getElementById('privateBtn').disabled = !simplificationFile;
+}
+
+async function estimarPrivate(){
+  const status = document.getElementById('privateStatus');
+  status.innerHTML = '<div class="loading"><span class="spinner"></span>Leyendo los archivos…</div>';
+  const form = new FormData();
+  form.append('simplification', simplificationFile);
+  if(interfaceFile) form.append('interfaces', interfaceFile);
+  if(customCodeFile) form.append('customCode', customCodeFile);
+  try{
+    const r = await fetch('/api/estimador/private', { method:'POST', body: form });
+    const data = await r.json();
+    if(!data.ok){
+      status.innerHTML = `<div class="error">${esc(data.error || 'No se pudo procesar los archivos.')}</div>`;
+      return;
+    }
+    resultadoPrivate = data.resultado;
+    status.innerHTML = '';
+    renderPrivateResult();
+  }catch(e){
+    status.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
+  }
+}
+
+function renderPrivateResult(){
+  const si = resultadoPrivate.simplificationItems || [];
+  const ifz = resultadoPrivate.interfaces || [];
+  const cc = resultadoPrivate.customCode || [];
+
+  const rows = [];
+  si.forEach(x=>rows.push({categoria:'Simplification Item', detalle:x.area, cantidad:x.cantidad, dias:Math.round(x.cantidad*BENCH_DIAS_POR_SIMPLIFICATION_ITEM*10)/10}));
+  ifz.forEach(x=>rows.push({categoria:'Interfaz', detalle:x.criticidad, cantidad:x.cantidad, dias:Math.round(x.cantidad*BENCH_DIAS_POR_INTERFAZ*10)/10}));
+  cc.forEach(x=>rows.push({categoria:'Custom Code', detalle:x.severidad, cantidad:x.cantidad, dias:Math.round(x.cantidad*BENCH_DIAS_POR_CUSTOM_CODE_OBJ*10)/10}));
+
+  const totalDias = rows.reduce((s,r)=>s+r.dias,0);
+  const totalSI = si.reduce((s,x)=>s+Number(x.cantidad||0),0);
+  const totalIfz = ifz.reduce((s,x)=>s+Number(x.cantidad||0),0);
+  const totalCC = cc.reduce((s,x)=>s+Number(x.cantidad||0),0);
+  __lastRowsPrivate = rows.map(r=>({area:r.categoria+' — '+r.detalle, posiciones:r.cantidad, diasBase:r.dias, diasTotal:r.dias}));
+
+  document.getElementById('privateResult').innerHTML = `
+    ${DISCLAIMER}
+    <div class="section">
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="n">${totalSI}</div><div class="l">Simplification Items</div></div>
+        <div class="kpi-card"><div class="n">${totalIfz}</div><div class="l">Interfaces</div></div>
+        <div class="kpi-card"><div class="n">${totalCC || '—'}</div><div class="l">Objetos de código a la medida</div></div>
+        <div class="kpi-card"><div class="n">${totalDias.toFixed(1)}</div><div class="l">Días totales estimados</div></div>
+      </div>
+      ${!customCodeFile ? '<p style="font-size:12px; color:var(--greyl); margin:0 0 10px;">No subiste Custom Code Analysis — si el cliente tiene desarrollos propios, el esfuerzo real puede ser bastante mayor a lo que muestra aquí.</p>' : ''}
+      <table class="result-table">
+        <tr><th>Categoría</th><th>Detalle</th><th>Cantidad</th><th>Días est.</th></tr>
+        ${rows.map(r=>`<tr><td>${esc(r.categoria)}</td><td>${esc(r.detalle)}</td><td>${r.cantidad}</td><td><b>${r.dias}</b></td></tr>`).join('')}
+      </table>
+      <button class="btn btn-ghost" onclick="exportarEstimacion('private')">⬇️ Exportar a Excel</button>
+    </div>
+  `;
+}
+
+// ===================== MANUAL =====================
+let seleccionManual = {};
+
+function renderManual(main){
+  main.innerHTML = `
+    <div class="section">
+      <div style="background:#FBE7E7; color:#B23A3A; border-radius:8px; padding:10px 12px; font-size:12.5px; margin-bottom:14px; font-weight:600;">🚧 Esta sección está en construcción — los días por módulo son un punto de partida muy general y todavía no están calibrados. No la uses como cifra final para cotizar; úsala solo como referencia de orden de magnitud.</div>
+      <h2>Selecciona módulos y su complejidad</h2>
+      <p class="sub">Para estimaciones muy tempranas, cuando aún no hay ningún documento que subir.</p>
+      ${MODULOS_MANUAL.map(m=>`
+        <div class="module-row">
+          <input type="checkbox" id="chk-${m}" onchange="toggleModulo('${m.replace(/'/g,"\\'")}', this.checked)">
+          <div class="mod-name">${esc(m)}</div>
+          <select id="sel-${m}" onchange="updateComplejidad('${m.replace(/'/g,"\\'")}', this.value)">
+            <option value="Baja">Baja</option>
+            <option value="Media" selected>Media</option>
+            <option value="Alta">Alta</option>
+          </select>
+        </div>
+      `).join('')}
+      <button class="btn btn-primary" style="margin-top:14px;" onclick="renderManualResult()">Calcular estimación</button>
+    </div>
+    <div id="manualResult"></div>
+  `;
+}
+
+function toggleModulo(m, checked){
+  if(checked){ if(!seleccionManual[m]) seleccionManual[m] = document.getElementById('sel-'+m).value; }
+  else{ delete seleccionManual[m]; }
+}
+function updateComplejidad(m, val){
+  if(seleccionManual[m] !== undefined) seleccionManual[m] = val;
+}
+
+function renderManualResult(){
+  const modulos = Object.keys(seleccionManual);
+  if(!modulos.length){
+    document.getElementById('manualResult').innerHTML = '<div class="error">Selecciona al menos un módulo.</div>';
+    return;
+  }
+  const rows = modulos.map(m=>{
+    const complejidad = seleccionManual[m];
+    const dias = DIAS_MANUAL[complejidad][m];
+    return { area:m, complejidad, dias };
+  });
+  const total = rows.reduce((s,r)=>s+r.dias,0);
+  __lastRowsManual = rows.map(r=>({area:r.area+' ('+r.complejidad+')', posiciones:'—', diasBase:r.dias, diasTotal:r.dias}));
+
+  document.getElementById('manualResult').innerHTML = `
+    ${DISCLAIMER}
+    <div class="section">
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="n">${modulos.length}</div><div class="l">Módulos seleccionados</div></div>
+        <div class="kpi-card"><div class="n">${total}</div><div class="l">Días funcionales totales</div></div>
+      </div>
+      <table class="result-table">
+        <tr><th>Módulo</th><th>Complejidad</th><th>Días estimados</th></tr>
+        ${rows.map(r=>`<tr><td>${esc(r.area)}</td><td>${esc(r.complejidad)}</td><td><b>${r.dias}</b></td></tr>`).join('')}
+      </table>
+      <button class="btn btn-ghost" onclick="exportarEstimacion('manual')">⬇️ Exportar a Excel</button>
+    </div>
+  `;
+}
+
+// ===================== EXPORTAR =====================
+let __lastRowsPublic = null, __lastRowsPrivate = null, __lastRowsManual = null;
+
+function exportarEstimacion(tipo){
+  const map = { public: [__lastRowsPublic, 'Público'], private: [__lastRowsPrivate, 'Private-Upgrade'], manual: [__lastRowsManual, 'Manual'] };
+  const [rows, tipoLabel] = map[tipo];
+  if(!rows){ alert('No hay resultados para exportar todavía.'); return; }
+  tipo = tipoLabel;
+  if(typeof XLSX === 'undefined'){
+    alert('No se pudo cargar la librería de Excel. Revisa tu conexión a internet.');
+    return;
+  }
+  const data = [
+    ['Área / Detalle', 'Posiciones / Cantidad', 'Días base', 'Días totales'],
+    ...rows.map(r=>[r.area, r.posiciones, r.diasBase, r.diasTotal])
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:35},{wch:18},{wch:12},{wch:14}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Estimación');
+  XLSX.writeFile(wb, `Estimación de Esfuerzo (${tipo}).xlsx`);
+}
+
+render();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
