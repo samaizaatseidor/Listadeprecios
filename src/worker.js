@@ -1133,6 +1133,20 @@ ${JSON.stringify(checklist || [])}`;
       });
     }
 
+    if (url.pathname === '/api/contactos-sap' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('contactos_sap');
+      const data = raw ? JSON.parse(raw) : { personas: [] };
+      return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/contactos-sap' && request.method === 'POST') {
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const personas = Array.isArray(body.personas) ? body.personas : [];
+      await env.PM_KV.put('contactos_sap', JSON.stringify({ personas }));
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
     if (url.pathname === '/api/whoami') {
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
       return new Response(JSON.stringify({ email }), { headers: { 'Content-Type': 'application/json' } });
