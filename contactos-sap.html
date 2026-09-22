@@ -52,18 +52,11 @@
   .empty{text-align:center; padding:60px 20px; color:var(--greyl); font-size:13.5px;}
   .tree-scroll{overflow-x:auto; padding:30px 10px;}
 
-  .org-tree, .org-tree ul, .org-tree li{list-style:none; margin:0; padding:0; position:relative;}
-  .org-tree{display:flex; justify-content:center; min-width:min-content;}
-  .org-tree ul{display:flex; padding-top:26px;}
-  .org-tree li{display:flex; flex-direction:column; align-items:center; padding:0 12px; position:relative;}
-  .org-tree li::before, .org-tree li::after{content:''; position:absolute; top:0; right:50%; border-top:2px solid var(--line); width:50%; height:26px;}
-  .org-tree li::after{right:auto; left:50%; border-left:2px solid var(--line);}
-  .org-tree li:only-child::after, .org-tree li:only-child::before{display:none;}
-  .org-tree li:only-child{padding-top:0;}
-  .org-tree li:first-child::before, .org-tree li:last-child::after{border:0 none;}
-  .org-tree li:last-child::before{border-right:2px solid var(--line); border-radius:0 6px 0 0;}
-  .org-tree li:first-child::after{border-radius:6px 0 0 0;}
-  .org-tree ul::before{content:''; position:absolute; top:0; left:50%; border-left:2px solid var(--line); width:0; height:26px;}
+  #treeWrap{position:relative; display:inline-block; min-width:100%;}
+  #treeLines{position:absolute; top:0; left:0; pointer-events:none; overflow:visible;}
+  .org-tree{display:flex; justify-content:center; position:relative; z-index:2;}
+  .org-col{display:flex; flex-direction:column; align-items:center; padding:0 16px;}
+  .org-children{display:flex; padding-top:40px;}
   .org-box{display:inline-block; background:#fff; border:1px solid var(--line); border-radius:10px; padding:11px 15px; box-shadow:var(--shadow); cursor:pointer; min-width:165px; text-align:left;}
   .org-box:hover{border-color:var(--blue);}
   .org-name{font-size:13.5px; font-weight:600; color:var(--navy2);}
@@ -152,7 +145,10 @@
 
 <main>
   <div class="tree-scroll">
-    <ul class="org-tree" id="tree"></ul>
+    <div id="treeWrap">
+      <svg id="treeLines"></svg>
+      <div class="org-tree" id="tree"></div>
+    </div>
   </div>
   <div class="empty" id="emptyMsg" style="display:none;">Todavía no hay contactos capturados — dale "+ Agregar contacto" para empezar.</div>
 </main>
@@ -185,18 +181,58 @@ async function saveData(){
   }catch(e){ console.error(e); }
 }
 
-function buildNode(persona){
+function buildCol(persona){
   const hijos = personas.filter(p => p.reportaA === persona.id);
   const contacto = [persona.email, persona.telefono].filter(Boolean).join(' · ');
-  return `<li>
-    <div class="org-box" onclick="openSheet('${persona.id}')">
-      <div class="org-name">${esc(persona.nombre)}</div>
-      <div class="org-puesto">${esc(persona.puesto)}</div>
-      ${persona.area ? `<div class="org-area">${esc(persona.area)}</div>` : ''}
-      ${contacto ? `<div class="org-contact">${esc(contacto)}</div>` : ''}
-    </div>
-    ${hijos.length ? `<ul>${hijos.map(buildNode).join('')}</ul>` : ''}
-  </li>`;
+  const col = document.createElement('div');
+  col.className = 'org-col';
+  const box = document.createElement('div');
+  box.className = 'org-box';
+  box.dataset.id = persona.id;
+  box.onclick = () => openSheet(persona.id);
+  box.innerHTML = `
+    <div class="org-name">${esc(persona.nombre)}</div>
+    <div class="org-puesto">${esc(persona.puesto)}</div>
+    ${persona.area ? `<div class="org-area">${esc(persona.area)}</div>` : ''}
+    ${contacto ? `<div class="org-contact">${esc(contacto)}</div>` : ''}
+  `;
+  col.appendChild(box);
+  if(hijos.length){
+    const childrenRow = document.createElement('div');
+    childrenRow.className = 'org-children';
+    hijos.forEach(h => childrenRow.appendChild(buildCol(h)));
+    col.appendChild(childrenRow);
+  }
+  return col;
+}
+
+function drawLines(){
+  const wrap = document.getElementById('treeWrap');
+  const svg = document.getElementById('treeLines');
+  const wrapRect = wrap.getBoundingClientRect();
+  svg.setAttribute('width', wrap.scrollWidth);
+  svg.setAttribute('height', wrap.scrollHeight);
+  svg.innerHTML = '';
+
+  personas.forEach(p => {
+    if(!p.reportaA) return;
+    const childBox = document.querySelector(`.org-box[data-id="${p.id}"]`);
+    const parentBox = document.querySelector(`.org-box[data-id="${p.reportaA}"]`);
+    if(!childBox || !parentBox) return;
+    const c = childBox.getBoundingClientRect();
+    const pa = parentBox.getBoundingClientRect();
+    const x1 = pa.left - wrapRect.left + pa.width/2;
+    const y1 = pa.bottom - wrapRect.top;
+    const x2 = c.left - wrapRect.left + c.width/2;
+    const y2 = c.top - wrapRect.top;
+    const midY = (y1 + y2) / 2;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`);
+    path.setAttribute('stroke', '#D8E2EE');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('fill', 'none');
+    svg.appendChild(path);
+  });
 }
 
 function render(){
@@ -204,6 +240,7 @@ function render(){
   const empty = document.getElementById('emptyMsg');
   if(!personas.length){
     tree.innerHTML = '';
+    document.getElementById('treeLines').innerHTML = '';
     empty.style.display = 'block';
     return;
   }
@@ -211,8 +248,12 @@ function render(){
   // Raíces: sin reportaA, o cuyo reportaA ya no existe (evita que un registro huérfano desaparezca)
   const ids = new Set(personas.map(p=>p.id));
   const raices = personas.filter(p => !p.reportaA || !ids.has(p.reportaA));
-  tree.innerHTML = raices.map(buildNode).join('');
+  tree.innerHTML = '';
+  raices.forEach(r => tree.appendChild(buildCol(r)));
+  requestAnimationFrame(drawLines);
 }
+
+window.addEventListener('resize', () => { if(personas.length) drawLines(); });
 
 function openSheet(id){
   currentId = id;
