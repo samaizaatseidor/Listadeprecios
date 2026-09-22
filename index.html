@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
 <title>Portal SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -111,6 +116,7 @@
   <img src="/assets/logo_dark.png" alt="SEIDOR">
   <h1>Portal SEIDOR México</h1>
   <p>Todo lo que el equipo comercial, de preventas y de proyectos necesita en un solo lugar</p>
+  <p style="margin-top:8px;"><a href="/instalar.html" style="color:#fff; text-decoration:underline; font-size:12.5px;">📲 Instala esta app en tu celular o compu</a></p>
 </header>
 
 <main>
@@ -278,6 +284,13 @@
     document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
   });
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>
