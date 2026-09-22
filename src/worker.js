@@ -914,6 +914,27 @@ ${JSON.stringify(proyectos || [])}`;
       }
     }
 
+    if (url.pathname === '/api/revisor-cronograma' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { proyecto, tareas, hallazgosDuros, rutaCritica } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const listaTareas = (tareas || []).map(t => `- ${t.nombre}${t.fase ? ' (' + t.fase + ')' : ''}: ${t.inicio || '?'} → ${t.fin || '?'}${t.hito ? ' [HITO]' : ''}`).join('\n');
+      const prompt = `Eres un Project Manager senior de proyectos de implementación SAP revisando el cronograma del proyecto "${proyecto}". Aquí está la lista de tareas (nombre, fase, fechas):\n\n${listaTareas}\n\nHallazgos técnicos ya detectados automáticamente (fechas, traslapes):\n${(hallazgosDuros||[]).join('\n') || 'Ninguno'}\n\nTareas en la ruta crítica (sin holgura): ${(rutaCritica||[]).join(', ') || 'Ninguna detectada'}\n\nEscribe un resumen ejecutivo breve (máximo 120 palabras, en español, tono directo) para el Gerente de Proyecto, que incluya: 1) si faltan hitos típicos de un proyecto SAP (Fit-to-Standard, UAT, Cutover, Hypercare, Go-Live) que no aparecen en la lista, 2) si alguna duración se ve claramente fuera de rango para el tipo de tarea, 3) un comentario sobre los hallazgos técnicos ya detectados. No repitas la lista de tareas. Responde solo con el texto del resumen, sin markdown ni encabezados.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
     if (url.pathname === '/api/metricas-sap' && request.method === 'POST') {
       const token = await getDelfosToken(env);
       if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
