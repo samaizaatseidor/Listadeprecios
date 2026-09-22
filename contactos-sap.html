@@ -22,7 +22,7 @@
   *{box-sizing:border-box;}
   body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
   .topnav{background:#fff; border-bottom:1px solid var(--line);}
-  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
   .topnav-logo img{height:26px; display:block;}
   .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
   .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
@@ -48,7 +48,11 @@
   .btn-primary{background:#fff; color:var(--navy2);}
   .btn-ghost{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35);}
 
-  main{max-width:1200px; margin:0 auto; padding:24px 16px 60px;}
+  .tabbar{display:flex; gap:6px; padding:16px 24px 0; box-sizing:border-box;}
+  .tabbar button{background:var(--card); border:1px solid var(--line); border-bottom:none; border-radius:8px 8px 0 0; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; color:var(--grey); cursor:pointer;}
+  .tabbar button.active{background:#fff; color:var(--blue);}
+
+  main{padding:24px 24px 60px;}
   .empty{text-align:center; padding:60px 20px; color:var(--greyl); font-size:13.5px;}
   .tree-scroll{overflow-x:auto; padding:30px 10px;}
 
@@ -57,12 +61,14 @@
   .org-tree{display:flex; justify-content:center; position:relative; z-index:2;}
   .org-col{display:flex; flex-direction:column; align-items:center; padding:0 16px;}
   .org-children{display:flex; padding-top:40px;}
-  .org-box{display:inline-block; background:#fff; border:1px solid var(--line); border-radius:10px; padding:11px 15px; box-shadow:var(--shadow); cursor:pointer; min-width:165px; text-align:left;}
+  .org-box{display:inline-block; background:#fff; border:1px solid var(--line); border-radius:10px; padding:11px 15px; box-shadow:var(--shadow); cursor:pointer; min-width:165px; text-align:left; position:relative;}
   .org-box:hover{border-color:var(--blue);}
   .org-name{font-size:13.5px; font-weight:600; color:var(--navy2);}
   .org-puesto{font-size:11.5px; color:var(--grey); margin-top:2px;}
   .org-area{display:inline-block; margin-top:6px; background:var(--card); color:var(--blue); font-size:9.5px; font-weight:600; padding:2px 9px; border-radius:10px;}
   .org-contact{font-size:10.5px; color:var(--greyl); margin-top:5px;}
+  .org-toggle{position:absolute; left:50%; bottom:-11px; transform:translateX(-50%); width:22px; height:22px; border-radius:50%; background:#fff; border:1px solid var(--line); color:var(--blue); font-size:11px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:3;}
+  .org-toggle:hover{border-color:var(--blue); background:var(--card);}
 
   .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:50; align-items:flex-end; justify-content:center;}
   .overlay.open{display:flex;}
@@ -135,13 +141,15 @@
 
 <header>
   <div>
-    <h1>Contactos SAP</h1>
-    <p>Organigrama de las personas de SAP (el fabricante) a las que recurre el equipo comercial</p>
+    <h1>Contactos</h1>
+    <p id="headerSub">Directorio de las personas clave para el negocio, organizadas por organigrama</p>
   </div>
   <div style="display:flex; gap:10px;">
     <button class="btn btn-ghost" onclick="openSheet(null)">+ Agregar contacto</button>
   </div>
 </header>
+
+<div class="tabbar" id="tabbar"></div>
 
 <main>
   <div class="tree-scroll">
@@ -150,7 +158,7 @@
       <div class="org-tree" id="tree"></div>
     </div>
   </div>
-  <div class="empty" id="emptyMsg" style="display:none;">Todavía no hay contactos capturados — dale "+ Agregar contacto" para empezar.</div>
+  <div class="empty" id="emptyMsg" style="display:none;">Todavía no hay contactos en esta categoría — dale "+ Agregar contacto" para empezar.</div>
 </main>
 
 <div class="overlay" id="overlay" onclick="if(event.target===this) closeSheet()">
@@ -158,10 +166,30 @@
 </div>
 
 <script>
+const CATEGORIAS = ['Equipo SAP', 'Partners', 'Equipo extendido SEIDOR'];
+const CATEGORIA_SUB = {
+  'Equipo SAP': 'Organigrama de las personas de SAP (el fabricante) a las que recurre el equipo comercial',
+  'Partners': 'Organigrama de contactos en empresas socias/partners de implementación',
+  'Equipo extendido SEIDOR': 'Organigrama de gente dentro de SEIDOR fuera del equipo inmediato, relevante para temas SAP'
+};
 let personas = [];
 let currentId = null;
+let categoriaActual = CATEGORIAS[0];
+let colapsados = new Set();
 
 function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+function renderTabbar(){
+  const bar = document.getElementById('tabbar');
+  bar.innerHTML = CATEGORIAS.map(c => `<button class="${c===categoriaActual?'active':''}" onclick="setCategoria('${c}')">${esc(c)}</button>`).join('');
+  document.getElementById('headerSub').textContent = CATEGORIA_SUB[categoriaActual];
+}
+
+function setCategoria(c){
+  categoriaActual = c;
+  renderTabbar();
+  render();
+}
 
 async function loadData(){
   try{
@@ -169,6 +197,7 @@ async function loadData(){
     const d = await r.json();
     personas = d.personas || [];
   }catch(e){ personas = []; }
+  renderTabbar();
   render();
 }
 
@@ -181,9 +210,16 @@ async function saveData(){
   }catch(e){ console.error(e); }
 }
 
-function buildCol(persona){
-  const hijos = personas.filter(p => p.reportaA === persona.id);
+function toggleColapso(id, event){
+  event.stopPropagation();
+  if(colapsados.has(id)) colapsados.delete(id); else colapsados.add(id);
+  render();
+}
+
+function buildCol(persona, personasCat){
+  const hijos = personasCat.filter(p => p.reportaA === persona.id);
   const contacto = [persona.email, persona.telefono].filter(Boolean).join(' · ');
+  const estaColapsado = colapsados.has(persona.id);
   const col = document.createElement('div');
   col.className = 'org-col';
   const box = document.createElement('div');
@@ -195,12 +231,13 @@ function buildCol(persona){
     <div class="org-puesto">${esc(persona.puesto)}</div>
     ${persona.area ? `<div class="org-area">${esc(persona.area)}</div>` : ''}
     ${contacto ? `<div class="org-contact">${esc(contacto)}</div>` : ''}
+    ${hijos.length ? `<div class="org-toggle" title="${estaColapsado ? 'Mostrar' : 'Ocultar'} ${hijos.length} reporte(s)" onclick="toggleColapso('${persona.id}', event)">${estaColapsado ? '+' : '−'}</div>` : ''}
   `;
   col.appendChild(box);
-  if(hijos.length){
+  if(hijos.length && !estaColapsado){
     const childrenRow = document.createElement('div');
     childrenRow.className = 'org-children';
-    hijos.forEach(h => childrenRow.appendChild(buildCol(h)));
+    hijos.forEach(h => childrenRow.appendChild(buildCol(h, personasCat)));
     col.appendChild(childrenRow);
   }
   return col;
@@ -238,31 +275,48 @@ function drawLines(){
 function render(){
   const tree = document.getElementById('tree');
   const empty = document.getElementById('emptyMsg');
-  if(!personas.length){
+  const personasCat = personas.filter(p => (p.categoria || CATEGORIAS[0]) === categoriaActual);
+  if(!personasCat.length){
     tree.innerHTML = '';
     document.getElementById('treeLines').innerHTML = '';
     empty.style.display = 'block';
     return;
   }
   empty.style.display = 'none';
-  // Raíces: sin reportaA, o cuyo reportaA ya no existe (evita que un registro huérfano desaparezca)
-  const ids = new Set(personas.map(p=>p.id));
-  const raices = personas.filter(p => !p.reportaA || !ids.has(p.reportaA));
+  // Raíces: sin reportaA, o cuyo reportaA ya no existe o quedó en otra categoría
+  const idsCat = new Set(personasCat.map(p=>p.id));
+  const raices = personasCat.filter(p => !p.reportaA || !idsCat.has(p.reportaA));
   tree.innerHTML = '';
-  raices.forEach(r => tree.appendChild(buildCol(r)));
+  raices.forEach(r => tree.appendChild(buildCol(r, personasCat)));
   requestAnimationFrame(drawLines);
 }
 
 window.addEventListener('resize', () => { if(personas.length) drawLines(); });
 
+function reportaOptionsHtml(categoria, excludeId, selectedId){
+  return personas
+    .filter(x => x.id !== excludeId && (x.categoria || CATEGORIAS[0]) === categoria)
+    .map(x => `<option value="${x.id}" ${selectedId===x.id?'selected':''}>${esc(x.nombre)} — ${esc(x.puesto)}</option>`)
+    .join('');
+}
+
+function onCategoriaFormChange(){
+  const categoria = document.getElementById('f-categoria').value;
+  document.getElementById('f-reportaA').innerHTML = '<option value="">— Nadie (nivel más alto) —</option>' + reportaOptionsHtml(categoria, currentId, null);
+}
+
 function openSheet(id){
   currentId = id;
-  const p = id ? personas.find(x=>x.id===id) : { nombre:'', puesto:'', area:'', email:'', telefono:'', reportaA:'', notas:'' };
-  const opcionesReporta = personas.filter(x=>x.id!==id).map(x=>`<option value="${x.id}" ${p.reportaA===x.id?'selected':''}>${esc(x.nombre)} — ${esc(x.puesto)}</option>`).join('');
+  const p = id ? personas.find(x=>x.id===id) : { nombre:'', puesto:'', area:'', email:'', telefono:'', reportaA:'', notas:'', categoria: categoriaActual };
+  const categoriaInicial = p.categoria || categoriaActual;
+  const opcionesReporta = reportaOptionsHtml(categoriaInicial, id, p.reportaA);
+  const opcionesCategoria = CATEGORIAS.map(c => `<option value="${c}" ${categoriaInicial===c?'selected':''}>${esc(c)}</option>`).join('');
 
   document.getElementById('sheet').innerHTML = `
     <button class="close-x" onclick="closeSheet()">&times;</button>
     <p class="sheet-title">${id ? 'Editar contacto' : 'Nuevo contacto'}</p>
+    <label>Categoría</label>
+    <select id="f-categoria" onchange="onCategoriaFormChange()">${opcionesCategoria}</select>
     <label>Nombre</label><input type="text" id="f-nombre" value="${esc(p.nombre)}" placeholder="Ej. Laura Méndez">
     <label>Puesto</label><input type="text" id="f-puesto" value="${esc(p.puesto)}" placeholder="Ej. Account Executive, Public Cloud">
     <label>Área / especialidad</label><input type="text" id="f-area" value="${esc(p.area)}" placeholder="Ej. Public Cloud, BTP, Partner Management">
@@ -291,8 +345,10 @@ function closeSheet(){
 async function saveContacto(){
   const nombre = document.getElementById('f-nombre').value.trim();
   if(!nombre){ alert('Falta el nombre'); return; }
+  const categoria = document.getElementById('f-categoria').value;
   const item = {
     id: currentId || ('sap-'+Date.now().toString(36)),
+    categoria,
     nombre,
     puesto: document.getElementById('f-puesto').value.trim(),
     area: document.getElementById('f-area').value.trim(),
@@ -309,6 +365,8 @@ async function saveContacto(){
   }
   await saveData();
   closeSheet();
+  categoriaActual = categoria;
+  renderTabbar();
   render();
 }
 
