@@ -219,6 +219,7 @@
 
 <script>
 let data = { proyectos: [], raid: [], dependencias: [], compromisos: [], changeRequests: [] };
+let currentUser = 'desconocido';
 let currentProyecto = null;
 let activeTab = 'raid';
 let currentId = null;
@@ -261,7 +262,7 @@ async function handleDropCR(e, nuevoEstatus){
   it.estatus = nuevoEstatus;
   it.updatedAt = new Date().toISOString();
   it.stageHistory = it.stageHistory || [];
-  it.stageHistory.push({ stage: nuevoEstatus, at: it.updatedAt });
+  it.stageHistory.push({ stage: nuevoEstatus, at: it.updatedAt, by: currentUser });
   await logAudit('Movió Change Request (arrastrar y soltar)', `Proyecto "${currentProyecto}" — ${it.titulo} — ${oldEstatus} → ${nuevoEstatus}`);
   await saveData();
   if(wasAccepted) await onCRAccepted(it);
@@ -282,12 +283,15 @@ let crEditMode = false;
 function renderCrTrackingHtml(it){
   const currentIdx = CR_STAGES.indexOf(it.estatus);
   const stageHistory = it.stageHistory || [];
-  const fechaFor = (stage) => { const found = stageHistory.find(h=>h.stage===stage); return found ? formatCrFecha(found.at) : ''; };
+  const entryFor = (stage) => stageHistory.find(h=>h.stage===stage);
 
   const steps = CR_STAGES.map((stage,i)=>{
     const cls = i < currentIdx ? 'done' : (i === currentIdx ? (i === CR_STAGES.length-1 ? 'done' : 'current') : 'pending');
     const dot = cls === 'done' ? '&#10003;' : (i+1);
-    const fecha = cls === 'pending' ? 'Pendiente' : (cls === 'current' ? (fechaFor(stage) ? `Desde el ${fechaFor(stage)}` : 'Etapa actual') : (fechaFor(stage) || ''));
+    const entry = entryFor(stage);
+    const fechaTxt = entry ? formatCrFecha(entry.at) : '';
+    const porTxt = entry && entry.by && entry.by !== 'desconocido' ? ` · ${entry.by}` : '';
+    const fecha = cls === 'pending' ? 'Pendiente' : (cls === 'current' ? (fechaTxt ? `Desde el ${fechaTxt}${porTxt}` : 'Etapa actual') : (fechaTxt ? `${fechaTxt}${porTxt}` : ''));
     return `
       <div class="cr-tl-step ${cls}">
         <div class="cr-tl-dot ${cls}">${dot}</div>
@@ -330,6 +334,11 @@ let progresoChecklistGlobal = {};
 const FASES_ITEM_COUNTS = { prepare:8, explore:7, realize:7, deploy:7, cutover:11, run:7 };
 
 async function loadData(){
+  try{
+    const rw = await fetch('/api/whoami');
+    const dw = await rw.json();
+    currentUser = dw.email || 'desconocido';
+  }catch(e){}
   try{
     const r = await fetch('/api/proyecto-dashboard');
     const d = await r.json();
@@ -1306,7 +1315,7 @@ async function saveCR(){
   const now = new Date().toISOString();
   const stageHistory = existing && existing.stageHistory ? existing.stageHistory.slice() : [];
   if(!stageHistory.length || stageHistory[stageHistory.length-1].stage !== nuevoEstatus){
-    stageHistory.push({ stage: nuevoEstatus, at: now });
+    stageHistory.push({ stage: nuevoEstatus, at: now, by: currentUser });
   }
   const item = {
     id: currentId || ('cr-'+Date.now().toString(36)),
