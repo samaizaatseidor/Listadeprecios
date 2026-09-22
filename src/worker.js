@@ -855,6 +855,65 @@ ${JSON.stringify(proyectos || [])}`;
       }
     }
 
+    if (url.pathname === '/api/handover-extraer' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+      const form = await request.formData();
+      const sowFile = form.get('sow');
+      const estimacionFile = form.get('estimacion');
+      if (!sowFile || typeof sowFile === 'string') {
+        return new Response(JSON.stringify({ ok: false, error: 'Falta el SOW' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Analiza el/los documento(s) adjuntos de un proyecto de implementación SAP: un SOW obligatorio, y opcionalmente una Estimación/propuesta económica interna. Extrae la información para un documento de Handover de Preventa a Operaciones. Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, con este formato EXACTO (usa "" o [] cuando un dato no aparezca en los documentos — no inventes):
+
+{
+  "clienteNombre": "",
+  "tipoProyecto": "",
+  "solucionSAP": "",
+  "modalidadEntrega": "",
+  "inversionTotal": "",
+  "moneda": "",
+  "plazoEstimado": "",
+  "problemaCliente": "",
+  "objetivoProyecto": "",
+  "contextoRelevante": "",
+  "alcance": { "modulosFuncionalidades":"", "desarrollosRicefw":"", "integracionesAlcance":"", "migracionDatos":"", "usuariosLicencias":"", "localizacionMX":"", "gestionCambio":"", "entornos":"", "amsSoporte":"" },
+  "exclusiones": "",
+  "supuestos": ["", "", ""],
+  "fechaInicioKickoff": "",
+  "fechaGoLive": "",
+  "hitosFacturacion": [{"mes":"", "fase":"", "entregable":"", "monto":"", "porcentaje":"", "condicion":""}],
+  "condicionesPago": { "dias":"", "forma":"", "requiereOC":"" },
+  "tecnico": { "erpActual":"", "versionActual":"", "versionObjetivo":"", "deploymentModel":"", "landscape":"", "middleware":"", "pac":"", "solucionesAdicionales":"", "notasTecnicas":"" },
+  "integracionesDetectadas": [{"sistema":"", "descripcion":""}],
+  "datosMigrar": { "cuentasContables":"", "clientes":"", "proveedores":"", "materiales":"", "activosFijos":"", "centrosCosto":"" },
+  "valorVentaMXN": "",
+  "costoInternoMXN": "",
+  "margenBruto": "",
+  "tipoCambio": ""
+}
+
+"tipoProyecto" debe ser algo como "Implementación", "AMS", "Upgrade", etc. "modalidadEntrega": "Remoto", "Híbrido" o "Presencial" si el documento lo indica. Los campos "valorVentaMXN", "costoInternoMXN", "margenBruto" solo se pueden extraer de una Estimación/propuesta económica interna, NO de un SOW comercial — si no se adjuntó ese documento, deja esos tres en "".`;
+
+      try {
+        const fileRefs = [];
+        fileRefs.push(await delfosUploadFile(token, sessionId, username, sowFile));
+        if (estimacionFile && typeof estimacionFile !== 'string') fileRefs.push(await delfosUploadFile(token, sessionId, username, estimacionFile));
+
+        const raw = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs, useOnlineSearch: false });
+        const match = raw.match(/\{[\s\S]*\}/);
+        const extraido = match ? JSON.parse(match[0]) : null;
+        if (!extraido) throw new Error('No se pudo interpretar la respuesta');
+        return new Response(JSON.stringify({ ok: true, extraido }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
     if (url.pathname === '/api/metricas-sap' && request.method === 'POST') {
       const token = await getDelfosToken(env);
       if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
