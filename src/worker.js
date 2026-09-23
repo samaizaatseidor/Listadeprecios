@@ -87,7 +87,7 @@ function splitConcatenatedJson(text) {
 }
 
 const DELFOS_PROJECT_ID = 'a5485014-2353-4526-996b-d583b5f4adaf';
-const DELFOS_MODEL_ID = 'gpt-4.5-preview-OpenAI'; // 'gpt-5.6-sol-FoundryAI' es un modelo "de razonamiento" que filtraba su proceso de pensamiento (en inglés) dentro de la respuesta; este no lo hace. Modelos permitidos hoy: gpt-4.5-preview-OpenAI, gpt-5.6-sol-FoundryAI, gemini-3-flash-preview-GCP
+const DELFOS_MODEL_ID = 'gemini-3-flash-preview-GCP'; // 3er y último modelo permitido sin probar — gpt-5.6-sol filtraba razonamiento, gpt-4.5-preview daba "No he podido procesar tu solicitud"
 const DELFOS_TENANT = 'seidorcorpo';
 
 async function getDelfosToken(env) {
