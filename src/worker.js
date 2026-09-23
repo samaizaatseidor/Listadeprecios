@@ -355,6 +355,93 @@ FUENTES CONSULTADAS
 
 Si no encuentras información confiable sobre algún punto, dilo explícitamente en vez de inventar datos.`;
 
+/* ======================= ROLES Y PERMISOS ======================= */
+// Correo con acceso de Admin garantizado siempre, sin importar lo que diga la
+// configuración guardada — así una mala edición en /roles.html nunca puede
+// dejar a todo el equipo (incluido este correo) sin poder entrar a arreglarlo.
+const BOOTSTRAP_ADMIN = 'samuel.aiza@seidor.com';
+
+const PAGINAS_REGISTRO = {
+  'precios': 'Lista de Precios',
+  'ficha': 'Ficha del Cliente',
+  'prospecto': 'Investigación de Prospecto',
+  'alta': 'Generador de Formato de Alta',
+  'metricas-sap': 'Explicador de Métricas SAP',
+  'kyc': 'Formularios KYC / Diligencia Debida',
+  'contactos-sap': 'Contactos SAP',
+  'pipeline': 'CRM PresalesMX',
+  'documentos': 'Documentos de Apoyo',
+  'kpis': 'Tablero de Control',
+  'sow-review': 'Revisor de SOW y Estimaciones',
+  'handover': 'Handover Comercial → Operaciones',
+  'estimador': 'Estimador de Esfuerzo',
+  'tecnicas-presentacion': 'Técnicas de Presentación',
+  'dias-habiles': 'Días Hábiles México',
+  'minutas': 'Generador de Minutas / Status',
+  'correo-cliente': 'Redactor de Correos a Cliente',
+  'proyecto': 'Dashboard de Proyecto',
+  'checklist': 'Checklist de Quality Gates y Cutover',
+  'iniciar-proyecto': 'Iniciar Proyecto desde SOW/DDA',
+  'vista-general': 'Vista General del Proyecto',
+  'reporte-cuenta': 'Reporte de Cuenta (QBR)',
+  'cartera': 'Cartera Vencida',
+  'auditoria': 'Auditoría',
+  'agentes': 'Agentes',
+};
+
+async function getRolesConfig(env){
+  const raw = await env.PM_KV.get('roles_config');
+  const cfg = raw ? JSON.parse(raw) : {};
+  return {
+    admins: Array.isArray(cfg.admins) ? cfg.admins : [],
+    roles: cfg.roles && typeof cfg.roles === 'object' ? cfg.roles : {},
+    asignaciones: cfg.asignaciones && typeof cfg.asignaciones === 'object' ? cfg.asignaciones : {},
+  };
+}
+
+function esAdmin(email, cfg){
+  if (!email) return false;
+  const lista = new Set([BOOTSTRAP_ADMIN, ...(cfg.admins||[])].map(e=>e.toLowerCase()));
+  return lista.has(email.toLowerCase());
+}
+
+// 'completo' > 'lectura' > 'ninguno'. Sin rol asignado = 'completo' (compatibilidad
+// hacia atrás: nadie pierde acceso el día que se activa este sistema, hasta que
+// un Admin lo asigne explícitamente a un rol).
+async function getPermiso(env, email, pageId){
+  const cfg = await getRolesConfig(env);
+  if (esAdmin(email, cfg)) return 'completo';
+  const rolNombre = cfg.asignaciones[(email||'').toLowerCase()];
+  if (!rolNombre) return 'completo';
+  const rol = cfg.roles[rolNombre];
+  if (!rol) return 'completo';
+  const nivel = rol[pageId];
+  return nivel || 'completo';
+}
+
+function pageIdFromReferer(request){
+  const ref = request.headers.get('Referer') || '';
+  try {
+    const path = new URL(ref).pathname;
+    const m = path.match(/\/([a-z0-9-]+)\.html$/i);
+    return m ? m[1].toLowerCase() : null;
+  } catch(e){ return null; }
+}
+
+const NIVEL_RANGO = { 'ninguno': 0, 'lectura': 1, 'completo': 2 };
+
+// Llamar al inicio de cualquier endpoint que guarde o borre datos.
+// Devuelve null si el usuario puede continuar, o una Response 403 lista para regresar.
+async function requierePermiso(request, env, nivelMinimo){
+  const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+  const pageId = pageIdFromReferer(request);
+  if (!pageId) return null; // si no se puede determinar la página de origen, no se bloquea (evita falsos bloqueos)
+  const permiso = await getPermiso(env, email, pageId);
+  if (NIVEL_RANGO[permiso] >= NIVEL_RANGO[nivelMinimo]) return null;
+  return new Response(JSON.stringify({ ok:false, error: 'No tienes permiso de edición para esta página. Pide a un Administrador que revise tu rol en Roles y Permisos.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+}
+/* ==================== FIN ROLES Y PERMISOS ==================== */
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -599,6 +686,7 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
     }
 
     if (url.pathname === '/api/proyecto-dashboard' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try {
         body = await request.json();
@@ -694,6 +782,7 @@ ${JSON.stringify(entries)}`;
     }
 
     if (url.pathname === '/api/checklist' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try {
         body = await request.json();
@@ -990,6 +1079,7 @@ ${texto && String(texto).trim() ? 'MÉTRICAS A EXPLICAR (una por línea o separa
     }
 
     if (url.pathname === '/api/wbs' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try {
         body = await request.json();
@@ -1049,6 +1139,7 @@ ${JSON.stringify(presupuestoHoras || [])}`;
     }
 
     if (url.pathname === '/api/consumo-horas' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try {
         body = await request.json();
@@ -1070,6 +1161,7 @@ ${JSON.stringify(presupuestoHoras || [])}`;
     }
 
     if (url.pathname === '/api/linea-base' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try {
         body = await request.json();
@@ -1152,11 +1244,43 @@ ${JSON.stringify(checklist || [])}`;
     }
 
     if (url.pathname === '/api/contactos-sap' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
       const personas = Array.isArray(body.personas) ? body.personas : [];
       await env.PM_KV.put('contactos_sap', JSON.stringify({ personas }));
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/mi-permiso' && request.method === 'GET') {
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const pageId = url.searchParams.get('page');
+      if (!pageId) return new Response(JSON.stringify({ ok:false, error:'Falta el parámetro page' }), { status:400, headers:{'Content-Type':'application/json'} });
+      const cfg = await getRolesConfig(env);
+      const permiso = await getPermiso(env, email, pageId);
+      return new Response(JSON.stringify({ ok:true, permiso, esAdmin: esAdmin(email, cfg), email }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/roles-config' && request.method === 'GET') {
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const cfg = await getRolesConfig(env);
+      if (!esAdmin(email, cfg)) return new Response(JSON.stringify({ ok:false, error:'Solo un Administrador puede ver esto.' }), { status:403, headers:{'Content-Type':'application/json'} });
+      return new Response(JSON.stringify({ ok:true, ...cfg, paginas: PAGINAS_REGISTRO, bootstrapAdmin: BOOTSTRAP_ADMIN }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/roles-config' && request.method === 'POST') {
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const cfgActual = await getRolesConfig(env);
+      if (!esAdmin(email, cfgActual)) return new Response(JSON.stringify({ ok:false, error:'Solo un Administrador puede guardar esto.' }), { status:403, headers:{'Content-Type':'application/json'} });
+      let body;
+      try { body = await request.json(); } catch(e){ return new Response('JSON inválido', { status:400 }); }
+      const nuevaCfg = {
+        admins: Array.isArray(body.admins) ? body.admins : [],
+        roles: body.roles && typeof body.roles === 'object' ? body.roles : {},
+        asignaciones: body.asignaciones && typeof body.asignaciones === 'object' ? body.asignaciones : {},
+      };
+      await env.PM_KV.put('roles_config', JSON.stringify(nuevaCfg));
+      return new Response(JSON.stringify({ ok:true }), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname === '/api/whoami') {
@@ -1195,6 +1319,7 @@ ${JSON.stringify(checklist || [])}`;
     }
 
     if (url.pathname === '/api/documentos' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       const form = await request.formData();
       const type = form.get('type');
       const section = form.get('section') || 'Sin clasificar';
@@ -1236,6 +1361,7 @@ ${JSON.stringify(checklist || [])}`;
     }
 
     if (url.pathname === '/api/documentos' && request.method === 'DELETE') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       const id = url.searchParams.get('id');
       if (!id) return new Response('Falta el id', { status: 400 });
       const raw = await env.PM_KV.get('documentos');
@@ -1277,6 +1403,7 @@ ${JSON.stringify(checklist || [])}`;
       }
 
       if (request.method === 'POST') {
+        { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
         let projects;
         try {
           projects = await request.json();
