@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<title>Diagnóstico HubSpot · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --line:#D8E2EE; --card:#F4F8FC; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --shadow:0 3px 9px rgba(159,179,204,0.35); }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',sans-serif; color:var(--ink); background:var(--card);}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px;}
+  header p{margin:0; color:#6FD3F0; font-size:13px;}
+  main{max-width:1000px; margin:0 auto; padding:24px 16px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:14px; color:var(--navy2); margin:0 0 10px;}
+  .btn{border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer; background:var(--blue); color:#fff;}
+  pre{background:var(--card); border-radius:8px; padding:14px; font-size:11.5px; overflow-x:auto; white-space:pre-wrap; word-break:break-word;}
+  table{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:10px;}
+  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:6px; font-size:10.5px; text-transform:uppercase;}
+  td{padding:6px; border-bottom:1px solid var(--line);}
+  .loading{color:var(--grey); font-size:13px;}
+  .locked{text-align:center; padding:60px 20px; color:var(--greyl);}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔍 Diagnóstico de HubSpot</h1>
+  <p>Herramienta temporal — para ver qué pipelines, etapas y campos existen antes de conectar Ventas & Pipeline en vivo</p>
+</header>
+<main>
+  <div class="section">
+    <button class="btn" onclick="ejecutar()">Ejecutar diagnóstico</button>
+    <p style="font-size:12px; color:var(--greyl); margin-top:10px;">Copia y comparte el resultado completo (o una captura) — con eso diseño el mapeo real hacia el dashboard.</p>
+  </div>
+  <div id="resultado"></div>
+</main>
+<script>
+async function ejecutar(){
+  const box = document.getElementById('resultado');
+  box.innerHTML = '<div class="section"><div class="loading">Consultando HubSpot…</div></div>';
+  try{
+    const r = await fetch('/api/hubspot-diagnostico');
+    const d = await r.json();
+    if(!d.ok){
+      box.innerHTML = `<div class="section"><div class="locked"><h2>${d.error||'Error'}</h2></div></div>`;
+      return;
+    }
+    let html = '';
+
+    html += '<div class="section"><h2>Pipelines y etapas</h2>';
+    d.pipelines.forEach(p => {
+      html += `<p><b>${p.label}</b> (id: ${p.id})</p><table><tr><th>Etapa</th><th>ID</th></tr>`;
+      p.etapas.forEach(e => html += `<tr><td>${e.label}</td><td>${e.id}</td></tr>`);
+      html += '</table>';
+    });
+    html += '</div>';
+
+    html += '<div class="section"><h2>Propiedades personalizadas de Deals</h2>';
+    if(d.propiedadesPersonalizadas.length){
+      html += '<table><tr><th>Nombre interno</th><th>Etiqueta</th><th>Tipo</th><th>Opciones</th></tr>';
+      d.propiedadesPersonalizadas.forEach(p => html += `<tr><td>${p.name}</td><td>${p.label}</td><td>${p.type}</td><td>${(p.opciones||[]).join(', ')}</td></tr>`);
+      html += '</table>';
+    } else {
+      html += '<p>No se encontraron propiedades personalizadas visibles.</p>';
+    }
+    html += '</div>';
+
+    html += '<div class="section"><h2>Muestra de 5 deals reales</h2><pre>' + JSON.stringify(d.muestraDeals, null, 2) + '</pre></div>';
+
+    box.innerHTML = html;
+  }catch(e){
+    box.innerHTML = `<div class="section"><div class="locked"><h2>No se pudo conectar</h2><p>${e.message||String(e)}</p></div></div>`;
+  }
+}
+</script>
+</body>
+</html>
