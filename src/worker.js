@@ -1247,9 +1247,25 @@ ${JSON.stringify(checklist || [])}`;
       { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
-      const personas = Array.isArray(body.personas) ? body.personas : [];
+      let personas = Array.isArray(body.personas) ? body.personas : [];
+
+      // Solo un Admin puede borrar contactos. Si quien guarda no lo es, cualquier
+      // contacto que existía antes y ya no viene en la lista nueva se restaura,
+      // sin bloquear el resto de los cambios (ediciones/altas sí se guardan).
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const cfgRoles = await getRolesConfig(env);
+      let restaurados = [];
+      if (!esAdmin(email, cfgRoles)) {
+        const rawAnterior = await env.PM_KV.get('contactos_sap');
+        const anteriores = rawAnterior ? (JSON.parse(rawAnterior).personas || []) : [];
+        const idsNuevos = new Set(personas.map(p => p.id));
+        const borrados = anteriores.filter(p => !idsNuevos.has(p.id));
+        restaurados = borrados.map(p => p.nombre);
+        personas = personas.concat(borrados);
+      }
+
       await env.PM_KV.put('contactos_sap', JSON.stringify({ personas }));
-      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ ok: true, restaurados }), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname === '/api/mi-permiso' && request.method === 'GET') {
@@ -1362,6 +1378,11 @@ ${JSON.stringify(checklist || [])}`;
 
     if (url.pathname === '/api/documentos' && request.method === 'DELETE') {
       { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      const emailBorra = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const cfgRolesDocs = await getRolesConfig(env);
+      if (!esAdmin(emailBorra, cfgRolesDocs)) {
+        return new Response(JSON.stringify({ ok:false, error:'Solo un Administrador puede borrar documentos. Pídele a uno que lo haga, o revisa Roles y Permisos.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+      }
       const id = url.searchParams.get('id');
       if (!id) return new Response('Falta el id', { status: 400 });
       const raw = await env.PM_KV.get('documentos');
