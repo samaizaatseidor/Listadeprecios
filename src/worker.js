@@ -386,6 +386,7 @@ const PAGINAS_REGISTRO = {
   'reporte-cuenta': 'Reporte de Cuenta (QBR)',
   'cartera': 'Cartera Vencida',
   'wbr-finanzas': 'WBR — Finanzas',
+  'wbr-ventas': 'WBR — Ventas y Pipeline',
   'auditoria': 'Auditoría',
   'agentes': 'Agentes',
 };
@@ -1330,6 +1331,53 @@ ${JSON.stringify(checklist || [])}`;
         }), { headers: { 'Content-Type': 'application/json' } });
       } catch (e) {
         return new Response(JSON.stringify({ ok:false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/wbr-ventas' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_ventas_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-ventas' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_ventas_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+
+      await env.PM_KV.put('wbr_ventas_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-ventas-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista comercial senior presentando el Weekly Business Review de Ventas & Pipeline de SEIDOR México a la dirección. Aquí está el corte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Y el corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados) que cubra: 1) qué cambió respecto a la semana anterior en ventas y pipeline (si hay corte anterior), 2) qué tan cerca están de los objetivos del trimestre y del año, 3) qué oportunidades merecen atención (las más grandes, las que se movieron de fecha, las de mayor riesgo), 4) una recomendación accionable para la semana. Sé específico con números, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
       }
     }
 
