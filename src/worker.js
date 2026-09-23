@@ -1303,7 +1303,7 @@ ${JSON.stringify(checklist || [])}`;
       const cfgRolesHS = await getRolesConfig(env);
       if (!esAdmin(email, cfgRolesHS)) return new Response(JSON.stringify({ ok:false, error:'Solo un Administrador puede correr este diagnóstico.' }), { status:403, headers:{'Content-Type':'application/json'} });
 
-      const token = env.HUBSPOT_ACCESS_TOKEN;
+      const token = (env.HUBSPOT_ACCESS_TOKEN || '').trim();
       if (!token) return new Response(JSON.stringify({ ok:false, error:'Falta configurar HUBSPOT_ACCESS_TOKEN' }), { status:500, headers:{'Content-Type':'application/json'} });
 
       const hs = async (path) => {
