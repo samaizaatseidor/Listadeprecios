@@ -159,6 +159,30 @@
 </style>
 </head>
 <body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      window.SOLO_LECTURA = true;
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){ /* si falla el chequeo, no bloqueamos: evita dejar a todos fuera si el endpoint falla */ }
+})();
+</script>
 
 <nav class="topnav">
   <div class="topnav-wrap">
@@ -214,6 +238,7 @@
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
         </div>
       </div>
     </div>

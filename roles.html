@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>Roles y Permisos · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:1300px; margin:0 auto; padding:24px 24px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:14px; color:var(--navy2); margin:0 0 4px;}
+  .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
+
+  .btn{border:none; border-radius:8px; padding:9px 14px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-ghost{border:1px solid var(--line); background:#fff; color:var(--grey);}
+  .btn-danger{border:1px solid #E8C7C7; background:#fff; color:#B23A3A;}
+
+  .roles-tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+  .roles-tabs button{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:7px 14px; font-family:inherit; font-size:12.5px; font-weight:600; color:var(--grey); cursor:pointer;}
+  .roles-tabs button.active{background:var(--navy2); color:#fff; border-color:var(--navy2);}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:600; font-size:11.5px;}
+  td{padding:7px 6px; border-bottom:1px solid var(--line);}
+  select{font-family:inherit; font-size:12.5px; padding:5px 8px; border:1px solid var(--line); border-radius:6px;}
+  .nivel-completo{color:#1F8A4C;}
+  .nivel-lectura{color:#8A6414;}
+  .nivel-ninguno{color:#B23A3A;}
+
+  .asig-row{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
+  .asig-row input, .asig-row select{padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px;}
+  .asig-row input{flex:1;}
+  .del-row{background:none; border:none; color:var(--greyl); font-size:16px; cursor:pointer; line-height:1;}
+
+  .loading{color:var(--grey); font-size:13px;}
+  .locked{text-align:center; padding:80px 20px; color:var(--greyl);}
+  .locked h2{color:var(--navy2); font-size:18px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html" class="active">Roles y Permisos</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Roles y Permisos</h1>
+  <p>Controla quién puede ver o editar cada página del sitio</p>
+</header>
+
+<main id="mainContent">
+  <p class="loading">Cargando…</p>
+</main>
+
+<script>
+let cfg = null;
+let paginas = {};
+let rolSeleccionado = null;
+let miCorreo = '';
+
+const NIVELES = [
+  { valor:'completo', etiqueta:'Acceso completo' },
+  { valor:'lectura', etiqueta:'Solo lectura' },
+  { valor:'ninguno', etiqueta:'Sin acceso' },
+];
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function init(){
+  const main = document.getElementById('mainContent');
+  try{
+    const r = await fetch('/api/roles-config');
+    const d = await r.json();
+    if(!d.ok){
+      main.innerHTML = `<div class="locked"><h2>🔒 Esta página es solo para Administradores</h2><p>${esc(d.error||'')}</p></div>`;
+      return;
+    }
+    cfg = { admins: d.admins, roles: d.roles, asignaciones: d.asignaciones };
+    paginas = d.paginas;
+    miCorreo = d.bootstrapAdmin;
+    rolSeleccionado = Object.keys(cfg.roles)[0] || null;
+    render();
+  }catch(e){
+    main.innerHTML = `<div class="locked"><h2>No se pudo cargar</h2><p>${esc(e.message||String(e))}</p></div>`;
+  }
+}
+
+async function guardar(mensaje){
+  const statusBox = document.getElementById('statusBox');
+  if(statusBox) statusBox.innerHTML = '<span class="loading">Guardando…</span>';
+  try{
+    const r = await fetch('/api/roles-config', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(cfg)
+    });
+    const d = await r.json();
+    if(!d.ok){ if(statusBox) statusBox.innerHTML = `<span style="color:#B23A3A;">${esc(d.error||'No se pudo guardar')}</span>`; return; }
+    if(statusBox) statusBox.innerHTML = `<span style="color:#1F8A4C;">${esc(mensaje||'Guardado.')}</span>`;
+  }catch(e){
+    if(statusBox) statusBox.innerHTML = `<span style="color:#B23A3A;">Error de conexión.</span>`;
+  }
+}
+
+function crearRol(){
+  const nombre = prompt('Nombre del nuevo rol (ej. "Operaciones", "Finanzas"):');
+  if(!nombre || !nombre.trim()) return;
+  if(cfg.roles[nombre]){ alert('Ya existe un rol con ese nombre.'); return; }
+  cfg.roles[nombre] = {};
+  rolSeleccionado = nombre;
+  render();
+  guardar(`Rol "${nombre}" creado.`);
+}
+
+function borrarRol(nombre){
+  if(!confirm(`¿Borrar el rol "${nombre}"? Los correos asignados a este rol quedarán sin rol (acceso completo por default).`)) return;
+  delete cfg.roles[nombre];
+  Object.keys(cfg.asignaciones).forEach(email => { if(cfg.asignaciones[email] === nombre) delete cfg.asignaciones[email]; });
+  rolSeleccionado = Object.keys(cfg.roles)[0] || null;
+  render();
+  guardar(`Rol "${nombre}" eliminado.`);
+}
+
+function cambiarNivel(pageId, nivel){
+  cfg.roles[rolSeleccionado][pageId] = nivel;
+  guardar('Permiso actualizado.');
+}
+
+function addAsignacion(){
+  const email = document.getElementById('nuevoCorreo').value.trim().toLowerCase();
+  const rol = document.getElementById('nuevoRolSelect').value;
+  if(!email || !email.includes('@')){ alert('Escribe un correo válido.'); return; }
+  cfg.asignaciones[email] = rol;
+  document.getElementById('nuevoCorreo').value = '';
+  render();
+  guardar(`${email} asignado a "${rol}".`);
+}
+
+function quitarAsignacion(email){
+  delete cfg.asignaciones[email];
+  render();
+  guardar(`Se quitó el rol de ${email}.`);
+}
+
+function toggleAdmin(email, esActualmenteAdmin){
+  if(esActualmenteAdmin){
+    cfg.admins = cfg.admins.filter(e => e.toLowerCase() !== email.toLowerCase());
+  }else{
+    cfg.admins.push(email);
+  }
+  render();
+  guardar('Lista de Administradores actualizada.');
+}
+
+function addAdmin(){
+  const email = document.getElementById('nuevoAdminCorreo').value.trim().toLowerCase();
+  if(!email || !email.includes('@')){ alert('Escribe un correo válido.'); return; }
+  if(!cfg.admins.map(e=>e.toLowerCase()).includes(email)) cfg.admins.push(email);
+  document.getElementById('nuevoAdminCorreo').value = '';
+  render();
+  guardar(`${email} agregado como Administrador.`);
+}
+
+function render(){
+  const main = document.getElementById('mainContent');
+  const nombresRoles = Object.keys(cfg.roles);
+
+  main.innerHTML = `
+    <div class="section">
+      <h2>Administradores</h2>
+      <p class="sub">Siempre tienen acceso completo a todo, incluida esta página. ${esc(miCorreo)} siempre lo es, sin importar esta lista (así nunca se puede perder el acceso por accidente).</p>
+      ${cfg.admins.map(email => `
+        <div class="asig-row">
+          <span style="flex:1;">${esc(email)}</span>
+          <button class="del-row" onclick="toggleAdmin('${esc(email)}', true)" title="Quitar de Administradores">×</button>
+        </div>
+      `).join('')}
+      <div class="asig-row">
+        <input type="text" id="nuevoAdminCorreo" placeholder="correo@seidor.com">
+        <button class="btn btn-ghost" onclick="addAdmin()">+ Agregar Admin</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Roles</h2>
+      <p class="sub">Cada rol define qué nivel de acceso tiene a cada página. Las páginas que no toques quedan en "Acceso completo" por default.</p>
+      <div class="roles-tabs">
+        ${nombresRoles.map(r => `<button class="${r===rolSeleccionado?'active':''}" onclick="rolSeleccionado='${esc(r)}'; render();">${esc(r)}</button>`).join('')}
+        <button class="btn btn-ghost" onclick="crearRol()">+ Nuevo rol</button>
+      </div>
+
+      ${rolSeleccionado ? `
+        <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+          <button class="btn btn-danger" onclick="borrarRol('${esc(rolSeleccionado)}')">Eliminar rol "${esc(rolSeleccionado)}"</button>
+        </div>
+        <table>
+          <tr><th>Página</th><th>Nivel de acceso</th></tr>
+          ${Object.entries(paginas).map(([pageId, nombre]) => {
+            const nivelActual = (cfg.roles[rolSeleccionado][pageId]) || 'completo';
+            return `<tr>
+              <td>${esc(nombre)}</td>
+              <td>
+                <select onchange="cambiarNivel('${pageId}', this.value)">
+                  ${NIVELES.map(n => `<option value="${n.valor}" ${nivelActual===n.valor?'selected':''}>${n.etiqueta}</option>`).join('')}
+                </select>
+                <span class="nivel-${nivelActual}" style="margin-left:6px; font-size:11px;">●</span>
+              </td>
+            </tr>`;
+          }).join('')}
+        </table>
+      ` : '<p class="sub">Crea un rol para empezar.</p>'}
+    </div>
+
+    <div class="section">
+      <h2>Asignar personas a un rol</h2>
+      <p class="sub">Cualquier correo que no aparezca aquí tiene acceso completo a todo, por default.</p>
+      <table>
+        <tr><th>Correo</th><th>Rol asignado</th><th></th></tr>
+        ${Object.entries(cfg.asignaciones).map(([email, rol]) => `
+          <tr>
+            <td>${esc(email)}</td>
+            <td>${esc(rol)}</td>
+            <td><button class="del-row" onclick="quitarAsignacion('${esc(email)}')">×</button></td>
+          </tr>
+        `).join('')}
+      </table>
+      <div class="asig-row" style="margin-top:10px;">
+        <input type="text" id="nuevoCorreo" placeholder="correo@seidor.com">
+        <select id="nuevoRolSelect">
+          ${nombresRoles.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('')}
+        </select>
+        <button class="btn btn-primary" onclick="addAsignacion()">Asignar</button>
+      </div>
+    </div>
+
+    <div id="statusBox"></div>
+  `;
+}
+
+init();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
