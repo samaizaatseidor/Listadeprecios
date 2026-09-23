@@ -25,6 +25,11 @@ binding = "DELFOS_API_TOKEN"
 store_id = "f63b63e25881480bb743023201203a6a"
 secret_name = "DELFOS_API_TOKEN"
 
+[[secrets_store_secrets]]
+binding = "HUBSPOT_ACCESS_TOKEN"
+store_id = "f63b63e25881480bb743023201203a6a"
+secret_name = "HUBSPOT_ACCESS_TOKEN"
+
 [triggers]
 crons = ["0 22 * * 5"]
 
@@ -53,4 +58,9 @@ secret_name = "RESEND_API_KEY"
 binding = "DELFOS_API_TOKEN"
 store_id = "f63b63e25881480bb743023201203a6a"
 secret_name = "DELFOS_API_TOKEN"
+
+[[env.staging.secrets_store_secrets]]
+binding = "HUBSPOT_ACCESS_TOKEN"
+store_id = "f63b63e25881480bb743023201203a6a"
+secret_name = "HUBSPOT_ACCESS_TOKEN"
 
