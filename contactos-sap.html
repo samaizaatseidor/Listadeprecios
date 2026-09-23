@@ -93,6 +93,21 @@
     const r = await fetch('/api/mi-permiso?page=' + m[1]);
     const d = await r.json();
     if(!d.ok) return;
+    window.ES_ADMIN = !!d.esAdmin;
+    function _desbloquearCamposAdmin(){
+      document.querySelectorAll('.admin-only-edit').forEach(function(el){
+        if(d.esAdmin){
+          el.removeAttribute('readonly');
+          var hint = el.parentElement.querySelector('.admin-lock-hint');
+          if(hint) hint.style.display = 'none';
+        }
+      });
+    }
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', _desbloquearCamposAdmin);
+    }else{
+      _desbloquearCamposAdmin();
+    }
     if(d.permiso === 'ninguno'){
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
@@ -235,11 +250,12 @@ async function loadData(){
 
 async function saveData(){
   try{
-    await fetch('/api/contactos-sap', {
+    const r = await fetch('/api/contactos-sap', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ personas })
     });
-  }catch(e){ console.error(e); }
+    return await r.json();
+  }catch(e){ console.error(e); return null; }
 }
 
 function toggleColapso(id, event){
@@ -405,9 +421,14 @@ async function saveContacto(){
 async function deleteContacto(){
   if(!confirm('¿Eliminar este contacto? Si alguien más le reporta, quedará al nivel más alto.')) return;
   personas = personas.filter(x=>x.id!==currentId);
-  await saveData();
+  const resp = await saveData();
   closeSheet();
-  render();
+  if(resp && resp.restaurados && resp.restaurados.length){
+    await loadData();
+    alert('Solo un Administrador puede borrar contactos, así que se restauró: ' + resp.restaurados.join(', '));
+  }else{
+    render();
+  }
 }
 
 loadData();
