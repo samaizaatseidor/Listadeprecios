@@ -87,7 +87,7 @@ function splitConcatenatedJson(text) {
 }
 
 const DELFOS_PROJECT_ID = 'a5485014-2353-4526-996b-d583b5f4adaf';
-const DELFOS_MODEL_ID = 'gemini-3.1-pro-preview-GCP';
+const DELFOS_MODEL_ID = 'gpt-5.6-sol-FoundryAI'; // 'gemini-3.1-pro-preview-GCP' ya no está permitido para este proyecto (ago 2026); modelos permitidos hoy: gpt-4.5-preview-OpenAI, gpt-5.6-sol-FoundryAI, gemini-3-flash-preview-GCP
 const DELFOS_TENANT = 'seidorcorpo';
 
 async function getDelfosToken(env) {
