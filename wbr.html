@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>Weekly Business Review · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:30px 24px;}
+  header h1{margin:0 0 6px; font-size:24px; font-weight:800;}
+  header p{margin:0; color:var(--cyan-l); font-size:13.5px;}
+
+  main{max-width:1400px; margin:0 auto; padding:28px 24px 60px;}
+  .grupo{margin-bottom:28px;}
+  .grupo-titulo{font-size:12px; font-weight:700; color:var(--greyl); text-transform:uppercase; letter-spacing:0.6px; margin:0 0 12px 4px;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:16px;}
+  .card{background:#fff; border-radius:14px; padding:20px; box-shadow:var(--shadow); text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:8px; transition:transform 0.15s ease, box-shadow 0.15s ease; position:relative;}
+  .card:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(159,179,204,0.5);}
+  .card .icon{font-size:26px;}
+  .card h3{margin:0; font-size:15px; color:var(--navy2); font-weight:700;}
+  .card p{margin:0; font-size:12.5px; color:var(--grey); line-height:1.5;}
+  .card.pendiente{opacity:0.55; filter:grayscale(0.4);}
+  .badge-pendiente{position:absolute; top:14px; right:14px; background:var(--card); color:var(--greyl); font-size:9.5px; font-weight:700; padding:3px 9px; border-radius:20px; text-transform:uppercase;}
+  .badge-listo{position:absolute; top:14px; right:14px; background:#E7F7EE; color:#1F8A4C; font-size:9.5px; font-weight:700; padding:3px 9px; border-radius:20px; text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <a href="/wbr.html" class="nav-link" style="color:var(--blue); font-weight:700;">📋 Weekly Business Review</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/wbr-ventas.html">WBR — Ventas & Pipeline</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+          <a href="/wbr-finanzas.html">WBR — Finanzas</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>📋 Weekly Business Review</h1>
+  <p>Todas las áreas de la sesión semanal de Management, en un solo lugar — sin navegar por el resto del sitio.</p>
+</header>
+
+<main>
+  <div class="grupo">
+    <p class="grupo-titulo">Listas para usar</p>
+    <div class="grid">
+      <a href="/wbr-finanzas.html" class="card">
+        <span class="badge-listo">Lista</span>
+        <div class="icon">📊</div>
+        <h3>Finanzas</h3>
+        <p>Facturación, cobranza y cartera vencida — con insights de Delfos y bitácora semanal.</p>
+      </a>
+      <a href="/wbr-ventas.html" class="card">
+        <span class="badge-listo">Lista</span>
+        <div class="icon">💼</div>
+        <h3>Ventas & Pipeline</h3>
+        <p>Metas de venta, pipeline y detalle de oportunidades por etapa.</p>
+      </a>
+    </div>
+  </div>
+
+  <div class="grupo">
+    <p class="grupo-titulo">En backlog — todavía no construidas</p>
+    <div class="grid">
+      <div class="card pendiente">
+        <span class="badge-pendiente">Pendiente</span>
+        <div class="icon">⚙️</div>
+        <h3>Operaciones</h3>
+        <p>Proyectos por LOB, desviaciones, riesgos y go-lives.</p>
+      </div>
+      <div class="card pendiente">
+        <span class="badge-pendiente">Pendiente</span>
+        <div class="icon">🎯</div>
+        <h3>Target de Clientes</h3>
+        <p>Metas de clientes por LOB — resultado vs. target.</p>
+      </div>
+      <div class="card pendiente">
+        <span class="badge-pendiente">Pendiente</span>
+        <div class="icon">✨</div>
+        <h3>Business Experience (BX)</h3>
+        <p>Renovaciones, cumplimiento de CCFlex, oportunidades y riesgo de abandono.</p>
+      </div>
+      <div class="card pendiente">
+        <span class="badge-pendiente">Pendiente</span>
+        <div class="icon">💳</div>
+        <h3>CCFlex</h3>
+        <p>Ventas y cobranza del programa CCFlex — C&S vs. A&O.</p>
+      </div>
+      <div class="card pendiente">
+        <span class="badge-pendiente">Pendiente</span>
+        <div class="icon">✅</div>
+        <h3>Call to Action</h3>
+        <p>Acciones semanales — responsable, fecha y estatus.</p>
+      </div>
+      <div class="card pendiente">
+        <span class="badge-pendiente">Pendiente</span>
+        <div class="icon">📣</div>
+        <h3>Anuncios</h3>
+        <p>Comunicados y anuncios internos de la sesión.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+</body>
+</html>

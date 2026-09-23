@@ -105,6 +105,13 @@
   .tag.riesgo-medio{background:#FBF1DE; color:#8A6414;}
   .tag.riesgo-bajo{background:#E7F7EE; color:#1F8A4C;}
   .tag.estatus{background:#EDF3FA; color:#1E5BB8;}
+  .tag.estatus-pendiente{background:var(--card); color:var(--grey);}
+  .tag.estatus-enproceso{background:#EDF3FA; color:#1E5BB8;}
+  .tag.estatus-bloqueando{background:#FBE7E7; color:#B23A3A;}
+  .tag.estatus-resuelta{background:#E7F7EE; color:#1F8A4C;}
+  .tag.estatus-cumplido{background:#E7F7EE; color:#1F8A4C;}
+  .tag.estatus-encurso{background:#EDF3FA; color:#1E5BB8;}
+  .tag.estatus-vencido{background:#FBE7E7; color:#B23A3A;}
 
   .list-view .row{max-width:none;}
   .empty{color:var(--greyl); font-size:12.5px; text-align:center; padding:20px;}
@@ -204,6 +211,7 @@
     <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
     <div class="topnav-links">
       <a href="/index.html" class="nav-link">Inicio</a>
+      <a href="/wbr.html" class="nav-link" style="color:var(--blue); font-weight:700;">📋 Weekly Business Review</a>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
@@ -229,6 +237,7 @@
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
           <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/wbr-ventas.html">WBR — Ventas & Pipeline</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -290,6 +299,14 @@ let activeTab = 'raid';
 let currentId = null;
 
 function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function claseEstatus(estatus){
+  const s = (estatus||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'');
+  return 'estatus-' + s;
+}
+function costoConMoneda(it){
+  if(!it.impactoCosto) return '';
+  return `${it.impactoCosto} ${it.moneda||'MXN'}`;
+}
 
 const CR_STAGES = ['Identificado','En estimación','Validación comercial','Presentado al cliente','Aceptado'];
 
@@ -380,7 +397,7 @@ function renderCrTrackingHtml(it){
       ${it.descripcion ? `<div class="cr-tl-summary-row"><b>Descripción</b><span>${esc(it.descripcion)}</span></div>` : ''}
       ${it.solicitadoPor ? `<div class="cr-tl-summary-row"><b>Solicitado por</b><span>${esc(it.solicitadoPor)}${it.fechaSolicitud ? ' — ' + esc(it.fechaSolicitud) : ''}</span></div>` : ''}
       ${it.impactoAlcance ? `<div class="cr-tl-summary-row"><b>Impacto en alcance</b><span>${esc(it.impactoAlcance)}</span></div>` : ''}
-      ${(it.impactoTiempo || it.impactoCosto) ? `<div class="cr-tl-summary-row"><b>Impacto en tiempo / costo</b><span>${esc(it.impactoTiempo)}${it.impactoTiempo && it.impactoCosto ? ' · ' : ''}${esc(it.impactoCosto)}</span></div>` : ''}
+      ${(it.impactoTiempo || it.impactoCosto) ? `<div class="cr-tl-summary-row"><b>Impacto en tiempo / costo</b><span>${esc(it.impactoTiempo)}${it.impactoTiempo && it.impactoCosto ? ' · ' : ''}${esc(costoConMoneda(it))}</span></div>` : ''}
     </div>
   `;
 }
@@ -490,7 +507,7 @@ function selectProyecto(p){
   render();
 }
 
-function setTab(t){ activeTab = t; render(); }
+function setTab(t){ activeTab = t; closeSheet(); render(); }
 
 function itemsFor(kind){
   return data[kind].filter(it=>it.proyecto === currentProyecto);
@@ -640,7 +657,7 @@ function renderTabBody(){
         <div class="row ${rc}" onclick="openSheet('${it.id}')">
           <div class="meta-top">Depende de: ${esc(it.tercero)}</div>
           <h4>${esc(it.descripcion)} ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}</h4>
-          <span class="tag ${rc}">Riesgo ${esc(it.nivelRiesgo)}</span> <span class="tag estatus">${esc(it.estatus)}</span>
+          <span class="tag ${rc}">Riesgo ${esc(it.nivelRiesgo)}</span> <span class="tag ${claseEstatus(it.estatus)}">${esc(it.estatus)}</span>
           ${it.impacto ? `<div class="meta-bottom">Impacto: ${esc(it.impacto)}</div>` : ''}
           <div class="meta-bottom">${it.fechaEsperada ? (overdue ? '<span class="overdue">Se esperaba '+fmtDate(it.fechaEsperada)+'</span>' : 'Esperado: '+fmtDate(it.fechaEsperada)) : 'Sin fecha esperada'}</div>
         </div>
@@ -658,7 +675,9 @@ function renderTabBody(){
         <div class="row" onclick="openSheet('${it.id}')">
           <div class="meta-top">${esc(it.quien)}</div>
           <h4>${esc(it.compromiso)} ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}</h4>
-          <span class="tag estatus">${esc(it.estatus)}</span>
+          <span class="tag ${claseEstatus(it.estatus)}">${esc(it.estatus)}</span>
+          ${it.tipoCompromiso ? `<span class="tag estatus-enproceso">${esc(it.tipoCompromiso)}</span>` : ''}
+          ${it.impactoCompromiso ? `<div class="meta-bottom">Impacto: ${esc(it.impactoCompromiso)}</div>` : ''}
           <div class="meta-bottom">${it.fechaLimite ? (overdue ? '<span class="overdue">Venció '+fmtDate(it.fechaLimite)+'</span>' : 'Vence '+fmtDate(it.fechaLimite)) : 'Sin fecha límite'}</div>
         </div>
       `;
@@ -683,7 +702,7 @@ function renderTabBody(){
           <div class="row ${col.cls}" draggable="true" data-drag-id="${it.id}" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openSheet('${it.id}')">
             <div class="meta-top">${it.solicitadoPor ? esc(it.solicitadoPor) : 'Sin solicitante'}${it.fechaSolicitud ? ' · '+fmtDate(it.fechaSolicitud) : ''}</div>
             <h4>${esc(it.titulo.slice(0,70))}${it.titulo.length>70?'…':''} ${it.visibleCliente ? '<span title="Visible para cliente" style="font-size:11px;">👁</span>' : ''}</h4>
-            ${it.impactoTiempo || it.impactoCosto ? `<div class="meta-bottom">${it.impactoTiempo ? esc(it.impactoTiempo) : ''}${it.impactoTiempo && it.impactoCosto ? ' · ' : ''}${it.impactoCosto ? esc(it.impactoCosto) : ''}</div>` : ''}
+            ${it.impactoTiempo || it.impactoCosto ? `<div class="meta-bottom">${it.impactoTiempo ? esc(it.impactoTiempo) : ''}${it.impactoTiempo && it.impactoCosto ? ' · ' : ''}${it.impactoCosto ? esc(costoConMoneda(it)) : ''}</div>` : ''}
           </div>
         `).join('') || '<div class="empty" style="padding:14px 6px;">Vacío</div>'}
       </div>`;
@@ -801,7 +820,7 @@ function renderHorasTab(body){
             <td style="padding:8px 4px;">${r.horas}</td>
             <td style="padding:8px 4px; color:var(--greyl);">${esc(r.nota||'')}</td>
             <td style="padding:8px 4px; color:var(--greyl); font-size:11px;">${r.fuente==='excel'?'Excel':'Manual'}</td>
-            <td style="padding:8px 4px;"><button class="btn btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="removeRegistroHoras('${r.id}')">×</button></td>
+            <td style="padding:8px 4px;"><button class="btn btn-ghost" style="padding:3px 8px; font-size:11px; border:1px solid var(--line); background:#fff; color:var(--grey);" onclick="removeRegistroHoras('${r.id}')">×</button></td>
           </tr>
         `).join('') : `<tr><td colspan="6" style="padding:14px 4px; color:var(--greyl);">Sin registros todavía.</td></tr>`}
       </table>
@@ -897,7 +916,7 @@ function renderWbsTab(body){
     <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow);">
       <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
         <tr style="text-align:left; color:var(--grey); border-bottom:1px solid var(--line);">
-          <th style="padding:6px 4px;">Fase</th><th style="padding:6px 4px;">Tarea</th><th style="padding:6px 4px;">Entregable</th><th style="padding:6px 4px;">Rol responsable</th><th style="padding:6px 4px;">Duración est.</th><th></th>
+          <th style="padding:6px 4px;">Fase</th><th style="padding:6px 4px;">Tarea</th><th style="padding:6px 4px;">Entregable</th><th style="padding:6px 4px;">Rol responsable</th><th style="padding:6px 4px;">Duración est.</th><th style="padding:6px 4px;">% Avance</th><th></th>
         </tr>
         <tbody id="wbsTableBody">
         ${wbsTareas.length ? wbsTareas.map((t,i)=>`
@@ -911,9 +930,16 @@ function renderWbsTab(body){
             <td style="padding:6px 4px;"><input type="text" value="${esc(t.entregable)}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'entregable',this.value)"></td>
             <td style="padding:6px 4px; min-width:150px;"><input type="text" value="${esc(t.rolResponsable)}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'rolResponsable',this.value)"></td>
             <td style="padding:6px 4px; min-width:100px;"><input type="text" value="${esc(t.duracionEstimada)}" style="width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'duracionEstimada',this.value)"></td>
-            <td style="padding:6px 4px;"><button class="btn btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="removeWbsTarea(${i})">×</button></td>
+            <td style="padding:6px 4px; min-width:90px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <input type="number" min="0" max="100" value="${t.avance||0}" style="width:52px; padding:6px 6px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'avance', Math.max(0,Math.min(100,Number(this.value)||0)))">
+                <span style="font-size:11px; color:var(--greyl);">%</span>
+              </div>
+              <div style="height:4px; border-radius:3px; background:var(--card); margin-top:4px; overflow:hidden;"><div style="height:100%; width:${Math.max(0,Math.min(100,t.avance||0))}%; background:${(t.avance||0)>=100?'#1F8A4C':'#1E5BB8'}; border-radius:3px;"></div></div>
+            </td>
+            <td style="padding:6px 4px;"><button class="btn btn-ghost" style="padding:3px 8px; font-size:11px; border:1px solid var(--line); background:#fff; color:var(--grey);" onclick="removeWbsTarea(${i})">×</button></td>
           </tr>
-        `).join('') : `<tr><td colspan="6" style="padding:20px 4px; color:var(--greyl); text-align:center;">Sin tareas todavía — genera un borrador con Delfos o agrega una manualmente.</td></tr>`}
+        `).join('') : `<tr><td colspan="7" style="padding:20px 4px; color:var(--greyl); text-align:center;">Sin tareas todavía — genera un borrador con Delfos o agrega una manualmente.</td></tr>`}
         </tbody>
       </table>
       <button class="btn btn-ghost" style="margin-top:10px; border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="addWbsTarea()">+ Agregar tarea</button>
@@ -937,7 +963,7 @@ function updateWbsField(idx, field, value){
 }
 
 async function addWbsTarea(){
-  wbsTareas.push({ fase:'Prepare', tarea:'', entregable:'', rolResponsable:'', duracionEstimada:'' });
+  wbsTareas.push({ fase:'Prepare', tarea:'', entregable:'', rolResponsable:'', duracionEstimada:'', avance:0 });
   await saveWbs();
   renderTabBody();
 }
@@ -993,11 +1019,11 @@ function exportarWbsExcel(){
     return;
   }
   const data = [
-    ['Fase','Tarea','Entregable','Rol Responsable','Duración Estimada'],
-    ...wbsTareas.map(t=>[t.fase, t.tarea, t.entregable, t.rolResponsable, t.duracionEstimada])
+    ['Fase','Tarea','Entregable','Rol Responsable','Duración Estimada','% Avance'],
+    ...wbsTareas.map(t=>[t.fase, t.tarea, t.entregable, t.rolResponsable, t.duracionEstimada, t.avance||0])
   ];
   const ws = XLSX.utils.aoa_to_sheet(data);
-  ws['!cols'] = [{wch:12},{wch:45},{wch:30},{wch:22},{wch:16}];
+  ws['!cols'] = [{wch:12},{wch:45},{wch:30},{wch:22},{wch:16},{wch:10}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'WBS');
   XLSX.writeFile(wb, `WBS - ${currentProyecto}.xlsx`);
@@ -1240,13 +1266,19 @@ function openSheet(id, keepCrEditMode){
   }
 
   if(activeTab === 'compromisos'){
-    const it = id ? data.compromisos.find(x=>x.id===id) : { proyecto:currentProyecto, compromiso:'', quien:'', fechaLimite:'', estatus:'Pendiente' };
+    const it = id ? data.compromisos.find(x=>x.id===id) : { proyecto:currentProyecto, compromiso:'', quien:'', fechaLimite:'', estatus:'Pendiente', tipoCompromiso:'', impactoCompromiso:'' };
     const estatusOpts = ['Pendiente','Cumplido'].map(e=>`<option value="${e}" ${it.estatus===e?'selected':''}>${e}</option>`).join('');
+    const tipoOpts = ['Comercial','Técnico','Operativo','Legal / Contractual','Otro'].map(t=>`<option value="${t}" ${it.tipoCompromiso===t?'selected':''}>${t}</option>`).join('');
+    const impactoOpts = ['Bloquea avance del proyecto','Económico','Relación con el cliente','Reputacional','Bajo / sin impacto directo'].map(i=>`<option value="${i}" ${it.impactoCompromiso===i?'selected':''}>${i}</option>`).join('');
     sheet.innerHTML = `
       <button class="close-x" onclick="closeSheet()">&times;</button>
       <p class="sheet-title">${id ? 'Editar compromiso' : 'Nuevo compromiso'}</p>
       <label>¿Quién se comprometió?</label><input type="text" id="f-quien" value="${esc(it.quien)}" placeholder="Ej. Cliente / Juan Pérez">
       <label>¿Qué se comprometió?</label><textarea id="f-compromiso" rows="3">${esc(it.compromiso)}</textarea>
+      <div class="sheet-row">
+        <div><label>Tipo de compromiso</label><select id="f-tipoCompromiso"><option value="">— Selecciona —</option>${tipoOpts}</select></div>
+        <div><label>Impacto si no se cumple</label><select id="f-impactoCompromiso"><option value="">— Selecciona —</option>${impactoOpts}</select></div>
+      </div>
       <div class="sheet-row">
         <div><label>Fecha límite</label><input type="date" id="f-fechaLimite" value="${it.fechaLimite||''}"></div>
         <div><label>Estatus</label><select id="f-estatus">${estatusOpts}</select></div>
@@ -1260,7 +1292,7 @@ function openSheet(id, keepCrEditMode){
   }
 
   if(activeTab === 'changeRequests'){
-    const it = id ? data.changeRequests.find(x=>x.id===id) : { proyecto:currentProyecto, titulo:'', descripcion:'', solicitadoPor:'', fechaSolicitud:'', impactoAlcance:'', impactoTiempo:'', impactoCosto:'', estatus:'Identificado', stageHistory:[] };
+    const it = id ? data.changeRequests.find(x=>x.id===id) : { proyecto:currentProyecto, titulo:'', descripcion:'', solicitadoPor:'', fechaSolicitud:'', impactoAlcance:'', impactoTiempo:'', impactoCosto:'', moneda:'MXN', estatus:'Identificado', stageHistory:[] };
     const CR_ESTATUS_OWNER = {'Identificado':'PM','En estimación':'Consultores','Validación comercial':'AE','Presentado al cliente':'PM','Aceptado':'Cerrado'};
     const estatusOpts = Object.keys(CR_ESTATUS_OWNER).map(e=>`<option value="${e}" ${it.estatus===e?'selected':''}>${e} (${CR_ESTATUS_OWNER[e]})</option>`).join('');
 
@@ -1277,7 +1309,8 @@ function openSheet(id, keepCrEditMode){
         <label>Impacto en alcance</label><textarea id="f-impactoAlcance" rows="2">${esc(it.impactoAlcance)}</textarea>
         <div class="sheet-row">
           <div><label>Impacto en tiempo</label><input type="text" id="f-impactoTiempo" value="${esc(it.impactoTiempo)}" placeholder="Ej. +2 semanas"></div>
-          <div><label>Impacto en costo</label><input type="text" id="f-impactoCosto" value="${esc(it.impactoCosto)}" placeholder="Ej. $45,000 MXN"></div>
+          <div><label>Impacto en costo</label><input type="text" id="f-impactoCosto" value="${esc(it.impactoCosto)}" placeholder="Ej. 45,000"></div>
+          <div><label>Moneda</label><select id="f-moneda"><option value="MXN" ${(!it.moneda||it.moneda==='MXN')?'selected':''}>MXN</option><option value="USD" ${it.moneda==='USD'?'selected':''}>USD</option><option value="EUR" ${it.moneda==='EUR'?'selected':''}>EUR</option></select></div>
         </div>
         <label>Estatus</label><select id="f-estatus">${estatusOpts}</select>
         <label style="display:flex; align-items:center; gap:6px; margin-top:14px;"><input type="checkbox" id="f-visibleCliente" style="width:auto;" ${it.visibleCliente?'checked':''}> Visible para cliente (se incluye en el PPT exportable)</label>
@@ -1365,6 +1398,8 @@ async function saveCompromiso(){
     proyecto: currentProyecto,
     quien: document.getElementById('f-quien').value.trim(),
     compromiso,
+    tipoCompromiso: document.getElementById('f-tipoCompromiso').value,
+    impactoCompromiso: document.getElementById('f-impactoCompromiso').value,
     fechaLimite: document.getElementById('f-fechaLimite').value,
     estatus: document.getElementById('f-estatus').value,
     visibleCliente: document.getElementById('f-visibleCliente').checked,
@@ -1397,6 +1432,7 @@ async function saveCR(){
     impactoAlcance: document.getElementById('f-impactoAlcance').value.trim(),
     impactoTiempo: document.getElementById('f-impactoTiempo').value.trim(),
     impactoCosto: document.getElementById('f-impactoCosto').value.trim(),
+    moneda: document.getElementById('f-moneda').value,
     estatus: nuevoEstatus,
     stageHistory,
     visibleCliente: document.getElementById('f-visibleCliente').checked,
@@ -1440,7 +1476,7 @@ async function onCRAccepted(item){
     const d = await r.json();
     const lb = (d.proyectos && d.proyectos[currentProyecto]) || {};
     const cambiosAprobados = Array.isArray(lb.cambiosAprobados) ? lb.cambiosAprobados : [];
-    cambiosAprobados.push({ titulo: item.titulo, impactoTiempo: item.impactoTiempo, impactoCosto: item.impactoCosto, fecha: new Date().toISOString().slice(0,10) });
+    cambiosAprobados.push({ titulo: item.titulo, impactoTiempo: item.impactoTiempo, impactoCosto: item.impactoCosto, moneda: item.moneda, fecha: new Date().toISOString().slice(0,10) });
     await fetch('/api/linea-base', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ proyecto: currentProyecto, datos: { ...lb, cambiosAprobados } })

@@ -8,19 +8,16 @@
 <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
-<title>WBR — Ventas y Pipeline · SEIDOR México</title>
+<title>WBR — Ventas & Pipeline · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
   :root{
-    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
-    --cyan:#33B4DD; --cyan-l:#6FD3F0;
-    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
-    --line:#D8E2EE; --card:#F4F8FC;
-    --green:#1F8A4C; --amber:#8A6414; --red:#B23A3A;
-    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC;
+    --green:#1F8A4C; --amber:#8A6414; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35);
   }
   *{box-sizing:border-box;}
   body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
@@ -46,8 +43,6 @@
   header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
   .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
-  .btn{border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;}
-  .btn-primary{background:#fff; color:var(--navy2);}
   input[type=file]{display:none;}
   .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
 
@@ -59,7 +54,7 @@
   .empty h2{color:var(--navy2); font-size:18px; margin-bottom:8px;}
 
   .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-bottom:18px;}
-  .kpi-card{background:#fff; border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); position:relative; overflow:hidden;}
+  .kpi-card{background:#fff; border-radius:14px; padding:18px 20px; box-shadow:var(--shadow);}
   .kpi-card .label{font-size:11px; color:var(--greyl); text-transform:uppercase; letter-spacing:0.5px; font-weight:700;}
   .kpi-card .value{font-size:26px; font-weight:800; color:var(--navy2); margin-top:6px;}
   .kpi-card .sub-value{font-size:12px; color:var(--grey); margin-top:2px;}
@@ -76,21 +71,20 @@
   .insight-box{background:linear-gradient(135deg, #F4F8FC 0%, #EAF3FB 100%); border:1px solid var(--line); border-radius:12px; padding:18px 20px; display:flex; gap:14px; align-items:flex-start;}
   .insight-icon{font-size:26px; flex-shrink:0;}
   .insight-text{font-size:13.5px; line-height:1.6; color:var(--ink); white-space:pre-wrap;}
-  .alert-chip{display:inline-flex; align-items:center; gap:6px; background:#FBE7E7; color:var(--red); font-size:11.5px; font-weight:700; padding:5px 12px; border-radius:20px; margin:4px 6px 0 0;}
-  .alert-chip.ambar{background:#FBF1DE; color:var(--amber);}
 
   table{width:100%; border-collapse:collapse; font-size:12.5px;}
   th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:0.3px;}
   td{padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top;}
   tr:hover td{background:var(--card);}
   .num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
-  .dias-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px;}
-  .dias-ok{background:#E7F7EE; color:var(--green);}
-  .dias-warn{background:#FBF1DE; color:var(--amber);}
-  .dias-bad{background:#FBE7E7; color:var(--red);}
-  .comentario-cell{max-width:280px; font-size:11.5px; color:var(--grey);}
+  .etapa-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:var(--card); color:var(--navy2);}
+  .estatus-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px;}
+  .estatus-commited{background:#E7F7EE; color:var(--green);}
+  .estatus-probable{background:#FBF1DE; color:var(--amber);}
+  .estatus-upside{background:var(--card); color:var(--grey);}
+  .comentario-cell{max-width:240px; font-size:11.5px; color:var(--grey);}
 
-  .tabbar{display:flex; gap:6px; margin-bottom:14px;}
+  .tabbar{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
   .tabbar button{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:7px 14px; font-family:inherit; font-size:12.5px; font-weight:600; color:var(--grey); cursor:pointer;}
   .tabbar button.active{background:var(--navy2); color:#fff; border-color:var(--navy2);}
 
@@ -109,20 +103,6 @@
     const d = await r.json();
     if(!d.ok) return;
     window.ES_ADMIN = !!d.esAdmin;
-    function _desbloquearCamposAdmin(){
-      document.querySelectorAll('.admin-only-edit').forEach(function(el){
-        if(d.esAdmin){
-          el.removeAttribute('readonly');
-          var hint = el.parentElement.querySelector('.admin-lock-hint');
-          if(hint) hint.style.display = 'none';
-        }
-      });
-    }
-    if(document.readyState === 'loading'){
-      document.addEventListener('DOMContentLoaded', _desbloquearCamposAdmin);
-    }else{
-      _desbloquearCamposAdmin();
-    }
     if(d.permiso === 'ninguno'){
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
@@ -136,7 +116,7 @@
       banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
       document.body.insertBefore(banner, document.body.firstChild);
     }
-  }catch(e){ /* si falla el chequeo, no bloqueamos: evita dejar a todos fuera si el endpoint falla */ }
+  }catch(e){}
 })();
 </script>
 
@@ -145,6 +125,7 @@
     <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
     <div class="topnav-links">
       <a href="/index.html" class="nav-link">Inicio</a>
+      <a href="/wbr.html" class="nav-link" style="color:var(--blue); font-weight:700;">📋 Weekly Business Review</a>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
@@ -161,13 +142,13 @@
         <button type="button" class="nav-dropdown-btn active">Presales <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/pipeline.html">CRM PresalesMX</a>
-          <a href="/wbr-ventas.html" class="active">WBR — Ventas y Pipeline</a>
           <a href="/documentos.html">Documentos de Apoyo</a>
           <a href="/kpis.html">Tablero de Control</a>
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
           <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/wbr-ventas.html" class="active">WBR — Ventas & Pipeline</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -203,8 +184,8 @@
 
 <header>
   <div>
-    <h1>📈 Weekly Business Review — Ventas y Pipeline</h1>
-    <p>Ventas, pipeline y detalle de oportunidades — con insights automáticos de Delfos</p>
+    <h1>💼 Weekly Business Review — Ventas & Pipeline</h1>
+    <p>Metas de venta, pipeline y detalle de oportunidades — con insights automáticos de Delfos</p>
     <div id="fechaRevisionBadge"></div>
   </div>
   <label class="upload-label" for="fileInput">⬆️ Subir corte de esta semana</label>
@@ -219,70 +200,60 @@
 <script>
 let historial = [];
 let actual = null;
+let chartVentas, chartPipeline;
 
-function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-function fmtK(n){ return '$' + (n||0).toLocaleString('es-MX', {minimumFractionDigits:0, maximumFractionDigits:0}) + 'K'; }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+function fmtK(n){ return '€' + Math.round(n||0).toLocaleString('es-MX') + 'K'; }
 function fmtPct(n){ return Math.round((n||0)*100) + '%'; }
 function claseAvance(pct){ return pct >= 0.85 ? 'verde' : (pct >= 0.6 ? 'ambar' : 'rojo'); }
-
-/* ---------- Parseo del Excel ---------- */
-function encontrarFila(matriz, textoAncla){
-  for(let i=0; i<matriz.length; i++){
-    if(matriz[i].some(c => typeof c === 'string' && c.trim().toUpperCase().includes(textoAncla.toUpperCase()))) return i;
-  }
-  return -1;
+function claseEstatus(e){
+  e = (e||'').toLowerCase();
+  if(e.includes('commited') || e.includes('won')) return 'estatus-commited';
+  if(e.includes('probable')) return 'estatus-probable';
+  return 'estatus-upside';
 }
-function limpiarEtiqueta(s){ return String(s||'').split('|')[0].trim(); }
 
-function parsearBloqueVentasPipeline(matriz, idxHeader){
-  const filas = [];
-  let vaciasSeguidas = 0;
-  for(let i=idxHeader+1; i<matriz.length && filas.length<3; i++){
-    const f = matriz[i];
-    if(!f || !f[0]){ vaciasSeguidas++; if(vaciasSeguidas>=2) break; continue; }
-    vaciasSeguidas = 0;
-    filas.push({ linea: limpiarEtiqueta(f[0]), targetAnual: f[1]||0, resultadoYTD: f[2]||0, pctLogroOVeces: f[3]||0, targetCQ: f[4]||0, resultadoCQ: f[5]||0, pctLogroOVecesCQ: f[6]||0 });
+/* ---------- Parseo ---------- */
+function encontrarFila(m, ancla){ for(let i=0;i<m.length;i++){ if(m[i].some(c=>typeof c==='string' && c.trim().toUpperCase().includes(ancla.toUpperCase()))) return i; } return -1; }
+function leerNFilasValidas(m, desde, n){ const out=[]; let i=desde; while(out.length<n && i<m.length){ const f=m[i]; if(f && f[0]) out.push(f); i++; } return out; }
+function parsearBloqueVentas(m, idx){ return leerNFilasValidas(m, idx+1, 3).map(f => ({ nombre:String(f[0]).trim(), targetAnual:f[1]||0, resultadoYTD:f[2]||0, pctYTD:f[3]||0, targetCQ:f[4]||0, resultadoCQ:f[5]||0, pctCQ:f[6]||0, targetFCST:f[9]||0, pctFCST:f[10]||0, togo:f[11]||0 })); }
+function parsearBloquePipeline(m, idx){ return leerNFilasValidas(m, idx+1, 3).map(f => ({ nombre:String(f[0]).trim().replace(/\s*\|\s*3X$/,''), targetAnual:f[1]||0, resultadoYTD:f[2]||0, targetCQ:f[4]||0, resultadoCQ:f[5]||0 })); }
+function parsearOportunidadesEnRango(m, desde, hasta){
+  const out = [];
+  for(let i=desde; i<hasta; i++){
+    const f = m[i];
+    if(!f || !f[0]) continue;
+    const c0 = String(f[0]).toUpperCase();
+    if(c0.includes('TOTAL')) continue;
+    if(f[1] && String(f[1]).toUpperCase()==='TOTAL') continue;
+    out.push({ cliente:String(f[0]).trim(), lineaSAP:f[1]||'', sw:f[2]||0, services:f[3]||0, total:f[4]||0, etapa:f[5]||'', estatus:f[6]||'', fechaCierre: f[8] instanceof Date ? f[8].toISOString() : null, vendedor:f[9]||'', comentario:f[10]||'' });
   }
-  return filas;
-}
-function parsearOportunidades(matriz, idxHeader){
-  const oportunidades = [];
-  for(let i=idxHeader+1; i<matriz.length; i++){
-    const f = matriz[i];
-    if(!f || !f[0]) break;
-    if(String(f[0]).toUpperCase().trim().startsWith('TOTAL')) break;
-    oportunidades.push({
-      cliente: f[0], lineaSAP: f[1]||'', acv: f[2]||0, services: f[3]||0, total: f[4]||0,
-      etapa: f[5]||'', estatus: f[6]||'',
-      fechaCierre: (f[8] instanceof Date) ? f[8].toISOString() : null,
-      vendedor: f[9]||'', comentarios: f[10]||''
-    });
-  }
-  return oportunidades;
+  return out;
 }
 function parsearVentasPipeline(wb){
-  const nombreHoja = wb.SheetNames.find(n => n.toUpperCase().includes('VENTAS') && n.toUpperCase().includes('PIPELINE'));
-  if(!nombreHoja) throw new Error('No se encontró una pestaña de "Ventas & Pipeline" (con ese texto en el nombre)');
-  const ws = wb.Sheets[nombreHoja];
+  const ws = wb.Sheets['Ventas & Pipeline Q3'] || wb.Sheets[Object.keys(wb.Sheets).find(n => n.toLowerCase().startsWith('ventas & pipeline'))];
+  if(!ws) throw new Error('No se encontró una pestaña "Ventas & Pipeline..."');
   const m = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true });
-
   const idxFecha = encontrarFila(m, 'Semana de revisión');
   const fechaRevision = idxFecha>=0 ? (m[idxFecha].find(c => c instanceof Date) || null) : null;
-
-  let idxVH = -1;
-  for(let i=0;i<m.length;i++){ if(m[i][0]==='VENTAS' && m[i][1]==='TARGET ANUAL'){ idxVH = i; break; } }
-  if(idxVH < 0) throw new Error('No se encontró la tabla de VENTAS dentro de la pestaña');
-  const ventas = parsearBloqueVentasPipeline(m, idxVH);
-
-  let idxPH = -1;
-  for(let i=0;i<m.length;i++){ if(m[i][0]==='PIPELINE' && m[i][1]==='TARGET ANUAL'){ idxPH = i; break; } }
-  if(idxPH < 0) throw new Error('No se encontró la tabla de PIPELINE dentro de la pestaña');
-  const pipeline = parsearBloqueVentasPipeline(m, idxPH);
-
+  const ventas = parsearBloqueVentas(m, encontrarFila(m,'RESULTADO YTD'));
+  const pipeline = parsearBloquePipeline(m, encontrarFila(m,'# X'));
   const idxDetalle = encontrarFila(m, 'DETALLE DE OPORTUNIDADES');
-  const oportunidades = idxDetalle >= 0 ? parsearOportunidades(m, idxDetalle+1) : [];
-
-  return { nombreHoja, fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(), ventas, pipeline, oportunidades };
+  const idxGanadas = encontrarFila(m, 'GANADAS');
+  const idxBajaron = encontrarFila(m, 'BAJARON');
+  const idxMovidas = encontrarFila(m, 'SE MOVIERON DE Q');
+  const idxBigDeals = encontrarFila(m, 'BIG DEALS');
+  const idxFin = encontrarFila(m, 'AGREGAR ESTATUS DE CCFLEX');
+  const finReal = idxFin>=0 ? idxFin : m.length;
+  return {
+    fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(),
+    ventas, pipeline,
+    oportunidadesActivas: parsearOportunidadesEnRango(m, idxDetalle+2, idxGanadas>=0?idxGanadas:finReal),
+    ganadas: idxGanadas>=0 ? parsearOportunidadesEnRango(m, idxGanadas+1, idxBajaron>=0?idxBajaron:finReal) : [],
+    bajaron: idxBajaron>=0 ? parsearOportunidadesEnRango(m, idxBajaron+1, idxMovidas>=0?idxMovidas:finReal) : [],
+    movidas: idxMovidas>=0 ? parsearOportunidadesEnRango(m, idxMovidas+1, idxBigDeals>=0?idxBigDeals:finReal) : [],
+    bigDeals: idxBigDeals>=0 ? parsearOportunidadesEnRango(m, idxBigDeals+1, finReal) : []
+  };
 }
 
 /* ---------- Carga y guardado ---------- */
@@ -303,13 +274,12 @@ async function handleFile(file){
 
     render();
     pedirInsight(anterior);
-    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte del ' + new Date(actual.fechaRevision).toLocaleDateString('es-MX') + ' guardado (leído de la pestaña "' + esc(actual.nombreHoja) + '").</div>';
+    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte del ' + new Date(actual.fechaRevision).toLocaleDateString('es-MX') + ' guardado.</div>';
   }catch(e){
     console.error(e);
     statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
   }
 }
-
 async function cargarHistorial(){
   try{
     const r = await fetch('/api/wbr-ventas');
@@ -318,7 +288,6 @@ async function cargarHistorial(){
     if(historial.length) actual = historial[historial.length-1];
   }catch(e){ historial = []; }
 }
-
 async function pedirInsight(anterior){
   const box = document.getElementById('insightBox');
   if(!box) return;
@@ -335,50 +304,62 @@ async function pedirInsight(anterior){
 }
 
 /* ---------- Render ---------- */
-let chartVentas, chartPipeline;
+function filaOportunidad(o){
+  return `<tr>
+    <td>${esc(o.cliente)}</td>
+    <td>${esc(o.lineaSAP)}</td>
+    <td class="num">${fmtK(o.total)}</td>
+    <td><span class="etapa-tag">${esc(o.etapa)}</span></td>
+    <td><span class="estatus-tag ${claseEstatus(o.estatus)}">${esc(o.estatus)}</span></td>
+    <td>${o.fechaCierre ? new Date(o.fechaCierre).toLocaleDateString('es-MX') : '—'}</td>
+    <td>${esc(o.vendedor)}</td>
+    <td class="comentario-cell">${esc(o.comentario)}</td>
+  </tr>`;
+}
+function tablaOportunidades(lista){
+  if(!lista.length) return '<p class="sub">Sin registros.</p>';
+  return `<table><tr><th>Cliente</th><th>Línea</th><th class="num">Total</th><th>Etapa</th><th>Estatus</th><th>Cierre Est.</th><th>Vendedor</th><th>Comentario</th></tr>${lista.map(filaOportunidad).join('')}</table>`;
+}
 
 function render(){
   const content = document.getElementById('content');
   const badge = document.getElementById('fechaRevisionBadge');
   if(!actual){
     badge.innerHTML = '';
-    content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con una pestaña de "Ventas & Pipeline") para generar el primer dashboard.</p></div></div>`;
+    content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con la pestaña "Ventas & Pipeline") para generar el primer dashboard.</p></div></div>`;
     return;
   }
   badge.innerHTML = `<span class="fecha-revision">Semana de revisión: ${new Date(actual.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
 
-  const vTotales = actual.ventas.find(v => v.linea.toUpperCase().includes('TOTALES')) || actual.ventas[0];
-  const pTotal = actual.pipeline.find(p => p.linea.toUpperCase().includes('TOTAL')) || actual.pipeline[0];
-
-  const alertas = [];
-  if(vTotales && vTotales.pctLogroOVecesCQ < 0.6) alertas.push({ tipo:'rojo', texto:`Ventas del trimestre al ${fmtPct(vTotales.pctLogroOVecesCQ)} del objetivo` });
-  const oportunidadesRetrasadas = actual.oportunidades.filter(o => (o.comentarios||'').toLowerCase().includes('movió'));
-  if(oportunidadesRetrasadas.length) alertas.push({ tipo:'ambar', texto:`${oportunidadesRetrasadas.length} oportunidad(es) que ya se movieron de fecha al menos una vez` });
-  const masGrande = actual.oportunidades.slice().sort((a,b)=>b.total-a.total)[0];
-  if(masGrande) alertas.push({ tipo:'ambar', texto:`Oportunidad más grande: ${masGrande.cliente} (${fmtK(masGrande.total)})` });
+  const vTotales = actual.ventas.find(v=>v.nombre.toLowerCase().includes('totales')) || actual.ventas[0];
+  const pTotal = actual.pipeline.find(p=>p.nombre.toLowerCase().includes('total')) || actual.pipeline[0];
 
   content.innerHTML = `
     <div class="kpi-grid">
-      ${actual.ventas.map(v => `
-        <div class="kpi-card ${claseAvance(v.pctLogroOVecesCQ)}">
-          <div class="label">${esc(v.linea)} — Trimestre</div>
-          <div class="value">${fmtPct(v.pctLogroOVecesCQ)}</div>
-          <div class="sub-value">${fmtK(v.resultadoCQ)} de ${fmtK(v.targetCQ)} objetivo</div>
-          <div class="kpi-bar"><div class="kpi-bar-fill ${claseAvance(v.pctLogroOVecesCQ)}" style="width:${Math.min(100, v.pctLogroOVecesCQ*100)}%"></div></div>
-        </div>
-      `).join('')}
+      <div class="kpi-card ${claseAvance(vTotales.pctYTD)}">
+        <div class="label">Ventas YTD</div>
+        <div class="value">${fmtPct(vTotales.pctYTD)}</div>
+        <div class="sub-value">${fmtK(vTotales.resultadoYTD)} de ${fmtK(vTotales.targetAnual)} anual</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill ${claseAvance(vTotales.pctYTD)}" style="width:${Math.min(100,vTotales.pctYTD*100)}%"></div></div>
+      </div>
+      <div class="kpi-card ${claseAvance(vTotales.pctCQ)}">
+        <div class="label">Ventas — Trimestre actual</div>
+        <div class="value">${fmtPct(vTotales.pctCQ)}</div>
+        <div class="sub-value">${fmtK(vTotales.resultadoCQ)} de ${fmtK(vTotales.targetCQ)} meta CQ</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill ${claseAvance(vTotales.pctCQ)}" style="width:${Math.min(100,vTotales.pctCQ*100)}%"></div></div>
+      </div>
+      <div class="kpi-card ${claseAvance(vTotales.pctFCST)}">
+        <div class="label">Forecast vs. meta CQ</div>
+        <div class="value">${fmtPct(vTotales.pctFCST)}</div>
+        <div class="sub-value">Togo: ${fmtK(vTotales.togo)}</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill ${claseAvance(vTotales.pctFCST)}" style="width:${Math.min(100,vTotales.pctFCST*100)}%"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Pipeline total (CQ)</div>
+        <div class="value">${fmtK(pTotal.resultadoCQ)}</div>
+        <div class="sub-value">de ${fmtK(pTotal.targetCQ)} meta (${pTotal.resultadoCQ/pTotal.targetCQ >= 1 ? '≥' : ''}${Math.round(pTotal.resultadoCQ/pTotal.targetCQ*10)/10}x)</div>
+      </div>
     </div>
-    <div class="kpi-grid">
-      ${actual.pipeline.map(p => `
-        <div class="kpi-card ${p.pctLogroOVecesCQ >= 1 ? 'verde' : (p.pctLogroOVecesCQ >= 0.7 ? 'ambar' : 'rojo')}">
-          <div class="label">${esc(p.linea)} — Trimestre</div>
-          <div class="value">${p.pctLogroOVecesCQ.toFixed(1)}x</div>
-          <div class="sub-value">${fmtK(p.resultadoCQ)} de ${fmtK(p.targetCQ)} objetivo</div>
-        </div>
-      `).join('')}
-    </div>
-
-    ${alertas.length ? `<div class="section" style="padding-bottom:14px;">${alertas.map(a=>`<span class="alert-chip ${a.tipo==='ambar'?'ambar':''}">⚠️ ${esc(a.texto)}</span>`).join('')}</div>` : ''}
 
     <div class="section">
       <h2>🤖 Insight de Delfos</h2>
@@ -386,7 +367,8 @@ function render(){
     </div>
 
     <div class="section">
-      <h2>Ventas y Pipeline — Anual vs. Trimestre</h2>
+      <h2>Ventas y Pipeline vs. Objetivo</h2>
+      <p class="sub">Total, SAP y B1 — resultado del trimestre actual contra su meta.</p>
       <div class="charts-grid">
         <div class="chart-wrap"><canvas id="chartVentas"></canvas></div>
         <div class="chart-wrap"><canvas id="chartPipeline"></canvas></div>
@@ -395,72 +377,59 @@ function render(){
 
     <div class="section">
       <h2>Detalle de oportunidades</h2>
-      <p class="sub">Ordenado por monto total, de mayor a menor.</p>
-      <div style="overflow-x:auto;">
-        <table>
-          <tr><th>Cliente</th><th>Línea SAP</th><th class="num">ACV</th><th class="num">Services</th><th class="num">Total</th><th>Etapa</th><th>Estatus</th><th>Cierre Est.</th><th>Vendedor</th><th>Comentarios</th></tr>
-          ${actual.oportunidades.slice().sort((a,b)=>b.total-a.total).map(o => `
-            <tr>
-              <td>${esc(o.cliente)}</td>
-              <td>${esc(o.lineaSAP)}</td>
-              <td class="num">${fmtK(o.acv)}</td>
-              <td class="num">${fmtK(o.services)}</td>
-              <td class="num"><b>${fmtK(o.total)}</b></td>
-              <td>${esc(o.etapa)}</td>
-              <td>${esc(o.estatus)}</td>
-              <td>${o.fechaCierre ? new Date(o.fechaCierre).toLocaleDateString('es-MX') : '—'}</td>
-              <td>${esc(o.vendedor)}</td>
-              <td class="comentario-cell">${esc(o.comentarios)}</td>
-            </tr>
-          `).join('')}
-        </table>
+      <div class="tabbar" id="tabbarOps">
+        <button class="active" onclick="setTabOps('activas')">Activas (${actual.oportunidadesActivas.length})</button>
+        <button onclick="setTabOps('ganadas')">Ganadas (${actual.ganadas.length})</button>
+        <button onclick="setTabOps('bajaron')">Bajaron del FCST (${actual.bajaron.length})</button>
+        <button onclick="setTabOps('movidas')">Movidas de Q (${actual.movidas.length})</button>
+        <button onclick="setTabOps('bigDeals')">Big Deals (${actual.bigDeals.length})</button>
       </div>
+      <div id="opsContent"></div>
     </div>
 
     <div class="section">
       <h2>📅 Bitácora semanal</h2>
-      <p class="sub">Historial de cada corte guardado.</p>
       <table>
-        <tr><th>Semana</th><th class="num">Ventas Totales CQ</th><th class="num">Pipeline Total CQ</th><th class="num"># Oportunidades</th></tr>
+        <tr><th>Semana</th><th class="num">Ventas YTD %</th><th class="num">Ventas CQ %</th><th class="num">Pipeline CQ</th></tr>
         ${historial.slice().reverse().map(h => {
-          const v = h.ventas.find(x=>x.linea.toUpperCase().includes('TOTALES')) || h.ventas[0];
-          const p = h.pipeline.find(x=>x.linea.toUpperCase().includes('TOTAL')) || h.pipeline[0];
-          return `<tr><td>${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td class="num">${fmtPct(v.pctLogroOVecesCQ)}</td><td class="num">${p.pctLogroOVecesCQ.toFixed(1)}x</td><td class="num">${h.oportunidades.length}</td></tr>`;
+          const v = h.ventas.find(x=>x.nombre.toLowerCase().includes('totales')) || h.ventas[0];
+          const p = h.pipeline.find(x=>x.nombre.toLowerCase().includes('total')) || h.pipeline[0];
+          return `<tr><td>${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td class="num">${fmtPct(v.pctYTD)}</td><td class="num">${fmtPct(v.pctCQ)}</td><td class="num">${fmtK(p.resultadoCQ)}</td></tr>`;
         }).join('')}
       </table>
     </div>
   `;
 
   renderCharts();
+  setTabOps('activas');
 }
 
 function renderCharts(){
   if(chartVentas) chartVentas.destroy();
   if(chartPipeline) chartPipeline.destroy();
-
   chartVentas = new Chart(document.getElementById('chartVentas'), {
     type:'bar',
-    data:{
-      labels: actual.ventas.map(v=>v.linea),
-      datasets:[
-        { label:'Target CQ', data: actual.ventas.map(v=>v.targetCQ), backgroundColor:'#D8E2EE' },
-        { label:'Resultado CQ', data: actual.ventas.map(v=>v.resultadoCQ), backgroundColor:'#1E5BB8' },
-      ]
-    },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Ventas — Trimestre' } } }
+    data:{ labels: actual.ventas.map(v=>v.nombre), datasets:[
+      { label:'Meta CQ', data: actual.ventas.map(v=>v.targetCQ), backgroundColor:'#D8E2EE' },
+      { label:'Resultado CQ', data: actual.ventas.map(v=>v.resultadoCQ), backgroundColor:'#1E5BB8' },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Ventas (trimestre actual)' } } }
   });
-
   chartPipeline = new Chart(document.getElementById('chartPipeline'), {
     type:'bar',
-    data:{
-      labels: actual.pipeline.map(p=>p.linea),
-      datasets:[
-        { label:'Target CQ', data: actual.pipeline.map(p=>p.targetCQ), backgroundColor:'#D8E2EE' },
-        { label:'Resultado CQ', data: actual.pipeline.map(p=>p.resultadoCQ), backgroundColor:'#33B4DD' },
-      ]
-    },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Pipeline — Trimestre' } } }
+    data:{ labels: actual.pipeline.map(p=>p.nombre), datasets:[
+      { label:'Meta CQ', data: actual.pipeline.map(p=>p.targetCQ), backgroundColor:'#D8E2EE' },
+      { label:'Resultado CQ', data: actual.pipeline.map(p=>p.resultadoCQ), backgroundColor:'#33B4DD' },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Pipeline (trimestre actual)' } } }
   });
+}
+
+function setTabOps(cual){
+  const mapa = { activas:0, ganadas:1, bajaron:2, movidas:3, bigDeals:4 };
+  document.querySelectorAll('#tabbarOps button').forEach((b,i) => b.classList.toggle('active', i===mapa[cual]));
+  const listas = { activas:actual.oportunidadesActivas, ganadas:actual.ganadas, bajaron:actual.bajaron, movidas:actual.movidas, bigDeals:actual.bigDeals };
+  document.getElementById('opsContent').innerHTML = tablaOportunidades(listas[cual]);
 }
 
 async function init(){

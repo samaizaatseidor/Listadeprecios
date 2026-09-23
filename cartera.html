@@ -123,6 +123,7 @@
     <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
     <div class="topnav-links">
       <a href="/index.html" class="nav-link">Inicio</a>
+      <a href="/wbr.html" class="nav-link" style="color:var(--blue); font-weight:700;">📋 Weekly Business Review</a>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
@@ -146,6 +147,7 @@
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
           <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/wbr-ventas.html">WBR — Ventas & Pipeline</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -232,11 +234,18 @@ function parseCarteraRows(rows){
   })).filter(r => r.cliente);
 }
 
+// "hoy" se lee con getters LOCALES (así se refleja el día calendario real del usuario,
+// sin importar la hora). Las fechas que vienen del Excel las construye SheetJS anclada
+// a medianoche UTC, así que esas se leen con getters UTC — mezclar los dos tipos sin
+// esta distinción es justo lo que causaba el desfase de un día por las noches.
+function soloFechaHoy(d){ return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); }
+function soloFechaDeExcel(d){ return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); }
+
 function calcularAntiguedad(rows){
-  const hoy = new Date();
+  const hoyUTC = soloFechaHoy(new Date());
   const DIA = 86400000;
   return rows.map(r => {
-    const diasVencido = r.fechaVence ? Math.floor((hoy - r.fechaVence) / DIA) : null;
+    const diasVencido = r.fechaVence ? Math.round((hoyUTC - soloFechaDeExcel(r.fechaVence)) / DIA) : null;
     let bucket, bucketClass;
     if(diasVencido === null){ bucket = 'Sin fecha'; bucketClass = 'sinfecha'; }
     else if(diasVencido <= 0){ bucket = 'Vigente'; bucketClass = 'vigente'; }
