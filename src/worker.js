@@ -1298,6 +1298,41 @@ ${JSON.stringify(checklist || [])}`;
       return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
     }
 
+    if (url.pathname === '/api/hubspot-diagnostico' && request.method === 'GET') {
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const cfgRolesHS = await getRolesConfig(env);
+      if (!esAdmin(email, cfgRolesHS)) return new Response(JSON.stringify({ ok:false, error:'Solo un Administrador puede correr este diagnóstico.' }), { status:403, headers:{'Content-Type':'application/json'} });
+
+      const token = env.HUBSPOT_ACCESS_TOKEN;
+      if (!token) return new Response(JSON.stringify({ ok:false, error:'Falta configurar HUBSPOT_ACCESS_TOKEN' }), { status:500, headers:{'Content-Type':'application/json'} });
+
+      const hs = async (path) => {
+        const r = await fetch(`https://api.hubapi.com${path}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await r.json();
+        if (!r.ok) throw new Error(`${path} → HTTP ${r.status}: ${JSON.stringify(data)}`);
+        return data;
+      };
+
+      try {
+        const pipelines = await hs('/crm/v3/pipelines/deals');
+        const propiedades = await hs('/crm/v3/properties/deals');
+        const propsRelevantes = propiedades.results
+          .filter(p => !p.hubspotDefined || ['amount','dealname','dealstage','pipeline','closedate','hubspot_owner_id'].includes(p.name))
+          .map(p => ({ name: p.name, label: p.label, type: p.type, opciones: p.options ? p.options.map(o=>o.label) : undefined }));
+        const nombresProps = propiedades.results.map(p => p.name).slice(0, 200).join(',');
+        const muestraDeals = await hs(`/crm/v3/objects/deals?limit=5&properties=${encodeURIComponent(nombresProps)}`);
+
+        return new Response(JSON.stringify({
+          ok: true,
+          pipelines: pipelines.results.map(p => ({ id: p.id, label: p.label, etapas: p.stages.map(s => ({ id: s.id, label: s.label })) })),
+          propiedadesPersonalizadas: propsRelevantes.filter(p => !['amount','dealname','dealstage','pipeline','closedate','hubspot_owner_id'].includes(p.name)),
+          muestraDeals: muestraDeals.results.map(d => d.properties)
+        }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok:false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
     if (url.pathname === '/api/wbr-finanzas-insight' && request.method === 'POST') {
       const token = await getDelfosToken(env);
       if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
