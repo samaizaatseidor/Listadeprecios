@@ -146,6 +146,7 @@
         <button type="button" class="nav-dropdown-btn active">Presales <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/wbr-ventas.html">WBR — Ventas y Pipeline</a>
           <a href="/documentos.html" class="active">Documentos de Apoyo</a>
           <a href="/kpis.html">Tablero de Control</a>
           <div class="nav-dropdown-sep"></div>
@@ -204,7 +205,7 @@ let SECTIONS = [];
 let docs = [];
 let addType = 'file';
 
-function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 function formatSize(bytes){
   if(!bytes) return '';
   if(bytes < 1024) return bytes + ' B';

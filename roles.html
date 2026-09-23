@@ -114,7 +114,7 @@ const NIVELES = [
   { valor:'ninguno', etiqueta:'Sin acceso' },
 ];
 
-function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
 async function init(){
   const main = document.getElementById('mainContent');

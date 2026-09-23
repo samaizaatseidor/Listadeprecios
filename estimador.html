@@ -158,6 +158,7 @@
         <button type="button" class="nav-dropdown-btn active">Presales <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/wbr-ventas.html">WBR — Ventas y Pipeline</a>
           <a href="/documentos.html">Documentos de Apoyo</a>
           <a href="/kpis.html">Tablero de Control</a>
           <div class="nav-dropdown-sep"></div>
@@ -229,7 +230,7 @@ const DIAS_MANUAL = {
   'Alta':  {'FI (Finanzas)':50,'CO (Controlling)':35,'SD (Ventas)':50,'MM (Materiales/Compras)':50,'PP (Producción)':70,'QM (Calidad)':35,'PM (Mantenimiento)':40,'PS (Proyectos)':50,'HR / Payroll':70,'TRM (Tesorería)':55,'RE-FX (Bienes Raíces)':50,'BTP / Extensiones':45}
 };
 
-function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
 function setModo(m){
   modo = m;

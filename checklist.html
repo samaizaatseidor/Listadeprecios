@@ -136,6 +136,7 @@
         <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/wbr-ventas.html">WBR — Ventas y Pipeline</a>
           <a href="/documentos.html">Documentos de Apoyo</a>
           <a href="/kpis.html">Tablero de Control</a>
           <div class="nav-dropdown-sep"></div>
@@ -338,7 +339,7 @@ function selectProyecto(p){
   render();
 }
 
-function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
 function setFase(id){ activeFase = id; render(); }
 
