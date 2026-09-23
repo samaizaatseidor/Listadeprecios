@@ -82,9 +82,10 @@
   .activity-item b{color:var(--ink);}
   .empty{color:var(--greyl); font-size:12px; padding:14px 6px; text-align:center;}
 
-  .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:20; align-items:flex-end; justify-content:center;}
+  .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:20; align-items:center; justify-content:center; padding:20px;}
   .overlay.open{display:flex;}
-  .sheet{background:#fff; width:100%; max-width:520px; border-radius:16px 16px 0 0; padding:20px; max-height:90vh; overflow-y:auto;}
+  .sheet{background:#fff; width:100%; max-width:520px; border-radius:16px; padding:20px; max-height:90vh; overflow-y:auto;}
+  @media (max-width:640px){ .overlay{align-items:flex-end; padding:0;} .sheet{border-radius:16px 16px 0 0; max-height:92vh;} }
   .sheet label{display:block; font-size:11.5px; color:var(--grey); margin:14px 0 5px; font-weight:500;}
   .sheet label:first-of-type{margin-top:4px;}
   .sheet input[type=text], .sheet input[type=url], .sheet select, .sheet textarea{
@@ -168,6 +169,12 @@
           <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
           <a href="/vista-general.html">Vista General del Proyecto</a>
           <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
         </div>
       </div>
       <div class="nav-dropdown">

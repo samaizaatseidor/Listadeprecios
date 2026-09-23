@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>Cartera Vencida · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-link.active{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:1400px; margin:0 auto; padding:24px 24px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:14px; color:var(--navy2); margin:0 0 4px;}
+  .section .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
+
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:16px;}
+  .kpi-card{background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow);}
+  .kpi-card .label{font-size:11px; color:var(--greyl); text-transform:uppercase; letter-spacing:0.4px; font-weight:600;}
+  .kpi-card .value{font-size:22px; font-weight:700; color:var(--navy2); margin-top:4px;}
+  .kpi-card.critico .value{color:#B23A3A;}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px;}
+  td{padding:9px 6px; border-bottom:1px solid var(--line);}
+  tr:hover td{background:var(--card);}
+  .num{text-align:right; font-variant-numeric:tabular-nums;}
+  .bucket-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px;}
+  .bucket-vigente{background:#E7F7EE; color:#1F8A4C;}
+  .bucket-1-30{background:#FBF1DE; color:#8A6414;}
+  .bucket-31-60{background:#FDE7D0; color:#B25F14;}
+  .bucket-61-90{background:#FBE0D0; color:#B23A3A;}
+  .bucket-90{background:#FBE7E7; color:#8A1F1F;}
+  .bucket-sinfecha{background:var(--card); color:var(--greyl);}
+
+  .btn{border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-ghost{border:1px solid var(--line); background:#fff; color:var(--grey);}
+  .empty{text-align:center; padding:50px 20px; color:var(--greyl); font-size:13.5px;}
+  .loading{color:var(--grey); font-size:13px;}
+  input[type=file]{font-family:inherit; font-size:13px;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html" class="active">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Cartera Vencida</h1>
+  <p>Sube el Excel que ya maneja Finanzas — sin cambiar su formato — para ver antigüedad de saldos por cliente</p>
+</header>
+
+<main>
+  <div class="section">
+    <h2>Cargar archivo</h2>
+    <p class="sub">Columnas esperadas (el nombre exacto no importa mucho, se detectan variantes comunes): Cliente, Factura/Folio, Monto/Importe, Fecha de Vencimiento.</p>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+    <div id="status" style="margin-top:10px;"></div>
+  </div>
+
+  <div id="resultados"></div>
+</main>
+
+<script>
+let filas = [];
+
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+function fmtMoneda(n){ return '$' + n.toLocaleString('es-MX', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+
+function parseCarteraRows(rows){
+  const keys = rows.length ? Object.keys(rows[0]) : [];
+  const findKey = (names) => keys.find(k => names.some(n => k.toLowerCase().trim() === n));
+  const kCliente = findKey(['cliente','cuenta','razon social','razón social','empresa']);
+  const kFolio = findKey(['factura','folio','documento','no. factura','numero de factura']);
+  const kMonto = findKey(['monto','importe','saldo','saldo pendiente','total']);
+  const kFechaVence = findKey(['fecha vencimiento','fecha de vencimiento','vence','fecha vence']);
+  const kFechaEmision = findKey(['fecha emision','fecha de emisión','fecha emisión','fecha factura']);
+
+  const parseFecha = (v) => {
+    if(!v) return null;
+    if(v instanceof Date) return v;
+    if(typeof v === 'number'){ const epoch = new Date(Date.UTC(1899,11,30)); return new Date(epoch.getTime() + v*86400000); }
+    const d = new Date(v);
+    return isNaN(d) ? null : d;
+  };
+  const parseMonto = (v) => {
+    if(typeof v === 'number') return v;
+    const n = parseFloat(String(v||'0').replace(/[^0-9.-]/g,''));
+    return isNaN(n) ? 0 : n;
+  };
+
+  return rows.map(row => ({
+    cliente: kCliente ? String(row[kCliente]).trim() : '',
+    folio: kFolio ? String(row[kFolio]).trim() : '',
+    monto: kMonto ? parseMonto(row[kMonto]) : 0,
+    fechaVence: kFechaVence ? parseFecha(row[kFechaVence]) : null,
+    fechaEmision: kFechaEmision ? parseFecha(row[kFechaEmision]) : null,
+  })).filter(r => r.cliente);
+}
+
+function calcularAntiguedad(rows){
+  const hoy = new Date();
+  const DIA = 86400000;
+  return rows.map(r => {
+    const diasVencido = r.fechaVence ? Math.floor((hoy - r.fechaVence) / DIA) : null;
+    let bucket, bucketClass;
+    if(diasVencido === null){ bucket = 'Sin fecha'; bucketClass = 'sinfecha'; }
+    else if(diasVencido <= 0){ bucket = 'Vigente'; bucketClass = 'vigente'; }
+    else if(diasVencido <= 30){ bucket = '1-30 días'; bucketClass = '1-30'; }
+    else if(diasVencido <= 60){ bucket = '31-60 días'; bucketClass = '31-60'; }
+    else if(diasVencido <= 90){ bucket = '61-90 días'; bucketClass = '61-90'; }
+    else { bucket = '90+ días'; bucketClass = '90'; }
+    return { ...r, diasVencido, bucket, bucketClass };
+  });
+}
+
+function agruparPorCliente(rowsConAntiguedad){
+  const porCliente = {};
+  rowsConAntiguedad.forEach(r => {
+    if(!porCliente[r.cliente]) porCliente[r.cliente] = { cliente:r.cliente, total:0, buckets:{}, maxDiasVencido:0, facturas:0 };
+    const c = porCliente[r.cliente];
+    c.total += r.monto;
+    c.buckets[r.bucket] = (c.buckets[r.bucket] || 0) + r.monto;
+    c.facturas += 1;
+    if(r.diasVencido !== null && r.diasVencido > c.maxDiasVencido) c.maxDiasVencido = r.diasVencido;
+  });
+  return Object.values(porCliente).sort((a,b) => b.total - a.total);
+}
+
+async function handleFile(file){
+  if(!file) return;
+  const statusBox = document.getElementById('status');
+  statusBox.innerHTML = '<span class="loading">Leyendo archivo…</span>';
+  try{
+    if(typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería de Excel.');
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type:'array', cellDates:true });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+    const parsed = parseCarteraRows(rows);
+    if(!parsed.length){
+      statusBox.innerHTML = '<span style="color:#B23A3A;">No se reconocieron filas — revisa que tenga una columna de Cliente.</span>';
+      return;
+    }
+    filas = calcularAntiguedad(parsed);
+    statusBox.innerHTML = `<span style="color:#1F8A4C;">${filas.length} facturas leídas de "${esc(file.name)}".</span>`;
+    render();
+  }catch(e){
+    console.error(e);
+    statusBox.innerHTML = `<span style="color:#B23A3A;">No se pudo leer el archivo: ${esc(e.message||String(e))}</span>`;
+  }
+}
+
+function render(){
+  const box = document.getElementById('resultados');
+  if(!filas.length){ box.innerHTML = ''; return; }
+
+  const vencidas = filas.filter(f => f.diasVencido !== null && f.diasVencido > 0);
+  const totalVencido = vencidas.reduce((s,f) => s+f.monto, 0);
+  const totalCritico = filas.filter(f => f.bucketClass === '90').reduce((s,f) => s+f.monto, 0);
+  const pctCritico = totalVencido ? Math.round(totalCritico/totalVencido*100) : 0;
+  const porCliente = agruparPorCliente(filas);
+  const peorCliente = porCliente[0];
+
+  const BUCKET_COLS = ['Vigente','1-30 días','31-60 días','61-90 días','90+ días'];
+
+  box.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="label">Total vencido</div><div class="value">${fmtMoneda(totalVencido)}</div></div>
+      <div class="kpi-card critico"><div class="label">En 90+ días (crítico)</div><div class="value">${fmtMoneda(totalCritico)}</div></div>
+      <div class="kpi-card"><div class="label">% del vencido en crítico</div><div class="value">${pctCritico}%</div></div>
+      <div class="kpi-card"><div class="label">Cliente con más deuda</div><div class="value" style="font-size:15px;">${esc(peorCliente ? peorCliente.cliente : '—')}</div></div>
+    </div>
+
+    <div class="section">
+      <h2>Antigüedad de saldos por cliente</h2>
+      <p class="sub">Ordenado de mayor a menor deuda total.</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <tr><th>Cliente</th>${BUCKET_COLS.map(b=>`<th class="num">${b}</th>`).join('')}<th class="num">Total</th><th class="num">Facturas</th></tr>
+          ${porCliente.map(c => `
+            <tr>
+              <td>${esc(c.cliente)}</td>
+              ${BUCKET_COLS.map(b => `<td class="num">${c.buckets[b] ? fmtMoneda(c.buckets[b]) : '—'}</td>`).join('')}
+              <td class="num"><b>${fmtMoneda(c.total)}</b></td>
+              <td class="num">${c.facturas}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Detalle por factura</h2>
+      <p class="sub">Ordenado por más días vencido primero.</p>
+      <div style="overflow-x:auto; max-height:500px; overflow-y:auto;">
+        <table>
+          <tr><th>Cliente</th><th>Factura</th><th class="num">Monto</th><th>Vence</th><th class="num">Días vencido</th><th>Estatus</th></tr>
+          ${filas.slice().sort((a,b) => (b.diasVencido??-9999) - (a.diasVencido??-9999)).map(f => `
+            <tr>
+              <td>${esc(f.cliente)}</td>
+              <td>${esc(f.folio)}</td>
+              <td class="num">${fmtMoneda(f.monto)}</td>
+              <td>${f.fechaVence ? f.fechaVence.toLocaleDateString('es-MX') : '—'}</td>
+              <td class="num">${f.diasVencido !== null ? f.diasVencido : '—'}</td>
+              <td><span class="bucket-tag bucket-${f.bucketClass}">${esc(f.bucket)}</span></td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+    </div>
+
+    <div class="section" style="display:flex; gap:10px;">
+      <button class="btn btn-ghost" onclick="exportarExcel()">⬇️ Exportar a Excel</button>
+    </div>
+  `;
+}
+
+function exportarExcel(){
+  if(typeof XLSX === 'undefined'){ alert('No se pudo cargar la librería de Excel.'); return; }
+  const porCliente = agruparPorCliente(filas);
+  const BUCKET_COLS = ['Vigente','1-30 días','31-60 días','61-90 días','90+ días'];
+  const wsResumen = XLSX.utils.aoa_to_sheet([
+    ['Cliente', ...BUCKET_COLS, 'Total', 'Facturas'],
+    ...porCliente.map(c => [c.cliente, ...BUCKET_COLS.map(b => c.buckets[b]||0), c.total, c.facturas])
+  ]);
+  const wsDetalle = XLSX.utils.aoa_to_sheet([
+    ['Cliente','Factura','Monto','Fecha Vencimiento','Días Vencido','Estatus'],
+    ...filas.slice().sort((a,b) => (b.diasVencido??-9999) - (a.diasVencido??-9999)).map(f => [
+      f.cliente, f.folio, f.monto, f.fechaVence ? f.fechaVence.toLocaleDateString('es-MX') : '', f.diasVencido, f.bucket
+    ])
+  ]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, wsResumen, 'Por Cliente');
+  XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle');
+  XLSX.writeFile(wb, `Cartera Vencida - ${new Date().toLocaleDateString('es-MX')}.xlsx`);
+}
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

@@ -70,9 +70,10 @@
   .org-toggle{position:absolute; left:50%; bottom:-11px; transform:translateX(-50%); width:22px; height:22px; border-radius:50%; background:#fff; border:1px solid var(--line); color:var(--blue); font-size:11px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:3;}
   .org-toggle:hover{border-color:var(--blue); background:var(--card);}
 
-  .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:50; align-items:flex-end; justify-content:center;}
+  .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:50; align-items:center; justify-content:center; padding:20px;}
   .overlay.open{display:flex;}
-  .sheet{background:#fff; width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:22px; max-height:88vh; overflow-y:auto;}
+  .sheet{background:#fff; width:100%; max-width:480px; border-radius:16px; padding:22px; max-height:88vh; overflow-y:auto;}
+  @media (max-width:640px){ .overlay{align-items:flex-end; padding:0;} .sheet{border-radius:16px 16px 0 0; max-height:92vh;} }
   .sheet label{display:block; font-size:12.5px; color:var(--grey); margin:12px 0 4px; font-weight:500;}
   .sheet input, .sheet select, .sheet textarea{width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px;}
   .sheet-title{font-size:16px; font-weight:600; color:var(--navy2); margin:0;}
@@ -127,6 +128,12 @@
           <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
           <a href="/vista-general.html">Vista General del Proyecto</a>
           <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
         </div>
       </div>
       <div class="nav-dropdown">
