@@ -189,6 +189,9 @@
     <p class="admin-lock-hint" style="font-size:11.5px; color:var(--greyl); margin:0 0 6px;">🔒 Solo un Administrador puede editar esto — pídele a uno que lo ajuste en Roles y Permisos si hace falta.</p>
     <textarea id="promptBox" class="admin-only-edit" readonly rows="14" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; color:var(--ink); resize:vertical; background:#F4F8FC;"></textarea>
 
+    <label style="display:block; font-size:12px; color:var(--grey); margin:14px 0 6px; font-weight:500;">Instrucciones adicionales (opcional, cualquiera puede agregar)</label>
+    <textarea id="extraInstructions" rows="3" placeholder="Ej. Enfócate también en riesgos de integración con el sistema legado del cliente" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; color:var(--ink); resize:vertical;"></textarea>
+
     <div style="margin-top:14px;">
       <button class="btn btn-primary" id="goBtn" onclick="investigar()" disabled>Investigar</button>
     </div>
@@ -245,6 +248,12 @@ FUENTES CONSULTADAS
 Si no encuentras información confiable sobre algún punto, dilo explícitamente en vez de inventar datos.`;
 
 document.getElementById('promptBox').value = DEFAULT_PROMPT;
+
+function promptCompleto(){
+  const base = document.getElementById('promptBox').value;
+  const extra = document.getElementById('extraInstructions').value.trim();
+  return extra ? `${base}\n\nInstrucciones adicionales del usuario para esta investigación:\n${extra}` : base;
+}
 let lastFeedback = '';
 let lastCompany = '';
 
@@ -287,7 +296,7 @@ async function investigar(){
   try{
     const r = await fetch('/api/prospecto', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ companyName: company, prompt: document.getElementById('promptBox').value })
+      body: JSON.stringify({ companyName: company, prompt: promptCompleto() })
     });
     if(!r.body){ throw new Error('sin stream'); }
     const reader = r.body.getReader();
