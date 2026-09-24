@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>WBR — Call to Action · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
+  header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+  input[type=file]{display:none;}
+  .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
+  main{max-width:1100px; margin:0 auto; padding:24px 24px 60px;}
+  .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
+  .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10.5px; text-transform:uppercase;}
+  td{padding:10px 6px; border-bottom:1px solid var(--line);}
+  .estatus-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 10px; border-radius:10px;}
+  .estatus-completado{background:#E7F7EE; color:#1F8A4C;}
+  .estatus-enproceso{background:#FBF1DE; color:#8A6414;}
+  .estatus-pendiente{background:var(--card); color:var(--greyl);}
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+</style>
+</head>
+<body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){}
+})();
+</script>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-productos.html">Target de Clientes</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html" class="active">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div>
+    <h1>✅ Weekly Business Review — Call to Action</h1>
+    <p>Acciones de la semana — foco principal, responsable, fecha y estatus</p>
+  </div>
+  <label class="upload-label" for="fileInput">⬆️ Subir corte de esta semana</label>
+  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+</header>
+
+<main>
+  <div id="statusBox"></div>
+  <div id="content"></div>
+</main>
+
+<script>
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+function claseEstatusCta(e){
+  const s = (e||'').toLowerCase();
+  if(s.includes('complet') || s.includes('cerrad') || s.includes('listo')) return 'estatus-completado';
+  if(s.includes('proceso') || s.includes('curso') || s.includes('avance')) return 'estatus-enproceso';
+  return 'estatus-pendiente';
+}
+
+async function handleFile(file){
+  if(!file) return;
+  const statusBox = document.getElementById('statusBox');
+  statusBox.innerHTML = '<div class="loading">Leyendo el archivo…</div>';
+  try{
+    if(typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería de Excel.');
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type:'array', cellDates:true });
+    const ws = wb.Sheets['Call to Action'];
+    if(!ws) throw new Error('El archivo no tiene una pestaña llamada "Call to Action"');
+    const m = XLSX.utils.sheet_to_json(ws, { header:1, defval:null });
+    let idxHeader = -1;
+    for(let i=0;i<m.length;i++){ if(m[i].some(c=>typeof c==='string' && c.trim().toUpperCase().startsWith('ACCIÓN'))) { idxHeader = i; break; } }
+    const acciones = [];
+    for(let i=idxHeader+1; i<m.length; i++){
+      const f = m[i];
+      if(!f || !f[0]) continue;
+      acciones.push({ accion:f[0], responsable:f[1]||'', fecha: f[2] instanceof Date ? f[2].toLocaleDateString('es-MX') : (f[2]||''), estatus:f[3]||'Pendiente' });
+    }
+    render(acciones);
+    statusBox.innerHTML = `<div style="color:#1F8A4C; font-size:13px;">${acciones.length} acción(es) cargadas de "${esc(file.name)}".</div>`;
+  }catch(e){
+    console.error(e);
+    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
+  }
+}
+
+function render(acciones){
+  const content = document.getElementById('content');
+  if(!acciones || !acciones.length){
+    content.innerHTML = `<div class="section"><div class="empty"><h2 style="color:var(--navy2); font-size:16px;">Sin acciones capturadas esta semana</h2><p>Sube el Excel semanal (con la pestaña "Call to Action") para verlas aquí.</p></div></div>`;
+    return;
+  }
+  content.innerHTML = `<div class="section"><table>
+    <tr><th>Acción</th><th>Responsable</th><th>Fecha</th><th>Estatus</th></tr>
+    ${acciones.map(a=>`<tr><td>${esc(a.accion)}</td><td>${esc(a.responsable)}</td><td>${esc(a.fecha)}</td><td><span class="estatus-tag ${claseEstatusCta(a.estatus)}">${esc(a.estatus)}</span></td></tr>`).join('')}
+  </table></div>`;
+}
+
+render(null);
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

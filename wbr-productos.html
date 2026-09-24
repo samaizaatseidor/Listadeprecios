@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>WBR — Target de Clientes · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
+  header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+  .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
+  input[type=file]{display:none;}
+  .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
+  main{max-width:1300px; margin:0 auto; padding:24px 24px 60px;}
+  .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:14px; margin-bottom:18px;}
+  .kpi-card{background:#fff; border-radius:14px; padding:18px 20px; box-shadow:var(--shadow);}
+  .kpi-card .label{font-size:11px; color:var(--greyl); text-transform:uppercase; letter-spacing:0.5px; font-weight:700;}
+  .kpi-card .value{font-size:26px; font-weight:800; color:var(--navy2); margin-top:6px;}
+  .kpi-card.rojo .value{color:var(--red);} .kpi-card.ambar .value{color:var(--amber);} .kpi-card.verde .value{color:var(--green);}
+  .kpi-bar{height:6px; border-radius:4px; background:var(--card); margin-top:12px; overflow:hidden;}
+  .kpi-bar-fill{height:100%; border-radius:4px;}
+  .chart-wrap{position:relative; height:280px;}
+  .insight-box{background:linear-gradient(135deg, #F4F8FC 0%, #EAF3FB 100%); border:1px solid var(--line); border-radius:12px; padding:18px 20px; display:flex; gap:14px; align-items:flex-start;}
+  .insight-icon{font-size:26px; flex-shrink:0;}
+  .insight-text{font-size:13.5px; line-height:1.6; color:var(--ink); white-space:pre-wrap;}
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10.5px; text-transform:uppercase;}
+  td{padding:9px 6px; border-bottom:1px solid var(--line);}
+  .num{text-align:right; font-variant-numeric:tabular-nums;}
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){}
+})();
+</script>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-productos.html" class="active">Target de Clientes</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div>
+    <h1>🎯 Weekly Business Review — Target de Clientes</h1>
+    <p>Meta de clientes por LOB — resultado vs. objetivo, con insights de Delfos</p>
+    <div id="fechaRevisionBadge"></div>
+  </div>
+  <label class="upload-label" for="fileInput">⬆️ Subir corte de esta semana</label>
+  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+</header>
+
+<main>
+  <div id="statusBox"></div>
+  <div id="content"></div>
+</main>
+
+<script>
+let historial = [];
+let actual = null;
+let chartTarget;
+
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+function fmtPct(n){ return n==null||isNaN(n) ? '—' : Math.round(n*100)+'%'; }
+function claseAvance(pct){ if(pct==null) return ''; return pct >= 0.85 ? 'verde' : (pct >= 0.5 ? 'ambar' : 'rojo'); }
+
+function encontrarFila(m, ancla){ for(let i=0;i<m.length;i++){ if(m[i].some(c=>typeof c==='string' && c.trim().toUpperCase()===ancla.toUpperCase())) return i; } return -1; }
+
+function parsearProductos(wb){
+  const ws = wb.Sheets['Productos'];
+  if(!ws) throw new Error('No se encontró una pestaña "Productos"');
+  const m = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true });
+  const idxFecha = encontrarFila(m, 'Semana de revisión');
+  let fechaRevision = null;
+  if(idxFecha>=0){
+    const fila = m[idxFecha];
+    const fechaObj = fila.find(c => c instanceof Date);
+    if(fechaObj) fechaRevision = fechaObj;
+    else { const txt = fila.find(c => typeof c==='string' && /\d{1,2}\/+\d{1,2}\/+\d{2,4}/.test(c)); if(txt){ const p = txt.match(/(\d{1,2})\/+(\d{1,2})\/+(\d{2,4})/); if(p) fechaRevision = new Date(+p[3], +p[2]-1, +p[1]); } }
+  }
+  const idxHeader = encontrarFila(m, 'LOB');
+  const porLob = [];
+  for(let i=idxHeader+1; i<m.length; i++){
+    const f = m[i];
+    if(!f || !f[0]) continue;
+    if(String(f[0]).toUpperCase()==='TOTAL') break;
+    porLob.push({ lob:f[0], targetAnual:f[1]||0, resultadoYTD:f[2]||0, comentarios:f[6]||'' });
+  }
+  return { fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(), porLob };
+}
+
+async function handleFile(file){
+  if(!file) return;
+  const statusBox = document.getElementById('statusBox');
+  statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Leyendo el archivo…</div>';
+  try{
+    if(typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería de Excel.');
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type:'array', cellDates:true });
+    actual = parsearProductos(wb);
+    statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando…</div>';
+    const anterior = historial.length ? historial[historial.length-1] : null;
+    await fetch('/api/wbr-productos', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
+    await cargarHistorial();
+    render();
+    pedirInsight(anterior);
+    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte del ' + new Date(actual.fechaRevision).toLocaleDateString('es-MX') + ' guardado.</div>';
+  }catch(e){
+    console.error(e);
+    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
+  }
+}
+async function cargarHistorial(){
+  try{
+    const r = await fetch('/api/wbr-productos');
+    const d = await r.json();
+    historial = d.historial || [];
+    if(historial.length) actual = historial[historial.length-1];
+  }catch(e){ historial = []; }
+}
+async function pedirInsight(anterior){
+  const box = document.getElementById('insightBox');
+  if(!box) return;
+  box.innerHTML = '<div class="loading"><span class="spinner"></span>Delfos está analizando el corte…</div>';
+  try{
+    const r = await fetch('/api/wbr-productos-insight', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ actual, anterior }) });
+    const d = await r.json();
+    box.innerHTML = d.ok
+      ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(d.resumen)}</div></div>`
+      : `<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">${esc(d.error||'No se pudo generar el insight.')}</div></div>`;
+  }catch(e){
+    box.innerHTML = '<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">No se pudo conectar con Delfos.</div></div>';
+  }
+}
+
+function render(){
+  const content = document.getElementById('content');
+  const badge = document.getElementById('fechaRevisionBadge');
+  if(!actual){
+    badge.innerHTML = '';
+    content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con la pestaña "Productos") para generar el primer dashboard.</p></div></div>`;
+    return;
+  }
+  badge.innerHTML = `<span class="fecha-revision">Semana de revisión: ${new Date(actual.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
+
+  const totalTarget = actual.porLob.reduce((s,l)=>s+l.targetAnual,0);
+  const totalYTD = actual.porLob.reduce((s,l)=>s+l.resultadoYTD,0);
+  const pctLogro = totalTarget ? totalYTD/totalTarget : null;
+  const totalToGo = totalTarget - totalYTD;
+
+  content.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="label">Target anual (clientes)</div><div class="value">${totalTarget}</div></div>
+      <div class="kpi-card ${claseAvance(pctLogro)}"><div class="label">Resultado YTD</div><div class="value">${totalYTD}</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(100,(pctLogro||0)*100)}%; background:${pctLogro>=0.85?'#1F8A4C':(pctLogro>=0.5?'#D8A63A':'#B23A3A')};"></div></div>
+      </div>
+      <div class="kpi-card ${claseAvance(pctLogro)}"><div class="label">% de logro</div><div class="value">${fmtPct(pctLogro)}</div></div>
+      <div class="kpi-card"><div class="label">Faltan (to go)</div><div class="value">${totalToGo}</div></div>
+    </div>
+
+    <div class="section">
+      <h2>🤖 Insight de Delfos</h2>
+      <div id="insightBox"><div class="loading">Generando…</div></div>
+    </div>
+
+    <div class="section">
+      <h2>Target vs. resultado por LOB</h2>
+      <div class="chart-wrap"><canvas id="chartTarget"></canvas></div>
+    </div>
+
+    <div class="section">
+      <h2>Detalle por LOB</h2>
+      <table>
+        <tr><th>LOB</th><th class="num">Target anual</th><th class="num">Resultado YTD</th><th class="num">% Logro</th><th class="num">To go</th><th>Comentarios</th></tr>
+        ${actual.porLob.map(l=>{
+          const pct = l.targetAnual ? l.resultadoYTD/l.targetAnual : null;
+          return `<tr><td><b>${esc(l.lob)}</b></td><td class="num">${l.targetAnual}</td><td class="num">${l.resultadoYTD}</td><td class="num">${fmtPct(pct)}</td><td class="num">${l.targetAnual-l.resultadoYTD}</td><td style="font-size:11.5px; color:var(--grey);">${esc(l.comentarios)}</td></tr>`;
+        }).join('')}
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>📅 Bitácora semanal</h2>
+      <table>
+        <tr><th>Semana</th><th class="num">Target</th><th class="num">YTD</th><th class="num">% Logro</th></tr>
+        ${historial.slice().reverse().map(h => {
+          const tt = h.porLob.reduce((s,l)=>s+l.targetAnual,0), ty = h.porLob.reduce((s,l)=>s+l.resultadoYTD,0);
+          return `<tr><td>${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td class="num">${tt}</td><td class="num">${ty}</td><td class="num">${fmtPct(tt?ty/tt:null)}</td></tr>`;
+        }).join('')}
+      </table>
+    </div>
+  `;
+  renderCharts();
+}
+
+function renderCharts(){
+  if(chartTarget) chartTarget.destroy();
+  chartTarget = new Chart(document.getElementById('chartTarget'), {
+    type:'bar',
+    data:{ labels: actual.porLob.map(l=>l.lob), datasets:[
+      { label:'Target Anual', data: actual.porLob.map(l=>l.targetAnual), backgroundColor:'#D8E2EE' },
+      { label:'Resultado YTD', data: actual.porLob.map(l=>l.resultadoYTD), backgroundColor:'#1E5BB8' },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false }
+  });
+}
+
+async function init(){
+  await cargarHistorial();
+  render();
+  if(actual) pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
+}
+init();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
