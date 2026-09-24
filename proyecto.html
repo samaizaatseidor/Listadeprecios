@@ -606,7 +606,6 @@ function render(){
       <button class="${activeTab==='changeRequests'?'active':''}" onclick="setTab('changeRequests')">Change Requests</button>
       <button class="${activeTab==='horas'?'active':''}" onclick="setTab('horas')">Consumo de Horas</button>
       <button class="${activeTab==='wbs'?'active':''}" onclick="setTab('wbs')">Desglose de Tareas (WBS)</button>
-      <button class="${activeTab==='cronograma'?'active':''}" onclick="setTab('cronograma')">Revisor de Cronograma</button>
     </div>
     <div class="tabcontent">
       <div class="tab-toolbar" id="tabToolbar" style="${(activeTab==='horas'||activeTab==='wbs') ? 'display:none;' : ''}">
@@ -715,10 +714,6 @@ function renderTabBody(){
 
   if(activeTab === 'wbs'){
     renderWbsTab(body);
-  }
-
-  if(activeTab === 'cronograma'){
-    renderCronogramaTab(body);
   }
 }
 
@@ -1024,11 +1019,81 @@ function calcularWBS(tareasPlanas, hoy){
 function colorSemaforoWbs(s){ return {VERDE:'#1F8A4C', AMARILLO:'#D8A63A', ROJO:'#B23A3A', AZUL:'#1E5BB8'}[s] || '#8A97AC'; }
 function colorEstadoWbs(e){ return {Completado:'#1F8A4C', 'En ejecución':'#D8A63A', 'No iniciado':'#8A97AC', Bloqueado:'#B23A3A', 'En riesgo':'#C97A2B'}[e] || '#8A97AC'; }
 
+// Ruta crítica simplificada: como no capturamos dependencias explícitas entre tareas,
+// se aproxima como la cadena de tareas "espalda con espalda" (el fin de una coincide
+// con o justo antes del inicio de la siguiente) que llega hasta la fecha de fin más
+// tardía del proyecto. Es la cadena que, si se atrasa, atrasa todo el proyecto.
+function calcularRutaCriticaWbs(calculado){
+  const hojas = calculado.filter(t => (t.tipo==='Actividad'||t.tipo==='SubActividad') && !t._esContenedor && t.inicio && t.fin);
+  if(!hojas.length) return { cadena: [], finProyecto: null };
+  const finProyecto = hojas.reduce((max,t) => t.fin > max ? t.fin : max, hojas[0].fin);
+  const cadena = [];
+  let fechaObjetivo = finProyecto;
+  let disponibles = hojas.slice();
+  let vueltas = 0;
+  while(vueltas++ < 500){
+    const candidatas = disponibles.filter(t => t.fin <= fechaObjetivo);
+    if(!candidatas.length) break;
+    candidatas.sort((a,b) => b.fin.localeCompare(a.fin));
+    const elegida = candidatas[0];
+    cadena.push(elegida);
+    disponibles = disponibles.filter(t => t !== elegida);
+    fechaObjetivo = elegida.inicio;
+  }
+  cadena.reverse();
+  return { cadena, finProyecto };
+}
+
+function renderComparacionLineaBaseWbs(calculado){
+  const lb = lineasBase[currentProyecto] || {};
+  if(!lb.fechaInicioKickoff && !lb.fechaGoLive) return '';
+  const megafases = calculado.filter(t=>t.tipo==='MegaFase');
+  const inicioReal = megafases.map(m=>m.inicio).filter(Boolean).sort()[0] || null;
+  const finReal = megafases.map(m=>m.fin).filter(Boolean).sort().slice(-1)[0] || null;
+  const fila = (label, comprometida, real, esFin) => {
+    if(!comprometida) return '';
+    let alerta = '';
+    if(real){
+      const atrasado = esFin ? (real > comprometida) : (real > comprometida);
+      alerta = atrasado ? `<span style="color:#B23A3A; font-weight:600;">⚠️ ${esFin?'se pasaría del':'arrancaría después del'} compromiso</span>` : `<span style="color:#1F8A4C; font-weight:600;">✓ dentro del compromiso</span>`;
+    }
+    return `<tr style="border-bottom:1px solid var(--line);"><td style="padding:6px 4px;">${label}</td><td style="padding:6px 4px; text-align:center;">${comprometida}</td><td style="padding:6px 4px; text-align:center;">${real||'—'}</td><td style="padding:6px 4px;">${alerta}</td></tr>`;
+  };
+  return `
+    <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px;">
+      <h2 style="font-size:14px; color:var(--navy2); margin:0 0 4px;">Comparación vs. Línea Base</h2>
+      <p style="font-size:12px; color:var(--greyl); margin:0 0 10px;">Lo comprometido en el Handover vs. lo que reflejan las fechas capturadas en el WBS hoy.</p>
+      <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+        <tr style="color:var(--grey); border-bottom:1px solid var(--line);"><th style="text-align:left; padding:4px;"></th><th style="padding:4px;">Comprometido</th><th style="padding:4px;">Según WBS</th><th style="padding:4px; text-align:left;">Estatus</th></tr>
+        ${fila('Kick-off', lb.fechaInicioKickoff, inicioReal, false)}
+        ${fila('Go-Live', lb.fechaGoLive, finReal, true)}
+      </table>
+    </div>
+  `;
+}
+
+function renderRutaCriticaWbs(calculado){
+  const { cadena, finProyecto } = calcularRutaCriticaWbs(calculado);
+  if(!cadena.length) return '';
+  return `
+    <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px;">
+      <h2 style="font-size:14px; color:var(--navy2); margin:0 0 4px;">🔗 Ruta crítica (aproximada)</h2>
+      <p style="font-size:12px; color:var(--greyl); margin:0 0 10px;">Como el WBS no captura dependencias explícitas entre tareas, esto es la cadena de tareas "espalda con espalda" que llega hasta la fecha de fin más tardía del proyecto (${finProyecto}) — si cualquiera de estas se atrasa, atrasa todo el proyecto. Trátalo como una guía, no como un cálculo formal de ruta crítica.</p>
+      <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+        <tr style="color:var(--grey); border-bottom:1px solid var(--line);"><th style="text-align:left; padding:4px;">Tarea</th><th style="padding:4px;">Inicio</th><th style="padding:4px;">Fin</th><th style="padding:4px;">Estado</th></tr>
+        ${cadena.map(t=>`<tr style="border-bottom:1px solid var(--line);"><td style="padding:4px;">🔴 ${esc(t.nombre)}</td><td style="padding:4px; text-align:center;">${t.inicio}</td><td style="padding:4px; text-align:center;">${t.fin}</td><td style="padding:4px; text-align:center;"><span style="font-size:10px; font-weight:700; color:#fff; background:${colorEstadoWbs(t.estado)}; padding:2px 8px; border-radius:10px;">${esc(t.estado)}</span></td></tr>`).join('')}
+      </table>
+    </div>
+  `;
+}
+
 function renderWbsTab(body){
   const calculado = calcularWBS(wbsTareas, new Date());
   const visibles = filasVisiblesWbs(calculado);
   body.innerHTML = `
     ${calculado.length ? renderKpisWbs(calculado) : ''}
+    ${calculado.length ? renderComparacionLineaBaseWbs(calculado) : ''}
+    ${calculado.length ? renderRutaCriticaWbs(calculado) : ''}
     <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <div>
@@ -2022,336 +2087,6 @@ async function exportarPPT(soloCliente){
   }
 }
 
-/* ======================= REVISOR DE CRONOGRAMA ======================= */
-let cronogramaTasks = [];
-let cronogramaHallazgos = [];
-let cronogramaRuta = [];
-let cronogramaResumenDelfos = '';
-let cronogramaArchivoNombre = '';
-
-function renderCronogramaTab(body){
-  const lb = lineasBase[currentProyecto] || {};
-  body.innerHTML = `
-    <div class="section">
-      <h2>Revisor de Cronograma</h2>
-      <p class="sub">Sube el cronograma del proyecto (.xml exportado de MS Project, o un Excel con columnas Tarea/Fase/Fecha Inicio/Fecha Fin/Predecesora/Responsable) y revisamos fechas en fin de semana o feriado, fechas inconsistentes, traslapes con predecesoras, ruta crítica, y si respeta las fechas de Kick-off/Go-Live comprometidas.</p>
-      <input type="file" id="cronogramaFileInput" accept=".xml,.xlsx,.xls,.mpp" onchange="handleCronogramaFile(this.files[0])">
-      <p class="sub" style="margin-top:8px;">¿Solo tienes el .mpp? En MS Project: Archivo → Guardar como → tipo "XML (*.xml)" — y sube ese archivo aquí.</p>
-      <div id="cronogramaStatus" style="margin-top:10px;"></div>
-    </div>
-    <div id="cronogramaResultados"></div>
-  `;
-  if(cronogramaTasks.length) renderResultadosCronograma();
-}
-
-/* ---- Feriados México (mismo cálculo que Días Hábiles México) ---- */
-function crNthMonday(year, month, n){
-  const d = new Date(year, month-1, 1);
-  let count = 0;
-  while(true){ if(d.getDay() === 1){ count++; if(count === n) return new Date(d); } d.setDate(d.getDate()+1); }
-}
-function crLftHolidays(year){
-  return [ new Date(year,0,1), crNthMonday(year,2,1), crNthMonday(year,3,3), new Date(year,4,1), new Date(year,8,16), crNthMonday(year,11,3), new Date(year,11,25) ];
-}
-function crObservedHolidays(year){ return [ new Date(year,4,5), new Date(year,10,2), new Date(year,11,12) ]; }
-function crIsSameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
-function crGetHolidaySet(years){ let h=[]; years.forEach(y=>{ h=h.concat(crLftHolidays(y), crObservedHolidays(y)); }); return h; }
-function crIsHoliday(date, holidays){ return holidays.some(h=>crIsSameDay(h,date)); }
-function crIsWeekend(date){ const day = date.getDay(); return day===0 || day===6; }
-
-/* ---- Parseo MS Project XML ---- */
-function parseMsProjectXml(xmlString){
-  const dom = new DOMParser().parseFromString(xmlString, 'text/xml');
-  const taskNodes = Array.from(dom.getElementsByTagName('Task'));
-  return taskNodes.map(node=>{
-    const get = (tag) => { const el = node.getElementsByTagName(tag)[0]; return el ? el.textContent : ''; };
-    const preds = Array.from(node.getElementsByTagName('PredecessorLink')).map(p=>{
-      const puid = p.getElementsByTagName('PredecessorUID')[0];
-      return puid ? puid.textContent : null;
-    }).filter(Boolean);
-    return {
-      uid: get('UID'), name: get('Name'),
-      start: get('Start') ? new Date(get('Start')) : null,
-      finish: get('Finish') ? new Date(get('Finish')) : null,
-      outlineLevel: parseInt(get('OutlineLevel')||'1',10),
-      summary: get('Summary') === '1',
-      milestone: get('Milestone') === '1',
-      responsable: '',
-      predecessors: preds
-    };
-  }).filter(t=>!t.summary && t.name);
-}
-
-/* ---- Parseo Excel ---- */
-function parseExcelCronogramaRows(rows){
-  const keys = rows.length ? Object.keys(rows[0]) : [];
-  const findKey = (names) => keys.find(k => names.some(n => k.toLowerCase().trim() === n));
-  const kTarea = findKey(['tarea','nombre','actividad','task','name']);
-  const kFase = findKey(['fase','phase']);
-  const kInicio = findKey(['fecha inicio','inicio','start','fecha de inicio']);
-  const kFin = findKey(['fecha fin','fin','finish','fecha de fin','fecha final']);
-  const kPred = findKey(['predecesora','predecesoras','predecessor','predecessors']);
-  const kResp = findKey(['responsable','rol','owner','assignee']);
-  const kMilestone = findKey(['hito','milestone']);
-
-  const parseFecha = (v) => {
-    if(!v) return null;
-    if(v instanceof Date) return v;
-    if(typeof v === 'number'){ const epoch = new Date(Date.UTC(1899,11,30)); return new Date(epoch.getTime() + v*86400000); }
-    const d = new Date(v);
-    return isNaN(d) ? null : d;
-  };
-
-  const tasks = rows.map((row,i)=>({
-    uid: 'r'+i,
-    name: String(kTarea ? row[kTarea] : '').trim(),
-    fase: kFase ? String(row[kFase]).trim() : '',
-    start: kInicio ? parseFecha(row[kInicio]) : null,
-    finish: kFin ? parseFecha(row[kFin]) : null,
-    responsable: kResp ? String(row[kResp]).trim() : '',
-    milestone: kMilestone ? /^(s|si|sí|yes|true|1)$/i.test(String(row[kMilestone]).trim()) : false,
-    predecessorNames: kPred ? String(row[kPred]||'').split(/[,;]/).map(s=>s.trim()).filter(Boolean) : []
-  })).filter(t=>t.name);
-
-  const byName = Object.fromEntries(tasks.map(t=>[t.name.toLowerCase(), t.uid]));
-  tasks.forEach(t=>{ t.predecessors = t.predecessorNames.map(n=>byName[n.toLowerCase()]).filter(Boolean); });
-  return tasks;
-}
-
-/* ---- Checks duros ---- */
-function crCheckFinesDeSemanaFeriados(tasks){
-  const years = Array.from(new Set(tasks.flatMap(t=>[t.start,t.finish]).filter(Boolean).map(d=>d.getFullYear())));
-  const holidays = crGetHolidaySet(years);
-  const hallazgos = [];
-  tasks.forEach(t=>{
-    if(t.start && (crIsWeekend(t.start) || crIsHoliday(t.start, holidays))){
-      hallazgos.push({ severidad:'atencion', tarea:t.name, mensaje:`Inicia en día no hábil (${t.start.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'})})` });
-    }
-    if(t.finish && !t.milestone && (crIsWeekend(t.finish) || crIsHoliday(t.finish, holidays))){
-      hallazgos.push({ severidad:'atencion', tarea:t.name, mensaje:`Termina en día no hábil (${t.finish.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'})})` });
-    }
-  });
-  return hallazgos;
-}
-function crCheckFechasInvalidas(tasks){
-  const hallazgos = [];
-  tasks.forEach(t=>{
-    if(t.start && t.finish && t.finish < t.start){
-      hallazgos.push({ severidad:'critico', tarea:t.name, mensaje:'Fecha de fin es anterior a la fecha de inicio' });
-    }
-    if(!t.start || !t.finish){
-      hallazgos.push({ severidad:'atencion', tarea:t.name, mensaje:'Falta fecha de inicio o de fin' });
-    }
-  });
-  return hallazgos;
-}
-function crCheckTraslapes(tasks){
-  const byUid = Object.fromEntries(tasks.map(t=>[t.uid,t]));
-  const hallazgos = [];
-  tasks.forEach(t=>{
-    t.predecessors.forEach(puid=>{
-      const pred = byUid[puid];
-      if(!pred || !pred.finish || !t.start) return;
-      if(t.start < pred.finish){
-        hallazgos.push({ severidad:'critico', tarea:t.name, mensaje:`Empieza (${t.start.toLocaleDateString('es-MX')}) antes de que termine su predecesora "${pred.name}" (${pred.finish.toLocaleDateString('es-MX')})` });
-      }
-    });
-  });
-  return hallazgos;
-}
-function crCompararLineaBase(tasks, lb){
-  const hallazgos = [];
-  const starts = tasks.filter(t=>t.start).map(t=>t.start.getTime());
-  const finishes = tasks.filter(t=>t.finish).map(t=>t.finish.getTime());
-  if(!starts.length || !finishes.length) return hallazgos;
-  const inicioReal = new Date(Math.min(...starts));
-  const finReal = new Date(Math.max(...finishes));
-  const DIA = 86400000;
-  if(lb.fechaInicioKickoff){
-    const comprometido = new Date(lb.fechaInicioKickoff+'T00:00:00');
-    const diff = Math.round((inicioReal - comprometido) / DIA);
-    if(Math.abs(diff) > 3){
-      hallazgos.push({ severidad: diff>0 ? 'critico':'atencion', tarea:'(general)', mensaje:`El cronograma inicia ${diff>0?diff+' días después':Math.abs(diff)+' días antes'} del Kick-off comprometido en el Handover (${comprometido.toLocaleDateString('es-MX')})` });
-    }
-  }
-  if(lb.fechaGoLive){
-    const comprometido = new Date(lb.fechaGoLive+'T00:00:00');
-    const diff = Math.round((finReal - comprometido) / DIA);
-    if(Math.abs(diff) > 3){
-      hallazgos.push({ severidad: diff>0 ? 'critico':'atencion', tarea:'(general)', mensaje:`El cronograma termina ${diff>0?diff+' días después':Math.abs(diff)+' días antes'} del Go-Live comprometido en el Handover (${comprometido.toLocaleDateString('es-MX')})` });
-    }
-  }
-  return hallazgos;
-}
-
-/* ---- Ruta crítica (CPM sobre duración de calendario real dada en el archivo) ---- */
-function crCalcularRutaCritica(tasks){
-  const byUid = Object.fromEntries(tasks.map(t=>[t.uid,t]));
-  const successors = {};
-  tasks.forEach(t=>{ t.predecessors.forEach(puid=>{ successors[puid] = successors[puid]||[]; successors[puid].push(t.uid); }); });
-  const calDurMs = {};
-  tasks.forEach(t=>{ calDurMs[t.uid] = (t.start && t.finish) ? Math.max(0, t.finish.getTime() - t.start.getTime()) : 0; });
-
-  const ES = {}, EF = {};
-  const visited = new Set();
-  function forward(uid){
-    if(visited.has(uid)) return; visited.add(uid);
-    const t = byUid[uid]; if(!t) return;
-    if(!t.predecessors.length){ ES[uid] = t.start ? t.start.getTime() : 0; }
-    else{ t.predecessors.forEach(p=>forward(p)); ES[uid] = Math.max(...t.predecessors.map(p=>EF[p] ?? 0)); }
-    EF[uid] = ES[uid] + (calDurMs[uid]||0);
-  }
-  tasks.forEach(t=>forward(t.uid));
-
-  const finishes = tasks.filter(t=>t.finish).map(t=>t.finish.getTime());
-  if(!finishes.length) return [];
-  const projectEnd = Math.max(...finishes);
-
-  const LF = {}, LS = {};
-  const visited2 = new Set();
-  function backward(uid){
-    if(visited2.has(uid)) return; visited2.add(uid);
-    const succs = successors[uid] || [];
-    if(!succs.length){ LF[uid] = projectEnd; }
-    else{ succs.forEach(s=>backward(s)); LF[uid] = Math.min(...succs.map(s=>LS[s] ?? projectEnd)); }
-    LS[uid] = LF[uid] - (calDurMs[uid]||0);
-  }
-  tasks.forEach(t=>backward(t.uid));
-
-  return tasks.map(t=>{
-    const floatHoras = ((LS[t.uid] ?? 0) - (ES[t.uid] ?? 0)) / (3600*1000);
-    return { uid:t.uid, name:t.name, floatHoras: Math.round(floatHoras*10)/10, critica: Math.abs(floatHoras) < 4 };
-  });
-}
-
-async function handleCronogramaFile(file){
-  if(!file) return;
-  cronogramaArchivoNombre = file.name;
-  const statusBox = document.getElementById('cronogramaStatus');
-
-  if(/\.mpp$/i.test(file.name)){
-    statusBox.innerHTML = '<div class="error" style="background:#FBE7E7; color:#B23A3A; border-radius:8px; padding:10px 12px; font-size:12.5px;">El .mpp no se puede leer directo (es un formato binario propietario de MS Project). En MS Project: Archivo → Guardar como → tipo "XML (*.xml)" — y sube ese archivo.</div>';
-    return;
-  }
-
-  statusBox.innerHTML = '<div class="loading">Leyendo archivo…</div>';
-
-  try{
-    let tasks;
-    if(/\.xml$/i.test(file.name)){
-      const text = await file.text();
-      tasks = parseMsProjectXml(text);
-    }else{
-      if(typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería para leer Excel.');
-      const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type:'array', cellDates:true });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
-      tasks = parseExcelCronogramaRows(rows);
-    }
-    if(!tasks.length){
-      statusBox.innerHTML = '<div class="error" style="background:#FBE7E7; color:#B23A3A; border-radius:8px; padding:10px 12px; font-size:12.5px;">No se encontraron tareas en el archivo. Revisa el formato.</div>';
-      return;
-    }
-    cronogramaTasks = tasks;
-    const lb = lineasBase[currentProyecto] || {};
-    cronogramaHallazgos = [
-      ...crCheckFechasInvalidas(tasks),
-      ...crCheckTraslapes(tasks),
-      ...crCheckFinesDeSemanaFeriados(tasks),
-      ...crCompararLineaBase(tasks, lb)
-    ];
-    cronogramaRuta = crCalcularRutaCritica(tasks);
-    cronogramaResumenDelfos = '';
-    statusBox.innerHTML = `<div style="color:#1F8A4C; font-size:12.5px;">${tasks.length} tareas leídas de "${esc(file.name)}".</div>`;
-    renderResultadosCronograma();
-    await pedirRevisionDelfosCronograma();
-  }catch(e){
-    console.error(e);
-    statusBox.innerHTML = `<div class="error" style="background:#FBE7E7; color:#B23A3A; border-radius:8px; padding:10px 12px; font-size:12.5px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
-  }
-}
-
-async function pedirRevisionDelfosCronograma(){
-  const box = document.getElementById('cronogramaDelfosBox');
-  if(box) box.innerHTML = '<div class="loading"><span class="spinner"></span>Delfos está revisando el cronograma…</div>';
-  try{
-    const criticas = cronogramaRuta.filter(r=>r.critica).map(r=>r.name);
-    const r = await fetch('/api/revisor-cronograma', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        proyecto: currentProyecto,
-        tareas: cronogramaTasks.map(t=>({ nombre:t.name, fase:t.fase||'', inicio: t.start?t.start.toISOString().slice(0,10):'', fin: t.finish?t.finish.toISOString().slice(0,10):'', hito: !!t.milestone })),
-        hallazgosDuros: cronogramaHallazgos.map(h=>`${h.tarea}: ${h.mensaje}`),
-        rutaCritica: criticas
-      })
-    });
-    const d = await r.json();
-    if(d.ok){ cronogramaResumenDelfos = d.resumen; }
-    else{ cronogramaResumenDelfos = ''; }
-  }catch(e){ cronogramaResumenDelfos = ''; }
-  renderResultadosCronograma();
-}
-
-function renderResultadosCronograma(){
-  const box = document.getElementById('cronogramaResultados');
-  if(!box) return;
-  const criticos = cronogramaHallazgos.filter(h=>h.severidad==='critico');
-  const atencion = cronogramaHallazgos.filter(h=>h.severidad==='atencion');
-  const rutaCriticaTareas = cronogramaRuta.filter(r=>r.critica);
-
-  const fila = (h, color) => `<div style="padding:8px 0; border-bottom:1px solid var(--line); font-size:13px;"><b style="color:${color};">${esc(h.tarea)}</b> — ${esc(h.mensaje)}</div>`;
-
-  box.innerHTML = `
-    <div class="section">
-      <h2>Resultado — ${cronogramaTasks.length} tareas analizadas</h2>
-      <div class="kpi-mini" style="margin-bottom:14px;">
-        <div class="chip" style="background:#FBE7E7; color:#B23A3A;">🔴 Crítico: <b>${criticos.length}</b></div>
-        <div class="chip" style="background:#FBF1DE; color:#8A6414;">🟡 Atención: <b>${atencion.length}</b></div>
-        <div class="chip">🛤️ En ruta crítica: <b>${rutaCriticaTareas.length}</b> tarea(s)</div>
-      </div>
-
-      ${criticos.length ? `<h3 style="font-size:13px; color:#B23A3A; margin:14px 0 4px;">🔴 Crítico</h3>${criticos.map(h=>fila(h,'#B23A3A')).join('')}` : ''}
-      ${atencion.length ? `<h3 style="font-size:13px; color:#8A6414; margin:14px 0 4px;">🟡 Atención</h3>${atencion.map(h=>fila(h,'#8A6414')).join('')}` : ''}
-      ${!criticos.length && !atencion.length ? '<p style="color:#1F8A4C; font-size:13px;">✅ No se encontraron problemas de fechas ni traslapes.</p>' : ''}
-
-      <h3 style="font-size:13px; color:var(--navy2); margin:18px 0 8px;">🛤️ Ruta crítica</h3>
-      <p class="sub" style="margin-top:-4px;">Estas tareas no tienen holgura — si se atrasan, atrasan la fecha final del proyecto.</p>
-      <table class="table-editor">
-        <tr><th>Tarea</th><th>Holgura</th><th>¿Crítica?</th></tr>
-        ${cronogramaRuta.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.floatHoras>=0 ? Math.round(r.floatHoras/24*10)/10+' días' : '—'}</td><td>${r.critica ? '🔴 Sí' : '—'}</td></tr>`).join('')}
-      </table>
-
-      <h3 style="font-size:13px; color:var(--navy2); margin:18px 0 8px;">🤖 Revisión de Delfos</h3>
-      <div id="cronogramaDelfosBox">${cronogramaResumenDelfos ? `<div style="font-size:13.5px; color:var(--ink); white-space:pre-wrap;">${esc(cronogramaResumenDelfos)}</div>` : '<p class="sub">Se solicita automáticamente tras leer el archivo.</p>'}</div>
-
-      <div style="margin-top:18px;">
-        <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="exportarHallazgosCronograma()">⬇️ Exportar hallazgos a Excel</button>
-      </div>
-    </div>
-  `;
-}
-
-function exportarHallazgosCronograma(){
-  if(typeof XLSX === 'undefined'){ alert('No se pudo cargar la librería de Excel.'); return; }
-  const wsHallazgos = XLSX.utils.aoa_to_sheet([
-    ['Severidad','Tarea','Hallazgo'],
-    ...cronogramaHallazgos.map(h=>[h.severidad==='critico'?'Crítico':'Atención', h.tarea, h.mensaje])
-  ]);
-  const wsRuta = XLSX.utils.aoa_to_sheet([
-    ['Tarea','Holgura (días)','¿Crítica?'],
-    ...cronogramaRuta.map(r=>[r.name, r.floatHoras>=0 ? Math.round(r.floatHoras/24*10)/10 : '', r.critica?'Sí':'No'])
-  ]);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, wsHallazgos, 'Hallazgos');
-  XLSX.utils.book_append_sheet(wb, wsRuta, 'Ruta crítica');
-  if(cronogramaResumenDelfos){
-    const wsResumen = XLSX.utils.aoa_to_sheet([['Resumen de Delfos'],[cronogramaResumenDelfos]]);
-    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
-  }
-  XLSX.writeFile(wb, `Revisión de Cronograma - ${currentProyecto}.xlsx`);
-}
-/* ==================== FIN REVISOR DE CRONOGRAMA ==================== */
 
 loadData();
 </script>

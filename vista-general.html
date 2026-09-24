@@ -315,12 +315,11 @@ function wbsSummaryForProyecto(){
   const tareas = (wbsStore[currentProyecto] && wbsStore[currentProyecto].tareas) || [];
   if(!tareas.length) return null;
   const calc = calcularWBS(tareas, new Date());
-  const fases = calc.filter(t=>t.tipo==='Fase');
   const megafases = calc.filter(t=>t.tipo==='MegaFase');
   const avanceProyecto = megafases.length ? Math.round(megafases.reduce((s,m)=>s+(m.avance||0),0)/megafases.length) : 0;
   const planProyecto = megafases.length ? Math.round(megafases.filter(m=>m.plan!=null).reduce((s,m)=>s+(m.plan||0),0)/(megafases.filter(m=>m.plan!=null).length||1)) : 0;
   return {
-    porFase: fases.map(f => ({ fase: f.nombre, avance: f.avance||0, plan: f.plan, desviacion: f.desviacion })),
+    porFase: megafases.map(f => ({ fase: f.nombre, avance: f.avance||0, plan: f.plan, desviacion: f.desviacion })),
     avanceProyecto, planProyecto, desviacionProyecto: planProyecto - avanceProyecto
   };
 }
