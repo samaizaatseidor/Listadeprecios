@@ -179,6 +179,8 @@
 <script>
 let historial = [];
 let actual = null;
+let snapshotVisto = null;
+let mostrando = null;
 let chartDesvio, chartProyectos;
 
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
@@ -213,6 +215,7 @@ async function handleFile(file){
     const buf = await file.arrayBuffer();
     const wb = XLSX.read(buf, { type:'array', cellDates:true });
     actual = parsearOperaciones(wb);
+    snapshotVisto = null;
     statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando…</div>';
     const anterior = historial.length ? historial[historial.length-1] : null;
     await fetch('/api/wbr-operaciones', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
@@ -243,29 +246,56 @@ async function pedirInsight(anterior){
     box.innerHTML = d.ok
       ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(d.resumen)}</div></div>`
       : `<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">${esc(d.error||'No se pudo generar el insight.')}</div></div>`;
+    if(d.ok){
+      actual.insightGuardado = d.resumen;
+      fetch('/api/wbr-operaciones', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
+    }
   }catch(e){
     box.innerHTML = '<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">No se pudo conectar con Delfos.</div></div>';
   }
 }
 
+function verSnapshotHistorico(fechaRevision){
+  const encontrado = historial.find(h => h.fechaRevision === fechaRevision);
+  if(!encontrado) return;
+  snapshotVisto = encontrado;
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function volverActual(){
+  snapshotVisto = null;
+  render();
+  pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
+}
+
 function render(){
   const content = document.getElementById('content');
   const badge = document.getElementById('fechaRevisionBadge');
-  if(!actual){
+  mostrando = snapshotVisto || actual;
+  if(!mostrando){
     badge.innerHTML = '';
     content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con la pestaña "Operaciones") para generar el primer dashboard.</p></div></div>`;
     return;
   }
-  badge.innerHTML = `<span class="fecha-revision">Semana de revisión: ${new Date(actual.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
+  badge.innerHTML = `<span class="fecha-revision">Semana de revisión: ${new Date(mostrando.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
 
-  const totalProyectos = actual.porLob.reduce((s,l)=>s+l.proyectos,0);
-  const totalDesvio = actual.porLob.reduce((s,l)=>s+l.conDesvio,0);
-  const totalRiesgo = actual.porLob.reduce((s,l)=>s+l.conRiesgo,0);
+  const bannerHistorico = snapshotVisto ? `
+    <div class="section" style="background:#FBF1DE; border:1px solid #E9D9AE; display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
+      <span style="font-size:13px; color:#8A6414;">📅 Estás viendo el corte del <b>${new Date(snapshotVisto.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</b> — no es la semana actual.</span>
+      <button class="btn btn-primary" style="background:#8A6414; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; cursor:pointer;" onclick="volverActual()">Volver a la semana actual</button>
+    </div>
+  ` : '';
+
+  const totalProyectos = mostrando.porLob.reduce((s,l)=>s+l.proyectos,0);
+  const totalDesvio = mostrando.porLob.reduce((s,l)=>s+l.conDesvio,0);
+  const totalRiesgo = mostrando.porLob.reduce((s,l)=>s+l.conRiesgo,0);
   const pctDesvio = totalProyectos ? totalDesvio/totalProyectos : null;
   const pctRiesgo = totalProyectos ? totalRiesgo/totalProyectos : null;
-  const totalGoLiveQ = actual.porLob.reduce((s,l)=>s+l.goLiveQ,0);
+  const totalGoLiveQ = mostrando.porLob.reduce((s,l)=>s+l.goLiveQ,0);
 
   content.innerHTML = `
+    ${bannerHistorico}
     <div class="kpi-grid">
       <div class="kpi-card"><div class="label">Proyectos activos</div><div class="value">${totalProyectos}</div></div>
       <div class="kpi-card ${claseRiesgo(pctDesvio)}"><div class="label">Con desvío</div><div class="value">${totalDesvio}</div><div style="font-size:11px; color:var(--grey);">${fmtPct(pctDesvio)} del total</div></div>
@@ -275,7 +305,11 @@ function render(){
 
     <div class="section">
       <h2>🤖 Insight de Delfos</h2>
-      <div id="insightBox"><div class="loading">Generando…</div></div>
+      ${snapshotVisto
+        ? (mostrando.insightGuardado
+            ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(mostrando.insightGuardado)}</div></div>`
+            : `<div class="insight-box"><div class="insight-icon">🗂️</div><div class="insight-text">Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para esta semana.</div></div>`)
+        : `<div id="insightBox"><div class="loading">Generando…</div></div>`}
     </div>
 
     <div class="section">
@@ -290,17 +324,19 @@ function render(){
       <h2>Detalle por LOB</h2>
       <table>
         <tr><th>LOB</th><th class="num">Proyectos</th><th class="num">Con desvío</th><th class="num">Con riesgo</th><th class="num">Go-Live anual</th><th class="num">Go-Live Q</th><th>Top proyectos</th></tr>
-        ${actual.porLob.map(l=>`<tr><td><b>${esc(l.lob)}</b></td><td class="num">${l.proyectos}</td><td class="num">${l.conDesvio}</td><td class="num">${l.conRiesgo}</td><td class="num">${l.goLiveAnual}</td><td class="num">${l.goLiveQ}</td><td style="font-size:11.5px; color:var(--grey);">${esc(l.topProyectos)}</td></tr>`).join('')}
+        ${mostrando.porLob.map(l=>`<tr><td><b>${esc(l.lob)}</b></td><td class="num">${l.proyectos}</td><td class="num">${l.conDesvio}</td><td class="num">${l.conRiesgo}</td><td class="num">${l.goLiveAnual}</td><td class="num">${l.goLiveQ}</td><td style="font-size:11.5px; color:var(--grey);">${esc(l.topProyectos)}</td></tr>`).join('')}
       </table>
     </div>
 
     <div class="section">
       <h2>📅 Bitácora semanal</h2>
+      <p class="sub">Haz clic en una semana para ver el dashboard completo tal como se veía entonces.</p>
       <table>
         <tr><th>Semana</th><th class="num">Proyectos</th><th class="num">% Desvío</th><th class="num">% Riesgo</th></tr>
         ${historial.slice().reverse().map(h => {
           const tp = h.porLob.reduce((s,l)=>s+l.proyectos,0), td = h.porLob.reduce((s,l)=>s+l.conDesvio,0), tr = h.porLob.reduce((s,l)=>s+l.conRiesgo,0);
-          return `<tr><td>${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td class="num">${tp}</td><td class="num">${fmtPct(tp?td/tp:null)}</td><td class="num">${fmtPct(tp?tr/tp:null)}</td></tr>`;
+          const esEsta = mostrando.fechaRevision === h.fechaRevision;
+          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.fechaRevision}')" title="Ver el dashboard completo de esta semana"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td class="num">${tp}</td><td class="num">${fmtPct(tp?td/tp:null)}</td><td class="num">${fmtPct(tp?tr/tp:null)}</td></tr>`;
         }).join('')}
       </table>
     </div>
@@ -313,14 +349,14 @@ function renderCharts(){
   if(chartDesvio) chartDesvio.destroy();
   chartProyectos = new Chart(document.getElementById('chartProyectos'), {
     type:'bar',
-    data:{ labels: actual.porLob.map(l=>l.lob), datasets:[{ label:'Proyectos', data: actual.porLob.map(l=>l.proyectos), backgroundColor:'#1E5BB8' }] },
+    data:{ labels: mostrando.porLob.map(l=>l.lob), datasets:[{ label:'Proyectos', data: mostrando.porLob.map(l=>l.proyectos), backgroundColor:'#1E5BB8' }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Proyectos por LOB' }, legend:{display:false} } }
   });
   chartDesvio = new Chart(document.getElementById('chartDesvio'), {
     type:'bar',
-    data:{ labels: actual.porLob.map(l=>l.lob), datasets:[
-      { label:'Con desvío', data: actual.porLob.map(l=>l.conDesvio), backgroundColor:'#D8A63A' },
-      { label:'Con riesgo', data: actual.porLob.map(l=>l.conRiesgo), backgroundColor:'#B23A3A' },
+    data:{ labels: mostrando.porLob.map(l=>l.lob), datasets:[
+      { label:'Con desvío', data: mostrando.porLob.map(l=>l.conDesvio), backgroundColor:'#D8A63A' },
+      { label:'Con riesgo', data: mostrando.porLob.map(l=>l.conRiesgo), backgroundColor:'#B23A3A' },
     ]},
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Desvío y riesgo por LOB' } } }
   });

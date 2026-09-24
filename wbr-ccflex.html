@@ -179,6 +179,8 @@
 <script>
 let historial = [];
 let actual = null;
+let snapshotVisto = null;
+let mostrando = null;
 let chartCS, chartAO;
 
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
@@ -211,6 +213,7 @@ async function handleFile(file){
     const buf = await file.arrayBuffer();
     const wb = XLSX.read(buf, { type:'array', cellDates:true });
     actual = parsearCCFlex(wb);
+    snapshotVisto = null;
     // Usamos la fecha del nombre del archivo o la de hoy, ya que esta pestaña no trae "Semana de revisión" propia
     statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando…</div>';
     const anterior = historial.length ? historial[historial.length-1] : null;
@@ -242,9 +245,27 @@ async function pedirInsight(anterior){
     box.innerHTML = d.ok
       ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(d.resumen)}</div></div>`
       : `<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">${esc(d.error||'No se pudo generar el insight.')}</div></div>`;
+    if(d.ok){
+      actual.insightGuardado = d.resumen;
+      fetch('/api/wbr-ccflex', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
+    }
   }catch(e){
     box.innerHTML = '<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">No se pudo conectar con Delfos.</div></div>';
   }
+}
+
+function verSnapshotHistorico(fechaRevision){
+  const encontrado = historial.find(h => h.fechaRevision === fechaRevision);
+  if(!encontrado) return;
+  snapshotVisto = encontrado;
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function volverActual(){
+  snapshotVisto = null;
+  render();
+  pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
 }
 
 function tablaBloque(filas){
@@ -256,19 +277,28 @@ function tablaBloque(filas){
 function render(){
   const content = document.getElementById('content');
   const badge = document.getElementById('fechaRevisionBadge');
-  if(!actual){
+  mostrando = snapshotVisto || actual;
+  if(!mostrando){
     badge.innerHTML = '';
     content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con la pestaña "CCFLEX") para generar el primer dashboard.</p></div></div>`;
     return;
   }
-  badge.innerHTML = `<span class="fecha-revision">Última carga: ${new Date(actual.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
+  badge.innerHTML = `<span class="fecha-revision">Última carga: ${new Date(mostrando.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
 
-  const ventaCS = (actual.cs.find(f=>f.concepto==='Monto Vendido')||{}).total || 0;
-  const ventaAO = (actual.ao.find(f=>f.concepto==='Monto Vendido')||{}).total || 0;
-  const pendCS = (actual.cs.find(f=>f.concepto.includes('Pend.'))||{}).total || 0;
-  const pendAO = (actual.ao.find(f=>f.concepto.includes('Pend.'))||{}).total || 0;
+  const bannerHistorico = snapshotVisto ? `
+    <div class="section" style="background:#FBF1DE; border:1px solid #E9D9AE; display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
+      <span style="font-size:13px; color:#8A6414;">📅 Estás viendo el corte del <b>${new Date(snapshotVisto.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</b> — no es el más reciente.</span>
+      <button class="btn btn-primary" style="background:#8A6414; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; cursor:pointer;" onclick="volverActual()">Volver al corte más reciente</button>
+    </div>
+  ` : '';
+
+  const ventaCS = (mostrando.cs.find(f=>f.concepto==='Monto Vendido')||{}).total || 0;
+  const ventaAO = (mostrando.ao.find(f=>f.concepto==='Monto Vendido')||{}).total || 0;
+  const pendCS = (mostrando.cs.find(f=>f.concepto.includes('Pend.'))||{}).total || 0;
+  const pendAO = (mostrando.ao.find(f=>f.concepto.includes('Pend.'))||{}).total || 0;
 
   content.innerHTML = `
+    ${bannerHistorico}
     <div class="kpi-grid">
       <div class="kpi-card"><div class="label">Monto vendido C&S (TCV)</div><div class="value">${fmtMoneda(ventaCS)}</div></div>
       <div class="kpi-card"><div class="label">Monto vendido A&O (TCV)</div><div class="value">${fmtMoneda(ventaAO)}</div></div>
@@ -278,7 +308,11 @@ function render(){
 
     <div class="section">
       <h2>🤖 Insight de Delfos</h2>
-      <div id="insightBox"><div class="loading">Generando…</div></div>
+      ${snapshotVisto
+        ? (mostrando.insightGuardado
+            ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(mostrando.insightGuardado)}</div></div>`
+            : `<div class="insight-box"><div class="insight-icon">🗂️</div><div class="insight-text">Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible.</div></div>`)
+        : `<div id="insightBox"><div class="loading">Generando…</div></div>`}
     </div>
 
     <div class="section">
@@ -291,21 +325,23 @@ function render(){
 
     <div class="section">
       <p class="bloque-titulo">C&S</p>
-      ${tablaBloque(actual.cs)}
+      ${tablaBloque(mostrando.cs)}
     </div>
     <div class="section">
       <p class="bloque-titulo">A&O</p>
-      ${tablaBloque(actual.ao)}
+      ${tablaBloque(mostrando.ao)}
     </div>
 
     <div class="section">
       <h2>📅 Bitácora de cortes</h2>
+      <p class="sub">Haz clic en un corte para verlo completo tal como se veía entonces.</p>
       <table>
         <tr><th>Fecha de carga</th><th class="num">Vendido C&S</th><th class="num">Vendido A&O</th></tr>
         ${historial.slice().reverse().map(h => {
           const vcs = (h.cs.find(f=>f.concepto==='Monto Vendido')||{}).total || 0;
           const vao = (h.ao.find(f=>f.concepto==='Monto Vendido')||{}).total || 0;
-          return `<tr><td>${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td class="num">${fmtMoneda(vcs)}</td><td class="num">${fmtMoneda(vao)}</td></tr>`;
+          const esEsta = mostrando.fechaRevision === h.fechaRevision;
+          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.fechaRevision}')" title="Ver este corte completo"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td class="num">${fmtMoneda(vcs)}</td><td class="num">${fmtMoneda(vao)}</td></tr>`;
         }).join('')}
       </table>
     </div>
@@ -317,8 +353,8 @@ function renderCharts(){
   if(chartCS) chartCS.destroy();
   if(chartAO) chartAO.destroy();
   const venta = (bloque,concepto) => (bloque.find(f=>f.concepto===concepto)||{});
-  const vCS = venta(actual.cs, 'Monto Vendido');
-  const vAO = venta(actual.ao, 'Monto Vendido');
+  const vCS = venta(mostrando.cs, 'Monto Vendido');
+  const vAO = venta(mostrando.ao, 'Monto Vendido');
   chartCS = new Chart(document.getElementById('chartCS'), {
     type:'bar',
     data:{ labels:['Q1','Q2','Q3','Q4'], datasets:[{ label:'C&S — Monto Vendido', data:[vCS.q1,vCS.q2,vCS.q3,vCS.q4], backgroundColor:'#1E5BB8' }] },
