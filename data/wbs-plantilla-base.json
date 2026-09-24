@@ -1,1 +1,2262 @@
-
+[
+  {
+    "tipo": "MegaFase",
+    "nombre": "Discover",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "MegaFase",
+    "nombre": "Prepare",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Inicio y Onboarding",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Sesión Onboarding for Agroecología PT1",
+    "inicio": "2026-08-04",
+    "fin": "2026-08-04",
+    "avance": 100,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Sesión Onboarding for Agroecología PT2",
+    "inicio": "2026-08-20",
+    "fin": "2026-08-20",
+    "avance": 100,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Sesion Onboarding Customer Success",
+    "inicio": "2026-07-16",
+    "fin": "2026-07-16",
+    "avance": 100,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Inicio del proyecto y gobierno",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Preparación del Kickoff",
+    "inicio": "2026-08-06",
+    "fin": "2026-08-06",
+    "avance": 100,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Sesión de Kickoff",
+    "inicio": "2026-08-18",
+    "fin": "2026-08-18",
+    "avance": 100,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Auto habilitación y accesos",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Accesos iniciales SAP for me",
+    "inicio": "2026-09-07",
+    "fin": "2026-09-07",
+    "avance": 100,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Accesos iniciales SAP S/4HANA Cloud Public",
+    "inicio": "2026-09-07",
+    "fin": "2026-07-14",
+    "avance": 100,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Preparación de Fit-to-Standard",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Preparación de Fit-to-Standard (agenda, participantes, escenarios y calendario)",
+    "inicio": "2026-09-21",
+    "fin": "2026-10-02",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Preparación de talleres fit to estándar",
+    "inicio": "2026-09-21",
+    "fin": "2026-10-09",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Configuración guiada del negocio",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Business Driven Configuration Assessment (BDCQ): cuestionarios por proceso (levantamiento base)",
+    "inicio": "2026-08-11",
+    "fin": "2026-10-01",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Taller BDCQ: Cuestionario N1 N2",
+    "inicio": "2026-09-18",
+    "fin": "2026-09-18",
+    "avance": 100,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Entrega de cuestionario BDCQ a consultoría SEIDOR para revisión",
+    "inicio": "2026-09-28",
+    "fin": "2026-10-02",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Retroalimentación SEIDOR y sesiones de dudas",
+    "inicio": "2026-10-05",
+    "fin": "2026-10-09",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Definición del alcance",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Determinar el alcance de la solución",
+    "inicio": "2026-09-07",
+    "fin": "2026-10-02",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Preparación de plan de cuentas (COA)",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Taller de plan de cuentas",
+    "inicio": "2026-10-19",
+    "fin": null,
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Plan de cuenta global (COA) base alineado al estándar Public (México)",
+    "inicio": "2026-10-19",
+    "fin": null,
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Hito: Definición de plan de cuentas",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Preparación de integraciones",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estrategia de habilitación (integraciones y extensiones)",
+    "inicio": "2026-09-28",
+    "fin": "2026-10-02",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Enfoque y plan de gestión de datos",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Onboarding Migración datos maestros",
+    "inicio": "2026-09-30",
+    "fin": "2026-09-30",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Datos maestros - arranque: plantillas, instructivos y avance inicial de llenado",
+    "inicio": "2026-10-12",
+    "fin": "2026-11-13",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Extraer datos existentes",
+    "inicio": "2026-09-14",
+    "fin": "2026-11-13",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Realizar actividades de depuración de datos",
+    "inicio": "2026-09-14",
+    "fin": "2026-11-13",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Entrega de layout de datos maestros",
+    "inicio": "2026-09-14",
+    "fin": "2026-11-13",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Hito: Primer ciclo de llenado de layouts",
+    "inicio": "2026-10-16",
+    "fin": "2026-10-16",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Gestión del cambio (Agroecología)",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Estrategia de habilitación (capacitación scope items)",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Crear plan de autocapacitación",
+    "inicio": "2026-09-23",
+    "fin": null,
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Taller de Estudio y evaluación scope items",
+    "inicio": "2026-09-18",
+    "fin": "2026-09-18",
+    "avance": 100,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Confirmación por parte de usuarios de inicio de autoestudio (Scope items) SAP FOR ME",
+    "inicio": "2026-09-14",
+    "fin": "2026-09-14",
+    "avance": 100,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estudio y evaluación scope items México",
+    "inicio": "2026-09-23",
+    "fin": "2026-10-16",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estudio y evaluación scope items Bloque 1",
+    "inicio": "2026-09-23",
+    "fin": "2026-09-23",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estudio y evaluación scope items Bloque 2",
+    "inicio": "2026-09-25",
+    "fin": "2026-09-25",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estudio y evaluación scope items Bloque 3",
+    "inicio": "2026-09-30",
+    "fin": "2026-09-30",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estudio y evaluación scope items Bloque 4",
+    "inicio": "2026-10-02",
+    "fin": "2026-10-02",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estudio y evaluación scope items Bloque 5",
+    "inicio": "2026-10-07",
+    "fin": "2026-10-07",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estudio y evaluación scope items Bloque 6",
+    "inicio": "2026-10-09",
+    "fin": "2026-10-09",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estudio y evaluación scope items Bloque 7",
+    "inicio": "2026-10-14",
+    "fin": "2026-10-14",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estudio y evaluación scope items Bloque 8",
+    "inicio": "2026-10-16",
+    "fin": "2026-10-16",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Comité para confirmación de siguiente etapa",
+    "inicio": "2026-10-05",
+    "fin": "2026-10-05",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Cierre de fase",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Quality Gate Prepare",
+    "inicio": "2026-10-06",
+    "fin": "2026-10-07",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Firma Quality Gate y Cierre de Fase",
+    "inicio": "2026-10-07",
+    "fin": "2026-10-08",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Cierre de fase Prepare (autorización para iniciar Explore)",
+    "inicio": "2026-10-09",
+    "fin": "2026-10-09",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "MegaFase",
+    "nombre": "Explore",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Ejecución y monitoreo",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Análisis Fit-to-Standard",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ejecución de talleres Fit-to-Standard (ciclo completo de workshops) Semana 1 y 2",
+    "inicio": "2026-10-12",
+    "fin": "2026-10-16",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ejecución de talleres Fit-to-Standard (ciclo completo de workshops) Semana 3 y 4",
+    "inicio": "2026-10-19",
+    "fin": "2026-10-23",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ejecución de talleres Fit-to-Standard (ciclo completo de workshops) Semana 5 y 6",
+    "inicio": "2026-10-26",
+    "fin": "2026-10-30",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ejecución de talleres Fit-to-Standard (ciclo completo de workshops) Semana 7",
+    "inicio": "2026-11-03",
+    "fin": "2026-11-06",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ejecución de talleres Fit-to-Standard (ciclo completo de workshops) Semana 8",
+    "inicio": "2026-11-09",
+    "fin": "2026-11-13",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Business Driven Configuration Assessment (BDCQ): cuestionarios N3",
+    "inicio": "2026-11-16",
+    "fin": "2026-11-20",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Llenado de Documentación Fit-to-Standard: backlog de brechas (deltas) priorizado",
+    "inicio": "2026-10-12",
+    "fin": "2026-11-18",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Comité de brechas Documentación Fit-to-Standard: backlog de brechas (deltas) priorizado",
+    "inicio": "2026-11-20",
+    "fin": "2026-11-20",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Hito: Entrega de plan de cuentas",
+    "inicio": "2026-11-09",
+    "fin": "2026-11-09",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Gestión de accesos",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Planeación y gestión de accesos (catálogo de roles estándar) para Test",
+    "inicio": "2026-10-19",
+    "fin": "2026-11-13",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Hito: Entrega de roles para QAS",
+    "inicio": "2026-11-13",
+    "fin": "2026-11-13",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Planeación y diseño integración",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Planeación y diseño de integraciones (backlog priorizado - Deltas e integraciones aprobados)",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integracion con el PAC (Factura Electronica)",
+    "inicio": "2026-10-12",
+    "fin": "2026-11-13",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Planeación de pruebas",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estrategia de testing (matriz de prueba, calendario base)",
+    "inicio": "2026-10-19",
+    "fin": "2026-10-23",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Plan de pruebas detallado y ciclos",
+    "inicio": "2026-10-26",
+    "fin": "2026-11-27",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Matriz de Pruebas",
+    "inicio": "2026-10-26",
+    "fin": "2026-11-27",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Preparación de carga",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Entrega de carga de datos QAS (clientes/proveedores/servicios)",
+    "inicio": "2026-10-16",
+    "fin": "2026-10-16",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Gestión del cambio",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Cierre de Fase",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Quality Gate Explore",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Cierre de Explore (decisiones cerradas y backlog listo para construir)",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "MegaFase",
+    "nombre": "Realize",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Ejecución y monitoreo",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ejecución y monitoreo del proyecto",
+    "inicio": "2026-07-08",
+    "fin": "2026-11-27",
+    "avance": 39,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Gestionar transportes",
+    "inicio": "2026-08-10",
+    "fin": "2026-09-18",
+    "avance": 20,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Planeación y ejecución de sprints (Estrategia de pruebas)",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estrategia México",
+    "inicio": "2026-09-14",
+    "fin": "2026-09-18",
+    "avance": 50,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Ciclos de actualización 2702",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Sistema Test",
+    "inicio": "2026-07-17",
+    "fin": "2026-07-17",
+    "avance": 100,
+    "responsable": "SAP",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Sistema Starter",
+    "inicio": "2026-07-31",
+    "fin": "2026-07-31",
+    "avance": 100,
+    "responsable": "SAP",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Sistema Desarrollo y Produccion",
+    "inicio": "2026-08-14",
+    "fin": "2026-08-14",
+    "avance": 100,
+    "responsable": "SAP",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Actualizacion del sistema",
+    "inicio": "2026-07-20",
+    "fin": "2026-07-20",
+    "avance": 100,
+    "responsable": "SAP",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Preparar y completar las pruebas de regresion en el sistema de prueba",
+    "inicio": "2026-07-21",
+    "fin": "2026-07-22",
+    "avance": 100,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Revisar roles empresariales",
+    "inicio": "2026-07-23",
+    "fin": "2026-07-29",
+    "avance": 100,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Configuración requerida",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Configuración de sistema CUS",
+    "inicio": "2026-08-10",
+    "fin": "2026-09-11",
+    "avance": 70,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Transportes DEV→QAS (secuencia y control)",
+    "inicio": "2026-08-10",
+    "fin": "2026-09-18",
+    "avance": 20,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Configuración de Accesos",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Matriz de roles y usuarios clave",
+    "inicio": "2026-08-10",
+    "fin": "2026-09-18",
+    "avance": 10,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Configuracion de accesos sistema Test",
+    "inicio": "2026-08-10",
+    "fin": "2026-09-11",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Desarrollo y despliegue de Soluciones de Extensibilidad",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Adopción de documentos de salida (facturas/PDF/correos)",
+    "inicio": "2026-08-17",
+    "fin": "2026-12-07",
+    "avance": 10,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integracion con el PAC (Factura Electronica)",
+    "inicio": "2026-08-17",
+    "fin": "2026-09-25",
+    "avance": 25,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Multibank Connectivity",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración con Banorte",
+    "inicio": "2026-08-17",
+    "fin": "2026-09-25",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración con BBVA",
+    "inicio": "2026-08-17",
+    "fin": "2026-12-07",
+    "avance": 9,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración con Monex",
+    "inicio": "2026-09-07",
+    "fin": "2026-10-02",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración con Banco Azteca",
+    "inicio": "2026-10-05",
+    "fin": "2026-11-13",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración con Báscula (tiempo real)",
+    "inicio": "2026-09-07",
+    "fin": "2027-01-11",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración con Báscula",
+    "inicio": "2026-10-12",
+    "fin": "2026-11-27",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración con Portal de proveedores",
+    "inicio": "2026-10-05",
+    "fin": "2026-11-13",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración con Portal de clientes",
+    "inicio": "2026-10-05",
+    "fin": "2026-11-20",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración con WhatsApp Business",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración Transportistas (TM)",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración  SAP workflow",
+    "inicio": "2026-10-12",
+    "fin": "2026-11-27",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración factura venta",
+    "inicio": "2026-10-12",
+    "fin": "2026-11-27",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración orden de compra",
+    "inicio": "2026-10-12",
+    "fin": "2026-11-27",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración carta porte",
+    "inicio": "2026-10-12",
+    "fin": "2026-11-27",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Integración migración de datos",
+    "inicio": "2026-09-07",
+    "fin": "2026-12-07",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Hito: Integracion con PAC",
+    "inicio": "2026-09-25",
+    "fin": "2026-09-25",
+    "avance": 0,
+    "responsable": "SEIDOR, PAC",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Preparación de pruebas",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Plan de pruebas detallado y ciclos",
+    "inicio": "2026-06-29",
+    "fin": "2026-09-04",
+    "avance": 35,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Matriz de pruebas (Escenarios de procesos)",
+    "inicio": "2026-06-29",
+    "fin": "2026-07-10",
+    "avance": 35,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Matriz de Pruebas Ciclo Compras",
+    "inicio": "2026-07-20",
+    "fin": "2026-09-04",
+    "avance": 35,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Matriz de Pruebas Ciclo Ventas",
+    "inicio": "2026-07-20",
+    "fin": "2026-09-04",
+    "avance": 35,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Matriz de Pruebas Ciclo Facturación",
+    "inicio": "2026-07-20",
+    "fin": "2026-09-04",
+    "avance": 60,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Matriz de Pruebas Ciclo",
+    "inicio": "2026-07-20",
+    "fin": "2026-09-04",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Preparación de pruebas unitarias (end to end Consultoria)",
+    "inicio": "2026-10-12",
+    "fin": "2026-10-23",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Ejecución de pruebas",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Planeación y ejecución de sprints (ciclo continuo)",
+    "inicio": "2026-10-12",
+    "fin": "2026-11-20",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Pruebas integrales (SIT) – Ciclo 1",
+    "inicio": "2026-11-03",
+    "fin": "2026-11-13",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ajustes de escenarios",
+    "inicio": "2026-11-09",
+    "fin": "2026-11-20",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Pruebas integrales (SIT) – Ciclo 2 y estabilización",
+    "inicio": "2026-11-23",
+    "fin": "2026-12-04",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ajustes de escenarios",
+    "inicio": "2026-11-30",
+    "fin": "2026-12-07",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Pruebas integrales (SIT) – Ciclo 3 y estabilización",
+    "inicio": "2026-12-14",
+    "fin": "2026-12-23",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ajustes de escenarios",
+    "inicio": "2026-12-21",
+    "fin": "2026-12-30",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Migración de Datos Test",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Hito: Entrega 3 layouts de datos maestros MX",
+    "inicio": "2026-06-08",
+    "fin": "2026-09-11",
+    "avance": 63,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Migración de datos en QAS (clientes/proveedores/servicios)",
+    "inicio": "2026-09-14",
+    "fin": "2026-10-02",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Migración de datos en QAS (Saldos iniciales)",
+    "inicio": "2026-10-05",
+    "fin": "2026-10-16",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Hotfix Sistema",
+    "inicio": "2026-07-31",
+    "fin": "2026-07-31",
+    "avance": 100,
+    "responsable": "SAP",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Solicitar/ Recibir Sistema Producción",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Solicitar sistema Produccion",
+    "inicio": "2026-11-25",
+    "fin": "2026-11-25",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Recibir correo aprovisionamiento sistema Produccion",
+    "inicio": "2026-11-25",
+    "fin": "2026-11-25",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Acceso a SAP Cloud Identity Services (Prod)",
+    "inicio": "2026-11-25",
+    "fin": "2026-11-25",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Confirmacion de acceso a sistemas productivos (Usuario Inicial)",
+    "inicio": "2026-11-26",
+    "fin": "2026-11-26",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Preparación Cutover",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Revisión de plan de Cut over",
+    "inicio": "2026-09-10",
+    "fin": "2026-09-10",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Comité preparacion Cutover",
+    "inicio": "2026-10-05",
+    "fin": "2026-10-05",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Plan de Cutover e iniciativas operativas",
+    "inicio": "2026-10-26",
+    "fin": "2026-10-30",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Plan de soporte y transición",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Preparación de operación: accesos productivos, ventanas, comunicación y soporte",
+    "inicio": "2026-11-26",
+    "fin": "2026-11-30",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Gestión del cambio",
+    "inicio": "2026-11-26",
+    "fin": "2026-11-30",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Desarrollo y entrega contenidos",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Entrenamiento a End Users (capacitación final operativa)",
+    "inicio": "2026-11-30",
+    "fin": "2026-12-11",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Configuración Dev/Test/Prod",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Configuración de la solución (PRD)",
+    "inicio": "2026-11-30",
+    "fin": "2026-12-30",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Go - No Go CA&C / COL",
+    "inicio": "2026-12-08",
+    "fin": "2026-12-08",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Quality Gate",
+    "inicio": "2026-12-01",
+    "fin": "2026-12-01",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "MegaFase",
+    "nombre": "Deploy",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Ejecución y monitoreo",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ejecución y monitoreo",
+    "inicio": "2026-12-09",
+    "fin": "2027-01-15",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Cutover productivo",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Transportes QAS→PRD (secuencia y control)",
+    "inicio": "2026-12-09",
+    "fin": "2026-12-18",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ejecución de Cutover",
+    "inicio": "2026-11-30",
+    "fin": "2027-01-14",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Cutover técnico",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Confirmacion accesos al sistema",
+    "inicio": "2027-01-04",
+    "fin": "2027-01-08",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Verificar configuracion en Produccion",
+    "inicio": "2026-12-21",
+    "fin": "2027-01-01",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Verificar rangos de numeros en productivo",
+    "inicio": "2026-12-21",
+    "fin": "2026-12-23",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Cutover de negocio (detallar)",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Comunicaciones",
+    "inicio": "2026-12-21",
+    "fin": "2026-12-21",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Puesta en marcha de soporte para Go Live",
+    "inicio": "2026-12-22",
+    "fin": "2026-12-23",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Cierre mensual",
+    "inicio": "2026-12-14",
+    "fin": "2027-01-04",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Cierre de movimientos MM",
+    "inicio": "2026-12-14",
+    "fin": "2027-01-04",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "CxP, CxC",
+    "inicio": "2026-12-14",
+    "fin": "2027-01-04",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Balances: Inventarios, Clientes, Proveedores",
+    "inicio": "2026-12-21",
+    "fin": "2026-12-30",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Migración de Datos",
+    "inicio": "2026-11-30",
+    "fin": "2027-01-04",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Entrega de plantillas de datos maestros finales",
+    "inicio": "2026-11-30",
+    "fin": "2026-12-04",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Migración de datos en PRO",
+    "inicio": "2026-12-09",
+    "fin": "2026-12-18",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Clientes",
+    "inicio": "2026-12-09",
+    "fin": "2026-12-18",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Proveedores",
+    "inicio": "2026-12-09",
+    "fin": "2026-12-18",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Servicios",
+    "inicio": "2026-12-09",
+    "fin": "2026-12-18",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Activos Fijos",
+    "inicio": "2026-12-09",
+    "fin": "2026-12-30",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Hotfix Sistema",
+    "inicio": "2026-12-18",
+    "fin": "2026-12-18",
+    "avance": 0,
+    "responsable": "SAP",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Validación de Cutover",
+    "inicio": "2026-12-21",
+    "fin": "2026-12-21",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Cierre de la fase Realize",
+    "inicio": "2026-12-01",
+    "fin": "2027-01-06",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Readiness Check",
+    "inicio": "2026-12-01",
+    "fin": "2026-12-22",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Comité Go No Go MX",
+    "inicio": "2027-01-06",
+    "fin": "2027-01-06",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Quality Gate",
+    "inicio": "2026-12-23",
+    "fin": "2026-12-30",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Cierre de fase",
+    "inicio": "2026-12-31",
+    "fin": "2027-01-06",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Go-Live",
+    "inicio": "2026-12-31",
+    "fin": "2027-02-05",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Asegurarse que todas las actividades del proyecto esten fijadas en Completado en SAP CALM",
+    "inicio": "2026-12-31",
+    "fin": "2026-12-31",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Go Live",
+    "inicio": "2027-01-04",
+    "fin": "2027-01-04",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Entrega de saldos iniciales MX",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Saldos de proveedores",
+    "inicio": "2027-01-28",
+    "fin": "2027-01-28",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Saldos de clientes",
+    "inicio": "2027-01-28",
+    "fin": "2027-01-28",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Partidas abiertas del libro mayor (GL)",
+    "inicio": "2027-01-28",
+    "fin": "2027-01-28",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Saldos del libro mayor (GL)",
+    "inicio": "2027-01-28",
+    "fin": "2027-01-28",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Saldo GR/IR (Recepción de mercancías / Factura por recibir)",
+    "inicio": "2027-01-28",
+    "fin": "2027-02-05",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Migración de saldos iniciales",
+    "inicio": "2027-01-28",
+    "fin": "2027-02-05",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Saldos de inventario",
+    "inicio": "2027-01-28",
+    "fin": "2027-02-05",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Saldos de proveedores",
+    "inicio": "2027-01-28",
+    "fin": "2027-02-05",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Saldos de clientes",
+    "inicio": "2027-01-28",
+    "fin": "2027-02-05",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Partidas abiertas del libro mayor (GL)",
+    "inicio": "2027-01-28",
+    "fin": "2027-02-05",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Saldos del libro mayor (GL)",
+    "inicio": "2027-01-28",
+    "fin": "2027-02-05",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Saldo GR/IR (Recepción de mercancías / Factura por recibir)",
+    "inicio": "2027-01-28",
+    "fin": "2027-02-05",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Plumbing Test",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Proceso de compra",
+    "inicio": "2027-01-04",
+    "fin": "2027-01-04",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Proceso de venta hasta Factura electronica",
+    "inicio": "2027-01-04",
+    "fin": "2027-01-04",
+    "avance": 0,
+    "responsable": "Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Prueba de tiempos en produccion",
+    "inicio": "2027-01-04",
+    "fin": "2027-01-04",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Ejecutar comunicaciones de entrada en productivo MX",
+    "inicio": "2027-02-05",
+    "fin": "2027-02-05",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "MegaFase",
+    "nombre": "Run",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Operaciones continuas",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Operaciones en curso post Go-Live",
+    "inicio": "2027-01-06",
+    "fin": "2027-03-04",
+    "avance": 0,
+    "responsable": "SEIDOR, Agroecología",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Hypercare MX",
+    "inicio": "2027-02-03",
+    "fin": "2027-03-04",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Estabilizacion MX",
+    "inicio": "2027-02-03",
+    "fin": "2027-03-04",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Cierre Automático de Starter System",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "SAP",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Cierre del proyecto (cierre formal y lecciones aprendidas)",
+    "inicio": "2027-03-05",
+    "fin": "2027-03-05",
+    "avance": 0,
+    "responsable": "SEIDOR",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Fase",
+    "nombre": "Downtime de sistema 2708",
+    "inicio": null,
+    "fin": null,
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Sistema Test",
+    "inicio": "2027-01-04",
+    "fin": "2027-01-04",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Sistema Starter",
+    "inicio": "2027-01-04",
+    "fin": "2027-01-04",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Sistema Desarrollo y Produccion",
+    "inicio": "2027-01-15",
+    "fin": "2027-02-12",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Actualizacion del sistema",
+    "inicio": "2027-01-15",
+    "fin": "2027-01-15",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Preparar y completar las pruebas de regresion en el sistema de prueba",
+    "inicio": "2027-01-29",
+    "fin": "2027-01-29",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  },
+  {
+    "tipo": "Actividad",
+    "nombre": "Revisar roles empresariales",
+    "inicio": "2027-02-12",
+    "fin": "2027-02-12",
+    "avance": 0,
+    "responsable": "",
+    "prioridad": "",
+    "comentarios": ""
+  }
+]
