@@ -895,7 +895,61 @@ function descargarPlantillaHoras(){
   XLSX.writeFile(wb, `Plantilla Consumo de Horas - ${currentProyecto||'Proyecto'}.xlsx`);
 }
 
-/* ===== Motor de jerarquía y roll-ups del WBS (MegaFase -> Fase -> Actividad) ===== */
+let wbsColapsados = new Set();
+
+function kpisWbs(calculado){
+  const fases = calculado.filter(t=>t.tipo==='Fase');
+  const megafases = calculado.filter(t=>t.tipo==='MegaFase');
+  const actividades = calculado.filter(t=>t.tipo==='Actividad' || t.tipo==='SubActividad');
+  const actividadesHoja = actividades.filter(t=>!t._esContenedor); // solo las que de verdad se capturan a mano
+  const avanceProyecto = megafases.length ? Math.round(megafases.reduce((s,m)=>s+(m.avance||0),0)/megafases.length) : 0;
+  const planesValidos = megafases.filter(m=>m.plan!=null);
+  const planProyecto = planesValidos.length ? Math.round(planesValidos.reduce((s,m)=>s+(m.plan||0),0)/planesValidos.length) : null;
+  const desviacionProyecto = planProyecto!=null ? planProyecto - avanceProyecto : null;
+  const porPrioridad = { Alta:0, Media:0, Baja:0, 'Sin prioridad':0 };
+  actividadesHoja.forEach(a => { const p = a.prioridad; porPrioridad[p==='Alta'||p==='Media'||p==='Baja' ? p : 'Sin prioridad']++; });
+  return {
+    numFases: fases.length, numMegafases: megafases.length, numActividades: actividadesHoja.length,
+    avanceProyecto, planProyecto, desviacionProyecto, porPrioridad,
+    porFase: fases.map(f => ({ nombre: f.nombre, avance: f.avance||0, plan: f.plan, desviacion: f.desviacion }))
+  };
+}
+
+function renderKpisWbs(calculado){
+  const k = kpisWbs(calculado);
+  const claseDesv = (d) => d==null ? '' : (d>3 ? 'color:#B23A3A;' : (d<-3 ? 'color:#1F8A4C;' : 'color:var(--grey);'));
+  return `
+    <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px;">
+      <h2 style="font-size:14px; color:var(--navy2); margin:0 0 12px;">Indicadores del proyecto</h2>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:16px;">
+        <div style="background:var(--card); border-radius:10px; padding:12px 14px;"><div style="font-size:20px; font-weight:700; color:var(--navy2);">${k.numMegafases}</div><div style="font-size:11px; color:var(--greyl);">MegaFases</div></div>
+        <div style="background:var(--card); border-radius:10px; padding:12px 14px;"><div style="font-size:20px; font-weight:700; color:var(--navy2);">${k.numFases}</div><div style="font-size:11px; color:var(--greyl);">Fases</div></div>
+        <div style="background:var(--card); border-radius:10px; padding:12px 14px;"><div style="font-size:20px; font-weight:700; color:var(--navy2);">${k.numActividades}</div><div style="font-size:11px; color:var(--greyl);">Actividades capturadas</div></div>
+        <div style="background:var(--card); border-radius:10px; padding:12px 14px;"><div style="font-size:20px; font-weight:700; color:var(--blue);">${k.avanceProyecto}%</div><div style="font-size:11px; color:var(--greyl);">% Avance del proyecto</div></div>
+        <div style="background:var(--card); border-radius:10px; padding:12px 14px;"><div style="font-size:20px; font-weight:700; color:var(--navy2);">${k.planProyecto!=null?k.planProyecto+'%':'—'}</div><div style="font-size:11px; color:var(--greyl);">% Plan del proyecto</div></div>
+        <div style="background:var(--card); border-radius:10px; padding:12px 14px;"><div style="font-size:20px; font-weight:700; ${claseDesv(k.desviacionProyecto)}">${k.desviacionProyecto!=null?(k.desviacionProyecto>0?'+':'')+k.desviacionProyecto+'%':'—'}</div><div style="font-size:11px; color:var(--greyl);">Desviación del proyecto</div></div>
+      </div>
+      <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:16px;">
+        <div>
+          <p style="font-size:11.5px; font-weight:700; color:var(--greyl); text-transform:uppercase; margin:0 0 8px;">Avance por fase</p>
+          <table style="width:100%; border-collapse:collapse; font-size:12px;">
+            <tr style="color:var(--grey); border-bottom:1px solid var(--line);"><th style="text-align:left; padding:4px;">Fase</th><th style="padding:4px;">Avance</th><th style="padding:4px;">Plan</th><th style="padding:4px;">Desviación</th></tr>
+            ${k.porFase.map(f=>`<tr style="border-bottom:1px solid var(--line);"><td style="padding:4px;">${esc(f.nombre)}</td><td style="padding:4px; text-align:center;">${f.avance}%</td><td style="padding:4px; text-align:center;">${f.plan!=null?f.plan+'%':'—'}</td><td style="padding:4px; text-align:center; ${claseDesv(f.desviacion)}">${f.desviacion!=null?(f.desviacion>0?'+':'')+f.desviacion+'%':'—'}</td></tr>`).join('')}
+          </table>
+        </div>
+        <div>
+          <p style="font-size:11.5px; font-weight:700; color:var(--greyl); text-transform:uppercase; margin:0 0 8px;">Actividades por prioridad</p>
+          ${Object.entries(k.porPrioridad).filter(([,n])=>n>0).map(([p,n])=>{
+            const color = {Alta:'#B23A3A', Media:'#D8A63A', Baja:'#1F8A4C', 'Sin prioridad':'#8A97AC'}[p];
+            return `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:12px;"><span style="width:10px; height:10px; border-radius:50%; background:${color}; flex-shrink:0;"></span><span style="flex:1;">${p}</span><b>${n}</b></div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+const NIVELES_WBS = ['MegaFase','Fase','Actividad','SubActividad'];
+const SIEMPRE_CONTENEDOR_WBS = ['MegaFase','Fase']; // Actividad solo es contenedor SI tiene SubActividades reales
 function esFeriadoMXWbs(fecha){
   const feriados2026 = ['2026-01-01','2026-02-02','2026-03-16','2026-05-01','2026-09-16','2026-11-16','2026-12-25','2026-05-05','2026-11-02','2026-12-12'];
   const feriados2027 = ['2027-01-01','2027-02-01','2027-03-15','2027-05-01','2027-09-16','2027-11-15','2027-12-25','2027-05-05','2027-11-02','2027-12-12'];
@@ -917,23 +971,36 @@ function diasHabilesMXWbs(inicio, fin){
 }
 function calcularWBS(tareasPlanas, hoy){
   hoy = hoy || new Date();
-  const calc = tareasPlanas.map(t => ({...t}));
-  const siguienteContenedora = (desdeIdx) => {
-    for(let i=desdeIdx+1; i<calc.length; i++){ if(calc[i].tipo==='Fase' || calc[i].tipo==='MegaFase') return i; }
-    return calc.length;
-  };
-  function aplicarRollup(idx, hijos){
-    if(!hijos.length){ calc[idx].inicio=null; calc[idx].fin=null; calc[idx].avance=calc[idx].avance||0; return; }
-    const inicios = hijos.map(i=>calc[i].inicio).filter(Boolean).sort();
-    const fines = hijos.map(i=>calc[i].fin).filter(Boolean).sort();
-    calc[idx].inicio = inicios.length ? inicios[0] : null;
-    calc[idx].fin = fines.length ? fines[fines.length-1] : null;
-    calc[idx].avance = Math.round(hijos.reduce((s,i)=>s+(calc[i].avance||0),0)/hijos.length);
+  const calc = tareasPlanas.map(t => ({...t, _esContenedor:false}));
+  function finDeRango(idx){
+    const nivelIdx = NIVELES_WBS.indexOf(calc[idx].tipo);
+    for(let j=idx+1; j<calc.length; j++){
+      const nivelJ = NIVELES_WBS.indexOf(calc[j].tipo);
+      if(nivelJ <= nivelIdx) return j-1;
+    }
+    return calc.length-1;
   }
-  calc.forEach((t,idx) => { if(t.tipo==='Fase'){ const fin = siguienteContenedora(idx)-1; const hijos=[]; for(let i=idx+1;i<=fin;i++){ if(calc[i].tipo==='Actividad') hijos.push(i); } aplicarRollup(idx, hijos); } });
-  const megafases = []; calc.forEach((t,i)=>{ if(t.tipo==='MegaFase') megafases.push(i); });
-  megafases.forEach((idx,k) => { const fin = k+1<megafases.length ? megafases[k+1]-1 : calc.length-1; const hijos=[]; for(let i=idx+1;i<=fin;i++){ if(calc[i].tipo==='Fase') hijos.push(i); } aplicarRollup(idx, hijos); });
-
+  for(let nivelIdx = NIVELES_WBS.length-2; nivelIdx>=0; nivelIdx--){
+    const nivelActual = NIVELES_WBS[nivelIdx];
+    const nivelHijo = NIVELES_WBS[nivelIdx+1];
+    calc.forEach((t, idx) => {
+      if(t.tipo !== nivelActual) return;
+      const fin = finDeRango(idx);
+      const hijos = [];
+      for(let i=idx+1; i<=fin; i++){ if(calc[i].tipo === nivelHijo) hijos.push(i); }
+      if(hijos.length){
+        const inicios = hijos.map(i=>calc[i].inicio).filter(Boolean).sort();
+        const fines = hijos.map(i=>calc[i].fin).filter(Boolean).sort();
+        calc[idx].inicio = inicios.length ? inicios[0] : null;
+        calc[idx].fin = fines.length ? fines[fines.length-1] : null;
+        calc[idx].avance = Math.round(hijos.reduce((s,i)=>s+(calc[i].avance||0),0)/hijos.length);
+        calc[idx]._esContenedor = true;
+      } else if(SIEMPRE_CONTENEDOR_WBS.includes(nivelActual)){
+        calc[idx].inicio = null; calc[idx].fin = null; calc[idx].avance = calc[idx].avance||0;
+        calc[idx]._esContenedor = true;
+      }
+    });
+  }
   return calc.map(t => {
     const duracion = diasHabilesMXWbs(t.inicio, t.fin);
     let plan = null;
@@ -959,12 +1026,14 @@ function colorEstadoWbs(e){ return {Completado:'#1F8A4C', 'En ejecución':'#D8A6
 
 function renderWbsTab(body){
   const calculado = calcularWBS(wbsTareas, new Date());
+  const visibles = filasVisiblesWbs(calculado);
   body.innerHTML = `
+    ${calculado.length ? renderKpisWbs(calculado) : ''}
     <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <div>
           <h2 style="font-size:14px; color:var(--navy2); margin:0 0 4px;">Desglose de Tareas (WBS)</h2>
-          <p style="font-size:12px; color:var(--greyl); margin:0;">Jerarquía MegaFase → Fase → Actividad. El % Avance se captura solo en las Actividades — todo lo demás (Duración, % Plan, Estado, Semáforo, Desviación) se calcula solo.</p>
+          <p style="font-size:12px; color:var(--greyl); margin:0;">Jerarquía MegaFase → Fase → Actividad → SubActividad (opcional). Arrastra ⠿ para reordenar o mover entre fases. El "+" de cada fila agrega justo debajo de ella. Usa ▸/▾ para contraer o expandir.</p>
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btn-ghost" style="border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="cargarPlantillaBaseWbs()">📋 Cargar plantilla base</button>
@@ -977,8 +1046,9 @@ function renderWbsTab(body){
     </div>
 
     <div class="section" style="background:#fff; border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); overflow-x:auto;">
-      <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:1400px;">
+      <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:1450px;">
         <tr style="text-align:left; color:var(--grey); border-bottom:1px solid var(--line);">
+          <th style="width:24px;"></th>
           <th style="padding:6px 4px; min-width:280px;">Actividad / Entregable</th>
           <th style="padding:6px 4px;">Inicio</th><th style="padding:6px 4px;">Fin</th>
           <th style="padding:6px 4px;">Duración</th><th style="padding:6px 4px;">% Avance</th><th style="padding:6px 4px;">% Plan</th>
@@ -986,29 +1056,56 @@ function renderWbsTab(body){
           <th style="padding:6px 4px; min-width:130px;">Responsable</th><th style="padding:6px 4px;">Prioridad</th><th style="padding:6px 4px; min-width:150px;">Comentarios</th><th></th>
         </tr>
         <tbody id="wbsTableBody">
-        ${calculado.length ? calculado.map((t,i)=>filaWbs(t,i)).join('') : `<tr><td colspan="13" style="padding:20px 4px; color:var(--greyl); text-align:center;">Sin tareas todavía — carga la plantilla base, genera un borrador con Delfos, o agrega una manualmente.</td></tr>`}
+        ${visibles.length ? visibles.map(({t,i})=>filaWbs(t,i,calculado)).join('') : `<tr><td colspan="14" style="padding:20px 4px; color:var(--greyl); text-align:center;">Sin tareas todavía — carga la plantilla base, genera un borrador con Delfos, o agrega una manualmente.</td></tr>`}
         </tbody>
       </table>
-      <button class="btn btn-ghost" style="margin-top:10px; border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="addWbsTarea()">+ Agregar tarea</button>
+      <button class="btn btn-ghost" style="margin-top:10px; border:1px solid var(--line); background:#fff; color:var(--grey); border-radius:8px; padding:8px 12px; font-size:12.5px; cursor:pointer;" onclick="addWbsTarea()">+ Agregar tarea al final</button>
     </div>
   `;
 }
 
-function filaWbs(t, i){
-  const esContenedora = t.tipo !== 'Actividad';
-  const indent = t.tipo==='MegaFase' ? 0 : (t.tipo==='Fase' ? 14 : 28);
+// Determina qué filas mostrar: oculta cualquier fila que esté "adentro" de un contenedor colapsado
+function filasVisiblesWbs(calculado){
+  function finDeRangoVis(idx){
+    const nivelIdx = NIVELES_WBS.indexOf(calculado[idx].tipo);
+    for(let j=idx+1; j<calculado.length; j++){ if(NIVELES_WBS.indexOf(calculado[j].tipo) <= nivelIdx) return j-1; }
+    return calculado.length-1;
+  }
+  const ocultas = new Set();
+  calculado.forEach((t,idx) => {
+    if(wbsColapsados.has(idx)){
+      const fin = finDeRangoVis(idx);
+      for(let j=idx+1; j<=fin; j++) ocultas.add(j);
+    }
+  });
+  return calculado.map((t,i)=>({t,i})).filter(({i})=>!ocultas.has(i));
+}
+
+function toggleColapsoWbs(idx){
+  if(wbsColapsados.has(idx)) wbsColapsados.delete(idx); else wbsColapsados.add(idx);
+  renderTabBody();
+}
+
+function filaWbs(t, i, calculado){
+  const esContenedora = t._esContenedor;
+  const nivelIdx = NIVELES_WBS.indexOf(t.tipo);
+  const indent = nivelIdx * 14;
   const bg = t.tipo==='MegaFase' ? 'background:#D8E2EE;' : (t.tipo==='Fase' ? 'background:#EDF3FA;' : '');
   const pesoNombre = esContenedora ? 'font-weight:700;' : '';
   const inp = (val, campo, tipo='text') => `<input type="${tipo}" value="${val||''}" style="width:100%; padding:5px 6px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:11.5px;" onchange="updateWbsField(${i},'${campo}', this.value)">`;
   const solo = (val) => `<span style="font-size:11.5px; color:var(--grey);">${esc(val==null?'—':String(val))}</span>`;
+  const puedeColapsar = (t.tipo==='MegaFase' || t.tipo==='Fase') && esContenedora;
+  const colapsado = wbsColapsados.has(i);
+  const toggle = puedeColapsar ? `<span style="cursor:pointer; margin-right:4px; color:var(--grey); font-size:10px;" onclick="toggleColapsoWbs(${i})">${colapsado?'▸':'▾'}</span>` : '';
 
   return `
-    <tr style="border-bottom:1px solid var(--line); ${bg}">
+    <tr draggable="true" ondragstart="dragStartWbs(event,${i})" ondragover="dragOverWbs(event)" ondrop="dropWbs(event,${i})" style="border-bottom:1px solid var(--line); ${bg}">
+      <td style="padding:6px 2px; text-align:center; cursor:grab; color:var(--greyl); font-size:13px;" title="Arrastra para mover">⠿</td>
       <td style="padding:6px 4px; padding-left:${6+indent}px;">
         <select style="border:none; background:transparent; font-size:9.5px; color:var(--greyl); font-weight:700; text-transform:uppercase; padding:0; margin-right:4px;" onchange="updateWbsField(${i},'tipo', this.value)">
-          ${['MegaFase','Fase','Actividad'].map(tp=>`<option value="${tp}" ${t.tipo===tp?'selected':''}>${tp}</option>`).join('')}
+          ${NIVELES_WBS.map(tp=>`<option value="${tp}" ${t.tipo===tp?'selected':''}>${tp}</option>`).join('')}
         </select><br>
-        <input type="text" value="${esc(t.nombre)}" style="width:100%; ${pesoNombre} padding:5px 6px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px; margin-top:2px;" onchange="updateWbsField(${i},'nombre', this.value)">
+        <div style="display:flex; align-items:center; margin-top:2px;">${toggle}<input type="text" value="${esc(t.nombre)}" style="flex:1; ${pesoNombre} padding:5px 6px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:12px;" onchange="updateWbsField(${i},'nombre', this.value)"></div>
       </td>
       <td style="padding:6px 4px; min-width:110px;">${esContenedora ? solo(t.inicio) : inp(t.inicio,'inicio','date')}</td>
       <td style="padding:6px 4px; min-width:110px;">${esContenedora ? solo(t.fin) : inp(t.fin,'fin','date')}</td>
@@ -1024,9 +1121,26 @@ function filaWbs(t, i){
       <td style="padding:6px 4px;">${esContenedora ? '' : inp(esc(t.responsable),'responsable')}</td>
       <td style="padding:6px 4px; min-width:80px;">${esContenedora ? '' : `<select style="width:100%; padding:5px 4px; border:1px solid var(--line); border-radius:6px; font-family:inherit; font-size:11px;" onchange="updateWbsField(${i},'prioridad', this.value)"><option value="">—</option>${['Alta','Media','Baja'].map(p=>`<option value="${p}" ${t.prioridad===p?'selected':''}>${p}</option>`).join('')}</select>`}</td>
       <td style="padding:6px 4px;">${esContenedora ? '' : inp(esc(t.comentarios),'comentarios')}</td>
-      <td style="padding:6px 4px;"><button class="btn btn-ghost" style="padding:3px 8px; font-size:11px; border:1px solid var(--line); background:#fff; color:var(--grey);" onclick="removeWbsTarea(${i})">×</button></td>
+      <td style="padding:6px 2px; white-space:nowrap;">
+        <button class="btn btn-ghost" title="Agregar justo debajo" style="padding:3px 7px; font-size:11px; border:1px solid var(--line); background:#fff; color:var(--blue);" onclick="insertWbsTareaDespues(${i})">+</button>
+        <button class="btn btn-ghost" title="Eliminar" style="padding:3px 7px; font-size:11px; border:1px solid var(--line); background:#fff; color:var(--grey);" onclick="removeWbsTarea(${i})">×</button>
+      </td>
     </tr>
   `;
+}
+
+let _wbsDragIdx = null;
+function dragStartWbs(ev, idx){ _wbsDragIdx = idx; ev.dataTransfer.effectAllowed = 'move'; }
+function dragOverWbs(ev){ ev.preventDefault(); }
+async function dropWbs(ev, idxDestino){
+  ev.preventDefault();
+  if(_wbsDragIdx === null || _wbsDragIdx === idxDestino) return;
+  const [movido] = wbsTareas.splice(_wbsDragIdx, 1);
+  const nuevoIdx = _wbsDragIdx < idxDestino ? idxDestino : idxDestino + 1;
+  wbsTareas.splice(nuevoIdx, 0, movido);
+  _wbsDragIdx = null;
+  await saveWbs();
+  renderTabBody();
 }
 
 async function saveWbs(){
@@ -1047,6 +1161,14 @@ function updateWbsField(idx, field, value){
 
 async function addWbsTarea(){
   wbsTareas.push({ tipo:'Actividad', nombre:'', inicio:'', fin:'', avance:0, responsable:'', prioridad:'', comentarios:'' });
+  await saveWbs();
+  renderTabBody();
+}
+
+async function insertWbsTareaDespues(idx){
+  const tipoBase = wbsTareas[idx].tipo;
+  // Por default, la nueva fila es del mismo tipo que aquella después de la cual se inserta
+  wbsTareas.splice(idx+1, 0, { tipo: tipoBase, nombre:'', inicio:'', fin:'', avance:0, responsable:'', prioridad:'', comentarios:'' });
   await saveWbs();
   renderTabBody();
 }
@@ -1184,8 +1306,9 @@ function exportarWbsMsProject(){
   }
   let uid = 1;
   const tasksXml = [];
-  wbsTareas.forEach(t => {
-    const nivel = t.tipo==='MegaFase' ? 1 : (t.tipo==='Fase' ? 2 : 3);
+  const calculadoMsp = calcularWBS(wbsTareas, new Date());
+  calculadoMsp.forEach(t => {
+    const nivel = NIVELES_WBS.indexOf(t.tipo) + 1;
     const taskUid = uid++;
     const fechaXml = t.inicio ? `<Start>${t.inicio}T08:00:00</Start>` : '';
     tasksXml.push(`
@@ -1194,7 +1317,7 @@ function exportarWbsMsProject(){
       <ID>${taskUid}</ID>
       <Name>${xmlEscape(t.nombre || '(sin nombre)')}</Name>
       <OutlineLevel>${nivel}</OutlineLevel>
-      ${t.tipo!=='Actividad' ? '<Summary>1</Summary>' : ''}
+      ${t._esContenedor ? '<Summary>1</Summary>' : ''}
       ${fechaXml}
       <Notes>${xmlEscape([t.responsable?'Responsable: '+t.responsable:'', t.comentarios||''].filter(Boolean).join(' — '))}</Notes>
     </Task>`);

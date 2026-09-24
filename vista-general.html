@@ -202,6 +202,7 @@ let currentProyecto = null;
 let dash = { raid:[], dependencias:[], compromisos:[], changeRequests:[] };
 let lineasBase = {};
 let progresoChecklist = {};
+let wbsStore = {};
 let resumenGenerated = false;
 
 const FASES_LABELS = { prepare:'Prepare', explore:'Explore', realize:'Realize', deploy:'Deploy', cutover:'Cutover / Go-Live', run:'Run' };
@@ -225,6 +226,11 @@ async function loadAll(){
     const r3 = await fetch('/api/checklist');
     const d3 = await r3.json();
     progresoChecklist = d3.progreso || {};
+  }catch(e){}
+  try{
+    const r4 = await fetch('/api/wbs');
+    const d4 = await r4.json();
+    wbsStore = d4.proyectos || {};
   }catch(e){}
 
   populateSelect();
@@ -262,6 +268,61 @@ function checklistSummaryForProyecto(){
     const completados = Object.values(faseProg).filter(x=>x && x.checked).length;
     return { fase: FASES_LABELS[faseId], completados, total, pct: Math.round(completados/total*100) };
   });
+}
+
+/* ===== Motor de roll-ups del WBS, igual al de Dashboard de Proyecto ===== */
+const NIVELES_WBS = ['MegaFase','Fase','Actividad','SubActividad'];
+const SIEMPRE_CONTENEDOR_WBS = ['MegaFase','Fase'];
+function calcularWBS(tareasPlanas, hoy){
+  hoy = hoy || new Date();
+  const calc = tareasPlanas.map(t => ({...t, _esContenedor:false}));
+  function finDeRango(idx){
+    const nivelIdx = NIVELES_WBS.indexOf(calc[idx].tipo);
+    for(let j=idx+1; j<calc.length; j++){ if(NIVELES_WBS.indexOf(calc[j].tipo) <= nivelIdx) return j-1; }
+    return calc.length-1;
+  }
+  for(let nivelIdx = NIVELES_WBS.length-2; nivelIdx>=0; nivelIdx--){
+    const nivelActual = NIVELES_WBS[nivelIdx], nivelHijo = NIVELES_WBS[nivelIdx+1];
+    calc.forEach((t, idx) => {
+      if(t.tipo !== nivelActual) return;
+      const fin = finDeRango(idx);
+      const hijos = [];
+      for(let i=idx+1; i<=fin; i++){ if(calc[i].tipo === nivelHijo) hijos.push(i); }
+      if(hijos.length){
+        const inicios = hijos.map(i=>calc[i].inicio).filter(Boolean).sort();
+        const fines = hijos.map(i=>calc[i].fin).filter(Boolean).sort();
+        calc[idx].inicio = inicios.length ? inicios[0] : null;
+        calc[idx].fin = fines.length ? fines[fines.length-1] : null;
+        calc[idx].avance = Math.round(hijos.reduce((s,i)=>s+(calc[i].avance||0),0)/hijos.length);
+        calc[idx]._esContenedor = true;
+      } else if(SIEMPRE_CONTENEDOR_WBS.includes(nivelActual)){
+        calc[idx].inicio=null; calc[idx].fin=null; calc[idx].avance=calc[idx].avance||0; calc[idx]._esContenedor=true;
+      }
+    });
+  }
+  return calc.map(t => {
+    let plan = null;
+    if(t.inicio && t.fin){
+      const i = new Date(t.inicio), f = new Date(t.fin);
+      if(hoy < i) plan = 0; else if(hoy >= f) plan = 100; else plan = Math.round((hoy-i)/(f-i)*100);
+    }
+    const desviacion = (plan!==null) ? plan - (t.avance||0) : null;
+    return { ...t, plan, desviacion };
+  });
+}
+
+function wbsSummaryForProyecto(){
+  const tareas = (wbsStore[currentProyecto] && wbsStore[currentProyecto].tareas) || [];
+  if(!tareas.length) return null;
+  const calc = calcularWBS(tareas, new Date());
+  const fases = calc.filter(t=>t.tipo==='Fase');
+  const megafases = calc.filter(t=>t.tipo==='MegaFase');
+  const avanceProyecto = megafases.length ? Math.round(megafases.reduce((s,m)=>s+(m.avance||0),0)/megafases.length) : 0;
+  const planProyecto = megafases.length ? Math.round(megafases.filter(m=>m.plan!=null).reduce((s,m)=>s+(m.plan||0),0)/(megafases.filter(m=>m.plan!=null).length||1)) : 0;
+  return {
+    porFase: fases.map(f => ({ fase: f.nombre, avance: f.avance||0, plan: f.plan, desviacion: f.desviacion })),
+    avanceProyecto, planProyecto, desviacionProyecto: planProyecto - avanceProyecto
+  };
 }
 
 function computeKPIs(){
@@ -331,7 +392,22 @@ function render(){
     </div>
 
     <div class="section">
-      <h2>Avance por fase (Checklist)</h2>
+      <h2>Avance por fase (WBS)</h2>
+      ${(() => {
+        const wbsResumen = wbsSummaryForProyecto();
+        if(!wbsResumen) return `<p style="color:var(--greyl); font-size:13px;">Este proyecto todavía no tiene tareas capturadas en el WBS.</p>`;
+        return wbsResumen.porFase.map(f=>`
+          <div class="phase-progress-row">
+            <div class="label">${esc(f.fase)}</div>
+            <div class="bar"><div class="fill" style="width:${f.avance}%;"></div></div>
+            <div class="pct">${f.avance}%</div>
+          </div>
+        `).join('');
+      })()}
+    </div>
+
+    <div class="section" style="display:${k.checklistData.length?'block':'none'};">
+      <h2>Avance Checklist (Quality Gates)</h2>
       ${k.checklistData.map(f=>`
         <div class="phase-progress-row">
           <div class="label">${esc(f.fase)}</div>
