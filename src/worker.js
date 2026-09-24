@@ -386,6 +386,7 @@ const PAGINAS_REGISTRO = {
   'reporte-cuenta': 'Reporte de Cuenta (QBR)',
   'cartera': 'Cartera Vencida',
   'wbr-finanzas': 'WBR — Finanzas',
+  'wbr-ventas': 'WBR — Ventas & Pipeline',
   'wbr-ventas': 'WBR — Ventas y Pipeline',
   'auditoria': 'Auditoría',
   'agentes': 'Agentes',
@@ -1299,6 +1300,237 @@ ${JSON.stringify(checklist || [])}`;
       return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
     }
 
+    if (url.pathname === '/api/wbr-ventas' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_ventas_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-ventas' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_ventas_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+
+      await env.PM_KV.put('wbr_ventas_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-ventas-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista comercial senior presentando el Weekly Business Review de SEIDOR México a la dirección. Aquí está el corte de Ventas & Pipeline de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Y el corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados) que cubra: 1) qué cambió respecto a la semana anterior (deals que se movieron de etapa, se ganaron, se perdieron o cambiaron de trimestre, si hay corte anterior), 2) qué tan cerca están de la meta de ventas y pipeline del trimestre, 3) qué oportunidades necesitan atención esta semana (por fecha de cierre próxima o por llevar mucho tiempo estancadas), 4) una recomendación accionable. Sé específico con nombres de clientes y montos, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+
+    if (url.pathname === '/api/wbr-operaciones' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_operaciones_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-operaciones' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_operaciones_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+
+      await env.PM_KV.put('wbr_operaciones_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-operaciones-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista de operaciones senior presentando el Weekly Business Review de SEIDOR México a la dirección. Aquí está el detalle de proyectos por LOB (línea de negocio).\n\nCorte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/wbr-productos' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_productos_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-productos' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_productos_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+
+      await env.PM_KV.put('wbr_productos_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-productos-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista comercial senior presentando el Weekly Business Review de Target de Clientes por LOB de SEIDOR México a la dirección.\n\nCorte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/wbr-ccflex' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_ccflex_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-ccflex' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_ccflex_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+
+      await env.PM_KV.put('wbr_ccflex_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-ccflex-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista financiero senior presentando el Weekly Business Review del programa CCFlex (ventas y cobranza, C&S vs A&O) de SEIDOR México a la dirección. El "monto vendido" es el TCV, el resto son comisiones.\n\nCorte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/wbr-bx' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_bx_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-bx' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_bx_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+
+      await env.PM_KV.put('wbr_bx_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-bx-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista de Business Experience senior presentando el Weekly Business Review de renovaciones, CCFlex, oportunidades y riesgo de churn de SEIDOR México a la dirección.\n\nCorte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
     if (url.pathname === '/api/hubspot-diagnostico' && request.method === 'GET') {
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
       const cfgRolesHS = await getRolesConfig(env);
@@ -1362,26 +1594,6 @@ ${JSON.stringify(checklist || [])}`;
       return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
     }
 
-    if (url.pathname === '/api/wbr-ventas-insight' && request.method === 'POST') {
-      const token = await getDelfosToken(env);
-      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-      let body;
-      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
-      const { actual, anterior } = body;
-      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
-      const sessionId = crypto.randomUUID();
-
-      const prompt = `Eres un analista comercial senior presentando el Weekly Business Review de Ventas & Pipeline de SEIDOR México a la dirección. Aquí está el corte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Y el corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados) que cubra: 1) qué cambió respecto a la semana anterior en ventas y pipeline (si hay corte anterior), 2) qué tan cerca están de los objetivos del trimestre y del año, 3) qué oportunidades merecen atención (las más grandes, las que se movieron de fecha, las de mayor riesgo), 4) una recomendación accionable para la semana. Sé específico con números, no genérico.`;
-
-      try {
-        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
-        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
-      }
-    }
-
-    if (url.pathname === '/api/wbr-finanzas-insight' && request.method === 'POST') {
       const token = await getDelfosToken(env);
       if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
       let body;
