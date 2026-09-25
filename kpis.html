@@ -296,6 +296,16 @@ load();
 </script>
 <script>
 (function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
+</script>
+<script>
+(function(){
   document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
     btn.addEventListener('click', function(e){
       e.stopPropagation();

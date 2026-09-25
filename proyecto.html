@@ -48,6 +48,14 @@
   header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
   header p{margin:0 0 14px; color:var(--cyan-l); font-size:13px;}
   .proyecto-selector{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  .stepper-proyecto{display:flex; align-items:center; gap:6px; flex-wrap:wrap; background:#fff; border-bottom:1px solid var(--line); padding:10px 24px; font-size:12.5px;}
+  .stepper-proyecto .step{color:var(--grey); text-decoration:none; padding:5px 10px; border-radius:6px; font-weight:500;}
+  .stepper-proyecto .step:hover{background:var(--card); color:var(--blue);}
+  .stepper-proyecto .step.activo{background:var(--navy2); color:#fff; font-weight:700;}
+  .stepper-proyecto .step-arrow{color:var(--greyl); font-size:11px;}
+  .volver-bar{padding:8px 24px 0; font-size:12px;}
+  .volver-bar a{color:var(--blue); text-decoration:none; font-weight:600;}
+  .volver-bar a:hover{text-decoration:underline;}
   .proyecto-selector select{padding:9px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.08); color:#fff; font-family:inherit; font-size:13.5px; min-width:220px;}
   .proyecto-selector select option{color:#000;}
 
@@ -166,6 +174,19 @@
 </style>
 </head>
 <body>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  document.addEventListener('DOMContentLoaded', function(){
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+    overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">⏸️</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">Esta herramienta está en pausa</h2><p style="color:#8A97AC; font-size:13.5px; max-width:420px; margin:0;">Se está evaluando su integración con SEIDOR Proyectos. Sigue disponible en el sitio de pruebas mientras se resuelve.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+  });
+})();
+</script>
 <script>
 (async function(){
   const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
@@ -294,6 +315,9 @@
     <button class="btn btn-danger" id="deleteProyectoBtn" onclick="deleteProyecto()" style="display:none;">🗑 Borrar este proyecto</button>
   </div>
 </header>
+
+<div id="volverBar" class="volver-bar" style="display:none;"></div>
+<div id="stepperProyecto" class="stepper-proyecto" style="display:none;"></div>
 
 <main id="main"><div class="loading">Cargando…</div></main>
 
@@ -550,6 +574,41 @@ function render(){
   document.getElementById('exportBtn').style.display = currentProyecto ? 'inline-block' : 'none';
   document.getElementById('exportClienteBtn').style.display = currentProyecto ? 'inline-block' : 'none';
   document.getElementById('deleteProyectoBtn').style.display = currentProyecto ? 'inline-block' : 'none';
+const ETAPAS_PROYECTO = [
+  { id: 'proyecto', label: '📐 Dashboard de Proyecto', href: '/proyecto.html' },
+  { id: 'checklist', label: '✅ Checklist', href: '/checklist.html' },
+  { id: 'vista-general', label: '🧭 Vista General', href: '/vista-general.html' },
+];
+const NOMBRES_PAGINA_ORIGEN = { 'handover':'🤝 Handover', 'iniciar-proyecto':'🚀 Iniciar Proyecto', 'reporte-cuenta':'📊 Reporte de Cuenta', 'proyecto':'📐 Dashboard de Proyecto', 'checklist':'✅ Checklist', 'vista-general':'🧭 Vista General' };
+
+function renderStepperProyecto(paginaActualId, proyecto){
+  const stepper = document.getElementById('stepperProyecto');
+  if(!stepper) return;
+  if(!proyecto){ stepper.style.display = 'none'; return; }
+  stepper.style.display = 'flex';
+  stepper.innerHTML = ETAPAS_PROYECTO.map((e,i) => {
+    const activo = e.id === paginaActualId;
+    const link = `<a href="${e.href}?proyecto=${encodeURIComponent(proyecto)}" class="step ${activo?'activo':''}">${e.label}</a>`;
+    return i < ETAPAS_PROYECTO.length-1 ? link + '<span class="step-arrow">→</span>' : link;
+  }).join('');
+}
+
+function renderVolverBar(paginaActualId){
+  const bar = document.getElementById('volverBar');
+  if(!bar) return;
+  const ref = document.referrer;
+  if(!ref){ bar.style.display = 'none'; return; }
+  try{
+    const refUrl = new URL(ref);
+    if(refUrl.origin !== window.location.origin){ bar.style.display = 'none'; return; }
+    const m = refUrl.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+    const nombreOrigen = m ? NOMBRES_PAGINA_ORIGEN[m[1]] : null;
+    if(!nombreOrigen || m[1] === paginaActualId){ bar.style.display = 'none'; return; }
+    bar.style.display = 'block';
+    bar.innerHTML = `<a href="${esc(ref)}">← Volver a ${nombreOrigen}</a>`;
+  }catch(e){ bar.style.display = 'none'; }
+}
+
   const checklistLink = document.getElementById('checklistLink');
   if(currentProyecto){
     checklistLink.style.display = 'inline-block';
@@ -571,6 +630,8 @@ function render(){
   }else{
     handoverLink.style.display = 'none';
   }
+  renderStepperProyecto('proyecto', currentProyecto);
+  renderVolverBar('proyecto');
   if(!currentProyecto){
     main.innerHTML = '<div class="no-proyecto">Selecciona o crea un proyecto para ver su dashboard.</div>';
     return;
@@ -2112,6 +2173,16 @@ async function exportarPPT(soloCliente){
 
 
 loadData();
+</script>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
 </script>
 <script>
 (function(){

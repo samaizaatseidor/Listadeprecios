@@ -86,6 +86,19 @@
 </head>
 <body>
 <script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  document.addEventListener('DOMContentLoaded', function(){
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+    overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">⏸️</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">Esta herramienta está en pausa</h2><p style="color:#8A97AC; font-size:13.5px; max-width:420px; margin:0;">Se está evaluando su integración con SEIDOR Proyectos. Sigue disponible en el sitio de pruebas mientras se resuelve.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+  });
+})();
+</script>
+<script>
 (async function(){
   const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
   if(!m) return;
@@ -505,6 +518,16 @@ async function exportarPPT(){
 }
 
 loadAll();
+</script>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
 </script>
 <script>
 (function(){
