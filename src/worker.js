@@ -87,7 +87,7 @@ function splitConcatenatedJson(text) {
 }
 
 const DELFOS_PROJECT_ID = 'a5485014-2353-4526-996b-d583b5f4adaf';
-const DELFOS_MODEL_ID = 'gemini-3.1-pro-preview-GCP';
+const DELFOS_MODEL_ID = 'gemini-3-flash-preview-GCP'; // 3er y último modelo permitido sin probar — gpt-5.6-sol filtraba razonamiento, gpt-4.5-preview daba "No he podido procesar tu solicitud"
 const DELFOS_TENANT = 'seidorcorpo';
 
 async function getDelfosToken(env) {
@@ -315,7 +315,16 @@ SUGERENCIAS DE MEJORA
 
 Sé específico y, cuando puedas, cita o referencia partes concretas del documento.`;
 
-const PROSPECTO_PROMPT = `Eres un asistente de investigación comercial para el equipo de ventas (AEs y BDRs) de SEIDOR, consultora partner de SAP en México. Investiga la empresa "{{EMPRESA}}" usando fuentes públicas disponibles y responde en español, usando exactamente este formato con encabezados en mayúsculas:
+const PROSPECTO_PROMPT = `Eres un asistente de investigación comercial para el equipo de ventas (AEs y BDRs) de SEIDOR, consultora partner de SAP en México. Investiga la empresa "{{EMPRESA}}" usando fuentes públicas y responde en español, usando exactamente este formato con encabezados en mayúsculas.
+
+PRIORIDAD DE FUENTES — búscalas en este orden y prefiere siempre la fuente más confiable disponible para cada dato:
+Nivel 1 (máxima confianza): sitio web oficial de la empresa, su página de LinkedIn y las de sus directivos.
+Nivel 2 (registros de gobierno): SAT (para verificar razón social/RFC), DENUE del INEGI, CompraNet o la Plataforma Nacional de Transparencia (si la empresa trabaja con gobierno), SIGER, y si cotiza en bolsa o es subsidiaria de una empresa pública, sus reportes 10-K o trimestrales (BMV o SEC EDGAR según corresponda).
+Nivel 3 (cámaras y asociaciones del sector, solo si aplica al giro de la empresa): CANACINTRA, AMIA, CANIETI, CAINTRA — sus directorios de afiliados y reportes anuales.
+Nivel 4 (prensa de negocios, para nombramientos recientes, voceros oficiales o entrevistas): El Economista, El Financiero, Expansión, Google News.
+Evita blogs sin firma, directorios genéricos sin verificación, o páginas que agregan datos de terceros sin fuente propia.
+
+Para cada dato importante que reportes (RFC, nombres de directivos, cifras, nombramientos recientes), indica entre paréntesis de qué fuente salió, por ejemplo: "(fuente: LinkedIn)" o "(fuente: El Economista, ago 2026)". Si un dato viene de una fuente de nivel 3 o 4, o si no pudiste verificarlo en más de una fuente, dilo explícitamente ("dato sin confirmar en fuente oficial").
 
 NOMBRE COMERCIAL
 - 
@@ -324,13 +333,13 @@ RAZÓN SOCIAL
 - (si no la encuentras con certeza, indícalo)
 
 RFC
-- (si no lo encuentras con certeza, indícalo — nunca inventes un RFC)
+- (si no lo encuentras con certeza, indícalo — nunca inventes un RFC; idealmente confirmado contra el SAT)
 
 INDUSTRIA
 - 
 
 PRINCIPALES CONTACTOS O PERSONAS CLAVE
-- (nombres y cargos de personas relevantes para una venta B2B: dirección general, TI, finanzas, operaciones, compras; si no encuentras nombres específicos, indica qué roles buscar)
+- (nombres y cargos de personas relevantes para una venta B2B: dirección general, TI, finanzas, operaciones, compras; cita la fuente de cada nombre — LinkedIn es la más confiable aquí; si no encuentras nombres específicos, indica qué roles buscar)
 
 QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP
 - (qué soluciones SAP — S/4HANA, SuccessFactors, BTP, Analytics Cloud, etc. — encajarían mejor con esta empresa dado su tamaño, industria y posible madurez tecnológica, y cómo posicionarlo en una llamada o correo en frío)
@@ -339,9 +348,107 @@ VALUE DRIVERS PARA ENGANCHAR
 - (los 3-5 argumentos de valor más relevantes para esta empresa específica: eficiencia operativa, cumplimiento fiscal, escalabilidad, reducción de costos, etc., adaptados a su contexto)
 
 OTROS DATOS ÚTILES PARA LA LLAMADA
-- (cualquier cosa adicional relevante: noticias recientes, expansión, cambios de liderazgo, retos del sector, competidores, tamaño aproximado de la empresa, presencia geográfica, etc.)
+- (cualquier cosa adicional relevante: noticias recientes, expansión, cambios de liderazgo, retos del sector, competidores, tamaño aproximado de la empresa, presencia geográfica, etc. — con su fuente)
+
+FUENTES CONSULTADAS
+- (lista las fuentes concretas que sí usaste para esta investigación, con el nivel de confianza de cada una: ej. "LinkedIn (empresa) — Nivel 1", "El Financiero, jul 2026 — Nivel 4". Si no encontraste nada útil en alguna categoría de fuente, no la incluyas aquí.)
 
 Si no encuentras información confiable sobre algún punto, dilo explícitamente en vez de inventar datos.`;
+
+/* ======================= ROLES Y PERMISOS ======================= */
+// Correo con acceso de Admin garantizado siempre, sin importar lo que diga la
+// configuración guardada — así una mala edición en /roles.html nunca puede
+// dejar a todo el equipo (incluido este correo) sin poder entrar a arreglarlo.
+const BOOTSTRAP_ADMIN = 'samuel.aiza@seidor.com';
+
+const PAGINAS_REGISTRO = {
+  'precios': 'Lista de Precios',
+  'ficha': 'Ficha del Cliente',
+  'prospecto': 'Investigación de Prospecto',
+  'alta': 'Generador de Formato de Alta',
+  'metricas-sap': 'Explicador de Métricas SAP',
+  'kyc': 'Formularios KYC / Diligencia Debida',
+  'contactos-sap': 'Contactos SAP',
+  'pipeline': 'CRM PresalesMX',
+  'documentos': 'Documentos de Apoyo',
+  'kpis': 'Tablero de Control',
+  'sow-review': 'Revisor de SOW y Estimaciones',
+  'handover': 'Handover Comercial → Operaciones',
+  'estimador': 'Estimador de Esfuerzo',
+  'tecnicas-presentacion': 'Técnicas de Presentación',
+  'dias-habiles': 'Días Hábiles México',
+  'minutas': 'Generador de Minutas / Status',
+  'correo-cliente': 'Redactor de Correos a Cliente',
+  'proyecto': 'Dashboard de Proyecto',
+  'checklist': 'Checklist de Quality Gates y Cutover',
+  'iniciar-proyecto': 'Iniciar Proyecto desde SOW/DDA',
+  'vista-general': 'Vista General del Proyecto',
+  'reporte-cuenta': 'Reporte de Cuenta (QBR)',
+  'cartera': 'Cartera Vencida',
+  'wbr-finanzas': 'WBR — Finanzas',
+  'wbr-ventas': 'WBR — Ventas & Pipeline',
+  'wbr-operaciones': 'WBR — Operaciones',
+  'wbr-productos': 'WBR — Target de Clientes',
+  'wbr-bx': 'WBR — Business Experience',
+  'wbr-ccflex': 'WBR — CCFlex',
+  'wbr-cta': 'WBR — Call to Action',
+  'wbr-anuncios': 'WBR — Anuncios',
+  'auditoria': 'Auditoría',
+  'agentes': 'Agentes',
+};
+
+async function getRolesConfig(env){
+  const raw = await env.PM_KV.get('roles_config');
+  const cfg = raw ? JSON.parse(raw) : {};
+  return {
+    admins: Array.isArray(cfg.admins) ? cfg.admins : [],
+    roles: cfg.roles && typeof cfg.roles === 'object' ? cfg.roles : {},
+    asignaciones: cfg.asignaciones && typeof cfg.asignaciones === 'object' ? cfg.asignaciones : {},
+  };
+}
+
+function esAdmin(email, cfg){
+  if (!email) return false;
+  const lista = new Set([BOOTSTRAP_ADMIN, ...(cfg.admins||[])].map(e=>e.toLowerCase()));
+  return lista.has(email.toLowerCase());
+}
+
+// 'completo' > 'lectura' > 'ninguno'. Sin rol asignado = 'completo' (compatibilidad
+// hacia atrás: nadie pierde acceso el día que se activa este sistema, hasta que
+// un Admin lo asigne explícitamente a un rol).
+async function getPermiso(env, email, pageId){
+  const cfg = await getRolesConfig(env);
+  if (esAdmin(email, cfg)) return 'completo';
+  const rolNombre = cfg.asignaciones[(email||'').toLowerCase()];
+  if (!rolNombre) return 'completo';
+  const rol = cfg.roles[rolNombre];
+  if (!rol) return 'completo';
+  const nivel = rol[pageId];
+  return nivel || 'completo';
+}
+
+function pageIdFromReferer(request){
+  const ref = request.headers.get('Referer') || '';
+  try {
+    const path = new URL(ref).pathname;
+    const m = path.match(/\/([a-z0-9-]+)\.html$/i);
+    return m ? m[1].toLowerCase() : null;
+  } catch(e){ return null; }
+}
+
+const NIVEL_RANGO = { 'ninguno': 0, 'lectura': 1, 'completo': 2 };
+
+// Llamar al inicio de cualquier endpoint que guarde o borre datos.
+// Devuelve null si el usuario puede continuar, o una Response 403 lista para regresar.
+async function requierePermiso(request, env, nivelMinimo){
+  const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+  const pageId = pageIdFromReferer(request);
+  if (!pageId) return null; // si no se puede determinar la página de origen, no se bloquea (evita falsos bloqueos)
+  const permiso = await getPermiso(env, email, pageId);
+  if (NIVEL_RANGO[permiso] >= NIVEL_RANGO[nivelMinimo]) return null;
+  return new Response(JSON.stringify({ ok:false, error: 'No tienes permiso de edición para esta página. Pide a un Administrador que revise tu rol en Roles y Permisos.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+}
+/* ==================== FIN ROLES Y PERMISOS ==================== */
 
 export default {
   async fetch(request, env, ctx) {
@@ -587,6 +694,7 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
     }
 
     if (url.pathname === '/api/proyecto-dashboard' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try {
         body = await request.json();
@@ -682,6 +790,7 @@ ${JSON.stringify(entries)}`;
     }
 
     if (url.pathname === '/api/checklist' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try {
         body = await request.json();
@@ -978,6 +1087,7 @@ ${texto && String(texto).trim() ? 'MÉTRICAS A EXPLICAR (una por línea o separa
     }
 
     if (url.pathname === '/api/wbs' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try {
         body = await request.json();
@@ -1037,6 +1147,7 @@ ${JSON.stringify(presupuestoHoras || [])}`;
     }
 
     if (url.pathname === '/api/consumo-horas' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try {
         body = await request.json();
@@ -1058,6 +1169,7 @@ ${JSON.stringify(presupuestoHoras || [])}`;
     }
 
     if (url.pathname === '/api/linea-base' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try {
         body = await request.json();
@@ -1140,11 +1252,338 @@ ${JSON.stringify(checklist || [])}`;
     }
 
     if (url.pathname === '/api/contactos-sap' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
-      const personas = Array.isArray(body.personas) ? body.personas : [];
+      let personas = Array.isArray(body.personas) ? body.personas : [];
+
+      // Solo un Admin puede borrar contactos. Si quien guarda no lo es, cualquier
+      // contacto que existía antes y ya no viene en la lista nueva se restaura,
+      // sin bloquear el resto de los cambios (ediciones/altas sí se guardan).
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const cfgRoles = await getRolesConfig(env);
+      let restaurados = [];
+      if (!esAdmin(email, cfgRoles)) {
+        const rawAnterior = await env.PM_KV.get('contactos_sap');
+        const anteriores = rawAnterior ? (JSON.parse(rawAnterior).personas || []) : [];
+        const idsNuevos = new Set(personas.map(p => p.id));
+        const borrados = anteriores.filter(p => !idsNuevos.has(p.id));
+        restaurados = borrados.map(p => p.nombre);
+        personas = personas.concat(borrados);
+      }
+
       await env.PM_KV.put('contactos_sap', JSON.stringify({ personas }));
-      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ ok: true, restaurados }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-finanzas' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_finanzas_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-finanzas' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_finanzas_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+
+      // Si ya existe un snapshot con la misma fecha de revisión, se reemplaza (re-subieron el mismo corte)
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52); // ~1 año de historial semanal
+
+      await env.PM_KV.put('wbr_finanzas_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-finanzas-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista financiero senior presentando el Weekly Business Review de Finanzas de SEIDOR México a la dirección. Aquí está el corte de facturación, cobranza y aging de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Y el corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados) que compare el corte actual contra el anterior, destaque riesgos de cartera vencida, y dé una recomendación accionable. Sé específico con números, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/wbr-ventas' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_ventas_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-ventas' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_ventas_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+
+      await env.PM_KV.put('wbr_ventas_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-ventas-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista comercial senior presentando el Weekly Business Review de SEIDOR México a la dirección. Aquí está el corte de Ventas & Pipeline de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Y el corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados) que cubra: 1) qué cambió respecto a la semana anterior (deals que se movieron de etapa, se ganaron, se perdieron o cambiaron de trimestre, si hay corte anterior), 2) qué tan cerca están de la meta de ventas y pipeline del trimestre, 3) qué oportunidades necesitan atención esta semana (por fecha de cierre próxima o por llevar mucho tiempo estancadas), 4) una recomendación accionable. Sé específico con nombres de clientes y montos, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+
+    if (url.pathname === '/api/wbr-operaciones' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_operaciones_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-operaciones' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_operaciones_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+
+      await env.PM_KV.put('wbr_operaciones_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-operaciones-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista de operaciones senior presentando el Weekly Business Review de SEIDOR México a la dirección. Aquí está el detalle de proyectos por LOB (línea de negocio).\n\nCorte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/wbr-productos' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_productos_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-productos' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_productos_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+
+      await env.PM_KV.put('wbr_productos_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-productos-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista comercial senior presentando el Weekly Business Review de Target de Clientes por LOB de SEIDOR México a la dirección.\n\nCorte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/wbr-ccflex' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_ccflex_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-ccflex' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_ccflex_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+
+      await env.PM_KV.put('wbr_ccflex_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-ccflex-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista financiero senior presentando el Weekly Business Review del programa CCFlex (ventas y cobranza, C&S vs A&O) de SEIDOR México a la dirección. El "monto vendido" es el TCV, el resto son comisiones.\n\nCorte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/wbr-bx' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_bx_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-bx' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+      const raw = await env.PM_KV.get('wbr_bx_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
+      historial.push(snapshot);
+      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+
+      await env.PM_KV.put('wbr_bx_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-bx-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const { actual, anterior } = body;
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+
+      const prompt = `Eres un analista de Business Experience senior presentando el Weekly Business Review de renovaciones, CCFlex, oportunidades y riesgo de churn de SEIDOR México a la dirección.\n\nCorte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres, no genérico.`;
+
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (url.pathname === '/api/mi-permiso' && request.method === 'GET') {
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const pageId = url.searchParams.get('page');
+      if (!pageId) return new Response(JSON.stringify({ ok:false, error:'Falta el parámetro page' }), { status:400, headers:{'Content-Type':'application/json'} });
+      const cfg = await getRolesConfig(env);
+      const permiso = await getPermiso(env, email, pageId);
+      return new Response(JSON.stringify({ ok:true, permiso, esAdmin: esAdmin(email, cfg), email }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/roles-config' && request.method === 'GET') {
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const cfg = await getRolesConfig(env);
+      if (!esAdmin(email, cfg)) return new Response(JSON.stringify({ ok:false, error:'Solo un Administrador puede ver esto.' }), { status:403, headers:{'Content-Type':'application/json'} });
+      return new Response(JSON.stringify({ ok:true, ...cfg, paginas: PAGINAS_REGISTRO, bootstrapAdmin: BOOTSTRAP_ADMIN }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/roles-config' && request.method === 'POST') {
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const cfgActual = await getRolesConfig(env);
+      if (!esAdmin(email, cfgActual)) return new Response(JSON.stringify({ ok:false, error:'Solo un Administrador puede guardar esto.' }), { status:403, headers:{'Content-Type':'application/json'} });
+      let body;
+      try { body = await request.json(); } catch(e){ return new Response('JSON inválido', { status:400 }); }
+      const nuevaCfg = {
+        admins: Array.isArray(body.admins) ? body.admins : [],
+        roles: body.roles && typeof body.roles === 'object' ? body.roles : {},
+        asignaciones: body.asignaciones && typeof body.asignaciones === 'object' ? body.asignaciones : {},
+      };
+      await env.PM_KV.put('roles_config', JSON.stringify(nuevaCfg));
+      return new Response(JSON.stringify({ ok:true }), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname === '/api/whoami') {
@@ -1183,6 +1622,7 @@ ${JSON.stringify(checklist || [])}`;
     }
 
     if (url.pathname === '/api/documentos' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       const form = await request.formData();
       const type = form.get('type');
       const section = form.get('section') || 'Sin clasificar';
@@ -1224,6 +1664,12 @@ ${JSON.stringify(checklist || [])}`;
     }
 
     if (url.pathname === '/api/documentos' && request.method === 'DELETE') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      const emailBorra = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const cfgRolesDocs = await getRolesConfig(env);
+      if (!esAdmin(emailBorra, cfgRolesDocs)) {
+        return new Response(JSON.stringify({ ok:false, error:'Solo un Administrador puede borrar documentos. Pídele a uno que lo haga, o revisa Roles y Permisos.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+      }
       const id = url.searchParams.get('id');
       if (!id) return new Response('Falta el id', { status: 400 });
       const raw = await env.PM_KV.get('documentos');
@@ -1265,6 +1711,7 @@ ${JSON.stringify(checklist || [])}`;
       }
 
       if (request.method === 'POST') {
+        { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
         let projects;
         try {
           projects = await request.json();

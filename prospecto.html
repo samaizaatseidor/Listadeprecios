@@ -70,12 +70,65 @@
 </style>
 </head>
 <body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    window.ES_ADMIN = !!d.esAdmin;
+    function _desbloquearCamposAdmin(){
+      document.querySelectorAll('.admin-only-edit').forEach(function(el){
+        if(d.esAdmin){
+          el.removeAttribute('readonly');
+          var hint = el.parentElement.querySelector('.admin-lock-hint');
+          if(hint) hint.style.display = 'none';
+        }
+      });
+    }
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', _desbloquearCamposAdmin);
+    }else{
+      _desbloquearCamposAdmin();
+    }
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      window.SOLO_LECTURA = true;
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){ /* si falla el chequeo, no bloqueamos: evita dejar a todos fuera si el endpoint falla */ }
+})();
+</script>
 
 <nav class="topnav">
   <div class="topnav-wrap">
     <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
     <div class="topnav-links">
       <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-productos.html">Target de Clientes</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+        </div>
+      </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn active">Comercial <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
@@ -116,9 +169,16 @@
         </div>
       </div>
       <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
         </div>
       </div>
     </div>
@@ -139,8 +199,12 @@
       <input type="text" id="companyInput" placeholder="Ej. Grupo Bimbo" oninput="document.getElementById('goBtn').disabled = !this.value.trim()">
     </div>
 
-    <label style="display:block; font-size:12px; color:var(--grey); margin:16px 0 6px; font-weight:500;">Instrucciones para la investigación (puedes agregarle algo más)</label>
-    <textarea id="promptBox" rows="14" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; color:var(--ink); resize:vertical;"></textarea>
+    <label style="display:block; font-size:12px; color:var(--grey); margin:16px 0 6px; font-weight:500;">Instrucciones para la investigación</label>
+    <p class="admin-lock-hint" style="font-size:11.5px; color:var(--greyl); margin:0 0 6px;">🔒 Solo un Administrador puede editar esto — pídele a uno que lo ajuste en Roles y Permisos si hace falta.</p>
+    <textarea id="promptBox" class="admin-only-edit" readonly rows="14" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; color:var(--ink); resize:vertical; background:#F4F8FC;"></textarea>
+
+    <label style="display:block; font-size:12px; color:var(--grey); margin:14px 0 6px; font-weight:500;">Instrucciones adicionales (opcional, cualquiera puede agregar)</label>
+    <textarea id="extraInstructions" rows="3" placeholder="Ej. Enfócate también en riesgos de integración con el sistema legado del cliente" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; color:var(--ink); resize:vertical;"></textarea>
 
     <div style="margin-top:14px;">
       <button class="btn btn-primary" id="goBtn" onclick="investigar()" disabled>Investigar</button>
@@ -157,7 +221,16 @@
 </main>
 
 <script>
-const DEFAULT_PROMPT = `Eres un asistente de investigación comercial para el equipo de ventas (AEs y BDRs) de SEIDOR, consultora partner de SAP en México. Investiga la empresa "{{EMPRESA}}" usando fuentes públicas disponibles y responde en español, usando exactamente este formato con encabezados en mayúsculas:
+const DEFAULT_PROMPT = `Eres un asistente de investigación comercial para el equipo de ventas (AEs y BDRs) de SEIDOR, consultora partner de SAP en México. Investiga la empresa "{{EMPRESA}}" usando fuentes públicas y responde en español, usando exactamente este formato con encabezados en mayúsculas.
+
+PRIORIDAD DE FUENTES — búscalas en este orden y prefiere siempre la fuente más confiable disponible para cada dato:
+Nivel 1 (máxima confianza): sitio web oficial de la empresa, su página de LinkedIn y las de sus directivos.
+Nivel 2 (registros de gobierno): SAT (para verificar razón social/RFC), DENUE del INEGI, CompraNet o la Plataforma Nacional de Transparencia (si la empresa trabaja con gobierno), SIGER, y si cotiza en bolsa o es subsidiaria de una empresa pública, sus reportes 10-K o trimestrales (BMV o SEC EDGAR según corresponda).
+Nivel 3 (cámaras y asociaciones del sector, solo si aplica al giro de la empresa): CANACINTRA, AMIA, CANIETI, CAINTRA — sus directorios de afiliados y reportes anuales.
+Nivel 4 (prensa de negocios, para nombramientos recientes, voceros oficiales o entrevistas): El Economista, El Financiero, Expansión, Google News.
+Evita blogs sin firma, directorios genéricos sin verificación, o páginas que agregan datos de terceros sin fuente propia.
+
+Para cada dato importante que reportes (RFC, nombres de directivos, cifras, nombramientos recientes), indica entre paréntesis de qué fuente salió, por ejemplo: "(fuente: LinkedIn)" o "(fuente: El Economista, ago 2026)". Si un dato viene de una fuente de nivel 3 o 4, o si no pudiste verificarlo en más de una fuente, dilo explícitamente ("dato sin confirmar en fuente oficial").
 
 NOMBRE COMERCIAL
 - 
@@ -166,13 +239,13 @@ RAZÓN SOCIAL
 - (si no la encuentras con certeza, indícalo)
 
 RFC
-- (si no lo encuentras con certeza, indícalo — nunca inventes un RFC)
+- (si no lo encuentras con certeza, indícalo — nunca inventes un RFC; idealmente confirmado contra el SAT)
 
 INDUSTRIA
 - 
 
 PRINCIPALES CONTACTOS O PERSONAS CLAVE
-- (nombres y cargos de personas relevantes para una venta B2B: dirección general, TI, finanzas, operaciones, compras; si no encuentras nombres específicos, indica qué roles buscar)
+- (nombres y cargos de personas relevantes para una venta B2B: dirección general, TI, finanzas, operaciones, compras; cita la fuente de cada nombre — LinkedIn es la más confiable aquí; si no encuentras nombres específicos, indica qué roles buscar)
 
 QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP
 - (qué soluciones SAP — S/4HANA, SuccessFactors, BTP, Analytics Cloud, etc. — encajarían mejor con esta empresa dado su tamaño, industria y posible madurez tecnológica, y cómo posicionarlo en una llamada o correo en frío)
@@ -181,21 +254,30 @@ VALUE DRIVERS PARA ENGANCHAR
 - (los 3-5 argumentos de valor más relevantes para esta empresa específica: eficiencia operativa, cumplimiento fiscal, escalabilidad, reducción de costos, etc., adaptados a su contexto)
 
 OTROS DATOS ÚTILES PARA LA LLAMADA
-- (cualquier cosa adicional relevante: noticias recientes, expansión, cambios de liderazgo, retos del sector, competidores, tamaño aproximado de la empresa, presencia geográfica, etc.)
+- (cualquier cosa adicional relevante: noticias recientes, expansión, cambios de liderazgo, retos del sector, competidores, tamaño aproximado de la empresa, presencia geográfica, etc. — con su fuente)
+
+FUENTES CONSULTADAS
+- (lista las fuentes concretas que sí usaste para esta investigación, con el nivel de confianza de cada una: ej. "LinkedIn (empresa) — Nivel 1", "El Financiero, jul 2026 — Nivel 4". Si no encontraste nada útil en alguna categoría de fuente, no la incluyas aquí.)
 
 Si no encuentras información confiable sobre algún punto, dilo explícitamente en vez de inventar datos.`;
 
 document.getElementById('promptBox').value = DEFAULT_PROMPT;
+
+function promptCompleto(){
+  const base = document.getElementById('promptBox').value;
+  const extra = document.getElementById('extraInstructions').value.trim();
+  return extra ? `${base}\n\nInstrucciones adicionales del usuario para esta investigación:\n${extra}` : base;
+}
 let lastFeedback = '';
 let lastCompany = '';
 
-function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
 function renderFeedback(text){
   const lines = text.split('\n').map(l=>l.trim()).filter(l=>l);
   let html = '';
   let inList = false;
-  const knownHeaders = ['NOMBRE COMERCIAL','RAZÓN SOCIAL','RFC','INDUSTRIA','PRINCIPALES CONTACTOS O PERSONAS CLAVE','QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP','VALUE DRIVERS PARA ENGANCHAR','OTROS DATOS ÚTILES PARA LA LLAMADA'];
+  const knownHeaders = ['NOMBRE COMERCIAL','RAZÓN SOCIAL','RFC','INDUSTRIA','PRINCIPALES CONTACTOS O PERSONAS CLAVE','QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP','VALUE DRIVERS PARA ENGANCHAR','OTROS DATOS ÚTILES PARA LA LLAMADA','FUENTES CONSULTADAS'];
   lines.forEach(line=>{
     const isHeader = knownHeaders.some(h => line.toUpperCase().startsWith(h));
     if(isHeader){
@@ -228,7 +310,7 @@ async function investigar(){
   try{
     const r = await fetch('/api/prospecto', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ companyName: company, prompt: document.getElementById('promptBox').value })
+      body: JSON.stringify({ companyName: company, prompt: promptCompleto() })
     });
     if(!r.body){ throw new Error('sin stream'); }
     const reader = r.body.getReader();
@@ -270,7 +352,7 @@ async function investigar(){
   btn.disabled = false;
 }
 
-const PDF_KNOWN_HEADERS = ['NOMBRE COMERCIAL','RAZÓN SOCIAL','RFC','INDUSTRIA','PRINCIPALES CONTACTOS O PERSONAS CLAVE','QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP','VALUE DRIVERS PARA ENGANCHAR','OTROS DATOS ÚTILES PARA LA LLAMADA'];
+const PDF_KNOWN_HEADERS = ['NOMBRE COMERCIAL','RAZÓN SOCIAL','RFC','INDUSTRIA','PRINCIPALES CONTACTOS O PERSONAS CLAVE','QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP','VALUE DRIVERS PARA ENGANCHAR','OTROS DATOS ÚTILES PARA LA LLAMADA','FUENTES CONSULTADAS'];
 
 async function exportFeedbackPDF(title, subtitle, feedbackText, filename){
   if(!window.jspdf){
@@ -341,6 +423,16 @@ function downloadPDF(){
   if(!lastFeedback) return;
   exportFeedbackPDF('Investigación de Prospecto', lastCompany, lastFeedback, `Prospecto - ${lastCompany}.pdf`);
 }
+</script>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
 </script>
 <script>
 (function(){

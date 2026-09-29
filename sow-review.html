@@ -72,12 +72,65 @@
 </style>
 </head>
 <body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    window.ES_ADMIN = !!d.esAdmin;
+    function _desbloquearCamposAdmin(){
+      document.querySelectorAll('.admin-only-edit').forEach(function(el){
+        if(d.esAdmin){
+          el.removeAttribute('readonly');
+          var hint = el.parentElement.querySelector('.admin-lock-hint');
+          if(hint) hint.style.display = 'none';
+        }
+      });
+    }
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', _desbloquearCamposAdmin);
+    }else{
+      _desbloquearCamposAdmin();
+    }
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      window.SOLO_LECTURA = true;
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){ /* si falla el chequeo, no bloqueamos: evita dejar a todos fuera si el endpoint falla */ }
+})();
+</script>
 
 <nav class="topnav">
   <div class="topnav-wrap">
     <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
     <div class="topnav-links">
       <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-productos.html">Target de Clientes</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+        </div>
+      </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
@@ -118,9 +171,16 @@
         </div>
       </div>
       <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
         </div>
       </div>
     </div>
@@ -142,8 +202,12 @@
       <input type="file" id="fileInput" accept=".doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleFile(this.files[0])">
     </label>
     <div id="filename" class="filename"></div>
-    <label style="display:block; font-size:12px; color:var(--grey); margin:16px 0 6px; font-weight:500;">Instrucciones para el análisis (puedes agregarle algo más)</label>
-    <textarea id="promptBox" rows="14" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; color:var(--ink); resize:vertical;"></textarea>
+    <label style="display:block; font-size:12px; color:var(--grey); margin:16px 0 6px; font-weight:500;">Instrucciones para el análisis</label>
+    <p class="admin-lock-hint" style="font-size:11.5px; color:var(--greyl); margin:0 0 6px;">🔒 Solo un Administrador puede editar esto — pídele a uno que lo ajuste en Roles y Permisos si hace falta.</p>
+    <textarea id="promptBox" class="admin-only-edit" readonly rows="14" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; color:var(--ink); resize:vertical; background:#F4F8FC;"></textarea>
+
+    <label style="display:block; font-size:12px; color:var(--grey); margin:14px 0 6px; font-weight:500;">Instrucciones adicionales (opcional, cualquiera puede agregar)</label>
+    <textarea id="extraInstructions" rows="3" placeholder="Ej. Enfócate también en riesgos de integración con el sistema legado del cliente" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; color:var(--ink); resize:vertical;"></textarea>
 
     <div style="margin-top:14px;">
       <button class="btn btn-primary" id="analyzeBtn" onclick="analyze()" disabled>Analizar documento</button>
@@ -183,6 +247,12 @@ SUGERENCIAS DE MEJORA
 Sé específico y, cuando puedas, cita o referencia partes concretas del documento.`;
 
 document.getElementById('promptBox').value = DEFAULT_PROMPT;
+
+function promptCompleto(){
+  const base = document.getElementById('promptBox').value;
+  const extra = document.getElementById('extraInstructions').value.trim();
+  return extra ? `${base}\n\nInstrucciones adicionales del usuario para este análisis:\n${extra}` : base;
+}
 let selectedFile = null;
 let lastFeedback = '';
 
@@ -265,7 +335,7 @@ function handleFile(file){
   document.getElementById('analyzeBtn').disabled = !file;
 }
 
-function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
 function renderFeedback(text){
   // Convierte el texto de Delfos (encabezados en mayúsculas + líneas con "-") en HTML simple
@@ -302,7 +372,7 @@ async function analyze(){
 
   const form = new FormData();
   form.append('file', selectedFile);
-  form.append('prompt', document.getElementById('promptBox').value);
+  form.append('prompt', promptCompleto());
 
   try{
     const r = await fetch('/api/sow-review', { method:'POST', body: form });
@@ -345,6 +415,16 @@ async function analyze(){
   }
   btn.disabled = false;
 }
+</script>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
 </script>
 <script>
 (function(){

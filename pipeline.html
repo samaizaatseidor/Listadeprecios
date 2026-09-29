@@ -3,11 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#0A1226">
-<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
 <title>CRM PresalesMX · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -68,6 +63,14 @@
   .risktag{font-size:10.5px; padding:2px 7px; border-radius:20px;}
   .risktag.alto{background:#FBE7E7; color:#B23A3A;}
   .risktag.medio{background:#FBF1DE; color:#8A6414;}
+  .scoretag{font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:20px; margin-left:5px;}
+  .scoretag.bajo{background:#FBE7E7; color:#B23A3A;}
+  .scoretag.medio{background:#FBF1DE; color:#8A6414;}
+  .scoretag.alto{background:#E7F7EE; color:#1F8A4C;}
+  .meddpicc-summary{display:inline-block; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px; margin-bottom:10px;}
+  .meddpicc-summary.bajo{background:#FBE7E7; color:#B23A3A;}
+  .meddpicc-summary.medio{background:#FBF1DE; color:#8A6414;}
+  .meddpicc-summary.alto{background:#E7F7EE; color:#1F8A4C;}
   .gonogo-dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle;}
   .gonogo-dot.go{background:#2E9E5B;}
   .gonogo-dot.nogo{background:#C24545;}
@@ -104,7 +107,7 @@
   .loading{color:#fff; padding:40px; text-align:center;}
 
   .topnav{background:#fff; border-bottom:1px solid var(--line);}
-  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
   .topnav-logo img{height:26px; display:block;}
     .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
   .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
@@ -140,8 +143,6 @@
           <a href="/prospecto.html">Investigación de Prospecto</a>
           <a href="/alta.html">Generador de Formato de Alta</a>
           <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
-          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
-          <a href="/contactos-sap.html">Contactos SAP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -154,7 +155,6 @@
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
-          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -349,7 +349,10 @@ function render(){
           ${isStale ? `<div class="stale-badge">⚠️ ${Math.floor(daysSinceMove)} días sin movimiento</div>` : ''}
         </div>
         <div class="foot">
-          ${p.risk ? `<span class="risktag ${p.risk.toLowerCase()}">Riesgo ${esc(p.risk)}</span>` : '<span></span>'}
+          <span>
+            ${p.risk ? `<span class="risktag ${p.risk.toLowerCase()}">Riesgo ${esc(p.risk)}</span>` : ''}
+            ${typeof p.meddpiccScore === 'number' ? `<span class="scoretag ${p.meddpiccScore>=71?'alto':(p.meddpiccScore>=41?'medio':'bajo')}">MEDDPICC ${p.meddpiccScore}%</span>` : ''}
+          </span>
           <span>
             ${p.ficha ? `<a class="sp-link" href="#" onclick="event.stopPropagation(); viewFicha('${p.id}')">📋 Ficha</a>` : ''}
             ${p.sharepoint ? `<a class="sp-link" href="${esc(p.sharepoint)}" target="_blank" onclick="event.stopPropagation()">📁 Documentos</a>` : ''}
@@ -593,6 +596,17 @@ function viewFicha(id){
   currentId = id;
   let body = `<p class="sheet-sub">Recibida ${f.fecha ? new Date(f.fecha).toLocaleString('es-MX') : ''}${f.gerenteComercial ? ' · Gerente comercial: '+esc(f.gerenteComercial) : ''}</p>`;
 
+  const meddpiccScore = typeof p.meddpiccScore === 'number' ? p.meddpiccScore : f.meddpiccScore;
+  const meddpiccEntries = p.meddpicc || f.meddpicc;
+  if(typeof meddpiccScore === 'number'){
+    const cls = meddpiccScore>=71?'alto':(meddpiccScore>=41?'medio':'bajo');
+    body += `<div class="meddpicc-summary ${cls}">Score MEDDPICC: ${meddpiccScore}%</div>`;
+  }
+  if(meddpiccEntries && meddpiccEntries.length){
+    const ratingLabel = ['Sin info','Débil','Parcial','Fuerte'];
+    body += block('Calificación MEDDPICC', meddpiccEntries.map(m=>[`${esc(m.label)} — ${ratingLabel[m.rating] || m.rating}`, m.notas || '—']));
+  }
+
   function block(title, entries){
     if(!entries || !entries.length) return '';
     return `<details class="accordion" style="border:1px solid var(--line); border-radius:10px; margin-bottom:10px;">
@@ -643,13 +657,6 @@ loadFromServer();
     document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
   });
 })();
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('/sw.js').catch(function(){});
-  });
-}
 </script>
 </body>
 </html>
