@@ -413,18 +413,20 @@ function esAdmin(email, cfg){
   return lista.has(email.toLowerCase());
 }
 
-// 'completo' > 'lectura' > 'ninguno'. Sin rol asignado = 'completo' (compatibilidad
-// hacia atrás: nadie pierde acceso el día que se activa este sistema, hasta que
-// un Admin lo asigne explícitamente a un rol).
+// 'completo' > 'lectura' > 'ninguno'. Acceso por defecto denegado: sin rol
+// asignado, con un rol que no menciona esta página, o sin correo autenticado,
+// el resultado es 'ninguno'. Solo el Admin (BOOTSTRAP_ADMIN o cfg.admins) y los
+// roles que explícitamente otorgan 'lectura' o 'completo' a una página pueden verla.
 async function getPermiso(env, email, pageId){
   const cfg = await getRolesConfig(env);
   if (esAdmin(email, cfg)) return 'completo';
+  if (!email) return 'ninguno';
   const rolNombre = cfg.asignaciones[(email||'').toLowerCase()];
-  if (!rolNombre) return 'completo';
+  if (!rolNombre) return 'ninguno';
   const rol = cfg.roles[rolNombre];
-  if (!rol) return 'completo';
+  if (!rol) return 'ninguno';
   const nivel = rol[pageId];
-  return nivel || 'completo';
+  return nivel || 'ninguno';
 }
 
 function pageIdFromReferer(request){
