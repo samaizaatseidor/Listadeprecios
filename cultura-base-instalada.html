@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>Cultura y Talento — Base Instalada BX · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow:0 3px 9px rgba(159,179,204,0.35);
+    --t1:#F28C28; --t2:#2E9D68; --t3:#AAB4C3; --nt:#4B5563; }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
+  header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px; max-width:640px;}
+  .hd-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
+  input[type=file]{position:absolute; left:-9999px;}
+  .hbtn{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; display:inline-block; font-family:inherit;}
+  .hbtn:hover, .hbtn:focus-visible{background:rgba(255,255,255,0.22);}
+  .hbtn:focus-within{outline:2px solid var(--cyan-l);}
+  .switch{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#fff; cursor:pointer; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.25); border-radius:8px; padding:8px 12px;}
+  .switch input{width:18px; height:18px; accent-color:var(--cyan);}
+  .layout{display:grid; grid-template-columns:280px minmax(0,1fr); gap:20px; max-width:1600px; margin:0 auto; padding:22px 24px 60px; align-items:start;}
+  .layout > *{min-width:0;}
+  aside.filters{background:#fff; border-radius:14px; padding:18px; box-shadow:var(--shadow); position:sticky; top:12px; max-height:calc(100vh - 24px); overflow:auto;}
+  aside.filters h2{font-size:14px; margin:0 0 12px; color:var(--navy2);}
+  .fgrid{display:grid; grid-template-columns:1fr; gap:10px;}
+  .fld label{display:block; font-size:10.5px; font-weight:700; color:var(--grey); text-transform:uppercase; letter-spacing:.3px; margin-bottom:3px;}
+  .fld select, .fld input[type=search]{width:100%; font-family:inherit; font-size:13px; padding:7px 8px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink);}
+  .fld select:focus-visible, .fld input:focus-visible, button:focus-visible, a:focus-visible{outline:2px solid var(--blue); outline-offset:1px;}
+  .btn{background:var(--blue); color:#fff; border:none; border-radius:8px; padding:8px 14px; font-size:12.5px; font-weight:600; cursor:pointer; font-family:inherit;}
+  .btn.sec{background:#fff; color:var(--blue); border:1px solid var(--blue);}
+  .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
+  .section h2, .section h3{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .sub{font-size:12px; color:var(--grey); margin:0 0 12px;}
+  .kpi-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:8px;}
+  .kpi-card{background:#fff; border-radius:14px; padding:16px 18px; box-shadow:var(--shadow); border-top:4px solid var(--blue);}
+  .kpi-card.t1{border-top-color:var(--t1);} .kpi-card.t2{border-top-color:var(--t2);} .kpi-card.t3{border-top-color:var(--t3);} .kpi-card.nt{border-top-color:var(--nt);}
+  .kpi-card .label{font-size:11px; color:var(--grey); font-weight:600; line-height:1.3;}
+  .kpi-card .value{font-size:24px; font-weight:800; color:var(--navy2); margin-top:6px;}
+  .kpi-card .meta{font-size:11px; color:var(--greyl); margin-top:2px;}
+  .nota{font-size:11.5px; color:var(--greyl); margin:0 0 18px 4px;}
+  .charts{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-bottom:18px;}
+  .charts .section{margin-bottom:0;}
+  .chart-box{position:relative; height:300px;}
+  .chart-box.tall{height:340px;}
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10px; text-transform:uppercase; white-space:nowrap;}
+  td{padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top;}
+  table.pil th, table.pil td{text-align:center;} table.pil th:first-child, table.pil td:first-child{text-align:left;}
+  .tbl-wrap{overflow:auto; max-height:640px; border:1px solid var(--line); border-radius:10px;}
+  .tbl-wrap table{min-width:2200px;}
+  .tbl-wrap th{position:sticky; top:0; background:#F4F8FC; z-index:2; cursor:pointer; user-select:none;}
+  .tbl-wrap th:hover{color:var(--blue);}
+  .tbl-wrap th .ar{font-size:9px; margin-left:3px;}
+  .tbl-wrap td.cm{max-width:280px; min-width:200px; cursor:pointer;}
+  .tbl-wrap td.cm.open{white-space:normal;} .tbl-wrap td.cm:not(.open) span{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:280px;}
+  .badge{display:inline-block; font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap; border:1px solid transparent;}
+  .b-t1{background:#FDEBD6; color:#8A4A08; border-color:var(--t1);} .b-t2{background:#DDF3E8; color:#17603F; border-color:var(--t2);} .b-t3{background:#EEF1F5; color:#4B5563; border-color:var(--t3);} .b-nt{background:#4B5563; color:#fff;} .b-sc{background:#fff; color:var(--grey); border-color:var(--line);}
+  .b-p1{background:#DCE8F8; color:#123E7E; border-color:var(--blue);} .b-p2{background:#DDF4FB; color:#0E5E78; border-color:var(--cyan);} .b-ps{background:#EEF1F5; color:#4B5563; border-color:var(--greyl);} .b-np{background:#fff; color:var(--greyl); border-color:var(--line);}
+  .pager{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:12px; font-size:12.5px; color:var(--grey);}
+  .pager select{font-family:inherit; padding:5px; border:1px solid var(--line); border-radius:6px;}
+  .pager button{border:1px solid var(--line); background:#fff; border-radius:6px; padding:5px 10px; cursor:pointer; font-family:inherit;}
+  .pager button:disabled{opacity:.4; cursor:default;}
+  details.acc{background:#fff; border-radius:14px; box-shadow:var(--shadow); padding:14px 22px; margin-bottom:18px;}
+  details.acc summary{cursor:pointer; font-weight:700; font-size:15px; color:var(--navy2);}
+  .dq-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px;}
+  .dq{background:var(--card); border-radius:10px; padding:10px 12px; font-size:12.5px;} .dq b{display:block; font-size:18px; color:var(--navy2);} .dq.warn b{color:var(--red);}
+  .alert{border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:12px;}
+  .alert.err{background:#FBEAEA; color:#8B2C2C; border:1px solid #E7B9B9;} .alert.warn{background:#FBF1DE; color:#8A6414; border:1px solid #E9D9AE;} .alert.ok{background:#E7F7EE; color:#1F6B41; border:1px solid #B9E1C9;}
+  .empty{text-align:center; padding:70px 20px; color:var(--greyl);} .empty h2{color:var(--navy2);}
+  .priv{font-size:11.5px; color:var(--greyl); margin-top:10px;}
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0);}
+  @media (max-width:1100px){ .layout{grid-template-columns:minmax(0,1fr);} aside.filters{position:static; max-height:none;} .fgrid{grid-template-columns:repeat(2,minmax(0,1fr));} .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));} .charts{grid-template-columns:minmax(0,1fr);} }
+  @media (max-width:600px){ .fgrid, .kpi-grid, .dq-grid{grid-template-columns:minmax(0,1fr);} .layout{padding:14px 12px 40px;} header{padding:20px 14px;} }
+</style>
+</head>
+<body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    window.__permiso = d.permiso;
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías tenerlo, pide a un Administrador que revise tu rol en Roles y Permisos.</p>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){}
+})();
+</script>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-productos.html">Target de Clientes</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Cultura y Talento <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cultura-base-instalada.html" class="active">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div>
+    <h1>📊 Base Instalada — Resumen Ejecutivo Business Experience</h1>
+    <p>Vista de priorización de cuentas Tier 1, Tier 2 y Tier 3. Las cuentas clasificadas como “No tocar” se excluyen por defecto.</p>
+    <div id="fechaBadge"></div>
+  </div>
+  <div class="hd-actions">
+    <label class="hbtn" for="fileInput">⬆️ Cargar Excel</label>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" aria-label="Seleccionar archivo Excel de Base Instalada">
+    <button type="button" class="hbtn" id="btnReset" aria-label="Restablecer filtros">Restablecer filtros</button>
+    <button type="button" class="hbtn" id="btnCsv" aria-label="Exportar vista filtrada a CSV">Exportar CSV</button>
+    <label class="switch"><input type="checkbox" id="swNoTocar" aria-label="Mostrar cuentas No tocar"> Mostrar cuentas No tocar</label>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="filters" aria-label="Filtros">
+    <h2>Filtros</h2>
+    <div class="fgrid" id="filters"></div>
+  </aside>
+  <main>
+    <div id="alerts" role="status"></div>
+    <div id="empty" class="section empty"><h2>Todavía no hay una base cargada</h2><p>Selecciona “Base Instalada Full - Ranking Cuentas.xlsx” (hoja “Hoja1”, y opcionalmente “Pilotos”) para construir el tablero.</p></div>
+    <div id="dash" style="display:none">
+      <div class="kpi-grid" id="kpis"></div>
+      <p class="nota">Los resultados se calculan directamente desde el Excel cargado. No se utilizan cifras escritas manualmente. Total base instalada, No tocar y Cobertura respetan todos los filtros excepto Tier y el interruptor “Mostrar cuentas No tocar”.</p>
+
+      <div class="section">
+        <h2>Pilotos por Tier</h2>
+        <p class="sub">Se recalcula con los filtros activos.</p>
+        <div style="overflow:auto"><table class="pil" id="pilTable"></table></div>
+      </div>
+
+      <div class="charts">
+        <div class="section"><h3>Distribución por Tier</h3><p class="sub">Clic en un segmento para filtrar.</p><div class="chart-box" role="img" id="ariaTier"><canvas id="cTier"></canvas></div></div>
+        <div class="section"><h3>Cuentas por territorio</h3><p class="sub">Top 10 estados; el resto en “Otros”.</p><div class="chart-box" role="img" id="ariaTerr"><canvas id="cTerr"></canvas></div></div>
+        <div class="section"><h3>Cuentas por industria</h3><p class="sub">MX Industria, segmentado por Tier.</p><div class="chart-box" role="img" id="ariaInd"><canvas id="cInd"></canvas></div></div>
+        <div class="section"><h3>Pilotos por Tier</h3><p class="sub">Piloto 1, Piloto 2 y Piloto sin fase.</p><div class="chart-box" role="img" id="ariaPil"><canvas id="cPil"></canvas></div></div>
+      </div>
+      <div class="section"><h3>Cuentas por KAM</h3><p class="sub">Segmentado por Tier, orden descendente por total.</p><div class="chart-box tall" role="img" id="ariaKam"><canvas id="cKam"></canvas></div></div>
+
+      <div class="section">
+        <h2>Tabla operativa</h2>
+        <p class="sub" id="tblInfo"></p>
+        <div class="tbl-wrap"><table id="tbl" aria-label="Tabla operativa de cuentas"></table></div>
+        <div class="pager">
+          <div>Mostrar <select id="pgSize" aria-label="Registros por página"><option>25</option><option>50</option><option>100</option></select> registros</div>
+          <div id="pgInfo"></div>
+          <div><button type="button" id="pgPrev" aria-label="Página anterior">‹ Anterior</button> <button type="button" id="pgNext" aria-label="Página siguiente">Siguiente ›</button></div>
+        </div>
+      </div>
+
+      <details class="acc" id="dqBox"><summary>Calidad de datos</summary><div id="dq"></div></details>
+      <div class="section"><h3>📅 Historial de cargas</h3><div id="hist"></div></div>
+      <p class="priv">Este tablero guarda la última carga en el portal (acceso restringido por Roles y Permisos) para que el equipo la consulte sin volver a subir el Excel.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+'use strict';
+/* ===== Constantes ===== */
+var TIERS = ['Tier 1','Tier 2','Tier 3','No tocar'];
+var TIER_COLOR = {'Tier 1':'#F28C28','Tier 2':'#2E9D68','Tier 3':'#AAB4C3','No tocar':'#4B5563','Sin clasificación':'#D8E2EE'};
+var TIER_CLASS = {'Tier 1':'b-t1','Tier 2':'b-t2','Tier 3':'b-t3','No tocar':'b-nt','Sin clasificación':'b-sc'};
+var TIER_ICON = {'Tier 1':'▲ ','Tier 2':'● ','Tier 3':'■ ','No tocar':'⊘ ','Sin clasificación':'? '};
+var PILOTS = ['Piloto 1','Piloto 2','Piloto sin fase'];
+var PIL_CLASS = {'Piloto 1':'b-p1','Piloto 2':'b-p2','Piloto sin fase':'b-ps','No es piloto':'b-np'};
+var PIL_COLOR = {'Piloto 1':'#1E5BB8','Piloto 2':'#33B4DD','Piloto sin fase':'#8A97AC'};
+var COLS = ['ID_ Hubspot','Cuenta','LOB','Ejecutivo BX','Comentarios BX','KAM','Sector','MX Industria','Subindustria','Estado','Ciudad','Empleados','Facturación','Comentarios KAM','Score Relación','Score Oportunidad','Cuadrante','Prioridad (orden)','Palabras clave detectadas','Ranking Global','Tier','Piloto'];
+var FILTERS = [
+  {id:'estado', label:'Estado', get:function(r){return [r.estadoN];}},
+  {id:'ciudad', label:'Ciudad', get:function(r){return [r.ciudadN];}},
+  {id:'industria', label:'MX Industria', get:function(r){return [r.industria];}},
+  {id:'sector', label:'Sector', get:function(r){return [r.sector];}},
+  {id:'subindustria', label:'Subindustria', get:function(r){return [r.subindustria];}},
+  {id:'kam', label:'KAM', get:function(r){return [r.kamN];}},
+  {id:'bx', label:'Ejecutivo BX', get:function(r){return [r.bxN];}},
+  {id:'tier', label:'Tier', get:function(r){return [r.tierN];}},
+  {id:'piloto', label:'Piloto', get:function(r){return [r.pilotoN];}},
+  {id:'lob', label:'LOB', get:function(r){return r.lobs;}},
+  {id:'cuadrante', label:'Cuadrante', get:function(r){return [r.cuadrante];}}
+];
+var TBL_COLS = [
+  {k:'ranking',t:'Ranking Global'},{k:'cuenta',t:'Cuenta'},{k:'tierN',t:'Tier Normalizado'},{k:'pilotoN',t:'Piloto Normalizado'},{k:'kamN',t:'KAM'},{k:'bxN',t:'Ejecutivo BX'},
+  {k:'estadoN',t:'Estado Normalizado'},{k:'ciudadN',t:'Ciudad Normalizada'},{k:'industria',t:'MX Industria'},{k:'subindustria',t:'Subindustria'},{k:'lob',t:'LOB'},
+  {k:'empleados',t:'Empleados'},{k:'facturacion',t:'Facturación'},{k:'scoreRel',t:'Score Relación'},{k:'scoreOpp',t:'Score Oportunidad'},{k:'cuadrante',t:'Cuadrante'},
+  {k:'comKam',t:'Comentarios KAM'},{k:'comBx',t:'Comentarios BX'},{k:'id',t:'ID HubSpot'}
+];
+/* ===== Estado ===== */
+var S = { raw:null, rows:[], meta:null, warnings:[], sel:{}, search:'', showNT:false, sortKey:null, sortDir:1, page:0, pageSize:25, charts:{}, historial:[], permiso:null };
+
+/* ===== Utilidades ===== */
+function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function normaliseText(s){ return (s==null?'':String(s)).replace(/[\r\n]+/g,' ').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }
+function cleanStr(s){ return (s==null?'':String(s)).replace(/[\r\n]+/g,' ').replace(/\s+/g,' ').trim(); }
+function parseNumber(v){ if(v==null||v==='') return null; var n = typeof v==='number' ? v : parseFloat(String(v).replace(/[^0-9.\-]/g,'')); return isFinite(n) ? n : null; }
+function fmtDate(iso){ try{ return new Date(iso).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'}); }catch(e){ return iso||''; } }
+
+function normaliseHeaders(headerRow){
+  var canon = {}; COLS.forEach(function(c){ canon[normaliseText(c).replace(/[_\s]+/g,'')] = c; });
+  return headerRow.map(function(h){ var k = normaliseText(h).replace(/[_\s]+/g,''); return canon[k] || cleanStr(h); });
+}
+function findSheet(wb, name){
+  var n = normaliseText(name);
+  for(var i=0;i<wb.SheetNames.length;i++){ if(normaliseText(wb.SheetNames[i])===n) return wb.Sheets[wb.SheetNames[i]]; }
+  return null;
+}
+function sheetToObjects(ws){
+  var aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
+  if(!aoa.length) return {headers:[], rows:[]};
+  var headers = normaliseHeaders(aoa[0]);
+  var rows = [];
+  for(var i=1;i<aoa.length;i++){
+    var o = {}, any = false;
+    headers.forEach(function(h,j){ if(h && aoa[i][j]!=null && aoa[i][j]!==''){ o[h]=aoa[i][j]; any=true; } });
+    if(any) rows.push(o);
+  }
+  return {headers:headers, rows:rows};
+}
+function normaliseTier(v){
+  var t = normaliseText(v);
+  if(t.indexOf('tier 1')>=0) return 'Tier 1';
+  if(t.indexOf('tier 2')>=0) return 'Tier 2';
+  if(t.indexOf('tier 3')>=0) return 'Tier 3';
+  if(t==='no tocar') return 'No tocar';
+  return 'Sin clasificación';
+}
+function normalisePilot(v){
+  var t = normaliseText(v);
+  if(!t || t==='x') return 'No es piloto';
+  if(t.indexOf('piloto 1')>=0 || t.indexOf('fase 1')>=0) return 'Piloto 1';
+  if(t.indexOf('piloto 2')>=0 || t.indexOf('fase 2')>=0) return 'Piloto 2';
+  if(t==='piloto') return 'Piloto sin fase';
+  return 'No es piloto';
+}
+function normaliseLocation(v, prefer){
+  var s = cleanStr(v).replace(/\*/g,'').trim();
+  if(!s) return 'Sin información';
+  var k = normaliseText(s);
+  if(k==='cdmx' || k==='ciudad de mexico' || k==='distrito federal') return 'Ciudad de México';
+  if(k==='queretaro') return 'Querétaro';
+  if(k==='cancun') return 'Cancún';
+  return (prefer && prefer[k]) || s;
+}
+function buildLocationPreference(values){
+  // Para variantes sin acento/mayúsculas de un mismo lugar: conserva la más completa (con acentos, luego la más frecuente)
+  var byKey = {};
+  values.forEach(function(v){ var s = cleanStr(v).replace(/\*/g,'').trim(); if(!s) return; var k = normaliseText(s); (byKey[k]=byKey[k]||{})[s]=(byKey[k][s]||0)+1; });
+  var pref = {};
+  Object.keys(byKey).forEach(function(k){
+    var best = Object.keys(byKey[k]).sort(function(a,b){ var aa=/[^\x00-\x7f]/.test(a)?1:0, bb=/[^\x00-\x7f]/.test(b)?1:0; return (bb-aa) || (byKey[k][b]-byKey[k][a]); })[0];
+    pref[k]=best;
+  });
+  return pref;
+}
+function keyOf(r){ var id = cleanStr(r['ID_ Hubspot']); return id ? 'id:'+id : 'n:'+normaliseText(r['Cuenta']); }
+
+function mergePilotSheet(rows, pilotRows){
+  var map = {}, byName = {};
+  (pilotRows||[]).forEach(function(p){ var id = cleanStr(p['ID_ Hubspot']); if(id) map['id:'+id]=p; var nm = normaliseText(p['Cuenta']); if(nm) byName['n:'+nm]=p; });
+  var used = {};
+  rows.forEach(function(r){
+    var p = map['id:'+r.id] || byName['n:'+normaliseText(r.cuenta)];
+    if(p){ r.pilotoRaw = cleanStr(p['Piloto']); r.pilotoN = normalisePilot(p['Piloto']); r.pilotoFuente='Pilotos'; r.pilotoTier = normaliseTier(p['Tier']); used[keyOf(p)] = 1; }
+  });
+  var huerfanos = (pilotRows||[]).filter(function(p){ return !used[keyOf(p)]; }).length;
+  return huerfanos;
+}
+
+function buildRows(raw){
+  var locPrefE = buildLocationPreference(raw.hoja1.map(function(r){return r['Estado'];}));
+  var locPrefC = buildLocationPreference(raw.hoja1.map(function(r){return r['Ciudad'];}));
+  var rows = raw.hoja1.map(function(r,i){
+    var cuenta = cleanStr(r['Cuenta']), id = cleanStr(r['ID_ Hubspot']);
+    var lobRaw = cleanStr(r['LOB']);
+    var lobs = lobRaw ? lobRaw.split(';').map(cleanStr).filter(Boolean) : ['Sin información'];
+    return {
+      i:i, cuenta:cuenta, id:id, valido:!!(cuenta||id),
+      lob: lobRaw, lobs:lobs, bxN: cleanStr(r['Ejecutivo BX'])||'Sin información', bxRaw: cleanStr(r['Ejecutivo BX']),
+      kamN: cleanStr(r['KAM'])||'Sin KAM', kamRaw: cleanStr(r['KAM']),
+      sector: cleanStr(r['Sector'])||'Sin información', industria: cleanStr(r['MX Industria'])||'Sin información', industriaRaw: cleanStr(r['MX Industria']),
+      subindustria: cleanStr(r['Subindustria'])||'Sin información',
+      estadoN: normaliseLocation(r['Estado'], locPrefE), ciudadN: normaliseLocation(r['Ciudad'], locPrefC), estadoRaw: cleanStr(r['Estado']),
+      empleados: cleanStr(r['Empleados']), facturacion: cleanStr(r['Facturación']),
+      comKam: cleanStr(r['Comentarios KAM']), comBx: cleanStr(r['Comentarios BX']),
+      scoreRel: parseNumber(r['Score Relación']), scoreOpp: parseNumber(r['Score Oportunidad']),
+      cuadrante: cleanStr(r['Cuadrante'])||'Sin información',
+      ranking: parseNumber(r['Ranking Global']),
+      tierRaw: cleanStr(r['Tier']), tierN: normaliseTier(r['Tier']),
+      pilotoRaw: cleanStr(r['Piloto']), pilotoN: normalisePilot(r['Piloto']), pilotoFuente:'Hoja1', pilotoTier:null
+    };
+  }).filter(function(r){ return r.valido; });
+  var huerf = mergePilotSheet(rows, raw.pilotos);
+  return {rows:rows, pilotosHuerfanos:huerf};
+}
+
+/* ===== Lectura del Excel ===== */
+function readWorkbook(file){
+  return new Promise(function(resolve, reject){
+    if(!file) return reject(new Error('No se seleccionó ningún archivo.'));
+    if(!/\.(xlsx|xls)$/i.test(file.name)) return reject(new Error('El archivo debe ser .xlsx o .xls.'));
+    var fr = new FileReader();
+    fr.onerror = function(){ reject(new Error('No se pudo leer el archivo.')); };
+    fr.onload = function(){
+      try{
+        if(typeof XLSX==='undefined') throw new Error('No se pudo cargar la librería de Excel. Revisa tu conexión y recarga la página.');
+        var wb = XLSX.read(fr.result, {type:'array'});
+        var warnings = [];
+        var ws = findSheet(wb,'Hoja1');
+        if(!ws){ warnings.push('No existe la hoja “Hoja1”; se usó la primera hoja del archivo.'); ws = wb.Sheets[wb.SheetNames[0]]; }
+        var h = sheetToObjects(ws);
+        if(h.headers.indexOf('Cuenta')<0) warnings.push('No existe la columna “Cuenta”.');
+        if(h.headers.indexOf('Tier')<0) warnings.push('No existe la columna “Tier”: todos los registros quedarán “Sin clasificación”.');
+        COLS.forEach(function(c){ if(c!=='Cuenta' && c!=='Tier' && h.headers.indexOf(c)<0) warnings.push('No existe la columna “'+c+'”; se mostrará vacía.'); });
+        var pw = findSheet(wb,'Pilotos'), pil = [];
+        if(pw){ pil = sheetToObjects(pw).rows; } else warnings.push('No existe la hoja “Pilotos”; los pilotos se toman solo de Hoja1.');
+        resolve({hoja1:h.rows, pilotos:pil, warnings:warnings});
+      }catch(e){ reject(e); }
+    };
+    fr.readAsArrayBuffer(file);
+  });
+}
+
+/* ===== Filtros ===== */
+function matches(r, skipId){
+  if(!isBaseVisible(r, skipId==='__ignoreNT')) return false;
+  for(var i=0;i<FILTERS.length;i++){
+    var f = FILTERS[i]; if(f.id===skipId) continue;
+    var v = S.sel[f.id]; if(!v) continue;
+    if(f.get(r).indexOf(v)<0) return false;
+  }
+  if(S.search){ var q = normaliseText(S.search); if(normaliseText(r.cuenta).indexOf(q)<0 && normaliseText(r.id).indexOf(q)<0) return false; }
+  return true;
+}
+function isBaseVisible(r, ignoreNT){
+  if(r.tierN==='Sin clasificación') return false;
+  if(r.tierN==='No tocar' && !S.showNT && !ignoreNT) return false;
+  return true;
+}
+function getFilteredRows(){ return S.rows.filter(function(r){ return matches(r); }); }
+function scopeRows(){ // todos los filtros salvo Tier; incluye No tocar y Sin clasificación
+  return S.rows.filter(function(r){
+    for(var i=0;i<FILTERS.length;i++){ var f=FILTERS[i]; if(f.id==='tier') continue; var v=S.sel[f.id]; if(v && f.get(r).indexOf(v)<0) return false; }
+    if(S.search){ var q=normaliseText(S.search); if(normaliseText(r.cuenta).indexOf(q)<0 && normaliseText(r.id).indexOf(q)<0) return false; }
+    return true;
+  });
+}
+function populateFilters(){
+  var host = document.getElementById('filters'); var h = '';
+  h += '<div class="fld"><label for="fSearch">Buscar cuenta o ID HubSpot</label><input type="search" id="fSearch" aria-label="Buscar cuenta o ID HubSpot" placeholder="Nombre o ID…"></div>';
+  FILTERS.forEach(function(f){ h += '<div class="fld"><label for="f_'+f.id+'">'+escapeHtml(f.label)+'</label><select id="f_'+f.id+'"></select></div>'; });
+  host.innerHTML = h;
+  document.getElementById('fSearch').addEventListener('input', function(e){ S.search = e.target.value; S.page=0; refresh(); });
+  FILTERS.forEach(function(f){ document.getElementById('f_'+f.id).addEventListener('change', function(e){ S.sel[f.id]=e.target.value||''; S.page=0; refresh(); }); });
+}
+function updateDependentFilters(){
+  FILTERS.forEach(function(f){
+    var sel = document.getElementById('f_'+f.id); if(!sel) return;
+    var counts = {};
+    S.rows.forEach(function(r){ if(!matches(r, f.id)) return; f.get(r).forEach(function(v){ counts[v]=(counts[v]||0)+1; }); });
+    var vals = Object.keys(counts);
+    if(f.id==='tier') vals = TIERS.filter(function(t){ return counts[t]; });
+    else if(f.id==='piloto') vals = PILOTS.concat(['No es piloto']).filter(function(t){ return counts[t]; });
+    else vals.sort(function(a,b){ return a.localeCompare(b,'es'); });
+    if(S.sel[f.id] && vals.indexOf(S.sel[f.id])<0){ vals.push(S.sel[f.id]); }
+    var html = '<option value="">Todos</option>' + vals.map(function(v){ return '<option value="'+escapeHtml(v)+'"'+(S.sel[f.id]===v?' selected':'')+'>'+escapeHtml(v)+'</option>'; }).join('');
+    sel.innerHTML = html;
+  });
+}
+function resetFilters(){ S.sel={}; S.search=''; S.page=0; var s=document.getElementById('fSearch'); if(s) s.value=''; refresh(); }
+
+/* ===== KPIs ===== */
+function calculateKPIs(){
+  var scope = scopeRows().filter(function(r){ return r.tierN!=='Sin clasificación'; }); // "válidos" con Tier reconocible
+  var totalBase = scopeRows().length;
+  var noTocar = scope.filter(function(r){ return r.tierN==='No tocar'; }).length;
+  var view = getFilteredRows();
+  var cnt = {'Tier 1':0,'Tier 2':0,'Tier 3':0,'No tocar':0};
+  view.forEach(function(r){ cnt[r.tierN]++; });
+  var prioridad = cnt['Tier 1']+cnt['Tier 2']+cnt['Tier 3'];
+  var pilotos = view.filter(function(r){ return PILOTS.indexOf(r.pilotoN)>=0; }).length;
+  return {totalBase:totalBase, prioridad:prioridad, t1:cnt['Tier 1'], t2:cnt['Tier 2'], t3:cnt['Tier 3'], noTocar:noTocar, cobertura: totalBase? prioridad/totalBase*100 : 0, pilotos:pilotos};
+}
+function updateKPIs(){
+  var k = calculateKPIs();
+  var cards = [
+    ['Total base instalada', k.totalBase, 'Registros válidos, incluye No tocar',''],
+    ['Prioridad Business Experience', k.prioridad, 'Tier 1 + Tier 2 + Tier 3',''],
+    ['Tier 1', k.t1, 'Contactar desde BX','t1'],
+    ['Tier 2', k.t2, 'Satisfechos con SEIDOR','t2'],
+    ['Tier 3', k.t3, 'Sin información','t3'],
+    ['No tocar', k.noTocar, S.showNT?'Incluidas en la vista':'Excluidas de la vista','nt'],
+    ['Cobertura BX', k.cobertura.toFixed(1)+'%', 'Prioridad BX / Total base',''],
+    ['Total pilotos', k.pilotos, 'Piloto 1, Piloto 2 y sin fase','']
+  ];
+  document.getElementById('kpis').innerHTML = cards.map(function(c){ return '<div class="kpi-card '+c[3]+'"><div class="label">'+escapeHtml(c[0])+'</div><div class="value">'+escapeHtml(c[1])+'</div><div class="meta">'+escapeHtml(c[2])+'</div></div>'; }).join('');
+}
+function updatePilotMatrix(){
+  var view = getFilteredRows();
+  var h = '<thead><tr><th scope="col">Tier</th>'+PILOTS.map(function(p){return '<th scope="col">'+p+'</th>';}).join('')+'<th scope="col">Total pilotos</th></tr></thead><tbody>';
+  var tot = {}; PILOTS.forEach(function(p){tot[p]=0;});
+  ['Tier 1','Tier 2','Tier 3'].forEach(function(t){
+    var tr = 0;
+    h += '<tr><th scope="row" style="text-transform:none; font-size:12.5px; color:var(--ink);"><span class="badge '+TIER_CLASS[t]+'">'+TIER_ICON[t]+t+'</span></th>';
+    PILOTS.forEach(function(p){ var n = view.filter(function(r){return r.tierN===t && r.pilotoN===p;}).length; tr+=n; tot[p]+=n; h += '<td>'+n+'</td>'; });
+    h += '<td><b>'+tr+'</b></td></tr>';
+  });
+  var g = PILOTS.reduce(function(a,p){return a+tot[p];},0);
+  h += '<tr><th scope="row" style="text-transform:none; font-size:12.5px; color:var(--ink);">Total</th>'+PILOTS.map(function(p){return '<td><b>'+tot[p]+'</b></td>';}).join('')+'<td><b>'+g+'</b></td></tr></tbody>';
+  document.getElementById('pilTable').innerHTML = h;
+}
+
+/* ===== Gráficos ===== */
+function killChart(id){ if(S.charts[id]){ S.charts[id].destroy(); delete S.charts[id]; } }
+function baseOpts(extra){
+  var o = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, font:{family:'Poppins', size:11}, color:'#16223A' } } } };
+  return Object.assign(o, extra||{});
+}
+function setAria(id, txt){ var e=document.getElementById(id); if(e) e.setAttribute('aria-label', txt); }
+function topN(map, n){
+  var arr = Object.keys(map).map(function(k){return {k:k, v:map[k]};}).sort(function(a,b){return b.v-a.v;});
+  return arr;
+}
+function groupByTier(view, keyFn, limit, sortAll){
+  var g = {}; view.forEach(function(r){ var k = keyFn(r); g[k]=g[k]||{'Tier 1':0,'Tier 2':0,'Tier 3':0,'No tocar':0,total:0}; g[k][r.tierN]++; g[k].total++; });
+  var keys = Object.keys(g).sort(function(a,b){ return g[b].total-g[a].total || a.localeCompare(b,'es'); });
+  if(limit && keys.length>limit){
+    var top = keys.slice(0,limit), rest = keys.slice(limit), otros = {'Tier 1':0,'Tier 2':0,'Tier 3':0,'No tocar':0,total:0};
+    rest.forEach(function(k){ TIERS.forEach(function(t){otros[t]+=g[k][t];}); otros.total+=g[k].total; });
+    g['Otros']=otros; keys = top.concat(['Otros']);
+  }
+  return {keys:keys, g:g};
+}
+function tierDatasets(gr){
+  return TIERS.filter(function(t){ return t!=='No tocar' || S.showNT; }).map(function(t){
+    return { label:t, data:gr.keys.map(function(k){return gr.g[k][t];}), backgroundColor:TIER_COLOR[t], borderColor:'#fff', borderWidth:1, borderRadius:3 };
+  });
+}
+function renderTierChart(view){
+  killChart('tier');
+  var ts = TIERS.filter(function(t){ return t!=='No tocar' || S.showNT; });
+  var data = ts.map(function(t){ return view.filter(function(r){return r.tierN===t;}).length; });
+  setAria('ariaTier','Distribución por Tier: '+ts.map(function(t,i){return t+' '+data[i];}).join(', '));
+  S.charts.tier = new Chart(document.getElementById('cTier'), { type:'doughnut',
+    data:{ labels:ts, datasets:[{ data:data, backgroundColor:ts.map(function(t){return TIER_COLOR[t];}), borderColor:'#fff', borderWidth:2 }] },
+    options: baseOpts({ cutout:'58%', onClick:function(e,els){ if(els.length){ setFilter('tier', ts[els[0].index]); } },
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:12, font:{family:'Poppins',size:11}, generateLabels:function(ch){ var d=ch.data; return d.labels.map(function(l,i){ return {text:l+' ('+d.datasets[0].data[i]+')', fillStyle:d.datasets[0].backgroundColor[i], strokeStyle:'#fff', index:i}; }); }}}, tooltip:{callbacks:{label:function(c){ var tot=c.dataset.data.reduce(function(a,b){return a+b;},0); return ' '+c.label+': '+c.parsed+' ('+(tot?(c.parsed/tot*100).toFixed(1):0)+'%)'; }}} } }) });
+}
+function renderTerritoryChart(view){
+  killChart('terr');
+  var m = {}; view.forEach(function(r){ m[r.estadoN]=(m[r.estadoN]||0)+1; });
+  var arr = topN(m), top = arr.slice(0,10), rest = arr.slice(10).reduce(function(a,x){return a+x.v;},0);
+  var labels = top.map(function(x){return x.k;}), data = top.map(function(x){return x.v;});
+  if(rest){ labels.push('Otros'); data.push(rest); }
+  setAria('ariaTerr','Cuentas por territorio: '+labels.map(function(l,i){return l+' '+data[i];}).join(', '));
+  S.charts.terr = new Chart(document.getElementById('cTerr'), { type:'bar',
+    data:{ labels:labels, datasets:[{ label:'Cuentas', data:data, backgroundColor:'#1E5BB8', borderRadius:4 }] },
+    options: baseOpts({ indexAxis:'y', onClick:function(e,els){ if(els.length && labels[els[0].index]!=='Otros') setFilter('estado', labels[els[0].index]); },
+      plugins:{legend:{display:false}}, scales:{ x:{beginAtZero:true, ticks:{precision:0}, grid:{color:'#EEF2F7'}}, y:{grid:{display:false}} } }) });
+}
+function stackedOpts(filterId, gr){
+  return baseOpts({ indexAxis: filterId==='kam'?'y':'x',
+    onClick:function(e,els){ if(!els.length) return; var k = gr.keys[els[0].index]; var t = TIERS.filter(function(x){ return x!=='No tocar'||S.showNT; })[els[0].datasetIndex];
+      if(k!=='Otros'){ S.sel[filterId]=k; } if(t) S.sel.tier=t; S.page=0; refresh(); },
+    scales:{ x:{stacked:true, beginAtZero:true, ticks:{precision:0}, grid:{color:'#EEF2F7'}}, y:{stacked:true, grid:{display:false}} } });
+}
+function renderIndustryChart(view){
+  killChart('ind');
+  var gr = groupByTier(view, function(r){return r.industria;}, 10);
+  setAria('ariaInd','Cuentas por industria y Tier: '+gr.keys.map(function(k){return k+' '+gr.g[k].total;}).join(', '));
+  var o = stackedOpts('industria', gr); o.indexAxis='y';
+  S.charts.ind = new Chart(document.getElementById('cInd'), { type:'bar', data:{labels:gr.keys, datasets:tierDatasets(gr)}, options:o });
+}
+function renderKamChart(view){
+  killChart('kam');
+  var gr = groupByTier(view, function(r){return r.kamN;}, 0);
+  setAria('ariaKam','Cuentas por KAM y Tier: '+gr.keys.map(function(k){return k+' '+gr.g[k].total;}).join(', '));
+  S.charts.kam = new Chart(document.getElementById('cKam'), { type:'bar', data:{labels:gr.keys, datasets:tierDatasets(gr)}, options:stackedOpts('kam', gr) });
+}
+function renderPilotChart(view){
+  killChart('pil');
+  var ts = ['Tier 1','Tier 2','Tier 3'];
+  var ds = PILOTS.map(function(p){ return { label:p, data:ts.map(function(t){ return view.filter(function(r){return r.tierN===t && r.pilotoN===p;}).length; }), backgroundColor:PIL_COLOR[p], borderRadius:4 }; });
+  setAria('ariaPil','Pilotos por Tier: '+ts.map(function(t,i){return t+' — '+ds.map(function(d){return d.label+' '+d.data[i];}).join(', ');}).join('; '));
+  S.charts.pil = new Chart(document.getElementById('cPil'), { type:'bar', data:{labels:ts, datasets:ds},
+    options: baseOpts({ onClick:function(e,els){ if(els.length){ S.sel.tier = ts[els[0].index]; S.sel.piloto = PILOTS[els[0].datasetIndex]; S.page=0; refresh(); } },
+      scales:{ y:{beginAtZero:true, ticks:{precision:0}, grid:{color:'#EEF2F7'}}, x:{grid:{display:false}} } }) });
+}
+function setFilter(id, v){ S.sel[id] = (S.sel[id]===v) ? '' : v; S.page=0; refresh(); }
+
+/* ===== Tabla ===== */
+var TIER_ORDER = {'Tier 1':1,'Tier 2':2,'Tier 3':3,'No tocar':4,'Sin clasificación':5};
+function nz(v, d){ return v==null ? d : v; }
+function defaultCompare(a,b){
+  var ta=TIER_ORDER[a.tierN], tb=TIER_ORDER[b.tierN]; if(ta!==tb) return ta-tb;
+  var c;
+  if(a.tierN==='Tier 1'){ c = nz(b.scoreOpp,-99)-nz(a.scoreOpp,-99); if(c) return c; c = nz(a.scoreRel,99)-nz(b.scoreRel,99); if(c) return c; return nz(a.ranking,1e9)-nz(b.ranking,1e9); }
+  if(a.tierN==='Tier 2'){ c = nz(b.scoreOpp,-99)-nz(a.scoreOpp,-99); if(c) return c; return nz(a.ranking,1e9)-nz(b.ranking,1e9); }
+  if(a.tierN==='Tier 3'){ c = nz(a.ranking,1e9)-nz(b.ranking,1e9); if(c) return c; return a.cuenta.localeCompare(b.cuenta,'es'); }
+  return a.cuenta.localeCompare(b.cuenta,'es');
+}
+function sortedRows(view){
+  var arr = view.slice();
+  if(!S.sortKey) return arr.sort(defaultCompare);
+  var k = S.sortKey, d = S.sortDir;
+  return arr.sort(function(a,b){
+    var x=a[k], y=b[k];
+    if(k==='tierN'){ x=TIER_ORDER[x]; y=TIER_ORDER[y]; }
+    if(x==null||x==='') return 1; if(y==null||y==='') return -1;
+    if(typeof x==='number' && typeof y==='number') return (x-y)*d;
+    return String(x).localeCompare(String(y),'es',{numeric:true})*d;
+  });
+}
+function renderDataTable(view){
+  var rows = sortedRows(view), total = rows.length;
+  var pages = Math.max(1, Math.ceil(total/S.pageSize)); if(S.page>=pages) S.page=pages-1;
+  var slice = rows.slice(S.page*S.pageSize, (S.page+1)*S.pageSize);
+  var h = '<thead><tr>'+TBL_COLS.map(function(c){ var ar = S.sortKey===c.k ? (S.sortDir>0?'▲':'▼') : ''; return '<th scope="col" data-k="'+c.k+'" tabindex="0" aria-sort="'+(S.sortKey===c.k?(S.sortDir>0?'ascending':'descending'):'none')+'">'+escapeHtml(c.t)+'<span class="ar">'+ar+'</span></th>'; }).join('')+'</tr></thead><tbody>';
+  slice.forEach(function(r){
+    h += '<tr>'+TBL_COLS.map(function(c){
+      var v = r[c.k];
+      if(c.k==='tierN') return '<td><span class="badge '+TIER_CLASS[v]+'">'+TIER_ICON[v]+escapeHtml(v)+'</span></td>';
+      if(c.k==='pilotoN') return '<td><span class="badge '+PIL_CLASS[v]+'">'+escapeHtml(v)+'</span></td>';
+      if(c.k==='comKam'||c.k==='comBx') return '<td class="cm" title="'+escapeHtml(v)+'" tabindex="0"><span>'+escapeHtml(v)+'</span></td>';
+      return '<td>'+escapeHtml(v==null?'':v)+'</td>';
+    }).join('')+'</tr>';
+  });
+  if(!slice.length) h += '<tr><td colspan="'+TBL_COLS.length+'" style="text-align:center; color:var(--greyl); padding:30px;">Sin registros con los filtros actuales.</td></tr>';
+  document.getElementById('tbl').innerHTML = h+'</tbody>';
+  document.getElementById('pgInfo').textContent = total ? ('Mostrando '+(S.page*S.pageSize+1)+'–'+Math.min(total,(S.page+1)*S.pageSize)+' de '+total) : '0 registros';
+  document.getElementById('pgPrev').disabled = S.page<=0; document.getElementById('pgNext').disabled = S.page>=pages-1;
+  document.getElementById('tblInfo').textContent = total+' cuentas en la vista. Clic en un encabezado para ordenar; clic en un comentario para expandirlo.';
+}
+
+/* ===== Calidad de datos ===== */
+function calculateDataQuality(){
+  var R = S.rows, dupOf = function(arr){ var m={}, d=0; arr.forEach(function(x){ if(!x) return; if(m[x]) d++; m[x]=1; }); return d; };
+  var ids = R.map(function(r){return r.id;}), names = R.map(function(r){return normaliseText(r.cuenta);});
+  var k = calculateKPIs();
+  return {
+    sinTier: R.filter(function(r){return r.tierN==='Sin clasificación';}).length,
+    sinKam: R.filter(function(r){return !r.kamRaw;}).length,
+    sinEstado: R.filter(function(r){return !r.estadoRaw;}).length,
+    sinIndustria: R.filter(function(r){return !r.industriaRaw;}).length,
+    pilotoSinFase: R.filter(function(r){return r.pilotoN==='Piloto sin fase';}).length,
+    idsVacios: R.filter(function(r){return !r.id;}).length,
+    idsDup: dupOf(ids), cuentasDup: dupOf(names),
+    difPrioridad: (k.t1+k.t2+k.t3)-k.prioridad,
+    pilotosHuerfanos: S.meta ? S.meta.pilotosHuerfanos : 0,
+    pilotoTierDif: R.filter(function(r){return r.pilotoTier && r.pilotoTier!==r.tierN;}).length,
+    invalidos: S.meta ? S.meta.invalidos : 0
+  };
+}
+function renderDataQuality(){
+  var q = calculateDataQuality();
+  var items = [
+    ['Registros sin Tier válido',q.sinTier],['Registros sin KAM',q.sinKam],['Registros sin Estado',q.sinEstado],['Registros sin MX Industria',q.sinIndustria],
+    ['Pilotos sin fase',q.pilotoSinFase],['IDs HubSpot vacíos',q.idsVacios],['IDs HubSpot duplicados',q.idsDup],['Cuentas duplicadas',q.cuentasDup],
+    ['Diferencia Tier 1+2+3 vs. Prioridad BX',q.difPrioridad],['Cuentas de hoja “Pilotos” sin match en Hoja1',q.pilotosHuerfanos],['Pilotos cuyo Tier en hoja “Pilotos” difiere de Hoja1',q.pilotoTierDif],['Filas sin Cuenta ni ID (descartadas)',q.invalidos]
+  ];
+  var h = (S.warnings.length ? '<div class="alert warn" style="margin-top:12px"><b>Advertencias de lectura</b><ul style="margin:6px 0 0 18px; padding:0;">'+S.warnings.map(function(w){return '<li>'+escapeHtml(w)+'</li>';}).join('')+'</ul></div>' : '');
+  h += '<div class="dq-grid">'+items.map(function(i){ return '<div class="dq '+(i[1]>0?'warn':'')+'"><b>'+i[1]+'</b>'+escapeHtml(i[0])+'</div>'; }).join('')+'</div>';
+  h += '<p class="sub" style="margin-top:10px">La diferencia final normalmente es cero porque ambos valores proceden de la misma regla. El Tier de la columna “Tier” prevalece sobre lo que digan los comentarios.</p>';
+  document.getElementById('dq').innerHTML = h;
+}
+
+/* ===== CSV ===== */
+function csvCell(v){ var s = v==null?'':String(v); if(/^[=+\-@\t\r]/.test(s)) s = "'"+s; return '"'+s.replace(/"/g,'""')+'"'; }
+function exportFilteredCsv(){
+  var rows = sortedRows(getFilteredRows());
+  var lines = [TBL_COLS.map(function(c){return csvCell(c.t);}).join(',')];
+  rows.forEach(function(r){ lines.push(TBL_COLS.map(function(c){ return csvCell(r[c.k]); }).join(',')); });
+  var blob = new Blob(['﻿'+lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'base_instalada_bx_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+/* ===== Orquestación ===== */
+function showAlert(kind, msg){ document.getElementById('alerts').innerHTML = msg ? '<div class="alert '+kind+'" role="alert">'+escapeHtml(msg)+'</div>' : ''; }
+function refresh(){
+  if(!S.rows.length) return;
+  updateDependentFilters();
+  var view = getFilteredRows();
+  updateKPIs(); updatePilotMatrix();
+  renderTierChart(view); renderTerritoryChart(view); renderIndustryChart(view); renderKamChart(view); renderPilotChart(view);
+  renderDataTable(view); renderDataQuality();
+}
+function summaryOf(){
+  var sc = S.showNT, keep = S.sel, ks = S.search; S.sel={}; S.search=''; S.showNT=false;
+  var k = calculateKPIs(); S.sel=keep; S.search=ks; S.showNT=sc;
+  return {totalBase:k.totalBase, prioridad:k.prioridad, t1:k.t1, t2:k.t2, t3:k.t3, noTocar:k.noTocar, cobertura:+k.cobertura.toFixed(1), pilotos:k.pilotos};
+}
+function loadDataset(ds){
+  var built = buildRows(ds.raw);
+  S.raw = ds.raw; S.rows = built.rows; S.warnings = ds.raw.warnings || [];
+  S.meta = { fileName:ds.fileName, uploadedAt:ds.uploadedAt, uploadedBy:ds.uploadedBy, pilotosHuerfanos:built.pilotosHuerfanos, invalidos: ds.raw.hoja1.length - built.rows.length };
+  S.sel = {}; S.search=''; S.page=0; S.sortKey=null;
+  if(!S.rows.length){ showAlert('err','No existen registros válidos (se requiere al menos Cuenta o ID HubSpot).'); document.getElementById('dash').style.display='none'; document.getElementById('empty').style.display='block'; return false; }
+  document.getElementById('empty').style.display='none'; document.getElementById('dash').style.display='block';
+  document.getElementById('fechaBadge').innerHTML = '<span class="fecha-revision">'+escapeHtml(S.meta.fileName||'Archivo')+' · cargado '+escapeHtml(fmtDate(S.meta.uploadedAt))+(S.meta.uploadedBy?' · '+escapeHtml(S.meta.uploadedBy):'')+'</span>';
+  showAlert('', '');
+  if(!document.getElementById('f_estado')) populateFilters();
+  document.getElementById('fSearch').value='';
+  refresh();
+  return true;
+}
+function renderHistorial(){
+  var h = S.historial.slice().reverse();
+  document.getElementById('hist').innerHTML = h.length ? '<div style="overflow:auto"><table><thead><tr><th>Fecha de carga</th><th>Archivo</th><th>Total base</th><th>Tier 1</th><th>Tier 2</th><th>Tier 3</th><th>No tocar</th><th>Cobertura BX</th><th>Pilotos</th><th>Cargó</th></tr></thead><tbody>'+h.map(function(x){ return '<tr><td>'+escapeHtml(fmtDate(x.fecha))+'</td><td>'+escapeHtml(x.archivo)+'</td><td>'+x.totalBase+'</td><td>'+x.t1+'</td><td>'+x.t2+'</td><td>'+x.t3+'</td><td>'+x.noTocar+'</td><td>'+x.cobertura+'%</td><td>'+x.pilotos+'</td><td>'+escapeHtml(x.guardadoPor||'')+'</td></tr>'; }).join('')+'</tbody></table></div>' : '<p class="sub">Aún no hay cargas registradas.</p>';
+}
+async function handleFile(file){
+  showAlert('', '');
+  var box = document.getElementById('alerts'); box.innerHTML = '<div class="loading">Leyendo el archivo…</div>';
+  try{
+    var raw = await readWorkbook(file);
+    var ds = { raw:raw, fileName:file.name, uploadedAt:new Date().toISOString() };
+    if(!loadDataset(ds)) return;
+    var resumen = summaryOf();
+    box.innerHTML = '<div class="loading">Guardando carga…</div>';
+    var r = await fetch('/api/cultura-base-instalada', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ dataset:ds, resumen:resumen }) });
+    var d = await r.json().catch(function(){return {};});
+    if(r.ok && d.ok){ S.historial = d.historial||S.historial; renderHistorial(); showAlert('ok','Carga guardada. El equipo con acceso ya puede ver esta versión.'); }
+    else showAlert('warn','El tablero se calculó, pero no se pudo guardar para el resto del equipo: '+(d.error||('error '+r.status)));
+    if(S.warnings.length) document.getElementById('dqBox').open = true;
+  }catch(e){
+    console.error(e);
+    document.getElementById('alerts').innerHTML = '<div class="alert err" role="alert">No se pudo leer el archivo: '+escapeHtml(e.message||String(e))+'</div>';
+  }
+  document.getElementById('fileInput').value='';
+}
+async function init(){
+  document.getElementById('fileInput').addEventListener('change', function(e){ handleFile(e.target.files[0]); });
+  document.getElementById('btnReset').addEventListener('click', resetFilters);
+  document.getElementById('btnCsv').addEventListener('click', function(){ if(S.rows.length) exportFilteredCsv(); });
+  document.getElementById('swNoTocar').addEventListener('change', function(e){ S.showNT = e.target.checked; if(S.sel.tier==='No tocar' && !S.showNT) S.sel.tier=''; S.page=0; refresh(); });
+  document.getElementById('pgSize').addEventListener('change', function(e){ S.pageSize=+e.target.value; S.page=0; refresh(); });
+  document.getElementById('pgPrev').addEventListener('click', function(){ S.page--; renderDataTable(getFilteredRows()); });
+  document.getElementById('pgNext').addEventListener('click', function(){ S.page++; renderDataTable(getFilteredRows()); });
+  var tbl = document.getElementById('tbl');
+  function sortBy(th){ var k=th.getAttribute('data-k'); if(!k) return; if(S.sortKey===k) S.sortDir*=-1; else { S.sortKey=k; S.sortDir=1; } S.page=0; renderDataTable(getFilteredRows()); }
+  tbl.addEventListener('click', function(e){ var th=e.target.closest('th[data-k]'); if(th) return sortBy(th); var td=e.target.closest('td.cm'); if(td) td.classList.toggle('open'); });
+  tbl.addEventListener('keydown', function(e){ if(e.key!=='Enter'&&e.key!==' ') return; var th=e.target.closest('th[data-k]'); if(th){ e.preventDefault(); return sortBy(th); } var td=e.target.closest('td.cm'); if(td){ e.preventDefault(); td.classList.toggle('open'); } });
+  try{
+    var r = await fetch('/api/cultura-base-instalada'); var d = await r.json();
+    S.historial = d.historial || [];
+    renderHistorial();
+    if(d.ok && d.dataset) loadDataset(d.dataset);
+  }catch(e){ console.error(e); }
+}
+init();
+</script>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){ document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; }); });
+})();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){ document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); }); });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('/sw.js').catch(function(){}); });
+}
+</script>
+</body>
+</html>

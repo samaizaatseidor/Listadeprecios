@@ -393,6 +393,7 @@ const PAGINAS_REGISTRO = {
   'wbr-ccflex': 'WBR — CCFlex',
   'wbr-cta': 'WBR — Call to Action',
   'wbr-anuncios': 'WBR — Anuncios',
+  'cultura-base-instalada': 'Cultura y Talento — Base Instalada BX',
   'auditoria': 'Auditoría',
   'agentes': 'Agentes',
 };
@@ -1555,6 +1556,36 @@ ${JSON.stringify(checklist || [])}`;
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
       }
+    }
+
+    if (url.pathname === '/api/cultura-base-instalada' && request.method === 'GET') {
+      const rawDs = await env.PM_KV.get('cultura_bi_dataset');
+      const rawHi = await env.PM_KV.get('cultura_bi_historial');
+      return new Response(JSON.stringify({ ok: true, dataset: rawDs ? JSON.parse(rawDs) : null, historial: rawHi ? JSON.parse(rawHi) : [] }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/cultura-base-instalada' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const ds = body.dataset, resumen = body.resumen;
+      if (!ds || !ds.raw || !Array.isArray(ds.raw.hoja1) || !resumen) return new Response(JSON.stringify({ ok:false, error:'Faltan datos de la carga' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      const dataset = {
+        fileName: String(ds.fileName || 'archivo.xlsx').slice(0, 200),
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: email,
+        raw: { hoja1: ds.raw.hoja1, pilotos: Array.isArray(ds.raw.pilotos) ? ds.raw.pilotos : [], warnings: Array.isArray(ds.raw.warnings) ? ds.raw.warnings : [] }
+      };
+      const serializado = JSON.stringify(dataset);
+      if (serializado.length > 20 * 1024 * 1024) return new Response(JSON.stringify({ ok:false, error:'El archivo es demasiado grande para guardarse.' }), { status: 413, headers: { 'Content-Type': 'application/json' } });
+      const rawHi = await env.PM_KV.get('cultura_bi_historial');
+      let historial = rawHi ? JSON.parse(rawHi) : [];
+      historial.push({ ...resumen, fecha: dataset.uploadedAt, archivo: dataset.fileName, guardadoPor: email });
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+      await env.PM_KV.put('cultura_bi_dataset', serializado);
+      await env.PM_KV.put('cultura_bi_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname === '/api/mi-permiso' && request.method === 'GET') {
