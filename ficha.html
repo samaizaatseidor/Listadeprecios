@@ -42,7 +42,7 @@
   header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
 
-  main{max-width:900px; margin:0 auto; padding:16px 16px 100px;}
+  main{max-width:1360px; margin:0 auto; padding:16px 24px 100px;}
 
   .tabs-bar{position:sticky; top:0; z-index:40; background:var(--card); padding:14px 0 10px;}
   .tabs-inner{display:flex; gap:6px; background:#fff; border-radius:12px; padding:6px; box-shadow:var(--shadow); overflow-x:auto;}
@@ -52,11 +52,13 @@
   .tab-panel{display:none;}
   .tab-panel.active{display:block;}
 
-  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section{background:#fff; border-radius:12px; padding:18px 22px; margin-bottom:16px; box-shadow:var(--shadow);}
   .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
   .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
   .field{margin-bottom:12px;}
   .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:4px; font-weight:500;}
+  .grid-fields{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:2px 20px;}
+  .grid-fields .field-full{grid-column:1/-1;}
   .field input[type=text], .field select, .field textarea{
     width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px;
     font-family:inherit; font-size:13.5px; color:var(--ink);
@@ -230,10 +232,10 @@
 
   <div class="tabs-bar">
     <div class="tabs-inner">
-      <button type="button" class="tab-btn active" data-tab="datos" onclick="switchTab('datos')">1. Datos generales</button>
-      <button type="button" class="tab-btn hidden" id="tab-btn-detalle" data-tab="detalle" onclick="switchTab('detalle')">2. Detalle</button>
-      <button type="button" class="tab-btn" data-tab="meddpicc" onclick="switchTab('meddpicc')">3. MEDDPICC</button>
-      <button type="button" class="tab-btn" data-tab="enviar" onclick="switchTab('enviar')">4. Enviar</button>
+      <button type="button" class="tab-btn active" data-tab="datos" onclick="switchTab('datos')">Datos generales</button>
+      <button type="button" class="tab-btn hidden" id="tab-btn-detalle" data-tab="detalle" onclick="switchTab('detalle')">Detalle</button>
+      <button type="button" class="tab-btn" data-tab="meddpicc" onclick="switchTab('meddpicc')">MEDDPICC</button>
+      <button type="button" class="tab-btn" data-tab="enviar" onclick="switchTab('enviar')">Enviar</button>
     </div>
   </div>
 
@@ -254,34 +256,36 @@
     <div class="section">
       <h2>Datos generales</h2>
       <p class="sub">Información base del cliente y la oportunidad</p>
-      <div class="field">
-        <label>Nombre cliente *</label>
-        <input type="text" id="f-nombre-cliente">
-      </div>
-      <div class="field">
-        <label>Tipo de requerimiento *</label>
-        <select id="f-requerimiento">
-          <option value="">Selecciona...</option>
-          <option value="Implementación">Implementación</option>
-          <option value="Upgrade">Upgrade</option>
-          <option value="Rollout">Rollout</option>
-          <option value="Mejora">Mejora</option>
-          <option value="Otro">Otro</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Gerente área comercial (AE) *</label>
-        <select id="f-gerente-comercial">
-          <option value="">Selecciona...</option>
-          <option value="Fernanda Richards">Fernanda Richards</option>
-          <option value="Manuel Apón">Manuel Apón</option>
-          <option value="Natalia Ossa">Natalia Ossa</option>
-          <option value="Estefanía Muñoz">Estefanía Muñoz</option>
-          <option value="Freda Juárez">Freda Juárez</option>
-          <option value="Fernanda Villagómez">Fernanda Villagómez</option>
-          <option value="Josselyn González">Josselyn González</option>
-          <option value="Omar Dávila">Omar Dávila</option>
-        </select>
+      <div class="grid-fields">
+        <div class="field">
+          <label>Nombre cliente *</label>
+          <input type="text" id="f-nombre-cliente">
+        </div>
+        <div class="field">
+          <label>Tipo de requerimiento *</label>
+          <select id="f-requerimiento">
+            <option value="">Selecciona...</option>
+            <option value="Implementación">Implementación</option>
+            <option value="Upgrade">Upgrade</option>
+            <option value="Rollout">Rollout</option>
+            <option value="Mejora">Mejora</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Gerente área comercial (AE) *</label>
+          <select id="f-gerente-comercial">
+            <option value="">Selecciona...</option>
+            <option value="Fernanda Richards">Fernanda Richards</option>
+            <option value="Manuel Apón">Manuel Apón</option>
+            <option value="Natalia Ossa">Natalia Ossa</option>
+            <option value="Estefanía Muñoz">Estefanía Muñoz</option>
+            <option value="Freda Juárez">Freda Juárez</option>
+            <option value="Fernanda Villagómez">Fernanda Villagómez</option>
+            <option value="Josselyn González">Josselyn González</option>
+            <option value="Omar Dávila">Omar Dávila</option>
+          </select>
+        </div>
       </div>
       <div id="dg-fields"></div>
     </div>
@@ -416,7 +420,7 @@ function dgFieldHtml(f,i){
     return `<div class="field"><label>${esc(f.label)}${reqMark}</label><select id="dg-${i}">${opts}</select></div>`;
   }
   if(f.type === 'textarea'){
-    return `<div class="field"><label>${esc(f.label)}${reqMark}</label><textarea id="dg-${i}" rows="3"></textarea></div>`;
+    return `<div class="field field-full"><label>${esc(f.label)}${reqMark}</label><textarea id="dg-${i}" rows="3"></textarea></div>`;
   }
   return `<div class="field"><label>${esc(f.label)}${reqMark}</label><input type="text" id="dg-${i}"></div>`;
 }
@@ -428,7 +432,7 @@ function renderDatosGenerales(){
     for(let i=g.from;i<=g.to;i++) items.push(dgFieldHtml(DATA.datosGenerales[i], i));
     return `<details class="accordion" ${gi===0?'open':''}>
       <summary>${esc(g.title)} <span class="count">${g.to-g.from+1} campos</span></summary>
-      <div class="accordion-body">${items.join('')}</div>
+      <div class="accordion-body grid-fields">${items.join('')}</div>
     </details>`;
   }).join('');
   const lastIdx = DATA.datosGenerales.length - 1;
@@ -452,7 +456,7 @@ function renderUpgrade(){
     }
     return `<details class="accordion" ${gi===0?'open':''}>
       <summary>${esc(g.title)} <span class="count">${g.to-g.from+1} preguntas</span></summary>
-      <div class="accordion-body">${items.join('')}</div>
+      <div class="accordion-body grid-fields">${items.join('')}</div>
     </details>`;
   }).join('');
 }
@@ -502,7 +506,7 @@ document.getElementById('f-requerimiento').addEventListener('change', (e)=>{
   const tabBtn = document.getElementById('tab-btn-detalle');
   const show = (v === 'Upgrade' || v === 'Rollout');
   tabBtn.classList.toggle('hidden', !show);
-  tabBtn.textContent = show ? ('2. ' + v) : '2. Detalle';
+  tabBtn.textContent = show ? v : 'Detalle';
   if(!show && tabBtn.classList.contains('active')){
     switchTab('datos');
   }
