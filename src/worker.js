@@ -393,7 +393,7 @@ const PAGINAS_REGISTRO = {
   'wbr-ccflex': 'WBR — CCFlex',
   'wbr-cta': 'WBR — Call to Action',
   'wbr-anuncios': 'WBR — Anuncios',
-  'cultura-base-instalada': 'Business Experience — Base Instalada',
+  'bx-base-instalada': 'Business Experience — Base Instalada',
   'auditoria': 'Auditoría',
   'agentes': 'Agentes',
 };
@@ -1558,13 +1558,14 @@ ${JSON.stringify(checklist || [])}`;
       }
     }
 
-    if (url.pathname === '/api/cultura-base-instalada' && request.method === 'GET') {
+    if (url.pathname === '/api/bx-base-instalada' && request.method === 'GET') {
       const rawDs = await env.PM_KV.get('cultura_bi_dataset');
       const rawHi = await env.PM_KV.get('cultura_bi_historial');
-      return new Response(JSON.stringify({ ok: true, dataset: rawDs ? JSON.parse(rawDs) : null, historial: rawHi ? JSON.parse(rawHi) : [] }), { headers: { 'Content-Type': 'application/json' } });
+      const rawPrev = await env.PM_KV.get('cultura_bi_dataset_prev');
+      return new Response(JSON.stringify({ ok: true, dataset: rawDs ? JSON.parse(rawDs) : null, previo: rawPrev ? JSON.parse(rawPrev) : null, historial: rawHi ? JSON.parse(rawHi) : [] }), { headers: { 'Content-Type': 'application/json' } });
     }
 
-    if (url.pathname === '/api/cultura-base-instalada' && request.method === 'POST') {
+    if (url.pathname === '/api/bx-base-instalada' && request.method === 'POST') {
       { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
       let body;
       try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
@@ -1583,6 +1584,8 @@ ${JSON.stringify(checklist || [])}`;
       let historial = rawHi ? JSON.parse(rawHi) : [];
       historial.push({ ...resumen, fecha: dataset.uploadedAt, archivo: dataset.fileName, guardadoPor: email });
       if (historial.length > 52) historial = historial.slice(historial.length - 52);
+      const rawAnterior = await env.PM_KV.get('cultura_bi_dataset');
+      if (rawAnterior) await env.PM_KV.put('cultura_bi_dataset_prev', rawAnterior);
       await env.PM_KV.put('cultura_bi_dataset', serializado);
       await env.PM_KV.put('cultura_bi_historial', JSON.stringify(historial));
       return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });

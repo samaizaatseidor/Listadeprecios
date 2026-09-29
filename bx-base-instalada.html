@@ -92,6 +92,10 @@
   .dq{background:var(--card); border-radius:10px; padding:10px 12px; font-size:12.5px;} .dq b{display:block; font-size:18px; color:var(--navy2);} .dq.warn b{color:var(--red);}
   .alert{border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:12px;}
   .alert.err{background:#FBEAEA; color:#8B2C2C; border:1px solid #E7B9B9;} .alert.warn{background:#FBF1DE; color:#8A6414; border:1px solid #E9D9AE;} .alert.ok{background:#E7F7EE; color:#1F6B41; border:1px solid #B9E1C9;}
+  .delta{font-size:11px; font-weight:600; margin-top:4px; color:var(--grey);}
+  .delta.up{color:#17603F;} .delta.down{color:#8B2C2C;}
+  .prio td:nth-child(1){font-weight:700; color:var(--greyl);}
+  .chg-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:20px; background:var(--card); border:1px solid var(--line); white-space:nowrap;}
   .empty{text-align:center; padding:70px 20px; color:var(--greyl);} .empty h2{color:var(--navy2);}
   .priv{font-size:11.5px; color:var(--greyl); margin-top:10px;}
   .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
@@ -191,7 +195,7 @@
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn active">Business Experience <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
-          <a href="/cultura-base-instalada.html" class="active">Base Instalada — Resumen BX</a>
+          <a href="/bx-base-instalada.html" class="active">Base Instalada — Resumen BX</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -231,6 +235,16 @@
     <div id="dash" style="display:none">
       <div class="kpi-grid" id="kpis"></div>
       <p class="nota">Los resultados se calculan directamente desde el Excel cargado. No se utilizan cifras escritas manualmente. Total base instalada, No tocar y Cobertura respetan todos los filtros excepto Tier y el interruptor “Mostrar cuentas No tocar”.</p>
+
+      <div class="section">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+          <div><h2>Prioridades de contacto — Tier 1</h2><p class="sub">Las 10 cuentas Tier 1 por mayor oportunidad y menor relación. Respeta los filtros (excepto Tier).</p></div>
+          <button type="button" class="btn sec" id="btnVerTier1" aria-label="Ver todas las cuentas Tier 1 en la tabla">Ver todas en la tabla</button>
+        </div>
+        <div style="overflow:auto"><table class="prio" id="prioTable"></table></div>
+      </div>
+
+      <details class="acc" id="chgBox"><summary id="chgSummary">Cambios vs. carga anterior</summary><div id="chg"></div></details>
 
       <div class="section">
         <h2>Pilotos por Tier</h2>
@@ -295,7 +309,7 @@ var TBL_COLS = [
   {k:'comKam',t:'Comentarios KAM'},{k:'comBx',t:'Comentarios BX'},{k:'id',t:'ID HubSpot'}
 ];
 /* ===== Estado ===== */
-var S = { raw:null, rows:[], meta:null, warnings:[], sel:{}, search:'', showNT:false, sortKey:null, sortDir:1, page:0, pageSize:25, charts:{}, historial:[], permiso:null };
+var S = { raw:null, rows:[], meta:null, warnings:[], sel:{}, search:'', showNT:false, sortKey:null, sortDir:1, page:0, pageSize:25, charts:{}, historial:[], permiso:null, prevRows:null, prevMeta:null };
 
 /* ===== Utilidades ===== */
 function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -489,8 +503,18 @@ function calculateKPIs(){
   var pilotos = view.filter(function(r){ return PILOTS.indexOf(r.pilotoN)>=0; }).length;
   return {totalBase:totalBase, prioridad:prioridad, t1:cnt['Tier 1'], t2:cnt['Tier 2'], t3:cnt['Tier 3'], noTocar:noTocar, cobertura: totalBase? prioridad/totalBase*100 : 0, pilotos:pilotos};
 }
+function withRows(rows, fn){ var keep = S.rows; S.rows = rows; try{ return fn(); } finally{ S.rows = keep; } }
+function deltaHtml(cur, prev, isPct){
+  if(prev==null) return '';
+  var d = cur - prev;
+  if(Math.abs(d) < 0.05) return '<div class="delta">= sin cambio vs. carga anterior</div>';
+  var txt = (d>0?'▲ +':'▼ ')+(isPct? d.toFixed(1)+' pts' : d)+' vs. carga anterior';
+  return '<div class="delta '+(d>0?'up':'down')+'">'+txt+'</div>';
+}
 function updateKPIs(){
   var k = calculateKPIs();
+  var pk = S.prevRows ? withRows(S.prevRows, calculateKPIs) : null;
+  var dl = pk ? [pk.totalBase, pk.prioridad, pk.t1, pk.t2, pk.t3, pk.noTocar, pk.cobertura, pk.pilotos] : [];
   var cards = [
     ['Total base instalada', k.totalBase, 'Registros válidos, incluye No tocar',''],
     ['Prioridad Business Experience', k.prioridad, 'Tier 1 + Tier 2 + Tier 3',''],
@@ -501,7 +525,8 @@ function updateKPIs(){
     ['Cobertura BX', k.cobertura.toFixed(1)+'%', 'Prioridad BX / Total base',''],
     ['Total pilotos', k.pilotos, 'Piloto 1, Piloto 2 y sin fase','']
   ];
-  document.getElementById('kpis').innerHTML = cards.map(function(c){ return '<div class="kpi-card '+c[3]+'"><div class="label">'+escapeHtml(c[0])+'</div><div class="value">'+escapeHtml(c[1])+'</div><div class="meta">'+escapeHtml(c[2])+'</div></div>'; }).join('');
+  var curVals = [k.totalBase, k.prioridad, k.t1, k.t2, k.t3, k.noTocar, k.cobertura, k.pilotos];
+  document.getElementById('kpis').innerHTML = cards.map(function(c,i){ return '<div class="kpi-card '+c[3]+'"><div class="label">'+escapeHtml(c[0])+'</div><div class="value">'+escapeHtml(c[1])+'</div><div class="meta">'+escapeHtml(c[2])+'</div>'+(pk?deltaHtml(curVals[i], dl[i], i===6):'')+'</div>'; }).join('');
 }
 function updatePilotMatrix(){
   var view = getFilteredRows();
@@ -516,6 +541,49 @@ function updatePilotMatrix(){
   var g = PILOTS.reduce(function(a,p){return a+tot[p];},0);
   h += '<tr><th scope="row" style="text-transform:none; font-size:12.5px; color:var(--ink);">Total</th>'+PILOTS.map(function(p){return '<td><b>'+tot[p]+'</b></td>';}).join('')+'<td><b>'+g+'</b></td></tr></tbody>';
   document.getElementById('pilTable').innerHTML = h;
+}
+
+/* ===== Prioridades de contacto ===== */
+function renderPriorityList(){
+  var rows = scopeRows().filter(function(r){ return r.tierN==='Tier 1'; }).sort(defaultCompare);
+  var top = rows.slice(0,10);
+  var h = '<thead><tr><th scope="col">#</th><th scope="col">Cuenta</th><th scope="col">KAM</th><th scope="col">Ejecutivo BX</th><th scope="col">Score Oportunidad</th><th scope="col">Score Relación</th><th scope="col">Piloto</th><th scope="col">Comentarios KAM</th></tr></thead><tbody>';
+  top.forEach(function(r,i){
+    var c = r.comKam.length>150 ? r.comKam.slice(0,150)+'…' : r.comKam;
+    h += '<tr><td>'+(i+1)+'</td><td><b>'+escapeHtml(r.cuenta)+'</b></td><td>'+escapeHtml(r.kamN)+'</td><td>'+escapeHtml(r.bxN)+'</td><td>'+escapeHtml(r.scoreOpp==null?'':r.scoreOpp)+'</td><td>'+escapeHtml(r.scoreRel==null?'':r.scoreRel)+'</td><td><span class="badge '+PIL_CLASS[r.pilotoN]+'">'+escapeHtml(r.pilotoN)+'</span></td><td title="'+escapeHtml(r.comKam)+'">'+escapeHtml(c)+'</td></tr>';
+  });
+  if(!top.length) h += '<tr><td colspan="8" style="text-align:center; color:var(--greyl); padding:20px;">No hay cuentas Tier 1 con los filtros actuales.</td></tr>';
+  document.getElementById('prioTable').innerHTML = h+'</tbody>';
+  document.getElementById('btnVerTier1').style.display = rows.length>10 ? '' : 'none';
+}
+
+/* ===== Cambios vs. carga anterior ===== */
+function computeChanges(){
+  if(!S.prevRows) return null;
+  var idx = function(rows){ var m={}; rows.forEach(function(r){ m[keyOf({'ID_ Hubspot':r.id,'Cuenta':r.cuenta})]=r; }); return m; };
+  var scopeKeys = {}; scopeRows().forEach(function(r){ scopeKeys[keyOf({'ID_ Hubspot':r.id,'Cuenta':r.cuenta})]=1; });
+  var prev = idx(S.prevRows), cur = idx(S.rows), out = [];
+  Object.keys(cur).forEach(function(k){
+    if(!scopeKeys[k]) return;
+    var c = cur[k], p = prev[k];
+    if(!p){ out.push({tipo:'Nueva en la base', r:c, antes:'—', ahora:c.tierN}); return; }
+    if(p.tierN!==c.tierN) out.push({tipo:'Cambió de Tier', r:c, antes:p.tierN, ahora:c.tierN});
+    if(p.pilotoN!==c.pilotoN) out.push({tipo:'Cambió de piloto', r:c, antes:p.pilotoN, ahora:c.pilotoN});
+  });
+  Object.keys(prev).forEach(function(k){ if(!cur[k]) out.push({tipo:'Salió de la base', r:prev[k], antes:prev[k].tierN, ahora:'—'}); });
+  return out;
+}
+function renderChanges(){
+  var sum = document.getElementById('chgSummary'), host = document.getElementById('chg');
+  if(!S.prevRows){ sum.textContent = 'Cambios vs. carga anterior'; host.innerHTML = '<p class="sub" style="margin-top:10px">Aún no hay una carga anterior para comparar. En la siguiente carga aparecerán aquí las cuentas que cambiaron de Tier o de piloto, y las que entraron o salieron de la base.</p>'; return; }
+  var ch = computeChanges();
+  sum.textContent = 'Cambios vs. carga anterior ('+ch.length+')';
+  var cnt = {}; ch.forEach(function(x){ cnt[x.tipo]=(cnt[x.tipo]||0)+1; });
+  var chips = ['Cambió de Tier','Cambió de piloto','Nueva en la base','Salió de la base'].map(function(t){ return '<span class="chg-tag">'+t+': '+(cnt[t]||0)+'</span>'; }).join(' ');
+  var prevInfo = '<p class="sub" style="margin-top:10px">Comparado contra la carga del '+escapeHtml(fmtDate(S.prevMeta.uploadedAt))+' ('+escapeHtml(S.prevMeta.fileName||'')+'). '+chips+'</p>';
+  var shown = ch.slice(0,200);
+  var h = shown.length ? '<div style="overflow:auto; max-height:420px"><table><thead><tr><th>Cuenta</th><th>Cambio</th><th>Antes</th><th>Ahora</th><th>KAM</th></tr></thead><tbody>'+shown.map(function(x){ return '<tr><td><b>'+escapeHtml(x.r.cuenta)+'</b></td><td><span class="chg-tag">'+escapeHtml(x.tipo)+'</span></td><td>'+escapeHtml(x.antes)+'</td><td>'+escapeHtml(x.ahora)+'</td><td>'+escapeHtml(x.r.kamN)+'</td></tr>'; }).join('')+'</tbody></table></div>'+(ch.length>200?'<p class="sub">Se muestran los primeros 200 cambios.</p>':'') : '<p class="sub">Sin cambios con los filtros actuales.</p>';
+  host.innerHTML = prevInfo+h;
 }
 
 /* ===== Gráficos ===== */
@@ -691,12 +759,17 @@ function refresh(){
   var view = getFilteredRows();
   updateKPIs(); updatePilotMatrix();
   renderTierChart(view); renderTerritoryChart(view); renderIndustryChart(view); renderKamChart(view); renderPilotChart(view);
+  renderPriorityList(); renderChanges();
   renderDataTable(view); renderDataQuality();
 }
 function summaryOf(){
   var sc = S.showNT, keep = S.sel, ks = S.search; S.sel={}; S.search=''; S.showNT=false;
   var k = calculateKPIs(); S.sel=keep; S.search=ks; S.showNT=sc;
   return {totalBase:k.totalBase, prioridad:k.prioridad, t1:k.t1, t2:k.t2, t3:k.t3, noTocar:k.noTocar, cobertura:+k.cobertura.toFixed(1), pilotos:k.pilotos};
+}
+function setPrevious(prev){
+  S.prevRows = null; S.prevMeta = null;
+  if(prev && prev.raw && Array.isArray(prev.raw.hoja1)){ S.prevRows = buildRows(prev.raw).rows; S.prevMeta = {fileName:prev.fileName, uploadedAt:prev.uploadedAt}; }
 }
 function loadDataset(ds){
   var built = buildRows(ds.raw);
@@ -722,10 +795,12 @@ async function handleFile(file){
   try{
     var raw = await readWorkbook(file);
     var ds = { raw:raw, fileName:file.name, uploadedAt:new Date().toISOString() };
+    var anterior = S.raw ? { raw:S.raw, fileName:S.meta.fileName, uploadedAt:S.meta.uploadedAt } : null;
+    setPrevious(anterior);
     if(!loadDataset(ds)) return;
     var resumen = summaryOf();
     box.innerHTML = '<div class="loading">Guardando carga…</div>';
-    var r = await fetch('/api/cultura-base-instalada', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ dataset:ds, resumen:resumen }) });
+    var r = await fetch('/api/bx-base-instalada', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ dataset:ds, resumen:resumen }) });
     var d = await r.json().catch(function(){return {};});
     if(r.ok && d.ok){ S.historial = d.historial||S.historial; renderHistorial(); showAlert('ok','Carga guardada. El equipo con acceso ya puede ver esta versión.'); }
     else showAlert('warn','El tablero se calculó, pero no se pudo guardar para el resto del equipo: '+(d.error||('error '+r.status)));
@@ -739,6 +814,7 @@ async function handleFile(file){
 async function init(){
   document.getElementById('fileInput').addEventListener('change', function(e){ handleFile(e.target.files[0]); });
   document.getElementById('btnReset').addEventListener('click', resetFilters);
+  document.getElementById('btnVerTier1').addEventListener('click', function(){ S.sel.tier='Tier 1'; S.page=0; refresh(); document.getElementById('tbl').scrollIntoView({behavior:'smooth'}); });
   document.getElementById('btnCsv').addEventListener('click', function(){ if(S.rows.length) exportFilteredCsv(); });
   document.getElementById('swNoTocar').addEventListener('change', function(e){ S.showNT = e.target.checked; if(S.sel.tier==='No tocar' && !S.showNT) S.sel.tier=''; S.page=0; refresh(); });
   document.getElementById('pgSize').addEventListener('change', function(e){ S.pageSize=+e.target.value; S.page=0; refresh(); });
@@ -749,10 +825,10 @@ async function init(){
   tbl.addEventListener('click', function(e){ var th=e.target.closest('th[data-k]'); if(th) return sortBy(th); var td=e.target.closest('td.cm'); if(td) td.classList.toggle('open'); });
   tbl.addEventListener('keydown', function(e){ if(e.key!=='Enter'&&e.key!==' ') return; var th=e.target.closest('th[data-k]'); if(th){ e.preventDefault(); return sortBy(th); } var td=e.target.closest('td.cm'); if(td){ e.preventDefault(); td.classList.toggle('open'); } });
   try{
-    var r = await fetch('/api/cultura-base-instalada'); var d = await r.json();
+    var r = await fetch('/api/bx-base-instalada'); var d = await r.json();
     S.historial = d.historial || [];
     renderHistorial();
-    if(d.ok && d.dataset) loadDataset(d.dataset);
+    if(d.ok && d.dataset){ setPrevious(d.previo); loadDataset(d.dataset); }
   }catch(e){ console.error(e); }
 }
 init();
