@@ -302,6 +302,11 @@ var FILTERS = [
   {id:'lob', label:'LOB', get:function(r){return r.lobs;}},
   {id:'cuadrante', label:'Cuadrante', get:function(r){return [r.cuadrante];}}
 ];
+var HUBSPOT_PORTAL = '6740520';
+function hubspotLink(id, label){
+  if(!/^\d+$/.test(String(id||''))) return escapeHtml(label==null?id:label);
+  return '<a href="https://app.hubspot.com/contacts/'+HUBSPOT_PORTAL+'/record/0-2/'+id+'" target="_blank" rel="noopener noreferrer" aria-label="Abrir cuenta en HubSpot">'+escapeHtml(label==null?id:label)+' ↗</a>';
+}
 var TBL_COLS = [
   {k:'ranking',t:'Ranking Global'},{k:'cuenta',t:'Cuenta'},{k:'tierN',t:'Tier Normalizado'},{k:'pilotoN',t:'Piloto Normalizado'},{k:'kamN',t:'KAM'},{k:'bxN',t:'Ejecutivo BX'},
   {k:'estadoN',t:'Estado Normalizado'},{k:'ciudadN',t:'Ciudad Normalizada'},{k:'industria',t:'MX Industria'},{k:'subindustria',t:'Subindustria'},{k:'lob',t:'LOB'},
@@ -550,7 +555,7 @@ function renderPriorityList(){
   var h = '<thead><tr><th scope="col">#</th><th scope="col">Cuenta</th><th scope="col">KAM</th><th scope="col">Ejecutivo BX</th><th scope="col">Score Oportunidad</th><th scope="col">Score Relación</th><th scope="col">Piloto</th><th scope="col">Comentarios KAM</th></tr></thead><tbody>';
   top.forEach(function(r,i){
     var c = r.comKam.length>150 ? r.comKam.slice(0,150)+'…' : r.comKam;
-    h += '<tr><td>'+(i+1)+'</td><td><b>'+escapeHtml(r.cuenta)+'</b></td><td>'+escapeHtml(r.kamN)+'</td><td>'+escapeHtml(r.bxN)+'</td><td>'+escapeHtml(r.scoreOpp==null?'':r.scoreOpp)+'</td><td>'+escapeHtml(r.scoreRel==null?'':r.scoreRel)+'</td><td><span class="badge '+PIL_CLASS[r.pilotoN]+'">'+escapeHtml(r.pilotoN)+'</span></td><td title="'+escapeHtml(r.comKam)+'">'+escapeHtml(c)+'</td></tr>';
+    h += '<tr><td>'+(i+1)+'</td><td><b>'+hubspotLink(r.id, r.cuenta)+'</b></td><td>'+escapeHtml(r.kamN)+'</td><td>'+escapeHtml(r.bxN)+'</td><td>'+escapeHtml(r.scoreOpp==null?'':r.scoreOpp)+'</td><td>'+escapeHtml(r.scoreRel==null?'':r.scoreRel)+'</td><td><span class="badge '+PIL_CLASS[r.pilotoN]+'">'+escapeHtml(r.pilotoN)+'</span></td><td title="'+escapeHtml(r.comKam)+'">'+escapeHtml(c)+'</td></tr>';
   });
   if(!top.length) h += '<tr><td colspan="8" style="text-align:center; color:var(--greyl); padding:20px;">No hay cuentas Tier 1 con los filtros actuales.</td></tr>';
   document.getElementById('prioTable').innerHTML = h+'</tbody>';
@@ -697,6 +702,7 @@ function renderDataTable(view){
       var v = r[c.k];
       if(c.k==='tierN') return '<td><span class="badge '+TIER_CLASS[v]+'">'+TIER_ICON[v]+escapeHtml(v)+'</span></td>';
       if(c.k==='pilotoN') return '<td><span class="badge '+PIL_CLASS[v]+'">'+escapeHtml(v)+'</span></td>';
+      if(c.k==='id') return '<td>'+hubspotLink(v)+'</td>';
       if(c.k==='comKam'||c.k==='comBx') return '<td class="cm" title="'+escapeHtml(v)+'" tabindex="0"><span>'+escapeHtml(v)+'</span></td>';
       return '<td>'+escapeHtml(v==null?'':v)+'</td>';
     }).join('')+'</tr>';
