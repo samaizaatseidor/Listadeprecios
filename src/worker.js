@@ -393,7 +393,7 @@ const PAGINAS_REGISTRO = {
   'wbr-ccflex': 'WBR — CCFlex',
   'wbr-cta': 'WBR — Call to Action',
   'wbr-anuncios': 'WBR — Anuncios',
-  'cultura-base-instalada': 'Cultura y Talento — Base Instalada BX',
+  'cultura-base-instalada': 'Business Experience — Base Instalada',
   'auditoria': 'Auditoría',
   'agentes': 'Agentes',
 };
