@@ -92,6 +92,8 @@
   .dq{background:var(--card); border-radius:10px; padding:10px 12px; font-size:12.5px;} .dq b{display:block; font-size:18px; color:var(--navy2);} .dq.warn b{color:var(--red);}
   .alert{border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:12px;}
   .alert.err{background:#FBEAEA; color:#8B2C2C; border:1px solid #E7B9B9;} .alert.warn{background:#FBF1DE; color:#8A6414; border:1px solid #E9D9AE;} .alert.ok{background:#E7F7EE; color:#1F6B41; border:1px solid #B9E1C9;}
+  a .lnk-ic{vertical-align:-2px; margin-left:2px;}
+  td a{color:var(--blue); text-decoration:none;} td a:hover{text-decoration:underline;}
   .delta{font-size:11px; font-weight:600; margin-top:4px; color:var(--grey);}
   .delta.up{color:#17603F;} .delta.down{color:#8B2C2C;}
   .prio td:nth-child(1){font-weight:700; color:var(--greyl);}
@@ -303,9 +305,10 @@ var FILTERS = [
   {id:'cuadrante', label:'Cuadrante', get:function(r){return [r.cuadrante];}}
 ];
 var HUBSPOT_PORTAL = '6740520';
+var LINK_ICON = ' <svg class="lnk-ic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
 function hubspotLink(id, label){
   if(!/^\d+$/.test(String(id||''))) return escapeHtml(label==null?id:label);
-  return '<a href="https://app.hubspot.com/contacts/'+HUBSPOT_PORTAL+'/record/0-2/'+id+'" target="_blank" rel="noopener noreferrer" aria-label="Abrir cuenta en HubSpot">'+escapeHtml(label==null?id:label)+' ↗</a>';
+  return '<a href="https://app.hubspot.com/contacts/'+HUBSPOT_PORTAL+'/record/0-2/'+id+'" target="_blank" rel="noopener noreferrer" aria-label="Abrir cuenta en HubSpot">'+escapeHtml(label==null?id:label)+LINK_ICON+'</a>';
 }
 var TBL_COLS = [
   {k:'ranking',t:'Ranking Global'},{k:'cuenta',t:'Cuenta'},{k:'tierN',t:'Tier Normalizado'},{k:'pilotoN',t:'Piloto Normalizado'},{k:'kamN',t:'KAM'},{k:'bxN',t:'Ejecutivo BX'},
