@@ -74,6 +74,22 @@
   .loading{color:var(--grey); font-size:13px;}
   .locked{text-align:center; padding:80px 20px; color:var(--greyl);}
   .locked h2{color:var(--navy2); font-size:18px;}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+  .seg button{border:none; background:#fff; padding:6px 12px; font-family:inherit; font-size:12px; font-weight:600; color:var(--grey); cursor:pointer; border-right:1px solid var(--line);}
+  .seg button:last-child{border-right:none;}
+  .seg button:hover{background:var(--card);}
+  .seg button.on-ninguno{background:#FBEAEA; color:#B23A3A;}
+  .seg button.on-lectura{background:#FBF1DE; color:#8A6414;}
+  .seg button.on-completo{background:#E7F7EE; color:#1F8A4C;}
+  .seg button:focus-visible, .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:2px solid var(--blue); outline-offset:1px;}
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+  .toolbar input[type=search], .toolbar input[type=text]{padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px; min-width:220px;}
+  .bulkbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#EDF3FA; border:1px solid var(--line); border-radius:10px; padding:8px 12px; margin-bottom:10px; font-size:12.5px; color:var(--navy2);}
+  .resumen{font-size:12px; color:var(--grey); margin:0 0 10px;}
+  textarea{width:100%; min-height:80px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px;}
+  .statusbar{position:fixed; left:50%; bottom:14px; transform:translateX(-50%); background:#fff; border:1px solid var(--line); box-shadow:var(--shadow); border-radius:20px; padding:6px 16px; font-size:12.5px; z-index:80; display:none;}
+  .chip{display:inline-block; font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px; margin:2px 4px 2px 0; border:1px solid transparent;}
+  .chip.completo{background:#E7F7EE; color:#1F8A4C; border-color:#B9E1C9;} .chip.lectura{background:#FBF1DE; color:#8A6414; border-color:#E9D9AE;}
 </style>
 </head>
 <body>
@@ -203,6 +219,7 @@
   <p>Controla quién puede ver o editar cada página del sitio</p>
 </header>
 
+<div id="statusBox" class="statusbar" role="status" aria-live="polite"></div>
 <main id="mainContent">
   <p class="loading">Cargando…</p>
 </main>
@@ -211,15 +228,26 @@
 let cfg = null;
 let paginas = {};
 let rolSeleccionado = null;
-let miCorreo = '';
+let bootstrapAdmin = '';
+let filtroPaginas = '';
+let filtroPersonas = '';
+let seleccion = new Set();
+let consultaCorreo = '';
+let saveTimer = null;
 
 const NIVELES = [
-  { valor:'completo', etiqueta:'Acceso completo' },
-  { valor:'lectura', etiqueta:'Solo lectura' },
   { valor:'ninguno', etiqueta:'Sin acceso' },
+  { valor:'lectura', etiqueta:'Solo lectura' },
+  { valor:'completo', etiqueta:'Acceso completo' },
 ];
+const NIVEL_TXT = { ninguno:'Sin acceso', lectura:'Solo lectura', completo:'Acceso completo' };
 
-function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function norm(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+// Acceso cerrado por defecto: lo que un rol no menciona es "Sin acceso" (igual que en el servidor).
+function nivelDe(rol, pageId){ return (cfg.roles[rol] && cfg.roles[rol][pageId]) || 'ninguno'; }
+function esAdminCorreo(email){ const e=(email||'').toLowerCase(); return e===(bootstrapAdmin||'').toLowerCase() || cfg.admins.some(a=>a.toLowerCase()===e); }
+function miembros(rol){ return Object.values(cfg.asignaciones).filter(r=>r===rol).length; }
 
 async function init(){
   const main = document.getElementById('mainContent');
@@ -232,7 +260,7 @@ async function init(){
     }
     cfg = { admins: d.admins, roles: d.roles, asignaciones: d.asignaciones };
     paginas = d.paginas;
-    miCorreo = d.bootstrapAdmin;
+    bootstrapAdmin = d.bootstrapAdmin;
     rolSeleccionado = Object.keys(cfg.roles)[0] || null;
     render();
   }catch(e){
@@ -240,156 +268,236 @@ async function init(){
   }
 }
 
-async function guardar(mensaje){
-  const statusBox = document.getElementById('statusBox');
-  if(statusBox) statusBox.innerHTML = '<span class="loading">Guardando…</span>';
-  try{
-    const r = await fetch('/api/roles-config', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(cfg)
-    });
-    const d = await r.json();
-    if(!d.ok){ if(statusBox) statusBox.innerHTML = `<span style="color:#B23A3A;">${esc(d.error||'No se pudo guardar')}</span>`; return; }
-    if(statusBox) statusBox.innerHTML = `<span style="color:#1F8A4C;">${esc(mensaje||'Guardado.')}</span>`;
-  }catch(e){
-    if(statusBox) statusBox.innerHTML = `<span style="color:#B23A3A;">Error de conexión.</span>`;
-  }
+function aviso(html, color){
+  const b = document.getElementById('statusBox');
+  b.style.display = 'block'; b.innerHTML = `<span style="color:${color||'#5E6B82'};">${html}</span>`;
+  clearTimeout(aviso._t); aviso._t = setTimeout(()=>{ b.style.display='none'; }, 4000);
 }
+function guardar(mensaje){
+  aviso('Guardando…');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    try{
+      const r = await fetch('/api/roles-config', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(cfg) });
+      const d = await r.json();
+      if(!d.ok) aviso(esc(d.error||'No se pudo guardar'), '#B23A3A');
+      else aviso('✓ '+esc(mensaje||'Guardado.'), '#1F8A4C');
+    }catch(e){ aviso('Error de conexión: no se guardó.', '#B23A3A'); }
+  }, 350);
+}
+function rerender(){ const y = window.scrollY; render(); window.scrollTo(0, y); }
 
+/* ---- Roles ---- */
 function crearRol(){
-  const nombre = prompt('Nombre del nuevo rol (ej. "Operaciones", "Finanzas"):');
-  if(!nombre || !nombre.trim()) return;
+  const nombre = (prompt('Nombre del nuevo rol (ej. "Operaciones", "Finanzas"). Empieza sin acceso a nada:')||'').trim();
+  if(!nombre) return;
   if(cfg.roles[nombre]){ alert('Ya existe un rol con ese nombre.'); return; }
   cfg.roles[nombre] = {};
-  rolSeleccionado = nombre;
-  render();
-  guardar(`Rol "${nombre}" creado.`);
+  rolSeleccionado = nombre; seleccion.clear();
+  rerender(); guardar(`Rol "${nombre}" creado (sin acceso a nada).`);
 }
-
-function borrarRol(nombre){
-  if(!confirm(`¿Borrar el rol "${nombre}"? Los correos asignados a este rol quedarán sin rol (acceso completo por default).`)) return;
+function duplicarRol(){
+  if(!rolSeleccionado) return;
+  const nombre = (prompt(`Nombre del rol nuevo (copia de "${rolSeleccionado}"):`, rolSeleccionado+' (copia)')||'').trim();
+  if(!nombre) return;
+  if(cfg.roles[nombre]){ alert('Ya existe un rol con ese nombre.'); return; }
+  cfg.roles[nombre] = Object.assign({}, cfg.roles[rolSeleccionado]);
+  rolSeleccionado = nombre; seleccion.clear();
+  rerender(); guardar(`Rol "${nombre}" creado como copia.`);
+}
+function borrarRol(){
+  const nombre = rolSeleccionado; if(!nombre) return;
+  const n = miembros(nombre);
+  if(!confirm(`¿Borrar el rol "${nombre}"?`+(n?` ${n} persona(s) quedarán sin rol y sin acceso a ninguna página.`:''))) return;
   delete cfg.roles[nombre];
-  Object.keys(cfg.asignaciones).forEach(email => { if(cfg.asignaciones[email] === nombre) delete cfg.asignaciones[email]; });
-  rolSeleccionado = Object.keys(cfg.roles)[0] || null;
-  render();
-  guardar(`Rol "${nombre}" eliminado.`);
+  Object.keys(cfg.asignaciones).forEach(e=>{ if(cfg.asignaciones[e]===nombre) delete cfg.asignaciones[e]; });
+  rolSeleccionado = Object.keys(cfg.roles)[0] || null; seleccion.clear();
+  rerender(); guardar(`Rol "${nombre}" eliminado.`);
+}
+function paginasVisibles(){
+  const q = norm(filtroPaginas.trim());
+  return Object.entries(paginas).filter(([id,nombre])=>!q || norm(nombre).includes(q));
+}
+function setNivel(pageId, nivel){
+  if(!cfg.roles[rolSeleccionado]) return;
+  if(nivel==='ninguno') delete cfg.roles[rolSeleccionado][pageId]; else cfg.roles[rolSeleccionado][pageId] = nivel;
+}
+function aplicarSeleccion(nivel){
+  if(!seleccion.size){ aviso('Marca primero una o más páginas.', '#8A6414'); return; }
+  seleccion.forEach(id=>setNivel(id, nivel));
+  const n = seleccion.size; seleccion.clear();
+  rerender(); guardar(`${n} página(s) en "${NIVEL_TXT[nivel]}".`);
 }
 
-function cambiarNivel(pageId, nivel){
-  cfg.roles[rolSeleccionado][pageId] = nivel;
-  guardar('Permiso actualizado.');
+/* ---- Personas ---- */
+function parseCorreos(texto){
+  const partes = (texto||'').split(/[\s,;]+/).map(x=>x.trim().toLowerCase()).filter(Boolean);
+  const validos = [], invalidos = [];
+  partes.forEach(p=>{ if(/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p)){ if(!validos.includes(p)) validos.push(p); } else invalidos.push(p); });
+  return {validos, invalidos};
 }
-
-function addAsignacion(){
-  const email = document.getElementById('nuevoCorreo').value.trim().toLowerCase();
+function asignarVarios(){
+  const txt = document.getElementById('nuevosCorreos').value;
   const rol = document.getElementById('nuevoRolSelect').value;
-  if(!email || !email.includes('@')){ alert('Escribe un correo válido.'); return; }
-  cfg.asignaciones[email] = rol;
-  document.getElementById('nuevoCorreo').value = '';
-  render();
-  guardar(`${email} asignado a "${rol}".`);
+  const {validos, invalidos} = parseCorreos(txt);
+  if(!rol){ alert('Primero crea un rol.'); return; }
+  if(!validos.length){ alert('No encontré correos válidos. Pégalos separados por salto de línea, coma o espacio.'); return; }
+  let cambiados = 0;
+  validos.forEach(e=>{ if(cfg.asignaciones[e] && cfg.asignaciones[e]!==rol) cambiados++; cfg.asignaciones[e] = rol; });
+  document.getElementById('nuevosCorreos').value = '';
+  rerender();
+  guardar(`${validos.length} correo(s) asignados a "${rol}"`+(cambiados?` (${cambiados} cambiaron de rol)`:'')+(invalidos.length?` — ignorados por inválidos: ${invalidos.join(', ')}`:'')+'.');
 }
-
-function quitarAsignacion(email){
-  delete cfg.asignaciones[email];
-  render();
-  guardar(`Se quitó el rol de ${email}.`);
+function cambiarRolPersona(email, rol){
+  if(!rol){ delete cfg.asignaciones[email]; } else cfg.asignaciones[email] = rol;
+  rerender(); guardar(rol?`${email} ahora es "${rol}".`:`Se quitó el rol de ${email}.`);
 }
-
-function toggleAdmin(email, esActualmenteAdmin){
-  if(esActualmenteAdmin){
-    cfg.admins = cfg.admins.filter(e => e.toLowerCase() !== email.toLowerCase());
-  }else{
-    cfg.admins.push(email);
-  }
-  render();
-  guardar('Lista de Administradores actualizada.');
+function toggleAdmin(email){
+  cfg.admins = cfg.admins.filter(e=>e.toLowerCase()!==email.toLowerCase());
+  rerender(); guardar('Lista de Administradores actualizada.');
 }
-
 function addAdmin(){
   const email = document.getElementById('nuevoAdminCorreo').value.trim().toLowerCase();
-  if(!email || !email.includes('@')){ alert('Escribe un correo válido.'); return; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ alert('Escribe un correo válido.'); return; }
   if(!cfg.admins.map(e=>e.toLowerCase()).includes(email)) cfg.admins.push(email);
-  document.getElementById('nuevoAdminCorreo').value = '';
-  render();
-  guardar(`${email} agregado como Administrador.`);
+  rerender(); guardar(`${email} agregado como Administrador.`);
+}
+
+/* ---- Consulta ---- */
+function consultaHtml(){
+  const email = consultaCorreo.trim().toLowerCase();
+  if(!email) return '<p class="sub">Escribe un correo para ver a qué páginas puede entrar.</p>';
+  if(esAdminCorreo(email)) return `<p><b>${esc(email)}</b> es Administrador: acceso completo a todas las páginas.</p>`;
+  const rol = cfg.asignaciones[email];
+  if(!rol) return `<p><b>${esc(email)}</b> no tiene rol asignado: <b>no puede abrir ninguna página</b> (solo ve la pantalla de "sin acceso").</p>`;
+  const entradas = Object.entries(paginas).map(([id,n])=>[n, nivelDe(rol,id)]);
+  const comp = entradas.filter(x=>x[1]==='completo'), lect = entradas.filter(x=>x[1]==='lectura'), sin = entradas.filter(x=>x[1]==='ninguno').length;
+  const chips = (arr,c)=>arr.map(x=>`<span class="chip ${c}">${esc(x[0])}</span>`).join('') || '<span class="sub">Ninguna</span>';
+  return `<p><b>${esc(email)}</b> tiene el rol <b>${esc(rol)}</b>.</p>
+    <p class="resumen">Acceso completo (${comp.length})</p><div>${chips(comp,'completo')}</div>
+    <p class="resumen" style="margin-top:8px;">Solo lectura (${lect.length})</p><div>${chips(lect,'lectura')}</div>
+    <p class="resumen" style="margin-top:8px;">Sin acceso a ${sin} página(s).</p>`;
 }
 
 function render(){
   const main = document.getElementById('mainContent');
   const nombresRoles = Object.keys(cfg.roles);
+  const vis = paginasVisibles();
+  const todosSel = vis.length && vis.every(([id])=>seleccion.has(id));
+  let cuentaC=0, cuentaL=0;
+  if(rolSeleccionado) Object.keys(paginas).forEach(id=>{ const n=nivelDe(rolSeleccionado,id); if(n==='completo') cuentaC++; else if(n==='lectura') cuentaL++; });
+  const q = norm(filtroPersonas.trim());
+  const personas = Object.entries(cfg.asignaciones).filter(([e,r])=>!q || norm(e).includes(q) || norm(r).includes(q)).sort((a,b)=>a[0].localeCompare(b[0]));
 
   main.innerHTML = `
     <div class="section">
       <h2>Administradores</h2>
-      <p class="sub">Siempre tienen acceso completo a todo, incluida esta página. ${esc(miCorreo)} siempre lo es, sin importar esta lista (así nunca se puede perder el acceso por accidente).</p>
+      <p class="sub">Siempre tienen acceso completo a todo, incluida esta página. ${esc(bootstrapAdmin)} siempre lo es, sin importar esta lista (así nunca se puede perder el acceso por accidente).</p>
       ${cfg.admins.map(email => `
         <div class="asig-row">
           <span style="flex:1;">${esc(email)}</span>
-          <button class="del-row" onclick="toggleAdmin('${esc(email)}', true)" title="Quitar de Administradores">×</button>
-        </div>
-      `).join('')}
+          <button class="del-row" data-act="quitar-admin" data-email="${esc(email)}" title="Quitar de Administradores" aria-label="Quitar a ${esc(email)} de Administradores">×</button>
+        </div>`).join('')}
       <div class="asig-row">
-        <input type="text" id="nuevoAdminCorreo" placeholder="correo@seidor.com">
-        <button class="btn btn-ghost" onclick="addAdmin()">+ Agregar Admin</button>
+        <input type="text" id="nuevoAdminCorreo" placeholder="correo@seidor.com" aria-label="Correo del nuevo Administrador">
+        <button class="btn btn-ghost" data-act="add-admin">+ Agregar Admin</button>
       </div>
     </div>
 
     <div class="section">
       <h2>Roles</h2>
-      <p class="sub">Cada rol define qué nivel de acceso tiene a cada página. Las páginas que no toques quedan en "Acceso completo" por default.</p>
-      <div class="roles-tabs">
-        ${nombresRoles.map(r => `<button class="${r===rolSeleccionado?'active':''}" onclick="rolSeleccionado='${esc(r)}'; render();">${esc(r)}</button>`).join('')}
-        <button class="btn btn-ghost" onclick="crearRol()">+ Nuevo rol</button>
+      <p class="sub">Cada rol define a qué páginas entra. <b>Todo empieza en "Sin acceso"</b>: solo enciende lo que ese rol necesita. Cualquier página nueva que se cree también queda sin acceso hasta que la actives aquí.</p>
+      <div class="roles-tabs" role="tablist">
+        ${nombresRoles.map(r => `<button role="tab" aria-selected="${r===rolSeleccionado}" class="${r===rolSeleccionado?'active':''}" data-act="sel-rol" data-rol="${esc(r)}">${esc(r)} (${miembros(r)})</button>`).join('')}
+        <button class="btn btn-ghost" data-act="nuevo-rol">+ Nuevo rol</button>
       </div>
 
       ${rolSeleccionado ? `
-        <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-          <button class="btn btn-danger" onclick="borrarRol('${esc(rolSeleccionado)}')">Eliminar rol "${esc(rolSeleccionado)}"</button>
+        <div class="toolbar">
+          <input type="search" id="filtroPaginas" value="${esc(filtroPaginas)}" placeholder="Buscar página…" aria-label="Buscar página">
+          <span style="flex:1"></span>
+          <button class="btn btn-ghost" data-act="dup-rol">Duplicar rol</button>
+          <button class="btn btn-danger" data-act="del-rol">Eliminar rol</button>
+        </div>
+        <p class="resumen">Rol "${esc(rolSeleccionado)}": ${cuentaC} con acceso completo, ${cuentaL} solo lectura, ${Object.keys(paginas).length-cuentaC-cuentaL} sin acceso. ${miembros(rolSeleccionado)} persona(s) asignada(s).</p>
+        <div class="bulkbar">
+          <span><b>${seleccion.size}</b> página(s) marcada(s). Aplicar a las marcadas:</span>
+          <span class="seg">${NIVELES.map(n=>`<button data-act="aplicar" data-nivel="${n.valor}">${n.etiqueta}</button>`).join('')}</span>
         </div>
         <table>
-          <tr><th>Página</th><th>Nivel de acceso</th></tr>
-          ${Object.entries(paginas).map(([pageId, nombre]) => {
-            const nivelActual = (cfg.roles[rolSeleccionado][pageId]) || 'completo';
+          <tr><th style="width:34px;"><input type="checkbox" data-act="sel-todas" ${todosSel?'checked':''} aria-label="Marcar todas las páginas visibles"></th><th>Página</th><th>Nivel de acceso</th></tr>
+          ${vis.map(([pageId, nombre]) => {
+            const n = nivelDe(rolSeleccionado, pageId);
             return `<tr>
+              <td><input type="checkbox" data-act="sel-pagina" data-page="${esc(pageId)}" ${seleccion.has(pageId)?'checked':''} aria-label="Marcar ${esc(nombre)}"></td>
               <td>${esc(nombre)}</td>
-              <td>
-                <select onchange="cambiarNivel('${pageId}', this.value)">
-                  ${NIVELES.map(n => `<option value="${n.valor}" ${nivelActual===n.valor?'selected':''}>${n.etiqueta}</option>`).join('')}
-                </select>
-                <span class="nivel-${nivelActual}" style="margin-left:6px; font-size:11px;">●</span>
-              </td>
+              <td><span class="seg" role="group" aria-label="Nivel de acceso a ${esc(nombre)}">${NIVELES.map(x=>`<button data-act="nivel" data-page="${esc(pageId)}" data-nivel="${x.valor}" class="${n===x.valor?'on-'+x.valor:''}" aria-pressed="${n===x.valor}">${x.etiqueta}</button>`).join('')}</span></td>
             </tr>`;
-          }).join('')}
+          }).join('') || '<tr><td colspan="3" class="sub">Ninguna página coincide con la búsqueda.</td></tr>'}
         </table>
       ` : '<p class="sub">Crea un rol para empezar.</p>'}
     </div>
 
     <div class="section">
       <h2>Asignar personas a un rol</h2>
-      <p class="sub">Cualquier correo que no aparezca aquí tiene acceso completo a todo, por default.</p>
+      <p class="sub">Pega uno o varios correos (separados por salto de línea, coma o espacio) y elige el rol. Quien no aparezca aquí no puede abrir ninguna página.</p>
+      <textarea id="nuevosCorreos" placeholder="ana@seidor.com&#10;luis@seidor.com" aria-label="Correos a asignar"></textarea>
+      <div class="asig-row" style="margin-top:8px;">
+        <select id="nuevoRolSelect" aria-label="Rol a asignar">${nombresRoles.map(r=>`<option value="${esc(r)}" ${r===rolSeleccionado?'selected':''}>${esc(r)}</option>`).join('')}</select>
+        <button class="btn btn-primary" data-act="asignar">Asignar</button>
+      </div>
+      <div class="toolbar" style="margin-top:16px;">
+        <input type="search" id="filtroPersonas" value="${esc(filtroPersonas)}" placeholder="Buscar persona o rol…" aria-label="Buscar persona o rol">
+        <span class="resumen" style="margin:0;">${Object.keys(cfg.asignaciones).length} persona(s) con rol</span>
+      </div>
       <table>
         <tr><th>Correo</th><th>Rol asignado</th><th></th></tr>
-        ${Object.entries(cfg.asignaciones).map(([email, rol]) => `
+        ${personas.map(([email, rol]) => `
           <tr>
             <td>${esc(email)}</td>
-            <td>${esc(rol)}</td>
-            <td><button class="del-row" onclick="quitarAsignacion('${esc(email)}')">×</button></td>
-          </tr>
-        `).join('')}
+            <td><select data-act="rol-persona" data-email="${esc(email)}" aria-label="Rol de ${esc(email)}">${nombresRoles.map(r=>`<option value="${esc(r)}" ${r===rol?'selected':''}>${esc(r)}</option>`).join('')}</select></td>
+            <td><button class="del-row" data-act="quitar-persona" data-email="${esc(email)}" title="Quitar rol" aria-label="Quitar rol a ${esc(email)}">×</button></td>
+          </tr>`).join('') || '<tr><td colspan="3" class="sub">Sin personas asignadas.</td></tr>'}
       </table>
-      <div class="asig-row" style="margin-top:10px;">
-        <input type="text" id="nuevoCorreo" placeholder="correo@seidor.com">
-        <select id="nuevoRolSelect">
-          ${nombresRoles.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('')}
-        </select>
-        <button class="btn btn-primary" onclick="addAsignacion()">Asignar</button>
-      </div>
     </div>
 
-    <div id="statusBox"></div>
+    <div class="section">
+      <h2>¿Qué puede ver esta persona?</h2>
+      <div class="toolbar">
+        <input type="search" id="consultaCorreo" value="${esc(consultaCorreo)}" placeholder="correo@seidor.com" aria-label="Correo a consultar">
+      </div>
+      <div id="consultaOut">${consultaHtml()}</div>
+    </div>
   `;
 }
+
+document.addEventListener('click', function(e){
+  const el = e.target.closest('[data-act]'); if(!el || !cfg) return;
+  const act = el.dataset.act;
+  if(act==='sel-rol'){ rolSeleccionado = el.dataset.rol; seleccion.clear(); rerender(); }
+  else if(act==='nuevo-rol') crearRol();
+  else if(act==='dup-rol') duplicarRol();
+  else if(act==='del-rol') borrarRol();
+  else if(act==='nivel'){ setNivel(el.dataset.page, el.dataset.nivel); rerender(); guardar('Permiso actualizado.'); }
+  else if(act==='aplicar') aplicarSeleccion(el.dataset.nivel);
+  else if(act==='asignar') asignarVarios();
+  else if(act==='quitar-persona') cambiarRolPersona(el.dataset.email, '');
+  else if(act==='add-admin') addAdmin();
+  else if(act==='quitar-admin') toggleAdmin(el.dataset.email);
+});
+document.addEventListener('change', function(e){
+  const el = e.target.closest('[data-act]'); if(!el || !cfg) return;
+  if(el.dataset.act==='sel-pagina'){ el.checked ? seleccion.add(el.dataset.page) : seleccion.delete(el.dataset.page); rerender(); }
+  else if(el.dataset.act==='sel-todas'){ const vis = paginasVisibles(); vis.forEach(([id])=> el.checked ? seleccion.add(id) : seleccion.delete(id)); rerender(); }
+  else if(el.dataset.act==='rol-persona') cambiarRolPersona(el.dataset.email, el.value);
+});
+document.addEventListener('input', function(e){
+  if(!cfg) return;
+  const id = e.target.id;
+  if(id==='filtroPaginas'){ filtroPaginas = e.target.value; const p=e.target.selectionStart; rerender(); const n=document.getElementById('filtroPaginas'); n.focus(); n.setSelectionRange(p,p); }
+  else if(id==='filtroPersonas'){ filtroPersonas = e.target.value; const p=e.target.selectionStart; rerender(); const n=document.getElementById('filtroPersonas'); n.focus(); n.setSelectionRange(p,p); }
+  else if(id==='consultaCorreo'){ consultaCorreo = e.target.value; document.getElementById('consultaOut').innerHTML = consultaHtml(); }
+});
 
 init();
 </script>
