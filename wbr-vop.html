@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>WBR — Tablero VOP · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
+  header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+  .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
+  input[type=file]{display:none;}
+  .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
+  main{max-width:1200px; margin:0 auto; padding:24px 24px 60px;}
+  .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:14px; margin-bottom:18px;}
+  .kpi-card{background:#fff; border-radius:14px; padding:16px 18px; box-shadow:var(--shadow);}
+  .kpi-card .label{font-size:11px; color:var(--greyl); font-weight:600; line-height:1.3;}
+  .kpi-card .value{font-size:20px; font-weight:800; color:var(--navy2); margin-top:6px;}
+  .kpi-card .meta{font-size:11px; color:var(--grey); margin-top:2px;}
+  .insight-box{background:linear-gradient(135deg, #F4F8FC 0%, #EAF3FB 100%); border:1px solid var(--line); border-radius:12px; padding:18px 20px; display:flex; gap:14px; align-items:flex-start;}
+  .insight-icon{font-size:26px; flex-shrink:0;}
+  .insight-text{font-size:13.5px; line-height:1.6; color:var(--ink); white-space:pre-wrap;}
+  .bullet{display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:13.5px; line-height:1.5;}
+  .bullet:last-child{border-bottom:none;}
+  .bullet .dot{color:var(--blue); flex-shrink:0;}
+  .mensaje-clave{background:#EDF3FA; border-left:4px solid var(--blue); border-radius:8px; padding:16px 18px; font-size:14px; line-height:1.6; color:var(--navy2);}
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:6px; font-weight:700; font-size:10px; text-transform:uppercase;}
+  td{padding:8px 6px; border-bottom:1px solid var(--line);}
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+
+.vop{font-family:Poppins,system-ui,sans-serif;color:#0F1D40;background:#EEF2F8;min-height:100vh}
+.card{background:#FFFFFF;border:1px solid #D3DCEB;border-radius:14px;padding:22px;box-shadow:0 1px 2px rgba(15,29,64,.05)}
+.h2{margin:0 0 4px;font-size:16px;font-weight:600;color:#0F1D40}
+.sub{margin:0 0 16px;font-size:12.5px;line-height:1.5;color:#4A5B80}
+.cap{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#4A5B80;font-weight:500}
+.seg{font-family:inherit;font-size:13px;font-weight:500;color:#0F1D40;background:#FFFFFF;border:1px solid #B7C4DD;border-radius:8px;padding:9px 14px;min-height:44px;cursor:pointer}
+.seg:hover{border-color:#0A6FD6}
+.seg:focus-visible,.sec:focus-visible,.inp:focus-visible{outline:2px solid #0A6FD6;outline-offset:2px}
+.seg.on{background:#0F1D40;color:#FFFFFF;border-color:#0F1D40;font-weight:600}
+.seg.hd.on{background:#7CC4F5;color:#0F1D40;border-color:#7CC4F5}
+.seg.sm{min-height:36px;padding:6px 12px;font-size:12px}
+.seg.ico{min-width:36px;padding:6px 0;font-size:16px;line-height:1}
+.inp{font-family:inherit;font-size:14px;font-weight:600;color:#0F1D40;background:#FFFFFF;border:1px solid #B7C4DD;border-radius:8px;padding:8px 10px;min-height:36px;width:84px;box-sizing:border-box;text-align:right}
+.inp.s{width:100%;font-size:13px;text-align:center;padding:6px 4px}
+.tag{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:4px 12px}
+.sec{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;background:none;border:0;padding:0;margin:0;font-family:inherit;cursor:pointer;text-align:left;color:#0F1D40}
+.mut{color:#4A5B80}
+.onlyprint{display:none}
+@page{size:A4;margin:10mm}
+@media print{
+.noprint{display:none !important}
+.onlyprint{display:block !important}
+body,.vop{background:#FFFFFF !important}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.card{break-inside:avoid;box-shadow:none}
+.vop>div{padding:0 !important}
+}
+
+  main.vop-main{max-width:none; padding:0 0 40px;}
+  #vopMount .vop{min-height:0;}
+  .vop-empty{max-width:640px; margin:60px auto; text-align:center; color:var(--grey); padding:0 24px;}
+  .vop-empty h2{color:var(--navy2); font-size:18px; margin:0 0 8px;}
+  .vop-err{background:#FBEAEA; color:#8F1D1D; border-radius:10px; padding:12px 16px; margin:16px auto; max-width:1200px; font-size:13px;}
+  @media print{ nav.topnav, header, #statusBox{display:none !important;} body{background:#fff;} main.vop-main{padding:0;} }
+</style>
+</head>
+<body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){}
+})();
+</script>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-productos.html">Target de Clientes</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-vop.html" class="active">Tablero VOP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<header>
+  <div>
+    <h1>📊 Tablero VOP — Economía del deal</h1>
+    <p>Carga la hoja de estimación (proyecto, T&amp;M, rollout) o la calculadora AMS y revisa márgenes, aprobación, flujo de caja y riesgo</p>
+  </div>
+  <label class="upload-label" for="fileInput">⬆️ Cargar hoja de estimación o AMS</label>
+  <input type="file" id="fileInput" accept=".xlsx,.xls">
+</header>
+
+<main class="vop-main">
+  <div id="statusBox"></div>
+  <div id="vopMount"><div class="vop-empty"><h2>Sube una hoja para empezar</h2><p>Funciona con la hoja de estimación de proyecto (Modelo Económico + Plan de Proyecto) y con la Calculadora AMS. El archivo se procesa en tu navegador; no se guarda ni se envía a ningún servidor.</p></div></div>
+</main>
+<template id="vopTpl">
+<div class="vop">
+<div style="max-width:1280px;margin:0 auto;padding:28px 40px 56px;display:flex;flex-direction:column;gap:20px">
+
+<div style="background:#0F1D40;color:#FFFFFF;border-radius:14px;padding:22px 26px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap">
+<div>
+<div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9FC4F2;font-weight:500">WBR &#8250; Tablero VOP</div>
+<h1 style="margin:6px 0 0;font-size:30px;font-weight:700;letter-spacing:-.01em">{{head.a}} <span style="color:#7CC4F5">{{head.b}}</span></h1>
+<div style="font-size:13px;margin-top:4px;color:#C9D8F0">{{head.sub}}</div>
+</div>
+<div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
+<div>
+<div class="noprint" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9FC4F2;font-weight:500;margin-bottom:6px">Tipo de deal</div>
+<div class="noprint" style="display:flex;gap:6px"><sc-for list="{{modeBtns}}" as="o" hint-placeholder-count="2"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div>
+</div>
+<div style="font-size:12px;color:#C9D8F0;text-align:right;line-height:1.5">{{head.file}}<br>{{head.ids}}</div>
+<button class="seg noprint" type="button" onClick="{{pickFile}}">Cargar otra hoja</button>
+<button class="seg hd on noprint" type="button" onClick="{{exportPdf}}">Exportar PDF</button>
+</div>
+</div>
+
+<div class="noprint" style="position:sticky;top:0;z-index:20;background:#FFFFFF;border:1px solid #B7C4DD;border-radius:14px;padding:12px 18px;display:flex;gap:22px;flex-wrap:wrap;align-items:center;box-shadow:0 6px 16px rgba(15,29,64,.12)">
+<div>
+<div class="cap" style="margin-bottom:4px">{{tgtLabel}}</div>
+<div style="display:flex;gap:6px;align-items:center">
+<button class="seg sm ico" type="button" aria-label="Bajar un punto" onClick="{{mgDown}}">−</button>
+<input class="inp" type="number" step="0.5" value="{{mgVal}}" onChange="{{mgSet}}" aria-label="{{tgtLabel}}">
+<button class="seg sm ico" type="button" aria-label="Subir un punto" onClick="{{mgUp}}">+</button>
+</div>
+</div>
+<div>
+<div class="cap" style="margin-bottom:4px">{{devLabel}}</div>
+<div style="display:flex;gap:6px"><sc-for list="{{devBtns}}" as="o" hint-placeholder-count="4"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div>
+</div>
+<div>
+<div class="cap" style="margin-bottom:4px">Cobro a (DSO)</div>
+<div style="display:flex;gap:6px"><sc-for list="{{dsoBtns}}" as="o" hint-placeholder-count="3"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div>
+</div>
+<div style="margin-left:auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+<div style="text-align:right"><div class="cap">Precio</div><div style="font-size:18px;font-weight:700">{{bar.price}}</div></div>
+<div style="text-align:right"><div class="cap">EBIT</div><div style="font-size:18px;font-weight:700;color:#0A6FD6">{{bar.ebit}}</div></div>
+<span class="tag" style="background:{{sem.bg}};color:{{sem.fg}}">{{sem.label}}</span>
+</div>
+</div>
+
+<div class="onlyprint card" style="font-size:12.5px;line-height:1.6">{{printInfo}}</div>
+
+<div style="font-size:13px;color:#4A5B80">{{sem.msg}} <span style="color:#5B6C92">{{policy}}</span></div>
+
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="8">
+<div class="card" style="padding:18px 20px">
+<div class="cap">{{k.label}}</div>
+<div style="font-size:26px;font-weight:700;margin-top:6px;letter-spacing:-.01em;color:{{k.color}}">{{k.value}}</div>
+<div style="font-size:12.5px;margin-top:2px;color:#4A5B80">{{k.pct}}</div>
+<div style="font-size:11.5px;margin-top:8px;color:#5B6C92;border-top:1px solid #E3E9F3;padding-top:8px">{{k.src}}</div>
+</div>
+</sc-for>
+</div>
+
+<div class="card">
+<button class="sec" type="button" aria-expanded="{{openPrice}}" onClick="{{tgPrice}}">
+<span><span class="h2" style="font-size:18px">Precio y márgenes</span><span class="sub" style="display:block;margin:2px 0 0">Cascada de precio a EBIT, colchón de negociación y tarifa efectiva.</span></span>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F1D40" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:{{rotPrice}};flex:none"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<sc-if value="{{openPrice}}" hint-placeholder-val="{{true}}">
+<div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px;margin-top:18px">
+<div>
+<svg viewBox="0 0 720 300" role="img" aria-label="Cascada de precio a EBIT" style="width:100%;height:auto;display:block">
+<line x1="14" x2="706" y1="{{wf.base}}" y2="{{wf.base}}" stroke="#9AAAC8" stroke-width="1"></line>
+<sc-for list="{{wf.bars}}" as="b" hint-placeholder-count="9">
+<rect x="{{b.x}}" y="{{b.y}}" width="{{b.w}}" height="{{b.h}}" rx="3" fill="{{b.fill}}"></rect>
+<text x="{{b.tx}}" y="{{b.ty}}" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0F1D40">{{b.amt}}</text>
+<text x="{{b.tx}}" y="270" text-anchor="middle" font-size="11.5" fill="#0F1D40">{{b.label}}</text>
+<text x="{{b.tx}}" y="286" text-anchor="middle" font-size="10.5" fill="#4A5B80">{{b.pct}}</text>
+</sc-for>
+</svg>
+<div style="display:flex;gap:18px;font-size:12px;color:#4A5B80;margin:4px 0 14px;flex-wrap:wrap"><span><span style="display:inline-block;width:10px;height:10px;background:#0F1D40;border-radius:2px"></span> Subtotal</span><span><span style="display:inline-block;width:10px;height:10px;background:#9DB4DD;border-radius:2px"></span> Cargo que resta</span><span><span style="display:inline-block;width:10px;height:10px;background:#0A6FD6;border-radius:2px"></span> Resultado final</span></div>
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{ladder}}" as="r" hint-placeholder-count="8">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 104px 56px;gap:12px;align-items:center;padding:7px 0;border-top:1px solid #E3E9F3">
+<div><div style="font-size:13px;font-weight:{{r.fw}};color:{{r.lc}}">{{r.label}}</div><div style="font-size:11px;color:#5B6C92;margin-top:1px">{{r.how}}</div></div>
+<div style="font-size:13.5px;font-weight:{{r.fw}};text-align:right">{{r.amt}}</div>
+<div style="font-size:12px;color:#4A5B80;text-align:right">{{r.pct}}</div>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:10px;font-size:12px;color:#4A5B80;line-height:1.5">{{cargoNote}}</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:18px">
+<div>
+<h2 class="h2">Colchón de negociación</h2>
+<p class="sub">Cuánto puedes bajar el precio antes de cambiar de nivel de aprobación.</p>
+<div style="display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{cush.rows}}" as="r" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border-top:1px solid #E3E9F3;padding-top:10px">
+<div><span class="tag" style="background:{{r.bg}};color:{{r.fg}};font-size:11px;padding:2px 10px">{{r.tag}}</span><div style="font-size:11px;color:#5B6C92;margin-top:3px">{{r.rule}}</div></div>
+<div style="text-align:right"><div style="font-size:16px;font-weight:600">{{r.price}}</div><div style="font-size:11.5px;color:#4A5B80">{{r.delta}}</div></div>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:12px;font-size:12.5px;line-height:1.5;background:#E3E9F3;border-radius:10px;padding:10px 12px">{{cush.msg}}</div>
+</div>
+<div>
+<h2 class="h2">{{rate.title}}</h2>
+<p class="sub">{{rate.sub}}</p>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+<div><div class="cap">Tarifa</div><div style="font-size:20px;font-weight:600;margin-top:4px">{{rate.eff}}</div></div>
+<div><div class="cap">Costo</div><div style="font-size:20px;font-weight:600;margin-top:4px">{{rate.cost}}</div></div>
+<div><div class="cap">Margen</div><div style="font-size:20px;font-weight:600;margin-top:4px;color:#0A6FD6">{{rate.mg}}</div></div>
+</div>
+<div style="margin-top:10px;font-size:12px;color:#4A5B80">{{rate.note}}</div>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<div class="card">
+<button class="sec" type="button" aria-expanded="{{openCash}}" onClick="{{tgCash}}">
+<span><span class="h2" style="font-size:18px">Hitos de facturación y flujo de caja</span><span class="sub" style="display:block;margin:2px 0 0">Tú decides los porcentajes por mes; compara lo que cobras contra lo que te cuesta cada mes.</span></span>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F1D40" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:{{rotCash}};flex:none"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<sc-if value="{{openCash}}" hint-placeholder-val="{{true}}">
+<div style="margin-top:16px">
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+<span class="cap" style="margin-right:4px">Esquemas</span>
+<sc-for list="{{presetBtns}}" as="o" hint-placeholder-count="4"><button class="seg sm" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for>
+<span class="cap" style="margin-left:12px">Ventana</span>
+<button class="seg sm ico" type="button" aria-label="Quitar un mes" onClick="{{monthLess}}">−</button>
+<span style="font-size:13px;font-weight:600;min-width:62px;text-align:center">{{hmText}}</span>
+<button class="seg sm ico" type="button" aria-label="Agregar un mes" onClick="{{monthMore}}">+</button>
+<span class="tag" style="background:{{sched.bg}};color:{{sched.fg}};margin-left:auto">{{sched.msg}}</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-bottom:16px">
+<sc-for list="{{months}}" as="mo" hint-placeholder-count="9">
+<div style="border:1px solid #D3DCEB;border-radius:10px;padding:8px 6px;text-align:center;background:#F7F9FD">
+<div class="cap">{{mo.label}}</div>
+<input class="inp s" type="number" min="0" max="100" step="0.5" value="{{mo.val}}" onChange="{{mo.set}}" aria-label="{{mo.aria}}">
+<div style="font-size:11px;color:#4A5B80;margin:4px 0">{{mo.amt}}</div>
+<div style="display:flex;justify-content:center;gap:4px"><button class="seg sm ico" type="button" aria-label="Restar 5 puntos" onClick="{{mo.down}}">−</button><button class="seg sm ico" type="button" aria-label="Sumar 5 puntos" onClick="{{mo.up}}">+</button></div>
+</div>
+</sc-for>
+</div>
+<div style="font-size:11.5px;color:#5B6C92;margin:-6px 0 14px">{{cashNote}}</div>
+<div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start">
+<div>
+<svg viewBox="0 0 660 326" role="img" aria-label="Cobrado y costo por mes, y acumulados" style="width:100%;height:auto;display:block">
+<text x="30" y="16" font-size="11" fill="#4A5B80">Por mes</text>
+<text x="30" y="188" font-size="11" fill="#4A5B80">Acumulado</text>
+<sc-if value="{{cash.hasTip}}" hint-placeholder-val="{{false}}"><rect x="{{cash.bandX}}" y="22" width="{{cash.bandW}}" height="274" fill="#E3E9F3"></rect></sc-if>
+<line x1="30" x2="630" y1="148" y2="148" stroke="#9AAAC8" stroke-width="1"></line>
+<line x1="30" x2="630" y1="292" y2="292" stroke="#9AAAC8" stroke-width="1"></line>
+<sc-for list="{{cash.cols}}" as="c" hint-placeholder-count="12">
+<rect x="{{c.x1}}" y="{{c.y1}}" width="{{c.bw}}" height="{{c.h1}}" fill="#1E88E5"></rect>
+<rect x="{{c.x2}}" y="{{c.y2}}" width="{{c.bw}}" height="{{c.h2}}" fill="#8E4EC6"></rect>
+<text x="{{c.tx}}" y="312" text-anchor="middle" font-size="10.5" fill="#4A5B80">{{c.label}}</text>
+</sc-for>
+<polygon points="{{cash.gap}}" fill="#8E4EC6" fill-opacity="0.12"></polygon>
+<polyline points="{{cash.lineCost}}" fill="none" stroke="#8E4EC6" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<polyline points="{{cash.lineCob}}" fill="none" stroke="#1E88E5" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<sc-for list="{{cash.hits}}" as="h" hint-placeholder-count="12">
+<rect x="{{h.x}}" y="0" width="{{h.w}}" height="326" fill="transparent" style="cursor:pointer" onMouseEnter="{{h.on}}" onClick="{{h.on}}"></rect>
+</sc-for>
+<sc-if value="{{cash.hasTip}}" hint-placeholder-val="{{false}}">
+<rect x="{{cash.tipX}}" y="24" width="244" height="106" rx="8" fill="#0F1D40"></rect>
+<text x="{{cash.tipTx}}" y="44" font-size="12" font-weight="700" fill="#FFFFFF">{{cash.t0}}</text>
+<text x="{{cash.tipTx}}" y="62" font-size="11" fill="#FFFFFF">{{cash.t1}}</text>
+<text x="{{cash.tipTx}}" y="78" font-size="11" fill="#FFFFFF">{{cash.t2}}</text>
+<text x="{{cash.tipTx}}" y="94" font-size="11" fill="#FFFFFF">{{cash.t3}}</text>
+<text x="{{cash.tipTx}}" y="110" font-size="11" fill="#FFFFFF">{{cash.t4}}</text>
+<text x="{{cash.tipTx}}" y="124" font-size="11" font-weight="600" fill="#9FC4F2">{{cash.t5}}</text>
+</sc-if>
+</svg>
+<div style="display:flex;gap:18px;font-size:12px;color:#4A5B80;margin-top:6px;flex-wrap:wrap"><span><span style="display:inline-block;width:10px;height:10px;background:#1E88E5;border-radius:2px"></span> Cobrado (entra)</span><span><span style="display:inline-block;width:10px;height:10px;background:#8E4EC6;border-radius:2px"></span> Costo esperado (sale)</span><span>Zona sombreada = brecha entre costo y cobro acumulados</span><span>Pasa el cursor sobre un mes para ver el detalle</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div><div class="cap">Costo esperado por mes</div><div style="font-size:20px;font-weight:700;margin-top:2px;color:#6B35A8">{{cash.costPeak}}</div><div style="font-size:12px;color:#4A5B80">{{cash.costNote}}</div></div>
+<div><div class="cap">Exposición máxima</div><div style="font-size:20px;font-weight:700;margin-top:2px;color:#6B35A8">{{cash.peak}}</div><div style="font-size:12px;color:#4A5B80">{{cash.peakAt}}</div></div>
+<div><div class="cap">Cobro cubre el costo acumulado</div><div style="font-size:20px;font-weight:700;margin-top:2px">{{cash.be}}</div><div style="font-size:12px;color:#4A5B80">{{cash.cover}}</div></div>
+<div><div class="cap">Caja final</div><div style="font-size:20px;font-weight:700;margin-top:2px;color:#0A6FD6">{{cash.final}}</div></div>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<div class="card">
+<button class="sec" type="button" aria-expanded="{{openCap}}" onClick="{{tgCap}}">
+<span><span class="h2" style="font-size:18px">Capacidad y salud de la estimación</span><span class="sub" style="display:block;margin:2px 0 0">{{capSub}}</span></span>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F1D40" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:{{rotCap}};flex:none"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<sc-if value="{{openCap}}" hint-placeholder-val="{{true}}">
+<div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;margin-top:18px">
+<div>
+<sc-if value="{{isProj}}" hint-placeholder-val="{{true}}">
+<div>
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:8px">
+<div style="display:flex;gap:22px">
+<div><div class="cap">Pico</div><div style="font-size:20px;font-weight:700">{{cap.peak}}</div></div>
+<div><div class="cap">Promedio</div><div style="font-size:20px;font-weight:700">{{cap.avg}}</div></div>
+</div>
+<div><div class="cap" style="margin-bottom:4px">FTE disponibles</div><input class="inp" type="number" min="0" max="50" step="0.5" value="{{fteVal}}" placeholder="FTE" onChange="{{fteSet}}" aria-label="FTE disponibles para el proyecto"></div>
+</div>
+<svg viewBox="0 0 640 230" role="img" aria-label="FTE por mes por tipo de consultor" style="width:100%;height:auto;display:block">
+<line x1="30" x2="630" y1="205" y2="205" stroke="#9AAAC8" stroke-width="1"></line>
+<sc-for list="{{cap.bars}}" as="b" hint-placeholder-count="18">
+<rect x="{{b.x}}" y="{{b.y}}" width="{{b.w}}" height="{{b.h}}" fill="{{b.fill}}"></rect>
+</sc-for>
+<sc-for list="{{cap.labels}}" as="t" hint-placeholder-count="6">
+<text x="{{t.x}}" y="222" text-anchor="middle" font-size="11" fill="#4A5B80">{{t.label}}</text>
+<text x="{{t.x}}" y="{{t.y}}" text-anchor="middle" font-size="11" font-weight="600" fill="#0F1D40">{{t.val}}</text>
+</sc-for>
+<sc-if value="{{cap.hasLine}}" hint-placeholder-val="{{false}}"><line x1="30" x2="630" y1="{{cap.lineY}}" y2="{{cap.lineY}}" stroke="#6B35A8" stroke-width="2" stroke-dasharray="6 4"></line></sc-if>
+</svg>
+<div style="display:flex;gap:18px;font-size:12px;color:#4A5B80;margin-top:4px;flex-wrap:wrap"><span><span style="display:inline-block;width:10px;height:10px;background:#0F1D40;border-radius:2px"></span> Gerencia</span><span><span style="display:inline-block;width:10px;height:10px;background:#1E88E5;border-radius:2px"></span> Funcional</span><span><span style="display:inline-block;width:10px;height:10px;background:#9DB4DD;border-radius:2px"></span> Técnica</span><span>1 FTE = 20 jornadas por mes</span></div>
+<div style="margin-top:10px;font-size:12.5px;background:#E3E9F3;border-radius:10px;padding:10px 12px;line-height:1.5">{{cap.msg}}</div>
+</div>
+</sc-if>
+<sc-if value="{{isAms}}" hint-placeholder-val="{{false}}">
+<div>
+<div style="display:flex;gap:22px;margin-bottom:10px">
+<div><div class="cap">Horas por mes</div><div style="font-size:20px;font-weight:700">{{ams.hours}}</div></div>
+<div><div class="cap">FTE equivalente</div><div style="font-size:20px;font-weight:700">{{ams.fte}}</div></div>
+<div><div class="cap">Costo mensual</div><div style="font-size:20px;font-weight:700;color:#6B35A8">{{ams.cost}}</div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ams.rows}}" as="r" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:150px minmax(0,1fr) 70px 80px;gap:10px;align-items:center;font-size:12.5px;border-top:1px solid #E3E9F3;padding-top:8px">
+<div><div style="font-weight:600">{{r.mod}}</div><div style="font-size:11px;color:#5B6C92">{{r.role}}</div></div>
+<div style="height:10px;background:#E3E9F3;border-radius:5px"><div style="height:10px;border-radius:5px;width:{{r.w}};background:#1E88E5"></div></div>
+<div style="text-align:right">{{r.h}} h</div>
+<div style="text-align:right">{{r.c}}</div>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:10px;font-size:12.5px;background:#E3E9F3;border-radius:10px;padding:10px 12px;line-height:1.5">1 FTE = 160 horas por mes (8 h × 20 días). El equipo cubre {{ams.fte}} FTE sobre {{ams.vig}} meses de vigencia.</div>
+</div>
+</sc-if>
+</div>
+<div>
+<h2 class="h2">Chequeos de la estimación</h2>
+<p class="sub">Rangos provisionales; los calibraremos con tu histórico.</p>
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{checks}}" as="c" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid #E3E9F3">
+<div><div style="font-size:13px">{{c.label}}</div><div style="font-size:11px;color:#5B6C92">Rango {{c.range}}</div></div>
+<div style="display:flex;gap:10px;align-items:center"><span style="font-size:14px;font-weight:600">{{c.value}}</span><span class="tag" style="background:{{c.bg}};color:{{c.fg}};font-size:11px;padding:2px 10px">{{c.tag}}</span></div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<div class="card">
+<button class="sec" type="button" aria-expanded="{{openRisk}}" onClick="{{tgRisk}}">
+<span><span class="h2" style="font-size:18px">Riesgo y sensibilidad</span><span class="sub" style="display:block;margin:2px 0 0">Calificación de riesgo en siete preguntas y qué pasa si el esfuerzo se desvía.</span></span>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F1D40" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:{{rotRisk}};flex:none"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<sc-if value="{{openRisk}}" hint-placeholder-val="{{true}}">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:28px;margin-top:18px">
+<div>
+<h2 class="h2">Riesgo del deal</h2>
+<p class="sub">Los criterios de tipo <b>Costo</b> mueven la contingencia. Los de tipo <b>Alerta</b> suben la calificación y avisan, pero no agregan costo.</p>
+<div style="display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{drivers}}" as="d" hint-placeholder-count="7">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+<div style="font-size:12.5px;line-height:1.35;flex:1">{{d.name}} <span class="tag" style="background:{{d.bg}};color:{{d.fg}};font-size:10.5px;padding:1px 8px;margin-left:4px">{{d.kind}}</span> <span style="color:#5B6C92">{{d.w}}</span></div>
+<div style="display:flex;gap:4px">
+<sc-for list="{{d.opts}}" as="o" hint-placeholder-count="3"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:14px;border-top:1px solid #D3DCEB;padding-top:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+<div><div class="cap">Calificación general</div><div style="font-size:16px;font-weight:600;margin-top:4px">{{risk.score}} · {{risk.band}}</div></div>
+<div><div class="cap">{{risk.contLabel}}</div><div style="font-size:16px;font-weight:600;margin-top:4px">{{risk.rate}} = {{risk.cont}}</div></div>
+<div><div class="cap">Margen bruto ajustado</div><div style="font-size:16px;font-weight:600;margin-top:4px">{{risk.bruto}}</div></div>
+<div><div class="cap">EBIT ajustado</div><div style="font-size:16px;font-weight:600;margin-top:4px;color:#0A6FD6">{{risk.oper}}</div></div>
+</div>
+<div style="margin-top:12px;background:#E3E9F3;border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.5">{{risk.cmp}}</div>
+<sc-if value="{{risk.hasAlerts}}" hint-placeholder-val="{{false}}">
+<div style="margin-top:12px;background:#EBDDFB;color:#3F2078;border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.5">{{risk.alerts}}</div>
+</sc-if>
+</div>
+<div>
+<h2 class="h2">Sensibilidad: desviación × objetivo</h2>
+<p class="sub">Precio fijo, el costo sube. Cada celda: margen bruto, EBIT y nivel de aprobación.</p>
+<div style="display:grid;grid-template-columns:120px repeat(4,minmax(0,1fr));gap:6px;align-items:stretch">
+<div></div>
+<sc-for list="{{sensCols}}" as="h" hint-placeholder-count="4"><div class="cap" style="text-align:center">{{h}}</div></sc-for>
+<sc-for list="{{sens}}" as="row" hint-placeholder-count="4">
+<div style="font-size:12.5px;align-self:center">{{row.label}}</div>
+<sc-for list="{{row.cells}}" as="c" hint-placeholder-count="4">
+<div style="background:{{c.bg}};border:2px solid {{c.bd}};border-radius:8px;padding:10px 4px;text-align:center"><div style="font-size:14px;font-weight:600;color:{{c.fg}}">{{c.top}}</div><div style="font-size:11.5px;color:{{c.fg}}">EBIT {{c.bot}}</div><div style="font-size:11px;font-weight:600;color:{{c.fg}};margin-top:2px">{{c.tag}}</div></div>
+</sc-for>
+</sc-for>
+</div>
+<div style="font-size:11.5px;color:#5B6C92;margin-top:10px">Borde azul oscuro = escenario elegido en la barra superior.</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<div class="card">
+<button class="sec" type="button" aria-expanded="{{openMix}}" onClick="{{tgMix}}">
+<span><span class="h2" style="font-size:18px">Mix, pass-through y deal completo</span><span class="sub" style="display:block;margin:2px 0 0">De dónde viene el precio y cómo cambia el margen al sumar la suscripción.</span></span>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F1D40" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:{{rotMix}};flex:none"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<sc-if value="{{openMix}}" hint-placeholder-val="{{true}}">
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px;margin-top:18px">
+<div>
+<h2 class="h2">Mix y pass-through</h2>
+<p class="sub">El pass-through (integrados a margen 0) suma ingreso pero no margen y diluye el %.</p>
+<div style="display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{mix}}" as="m" hint-placeholder-count="3">
+<div style="display:grid;grid-template-columns:170px minmax(0,1fr) 92px;gap:10px;align-items:center;font-size:12.5px"><div>{{m.label}}</div><div style="height:10px;background:#E3E9F3;border-radius:5px"><div style="height:10px;border-radius:5px;width:{{m.w}};background:#0F1D40"></div></div><div style="text-align:right">{{m.amt}}</div></div>
+</sc-for>
+</div>
+<div style="font-size:12px;color:#4A5B80;margin-top:12px;border-top:1px solid #D3DCEB;padding-top:10px;line-height:1.5">Margen sobre servicios propios: <b style="color:#0F1D40">{{mixMg}}</b> · Margen total: <b style="color:#0F1D40">{{mixMg}}</b>. Con $30K de pass-through en $100K, un 35% propio se vería 24.5% total.</div>
+</div>
+<div>
+<h2 class="h2">Margen del deal completo <span class="tag" style="background:#E3E9F3;color:#0F1D40;margin-left:6px;font-size:11px">EJEMPLO</span></h2>
+<p class="sub">Servicios + CCF 10% sobre TCV de suscripción. Esta hoja no trae suscripción.</p>
+<div style="display:flex;gap:8px;margin-bottom:12px">
+<sc-for list="{{acvBtns}}" as="o" hint-placeholder-count="3"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+<div><div class="cap">TCV (3 años)</div><div style="font-size:17px;font-weight:600;margin-top:4px">{{deal.tcv}}</div></div>
+<div><div class="cap">CCF 10%</div><div style="font-size:17px;font-weight:600;margin-top:4px">{{deal.ccf}}</div></div>
+<div><div class="cap">Margen deal</div><div style="font-size:17px;font-weight:600;margin-top:4px;color:#0A6FD6">{{deal.mg}}</div></div>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+
+<div class="card" style="padding:16px 22px">
+<div class="cap" style="margin-bottom:8px">Supuestos del modelo (a confirmar)</div>
+<div style="font-size:12.5px;color:#4A5B80;line-height:1.7">{{assump}}</div>
+</div>
+
+</div>
+</div>
+
+</template>
+<script>
+// ---- Lectura de hojas ----
+function vopCell(ws, a){ const c = ws && ws[a]; return c ? c.v : null; }
+function vopNum(x){ return (typeof x === 'number' && isFinite(x)) ? x : 0; }
+function vopRows(ws){ return XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true }); }
+function vopFecha(v){
+  if(v instanceof Date) return v.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' });
+  return v ? String(v) : '';
+}
+function parsearVOPProyecto(wb, fname){
+  const me = wb.Sheets['Modelo Económico'], dp = wb.Sheets['Datos Proyecto'], pl = wb.Sheets['Plan de Proyecto'], eq = wb.Sheets['Equipo Consultoría'];
+  if(!me || !dp || !pl || !eq) throw new Error('Faltan pestañas de la hoja de estimación (Modelo Económico, Datos Proyecto, Plan de Proyecto, Equipo Consultoría).');
+  const cb = vopNum(vopCell(me, 'C13'));
+  if(!cb) throw new Error('La hoja no trae costo del proyecto (Modelo Económico C13).');
+  const cols = ['F','G','H','J','K'];
+  const G = { pm: cols.map(c => vopNum(vopCell(me, c + '39'))), fu: cols.map(c => vopNum(vopCell(me, c + '40'))), te: cols.map(c => vopNum(vopCell(me, c + '41'))) };
+  const jt = vopNum(vopCell(me, 'L42')) || [].concat(G.pm, G.fu, G.te).reduce((a,b)=>a+b, 0);
+  const R = vopRows(pl);
+  const JM = { pm: [0], fu: [0], te: [0] }, CM = [0];
+  let nMax = 0;
+  for(let b = 0; b < 5; b++){
+    const start = 8 + 31 * b;
+    for(let i = 0; i < 30; i++){
+      const row = R[start + 1 + i]; if(!row) continue;
+      const rate = vopNum(row[3]); if(!rate) continue;
+      const eg = String(vopCell(eq, 'G' + (7 + i)) || '');
+      const g = /gerencia/i.test(eg) ? 'pm' : /t[eé]cnic/i.test(eg) ? 'te' : 'fu';
+      for(let w = 1; w <= 156; w++){
+        const v = vopNum(row[4 + w]); if(!v) continue;
+        const m = Math.ceil(w / 4);
+        while(CM.length <= m){ CM.push(0); JM.pm.push(0); JM.fu.push(0); JM.te.push(0); }
+        JM[g][m] += v; CM[m] += v * rate; if(m > nMax) nMax = m;
+      }
+    }
+  }
+  if(!nMax) throw new Error('El Plan de Proyecto no trae jornadas por semana.');
+  const sumCM = CM.reduce((a,b)=>a+b, 0);
+  const k = sumCM > 0 ? cb / sumCM : 1;
+  for(let m = 0; m < CM.length; m++) CM[m] *= k;
+  const cp = String(vopCell(dp, 'B6') || '');
+  const pp = cp.split(/\s+\+\s+/);
+  const p10 = vopNum(vopCell(me, 'G10')), p11 = vopNum(vopCell(me, 'G11'));
+  return { cb, jt, G, JM, CM, n: nMax, gar: vopNum(vopCell(dp, 'B22')), cliente: pp[0] || cp, producto: pp.slice(1).join(' + '), id: vopCell(dp, 'B7') || '', desc: vopCell(dp, 'E4') || '', gc: vopCell(dp, 'B4') || '', gn: vopCell(dp, 'B5') || '', tc: (p10 && p11) ? p11 / p10 : 0, file: fname };
+}
+function parsearVOPAMS(wb, fname){
+  const rc = wb.Sheets['1. Recursos'], rs = wb.Sheets['3. Resumen'], ad = wb.Sheets['2. Costos adicionales'];
+  if(!rc || !rs) throw new Error('Faltan pestañas de la calculadora AMS (1. Recursos, 3. Resumen).');
+  const R = vopRows(rc), res = [];
+  for(let r = 7; r <= 21; r++){
+    const row = R[r]; if(!row) continue;
+    const rate = vopNum(row[3]), hm = vopNum(row[4]), meses = vopNum(row[5]);
+    if(rate > 0 && hm > 0 && meses > 0) res.push({ mod: row[1] || '', role: row[2] || '', rate, hm, meses });
+  }
+  if(!res.length) throw new Error('La hoja AMS no trae recursos.');
+  const recursos = res.reduce((a,r) => a + r.rate * r.hm * r.meses, 0);
+  const extra = ad ? vopNum(vopCell(ad, 'G23')) : 0;
+  const vig = vopNum(vopCell(rs, 'D10')) || 12;
+  const hrs = res.reduce((a,r) => a + r.hm * r.meses, 0);
+  const pmH = res.filter(r => /^pm$/i.test(String(r.mod)) || /gerente|project manager/i.test(r.role)).reduce((a,r) => a + r.hm, 0);
+  return { cb: recursos + extra, recursos, extra, res, vig, hrs, hm: res.reduce((a,r) => a + r.hm, 0), pmH, oh: vopNum(vopCell(rs, 'D14')), ct: vopNum(vopCell(rs, 'D15')), util: vopNum(vopCell(rs, 'D16')) || 0.10, cliente: vopCell(rs, 'D6') || '', proyecto: vopCell(rs, 'D7') || '', resp: vopCell(rs, 'D8') || '', fecha: vopFecha(vopCell(rs, 'D9')), tc: vopNum(vopCell(rs, 'H29')) || 17.2, precioHoja: vopNum(vopCell(rs, 'E28')), file: fname };
+}
+
+// ---- Motor de plantilla mínimo: {{ruta}}, <sc-for>, <sc-if>, onClick/onChange/onMouseEnter ----
+(function(){
+  const VOID = { input:1, br:1, img:1, hr:1, meta:1, link:1 };
+  const esc = (s) => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const HOLE = /\{\{\s*([\w.]+)\s*\}\}/g;
+  function get(path, scopes){
+    const parts = path.split('.');
+    let v; for(let i = scopes.length - 1; i >= 0; i--){ if(parts[0] in scopes[i]){ v = scopes[i][parts[0]]; break; } }
+    for(let j = 1; j < parts.length && v != null; j++) v = v[parts[j]];
+    return v;
+  }
+  const sub = (str, scopes) => str.replace(HOLE, (m, p) => { const v = get(p, scopes); return v == null ? '' : String(v); });
+  function walk(node, scopes, out, handlers){
+    if(node.nodeType === 3){ out.push(esc(sub(node.nodeValue, scopes))); return; }
+    if(node.nodeType !== 1) return;
+    const tag = node.localName;
+    if(tag === 'sc-for'){
+      const lp = (node.getAttribute('list') || '').match(/\{\{\s*([\w.]+)\s*\}\}/);
+      const as = node.getAttribute('as') || 'item';
+      const arr = lp ? get(lp[1], scopes) : null;
+      (arr || []).forEach((it) => { const sc = {}; sc[as] = it; const ns = scopes.concat([sc]); node.childNodes.forEach(c => walk(c, ns, out, handlers)); });
+      return;
+    }
+    if(tag === 'sc-if'){
+      const vp = (node.getAttribute('value') || '').match(/\{\{\s*([\w.]+)\s*\}\}/);
+      if(vp && get(vp[1], scopes)) node.childNodes.forEach(c => walk(c, scopes, out, handlers));
+      return;
+    }
+    let s = '<' + tag;
+    for(const a of Array.from(node.attributes)){
+      const n = a.name;
+      if(n.indexOf('hint-') === 0) continue;
+      if(/^on/i.test(n)){
+        const p = a.value.match(/\{\{\s*([\w.]+)\s*\}\}/); const fn = p ? get(p[1], scopes) : null;
+        if(typeof fn === 'function'){ let ev = n.slice(2).toLowerCase(); if(ev === 'mouseenter') ev = 'mouseover'; handlers.push(fn); s += ' data-e-' + ev + '="' + (handlers.length - 1) + '"'; }
+        continue;
+      }
+      s += ' ' + n + '="' + esc(sub(a.value, scopes)) + '"';
+    }
+    s += '>'; out.push(s);
+    if(VOID[tag]) return;
+    node.childNodes.forEach(c => walk(c, scopes, out, handlers));
+    out.push('</' + tag + '>');
+  }
+  window.VOPEngine = function(tplEl, mountEl, logic){
+    let handlers = [];
+    function render(){
+      const vals = logic.renderVals();
+      const out = []; handlers = [];
+      tplEl.content.childNodes.forEach(c => walk(c, [vals], out, handlers));
+      mountEl.innerHTML = out.join('');
+    }
+    ['click','change','mouseover'].forEach((ev) => {
+      mountEl.addEventListener(ev, (e) => {
+        const el = e.target.closest('[data-e-' + ev + ']'); if(!el || !mountEl.contains(el)) return;
+        const fn = handlers[+el.getAttribute('data-e-' + ev)]; if(fn) fn(e);
+      });
+    });
+    logic.setState = function(o){ Object.assign(this.state, o); render(); };
+    return { render };
+  };
+})();
+
+class DCLogic { constructor(props){ this.props = props || {}; } }
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'proj', tgt: { proj: 35, ams: 10 }, dev: 0, dso: 1, acv: 1, risk: [1, 1, 1, 1, 1, 1, 1], pct: { proj: [], ams: [] }, fte: '', hov: -1, open: { price: true, cash: true, cap: true, risk: true, mix: false } };
+  }
+  load(type, data) {
+    this.data = this.data || {};
+    this.data[type] = data;
+    const s = this.state;
+    if (type === 'proj') {
+      const n = data.n;
+      const arr = [20].concat(new Array(n).fill(80 / n), [0, 0]);
+      s.pct.proj = arr; s.tgt.proj = 35;
+    } else {
+      const v = data.vig;
+      s.pct.ams = [20].concat(new Array(v).fill(80 / v)); s.tgt.ams = Math.round(data.util * 1000) / 10;
+    }
+    s.mode = type; s.dev = 0; s.hov = -1; s.risk = [1, 1, 1, 1, 1, 1, 1];
+  }
+  renderVals() {
+    const s = this.state;
+    const isAms = s.mode === 'ams', isProj = !isAms;
+    const PD = this.data.proj, AD = this.data.ams, DD = isAms ? AD : PD;
+    const TC = DD.tc || 17.2;
+    const money = (n) => (n < 0 ? '-$' : '$') + Math.round(Math.abs(n)).toLocaleString('en-US');
+    const pc = (n) => (n * 100).toFixed(1) + '%';
+    const devs = [0, 0.1, 0.2, 0.3];
+    const dso_d = (i) => [30, 60, 90][i];
+    const dsos = [1, 2, 3];
+
+    // ---- modelo por tipo de deal ----
+    const SV = 0.03, SO = 0.01, SG = 0.195, SD = 0, TOT = SV + SO + SG + SD;
+    const OH = isAms ? AD.oh : 0, CT = isAms ? AD.ct : 0, HRS = isAms ? AD.hrs : 0, vigA = isAms ? AD.vig : 0, nP = isAms ? 0 : PD.n;
+    const Cb = DD.cb;
+    const cargoRate = isAms ? OH : TOT;
+    const tg = s.tgt[s.mode] / 100;
+    const priceOf = (u, cb) => (isAms ? cb * (1 + OH) * (1 + CT) / (1 - u) : cb / (1 - u));
+    const P = priceOf(tg, Cb);
+    const d = devs[s.dev], Cd = Cb * (1 + d);
+    const bruto = P - Cd;
+    const variables = isProj ? Cd * SV : 0, ovh = isProj ? Cd * SO : 0, ga = isProj ? Cd * SG : 0;
+    const cargo = Cd * cargoRate;
+    const directo = bruto - variables, oper = directo - ovh;
+    const ebit = bruto - cargo;
+
+    // ---- riesgo ----
+    const R = [
+      ['Claridad de alcance (DDA, supuestos abiertos)', 0.20, 'Costo'],
+      ['Experiencia de SEIDOR en este tipo de proyecto', 0.15, 'Costo'],
+      ['Complejidad técnica (integraciones, desarrollos)', 0.20, 'Costo'],
+      ['Dependencia de terceros e integrados', 0.10, 'Costo'],
+      ['Madurez del cliente y patrocinio', 0.10, 'Costo'],
+      ['Condiciones comerciales (boletas, pago diferido)', 0.10, 'Alerta'],
+      ['Disponibilidad de recursos', 0.15, 'Alerta']
+    ];
+    const lv = ['Bajo', 'Medio', 'Alto'];
+    let score = 0, cscore = 0, cw = 0;
+    R.forEach((r, i) => {
+      score += r[1] * (s.risk[i] / 2) * 100;
+      if (r[2] === 'Costo') { cscore += r[1] * (s.risk[i] / 2) * 100; cw += r[1]; }
+    });
+    cscore = cscore / cw;
+    const rrate = cscore < 30 ? 0.03 : cscore < 60 ? 0.06 : 0.10;
+    const band = score < 30 ? 'Bajo' : score < 60 ? 'Medio' : 'Alto';
+    const fileRate = CT * (1 + OH);
+    const cont = isAms ? CT * Cb * (1 + OH) : rrate * Cb;
+    const contRate = isAms ? fileRate : rrate;
+    const ebitAdj = ebit - cont, brutoAdj = bruto - cont;
+    const alertMsgs = [];
+    if (s.risk[5] === 2) alertMsgs.push('Condiciones comerciales en Alto: revisa boletas de garantía, pago diferido y el flujo de caja.');
+    if (s.risk[6] === 2) alertMsgs.push('Recursos en Alto: revisa la carga de capacidad.');
+    if (band === 'Alto') alertMsgs.push('Calificación general Alta: escalar la revisión del deal.');
+    const riskCmp = isAms
+      ? (fileRate >= rrate ? 'La contingencia de la hoja (' + pc(fileRate) + ' del costo) cubre lo que sugiere el riesgo (' + pc(rrate) + ').' : 'La contingencia de la hoja (' + pc(fileRate) + ' del costo) es menor a la sugerida por el riesgo (' + pc(rrate) + '). Diferencia: ' + money((rrate - fileRate) * Cb) + '.')
+      : 'La contingencia sale solo de los criterios de tipo Costo y se resta del EBIT.';
+
+    // ---- niveles de aprobación ----
+    const LV = [
+      { tag: 'Sin aprobación', short: 'Sin aprob.', bg: '#D9F5E8', fg: '#0B6B43' },
+      { tag: 'Nivel 1', short: 'Nivel 1', bg: '#FFF1CC', fg: '#7A5200' },
+      { tag: 'Nivel 2', short: 'Nivel 2', bg: '#FFE0C7', fg: '#8A3D00' },
+      { tag: 'Nivel 3', short: 'Nivel 3', bg: '#FFD9D9', fg: '#8F1D1D' }
+    ];
+    const T = isAms ? [0.40, 0.35, 0.30] : [0.35, 0.30, 0.25];
+    const lvOf = (b) => (b >= T[0] ? 0 : b >= T[1] ? 1 : b >= T[2] ? 2 : 3);
+    const tp = (x) => Math.round(x * 100) + '%';
+    const bp = Math.round((bruto / P) * 1000) / 1000;
+    const li = lvOf(bp), L = LV[li];
+    const msgs = ['Margen bruto en o sobre ' + tp(T[0]) + ': no requiere aprobación.', 'Margen bruto entre ' + tp(T[1]) + ' y ' + tp(T[0]) + ': requiere aprobación de Nivel 1.', 'Margen bruto entre ' + tp(T[2]) + ' y ' + tp(T[1]) + ': requiere aprobación de Nivel 2.', 'Margen bruto menor a ' + tp(T[2]) + ': requiere aprobación de Nivel 3.'];
+    const policy = 'Política Deal Desk' + (isAms ? ' AMS' : '') + ' sobre margen bruto (precio − costo directo): ≥ ' + tp(T[0]) + ' sin aprobación · ' + tp(T[1]) + '–' + tp(T[0]) + ' Nivel 1 · ' + tp(T[2]) + '–' + tp(T[1]) + ' Nivel 2 · < ' + tp(T[2]) + ' Nivel 3.';
+    const sem = { label: li === 0 ? 'Sin aprobación' : L.tag + ' de aprobación', bg: L.bg, fg: L.fg, msg: msgs[li] + (ebitAdj < 0 ? ' El EBIT ajustado por riesgo es negativo.' : '') };
+
+    const pAt = (x) => Cd / (1 - x);
+    const lowers = T;
+    const curLow = li < 3 ? lowers[li] : null;
+    const cushAmt = curLow ? P - pAt(curLow) : 0;
+    const crow = (tag, bg, fg, rule, price) => ({ tag, bg, fg, rule, price: money(price), delta: P - price >= 0 ? 'Bajar ' + money(P - price) + ' (' + pc((P - price) / P) + ')' : 'Subir ' + money(price - P) });
+    const eqPrice = Cd * (1 + cargoRate);
+    const cush = {
+      rows: [
+        crow('Sin aprobación', LV[0].bg, LV[0].fg, 'Margen bruto ≥ ' + tp(T[0]), pAt(T[0])),
+        crow('Nivel 1', LV[1].bg, LV[1].fg, 'Margen bruto ≥ ' + tp(T[1]), pAt(T[1])),
+        crow('Nivel 2', LV[2].bg, LV[2].fg, 'Margen bruto ≥ ' + tp(T[2]), pAt(T[2])),
+        { tag: 'Equilibrio', bg: '#E3E9F3', fg: '#0F1D40', rule: 'EBIT = 0 (costo × ' + (1 + cargoRate).toFixed(3) + ')', price: money(eqPrice), delta: 'Bajar ' + money(P - eqPrice) + ' (' + pc((P - eqPrice) / P) + ')' }
+      ],
+      msg: li === 3 ? 'Estás en Nivel 3. Sube el precio a ' + money(pAt(T[2])) + ' (+' + money(pAt(T[2]) - P) + ') para llegar a Nivel 2.' : (cushAmt < 1 ? 'Estás justo en el límite de ' + L.tag.toLowerCase() + ': cualquier descuento pasa a ' + LV[li + 1].tag + '.' : 'Puedes bajar ' + money(cushAmt) + ' (' + pc(cushAmt / P) + ') y seguir en ' + L.tag + '.')
+    };
+
+    const mk = (label, value, pct, src, color) => ({ label, value, pct, src, color: color || '#0F1D40' });
+    const kpis = isProj ? [
+      mk('Precio de venta', money(P), money(P * TC) + ' MXN', 'Costo ÷ (1 − margen objetivo)'),
+      mk('Costo del proyecto', money(Cd), d > 0 ? 'Base ' + money(Cb) + ' + ' + Math.round(d * 100) + '% jornadas' : PD.jt + ' jornadas', 'De tu hoja (Modelo Económico)'),
+      mk('Margen bruto', money(bruto), pc(bruto / P) + ' del precio', 'Precio − costo del proyecto', '#0A6FD6'),
+      mk('Margen directo', money(directo), pc(directo / P) + ' del precio', 'Bruto − comisión y costos variables'),
+      mk('Margen operativo', money(oper), pc(oper / P) + ' del precio', 'Directo − overhead de delivery'),
+      mk('EBITDA / EBIT', money(ebit), pc(ebit / P) + ' del precio', 'Operativo − G&A (D&A = 0)'),
+      mk('EBIT ajustado por riesgo', money(ebitAdj), pc(ebitAdj / P) + ' del precio', 'EBIT − contingencia de costo', '#0A6FD6'),
+      mk('Colchón en tu nivel', li === 3 ? '—' : money(cushAmt), li === 3 ? 'Ya en Nivel 3' : pc(cushAmt / P) + ' del precio', 'Descuento posible sin cambiar de nivel')
+    ] : [
+      mk('Precio de venta', money(P), money(P * TC) + ' MXN', 'Costo operativo ÷ (1 − utilidad)'),
+      mk('Costo directo', money(Cd), d > 0 ? 'Base ' + money(Cb) + ' + ' + Math.round(d * 100) + '% horas' : Math.round(HRS) + ' horas en ' + vigA + ' meses', 'Recursos de horas (hoja 1)'),
+      mk('Margen bruto', money(bruto), pc(bruto / P) + ' del precio', 'Precio − costo directo', '#0A6FD6'),
+      mk('Precio promedio por hora', money(P / HRS), money(P / HRS * 8) + ' por jornada', 'Precio ÷ ' + Math.round(HRS) + ' horas del contrato', '#0A6FD6'),
+      mk('Margen operativo', '—', 'Pendiente', 'Falta apertura de cargos para AMS'),
+      mk('EBITDA / EBIT', money(ebit), pc(ebit / P) + ' del precio', 'Bruto − cargo de finanzas (' + pc(OH) + ' del costo)'),
+      mk('EBIT ajustado por riesgo', money(ebitAdj), pc(ebitAdj / P) + ' del precio', 'EBIT − contingencia = utilidad de la hoja', '#0A6FD6'),
+      mk('Colchón en tu nivel', li === 3 ? '—' : money(cushAmt), li === 3 ? 'Ya en Nivel 3' : pc(cushAmt / P) + ' del precio', 'Descuento posible sin cambiar de nivel')
+    ];
+
+    const lrow = (label, how, v, total) => ({ label, how, amt: (total ? '' : '− ') + money(Math.abs(v)), pct: pc(Math.abs(v) / P), fw: total ? 600 : 400, lc: total ? '#0F1D40' : '#2B3A60' });
+    const ladder = isProj ? [
+      lrow('Costo del proyecto', 'Consultoría + 3ros + provisiones + viáticos', Cd, false),
+      lrow('Margen bruto', 'Precio − costo del proyecto', bruto, true),
+      lrow('Comisión y costos variables', '3.0% del costo: comisión AE, preventa', variables, false),
+      lrow('Margen directo', 'Bruto − variables', directo, true),
+      lrow('Overhead de delivery', '1.0% del costo: bench, PMO, práctica', ovh, false),
+      lrow('Margen operativo', 'Directo − overhead de delivery', oper, true),
+      lrow('G&A corporativo', '19.5% del costo: finanzas, RRHH, TI', ga, false),
+      lrow('EBITDA / EBIT', 'Operativo − G&A (D&A = 0%)', ebit, true)
+    ] : [
+      lrow('Costo directo', 'Recursos de horas + costos adicionales', Cd, false),
+      lrow('Margen bruto', 'Precio − costo directo', bruto, true),
+      lrow('Cargo de finanzas', pc(OH) + ' del costo directo', cargo, false),
+      lrow('EBITDA / EBIT', 'Bruto − cargo de finanzas (antes de contingencia)', ebit, true),
+      lrow('Contingencia', pc(CT) + ' sobre costo + overhead', cont, false),
+      lrow('Utilidad (EBIT ajustado)', 'EBIT − contingencia; coincide con la hoja AMS', ebitAdj, true)
+    ];
+    const cargoNote = isProj
+      ? 'Cargo de finanzas: 23.5% del costo = ' + money(Cd * TOT) + ' (variables 3 · overhead de delivery 1 · G&A 19.5 · D&A 0). Con D&A en 0, EBITDA y EBIT son una sola línea.'
+      : 'Cargo completo de finanzas en AMS: ' + pc(OH) + ' del costo directo = ' + money(cargo) + '. EBITDA y EBIT son una sola línea.';
+
+    // ---- cascada ----
+    const top = 24, hgt = 224, base = top + hgt;
+    const sc = (v) => (Math.max(0, v) / P) * hgt;
+    const steps = isProj ? [
+      ['Precio', 'tot', P, 0, P], ['Costo', 'ded', Cd, P - Cd, P], ['Bruto', 'tot', bruto, 0, bruto],
+      ['Variables', 'ded', variables, directo, bruto], ['Directo', 'tot', directo, 0, directo],
+      ['Overhead', 'ded', ovh, oper, directo], ['Operativo', 'tot', oper, 0, oper],
+      ['G&A', 'ded', ga, ebit, oper], ['EBITDA/EBIT', 'fin', ebit, 0, ebit]
+    ] : [
+      ['Precio', 'tot', P, 0, P], ['Costo', 'ded', Cd, P - Cd, P], ['Bruto', 'tot', bruto, 0, bruto],
+      ['Cargo fin.', 'ded', cargo, ebit, bruto], ['EBITDA/EBIT', 'tot', ebit, 0, ebit],
+      ['Contingencia', 'ded', cont, ebitAdj, ebit], ['Utilidad', 'fin', ebitAdj, 0, ebitAdj]
+    ];
+    const nS = steps.length, slot = 692 / nS, bwid = Math.min(54, slot * 0.7);
+    const wf = {
+      base,
+      bars: steps.map((st, i) => {
+        const lo = st[3], hi = st[4];
+        const y = base - sc(hi), h = Math.max(1.5, sc(hi) - sc(lo));
+        const cx = 14 + i * slot + slot / 2;
+        return { x: cx - bwid / 2, w: bwid, tx: cx, y, h, ty: y - 6, fill: st[1] === 'tot' ? '#0F1D40' : st[1] === 'fin' ? '#0A6FD6' : '#9DB4DD', label: st[0], amt: (st[1] === 'ded' ? '−' : '') + money(st[2]), pct: pc(st[2] / P) };
+      })
+    };
+
+    const rate = isProj
+      ? { title: 'Tarifa efectiva por jornada', sub: 'Precio ÷ ' + PD.jt + ' jornadas vendidas.', eff: money(P / PD.jt), cost: money(Cd / PD.jt), mg: money((P - Cd) / PD.jt), note: 'Tarifa de lista (sitio de precios): [por conectar]' }
+      : { title: 'Tarifa efectiva por hora', sub: 'Precio ÷ ' + Math.round(HRS) + ' horas del contrato (equivale a ' + money(P / HRS * 8) + ' por jornada).', eff: money(P / HRS), cost: money(Cd / HRS), mg: money((P - Cd) / HRS), note: 'La hoja AMS divide entre 600 horas fijas; aquí se usan las ' + Math.round(HRS) + ' reales del detalle de recursos.' };
+
+    // ---- costo mensual esperado ----
+    const G = isProj ? PD.G : { pm: [], fu: [], te: [] };
+    const JM = isProj ? PD.JM : { pm: [], fu: [], te: [] };
+    const CM = isProj ? PD.CM : [];
+    const jm = { pm: [], fu: [], te: [] };
+    ['pm', 'fu', 'te'].forEach((g) => { for (let k = 0; k <= nP; k++) jm[g][k] = (JM[g][k] || 0) * (1 + d); });
+    const vig = isAms ? vigA : nP;
+
+    // ---- flujo de caja ----
+    const pctArr = s.pct[s.mode];
+    const hm = pctArr.length;
+    const dm = dsos[s.dso];
+    const N = hm + dm;
+    const cost = new Array(N).fill(0);
+    if (isProj) { for (let k = 1; k <= nP; k++) cost[k] = (CM[k] || 0) * (1 + d); }
+    else { for (let k = 1; k <= vigA; k++) cost[k] = Cd / vigA; }
+    const fact = new Array(N).fill(0), cob = new Array(N).fill(0);
+    pctArr.forEach((p, k) => { fact[k] = P * p / 100; cob[k + dm] += P * p / 100; });
+    const cumCob = [], cumCost = [];
+    let a1 = 0, a2 = 0;
+    for (let k = 0; k < N; k++) { a1 += cob[k]; a2 += cost[k]; cumCob[k] = a1; cumCost[k] = a2; }
+    const gapA = cumCob.map((v, k) => v - cumCost[k]);
+    const X0 = 30, W = 600, step = W / N;
+    const cx = (k) => X0 + k * step + step / 2;
+    const maxBar = Math.max(1, ...cob, ...cost);
+    const maxCum = Math.max(1, ...cumCob, ...cumCost);
+    const y1 = (v) => 148 - (v / maxBar) * 120;
+    const y2 = (v) => 292 - (v / maxCum) * 94;
+    const bw = Math.max(2, Math.min(18, step * 0.36));
+    const every = N <= 14 ? 1 : N <= 26 ? 2 : 3;
+    const cols = [];
+    for (let k = 0; k < N; k++) {
+      cols.push({ x1: cx(k) - bw - 0.5, x2: cx(k) + 0.5, bw, y1: y1(cob[k]), h1: Math.max(0, 148 - y1(cob[k])), y2: y1(cost[k]), h2: Math.max(0, 148 - y1(cost[k])), tx: cx(k), label: k % every === 0 ? 'M' + k : '' });
+    }
+    const pts = (arr) => arr.map((v, k) => cx(k).toFixed(1) + ',' + y2(v).toFixed(1)).join(' ');
+    const gapPts = cumCob.map((v, k) => cx(k).toFixed(1) + ',' + y2(v).toFixed(1)).join(' ') + ' ' + cumCost.map((v, k) => k).reverse().map((k) => cx(k).toFixed(1) + ',' + y2(cumCost[k]).toFixed(1)).join(' ');
+    const hov = (s.hov >= 0 && s.hov < N) ? s.hov : -1;
+    const hits = [];
+    for (let k = 0; k < N; k++) hits.push({ x: X0 + k * step, w: step, on: () => { if (this.state.hov !== k) this.setState({ hov: k }); } });
+    let tip = { hasTip: false, bandX: 0, bandW: 0, tipX: 0, tipTx: 0, t0: '', t1: '', t2: '', t3: '', t4: '', t5: '' };
+    if (hov >= 0) {
+      const k = hov;
+      const tx = cx(k) < 330 ? cx(k) + 14 : cx(k) - 258;
+      const cover = cumCost[k] > 0 ? pc(cumCob[k] / cumCost[k]) : '—';
+      tip = { hasTip: true, bandX: X0 + k * step, bandW: step, tipX: tx, tipTx: tx + 10, t0: 'Mes ' + k, t1: 'Facturado ' + money(fact[k]) + ' · Cobrado ' + money(cob[k]), t2: 'Costo esperado ' + money(cost[k]), t3: 'Cobrado acum. ' + money(cumCob[k]), t4: 'Costo acum. ' + money(cumCost[k]), t5: 'Brecha ' + money(gapA[k]) + ' · Cobertura ' + cover };
+    }
+    let lastNeg = -1, minIdx = 0;
+    gapA.forEach((v, k) => { if (v < -1) lastNeg = k; if (v < gapA[minIdx]) minIdx = k; });
+    const lastCostK = vig;
+    let peakCost = 0, peakCostK = 1;
+    for (let k = 0; k < N; k++) if (cost[k] > peakCost) { peakCost = cost[k]; peakCostK = k; }
+    const totalCost = cost.reduce((q, v) => q + v, 0);
+    const cash = Object.assign({
+      cols, hits, gap: gapPts, lineCob: pts(cumCob), lineCost: pts(cumCost),
+      costPeak: money(peakCost) + ' / mes', costNote: 'Pico en M' + peakCostK + ' · total ' + money(totalCost),
+      peak: money(-Math.min(0, ...gapA)), peakAt: gapA[minIdx] < -1 ? 'En el mes ' + minIdx : 'Sin déficit',
+      be: lastNeg < 0 ? 'Sin déficit' : 'Mes ' + (lastNeg + 1),
+      cover: 'Al cierre del costo (M' + lastCostK + '): ' + (cumCost[lastCostK] > 0 ? pc(cumCob[lastCostK] / cumCost[lastCostK]) : '—') + ' cubierto',
+      final: money(gapA[N - 1])
+    }, tip);
+
+    const sumPct = pctArr.reduce((q, v) => q + v, 0);
+    const okSum = Math.abs(sumPct - 100) < 0.05;
+    const sched = okSum ? { msg: 'Suma 100%', bg: '#E3E9F3', fg: '#0F1D40' } : { msg: 'Suma ' + sumPct.toFixed(1) + '% (debe ser 100%)', bg: '#EBDDFB', fg: '#3F2078' };
+    const setPct = (k, v) => { const arr = pctArr.slice(); arr[k] = Math.max(0, Math.min(100, v)); const o = Object.assign({}, s.pct); o[s.mode] = arr; this.setState({ pct: o }); };
+    const months = pctArr.map((p, k) => ({
+      label: k === 0 ? (isProj ? 'Anticipo' : 'M0') : 'M' + k, val: Math.round(p * 10) / 10, aria: 'Porcentaje del mes ' + k, amt: money(P * p / 100),
+      set: (e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) setPct(k, v); },
+      down: () => setPct(k, p - 5), up: () => setPct(k, p + 5)
+    }));
+    const mkArr = (fn) => { const arr = new Array(hm).fill(0); fn(arr); return arr; };
+    const wsum = (nP * (nP + 1)) / 2;
+    const presets = isProj ? [
+      ['Durante el proyecto: 20% + ' + nP, mkArr((x) => { x[0] = 20; for (let k = 1; k <= nP; k++) x[k] = 80 / nP; })],
+      ['Toda la ventana', mkArr((x) => { x[0] = 20; for (let k = 1; k < hm; k++) x[k] = 80 / (hm - 1); })],
+      ['Anticipo 30%', mkArr((x) => { x[0] = 30; for (let k = 1; k <= nP; k++) x[k] = 70 / nP; })],
+      ['Cargado al final', mkArr((x) => { x[0] = 20; for (let k = 1; k <= nP; k++) x[k] = 80 * k / wsum; })]
+    ] : [
+      ['20% anticipo + ' + vigA + ' vencidos', mkArr((x) => { x[0] = 20; for (let k = 1; k <= vigA; k++) x[k] = 80 / vigA; })],
+      ['Mensual vencido sin anticipo', mkArr((x) => { for (let k = 1; k <= vigA; k++) x[k] = 100 / vigA; })],
+      ['30% anticipo + ' + vigA + ' vencidos', mkArr((x) => { x[0] = 30; for (let k = 1; k <= vigA; k++) x[k] = 70 / vigA; })],
+      ['Mensual anticipado', mkArr((x) => { for (let k = 0; k < vigA; k++) x[k] = 100 / vigA; })]
+    ];
+    const presetBtns = presets.map(([label, arr]) => ({ label, pick: () => { const o = Object.assign({}, s.pct); o[s.mode] = arr.slice(); this.setState({ pct: o }); } }));
+    const hmMin = isProj ? nP + 1 : vigA + 1;
+    const cashNote = isProj
+      ? 'Si la hoja trae más meses, la ventana crece con + hasta 36. El costo mensual viene del Plan de Proyecto de la hoja (semanas × tarifa por rol); las facturas posteriores a M' + nP + ' solo suman entradas.'
+      : 'El costo mensual esperado es parejo durante los ' + vigA + ' meses de vigencia; la ventana crece con + hasta 36 si la facturación se extiende.';
+
+    // ---- capacidad ----
+    const nM = Math.max(1, nP);
+    const fteM = []; for (let k = 1; k <= nP; k++) fteM[k] = { pm: jm.pm[k] / 20, fu: jm.fu[k] / 20, te: jm.te[k] / 20 };
+    const tot = (k) => fteM[k].pm + fteM[k].fu + fteM[k].te;
+    let peak = 0, sumF = 0, peakK = 1;
+    for (let k = 1; k <= nP; k++) { sumF += tot(k); if (tot(k) > peak) { peak = tot(k); peakK = k; } }
+    const fteAv = parseFloat(s.fte);
+    const hasFte = !isNaN(fteAv) && fteAv > 0;
+    const maxV = Math.max(peak, hasFte ? fteAv : 0, 0.1) * 1.15;
+    const cy = (v) => 205 - (v / maxV) * 175;
+    const slotC = 600 / nM, bwC = Math.min(60, slotC * 0.6);
+    const cbars2 = [], clabels = [];
+    for (let k = 1; k <= nP; k++) {
+      const x = 30 + (k - 1) * slotC + (slotC - bwC) / 2;
+      let acc = 0;
+      [['pm', '#0F1D40'], ['fu', '#1E88E5'], ['te', '#9DB4DD']].forEach(([g, col]) => {
+        const v = fteM[k][g];
+        if (v > 0.001) cbars2.push({ x, w: bwC, y: cy(acc + v), h: (v / maxV) * 175, fill: col });
+        acc += v;
+      });
+      clabels.push({ x: x + bwC / 2, label: 'M' + k, y: cy(acc) - 5, val: acc.toFixed(1) });
+    }
+    const overM = [];
+    if (hasFte) for (let k = 1; k <= nP; k++) if (tot(k) > fteAv + 1e-9) overM.push('M' + k);
+    const capO = {
+      peak: peak.toFixed(1) + ' FTE', avg: (sumF / nM).toFixed(1) + ' FTE', bars: cbars2, labels: clabels, hasLine: hasFte, lineY: hasFte ? cy(fteAv) : 0,
+      msg: !hasFte ? 'Captura los FTE disponibles para ver si alcanzan. El pico es de ' + peak.toFixed(1) + ' FTE en el mes ' + peakK + '.' : (overM.length ? 'Se exceden los ' + fteAv + ' FTE disponibles en ' + overM.join(', ') + '.' : 'Los ' + fteAv + ' FTE disponibles cubren todos los meses.')
+    };
+    const AR = isAms ? AD.res.map((r) => [r.mod || '—', r.role, r.rate, r.hm]) : [];
+    const hs = AR.reduce((q, r) => q + r[3] * (1 + d), 0);
+    const maxHm = Math.max(1, ...AR.map((r) => r[3]));
+    const amsO = {
+      hours: hs.toFixed(1) + ' h', fte: (hs / 160).toFixed(2), cost: money(Cd / Math.max(1, vigA)), vig: vigA,
+      rows: AR.map((r) => ({ mod: r[0], role: r[1], h: (r[3] * (1 + d)).toFixed(1), c: money(r[2] * r[3] * (1 + d)), w: (r[3] / maxHm * 100) + '%' }))
+    };
+
+    // ---- chequeos ----
+    const sumJ = (arr) => arr.reduce((q, v) => q + v, 0);
+    const tj = (isProj ? sumJ(G.pm) + sumJ(G.fu) + sumJ(G.te) : 1) || 1;
+    const ph = (p) => (G.pm[p] || 0) + (G.fu[p] || 0) + (G.te[p] || 0);
+    const p1 = (v) => (v * 100).toFixed(1) + '%';
+    const chk = (label, v, lo2, hi2, fmt) => { const ok = v >= lo2 && v <= hi2; return { label, value: fmt(v), range: fmt(lo2) + ' a ' + fmt(hi2), tag: ok ? 'En rango' : 'Revisar', bg: ok ? '#E3E9F3' : '#EBDDFB', fg: ok ? '#0F1D40' : '#3F2078' }; };
+    const flag = (label, value, range, ok) => ({ label, value, range, tag: ok ? 'En rango' : 'Revisar', bg: ok ? '#E3E9F3' : '#EBDDFB', fg: ok ? '#0F1D40' : '#3F2078' });
+    const checks = isProj ? [
+      chk('Gerencia sobre jornadas totales', sumJ(G.pm) / tj, 0.10, 0.18, p1),
+      chk('Técnica sobre jornadas totales', sumJ(G.te) / tj, 0.05, 0.25, p1),
+      chk('Realize sobre jornadas totales', ph(2) / tj, 0.45, 0.65, p1),
+      chk('Prepare + Explore sobre jornadas', (ph(0) + ph(1)) / tj, 0.15, 0.30, p1),
+      chk('Run (soporte) sobre jornadas', ph(4) / tj, 0.05, 0.15, p1),
+      flag('Periodo de garantía cotizado', PD.gar + ' meses', 'según política', PD.gar > 0)
+    ] : [
+      chk('PM sobre horas del equipo', AD.pmH / Math.max(1e-9, AD.hm), 0.05, 0.15, p1),
+      flag('Contingencia de la hoja vs. sugerida', pc(fileRate), 'sugerida ' + pc(rrate), fileRate >= rrate),
+      flag('Margen bruto vs. política Deal Desk AMS', pc(bruto / P), '≥ 30% para evitar Nivel 3', bruto / P >= 0.30),
+      flag('Costos adicionales capturados', money(AD.extra), 'licencias, terceros, viáticos', AD.extra > 0)
+    ];
+
+    const drivers = R.map((r, i) => ({
+      name: r[0], w: Math.round(r[1] * 100) + '%', kind: r[2], bg: r[2] === 'Costo' ? '#E3E9F3' : '#EBDDFB', fg: r[2] === 'Costo' ? '#0F1D40' : '#3F2078',
+      opts: lv.map((label, l) => ({ label, cls: 'seg sm' + (s.risk[i] === l ? ' on' : ''), pick: () => { const x = s.risk.slice(); x[i] = l; this.setState({ risk: x }); } }))
+    }));
+    const risk = { score: Math.round(score) + '/100', band, contLabel: isAms ? 'Contingencia de la hoja' : 'Contingencia (solo Costo)', rate: pc(contRate), cont: money(cont), bruto: pc(brutoAdj / P), oper: pc(ebitAdj / P), cmp: riskCmp, hasAlerts: alertMsgs.length > 0, alerts: alertMsgs.join(' ') };
+
+    const sOpts = isProj ? [0.25, 0.30, 0.35, 0.40] : [0.05, 0.10, 0.15, 0.20];
+    const sensCols = sOpts.map((o) => (isProj ? 'Obj. ' : 'Util. ') + Math.round(o * 100) + '%');
+    const sens = devs.map((dv, di) => ({
+      label: dv === 0 ? 'Según estimación' : (isProj ? 'Jornadas +' : 'Horas +') + Math.round(dv * 100) + '%',
+      cells: sOpts.map((mo) => {
+        const Po = priceOf(mo, Cb);
+        const b = Math.round((1 - Cb * (1 + dv) / Po) * 1000) / 1000;
+        const op = b - cargoRate * Cb * (1 + dv) / Po;
+        const Lx = LV[lvOf(b)];
+        return { top: pc(b), bot: pc(op), tag: Lx.short, bg: Lx.bg, fg: Lx.fg, bd: (di === s.dev && Math.abs(mo * 100 - s.tgt[s.mode]) < 0.01) ? '#0F1D40' : 'transparent' };
+      })
+    }));
+
+    const mix = [
+      { label: 'SEIDOR propio (consultoría)', w: '100%', amt: money(P) },
+      { label: 'Integrados (margen 0)', w: '0%', amt: money(0) },
+      { label: 'Terceros', w: '0%', amt: money(0) }
+    ];
+    const acvs = [0, 120000, 240000];
+    const acv = acvs[s.acv];
+    const tcv = acv * 3, ccf = tcv * 0.10;
+    const deal = { tcv: acv ? money(tcv) : '—', ccf: acv ? money(ccf) : '—', mg: pc((bruto + ccf) / (P + ccf)) };
+    const acvBtns = ['Solo servicios', 'ACV $120K', 'ACV $240K'].map((l, i) => ({ label: l, cls: 'seg sm' + (s.acv === i ? ' on' : ''), pick: () => this.setState({ acv: i }) }));
+
+    const lim = isProj ? [15, 60] : [0, 40];
+    const clampMg = (v) => Math.max(lim[0], Math.min(lim[1], v));
+    const setTgt = (v) => { const o = Object.assign({}, s.tgt); o[s.mode] = clampMg(v); this.setState({ tgt: o }); };
+    const tgl = (k) => () => { const o = Object.assign({}, s.open); o[k] = !o[k]; this.setState({ open: o }); };
+    const rot = (k) => (s.open[k] ? 'rotate(0deg)' : 'rotate(-90deg)');
+    const upper = (x) => String(x || '').toUpperCase();
+    const head = isProj
+      ? { a: upper(PD.cliente), b: PD.producto ? '+ ' + upper(PD.producto) : '', sub: PD.desc || '', file: 'Hoja cargada: ' + PD.file, ids: [PD.id, PD.gn, PD.gc].filter(Boolean).join(' · ') }
+      : { a: upper(AD.cliente), b: AD.proyecto ? '· ' + upper(AD.proyecto) : '', sub: 'AMS SAP · ' + AD.vig + ' meses de vigencia' + (AD.fecha ? ' · propuesta del ' + AD.fecha : ''), file: 'Hoja cargada: ' + AD.file, ids: AD.resp ? 'Responsable: ' + AD.resp : '' };
+    const assump = isProj
+      ? 'Cargo de finanzas sobre costo: variables 3% · overhead 1% · G&A 19.5% · D&A 0% (suma 23.5%) · niveles de Deal Desk sobre margen bruto · contingencia 3 / 6 / 10% según criterios de Costo y rangos de chequeo provisionales · costo mensual tomado del Plan de Proyecto de la hoja · riesgo en Medio por defecto, sin calificar · hitos 20% de anticipo y mensuales parejos, editables.'
+      : 'Overhead ' + pc(OH) + ' del costo directo (cargo completo de finanzas) y contingencia ' + pc(CT) + ' sobre costo + overhead, tomados de la hoja AMS · Deal Desk AMS sobre margen bruto: 30 / 35 / 40% · apertura del 11.7% pendiente, por eso margen directo y operativo no se muestran · costo mensual parejo en 12 meses · facturación mensual vencida con 20% de anticipo · riesgo en Medio por defecto, sin calificar.';
+    return {
+      head, assump, policy,
+      exportPdf: () => { try { document.title = 'VOP - ' + head.a + ' ' + head.b + ' - ' + new Date().toISOString().slice(0, 10); } catch (e) {} this.setState({ open: { price: true, cash: true, cap: true, risk: true, mix: true } }); setTimeout(() => { try { window.print(); } catch (e) {} }, 400); },
+      printInfo: 'Evidencia VOP · ' + head.a + ' ' + head.b + ' · ' + head.file + ' · Generado el ' + new Date().toLocaleString('es-MX') + '. Parámetros: ' + (isAms ? 'utilidad sobre precio ' : 'margen bruto objetivo ') + s.tgt[s.mode] + '% · desviación ' + Math.round(d * 100) + '% · DSO ' + (dso_d(s.dso)) + ' días · precio ' + money(P) + ' · nivel: ' + sem.label + '.', cargoNote, cashNote, isProj, isAms,
+      capSub: isProj ? 'FTE por mes que exige el proyecto y chequeos contra rangos de referencia.' : 'Horas por rol que exige el contrato y chequeos contra rangos de referencia.',
+      pickFile: () => { const f = document.getElementById('fileInput'); if (f) f.click(); },
+      modeBtns: [['proj', 'Proyecto · T&M · Rollout'], ['ams', 'AMS']].filter(([k]) => this.data[k]).map(([k, l]) => ({ label: l, cls: 'seg hd' + (s.mode === k ? ' on' : ''), pick: () => this.setState({ mode: k, hov: -1 }) })),
+      tgtLabel: isProj ? 'Margen bruto objetivo (%)' : 'Utilidad objetivo sobre precio (%)',
+      devLabel: isProj ? 'Desviación de jornadas' : 'Desviación de horas',
+      mgVal: s.tgt[s.mode],
+      mgDown: () => setTgt(s.tgt[s.mode] - 1),
+      mgUp: () => setTgt(s.tgt[s.mode] + 1),
+      mgSet: (e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) setTgt(v); },
+      devBtns: devs.map((o, i) => ({ label: o === 0 ? 'Base' : '+' + Math.round(o * 100) + '%', cls: 'seg sm' + (s.dev === i ? ' on' : ''), pick: () => this.setState({ dev: i }) })),
+      dsoBtns: ['30 días', '60 días', '90 días'].map((l, i) => ({ label: l, cls: 'seg sm' + (s.dso === i ? ' on' : ''), pick: () => this.setState({ dso: i }) })),
+      bar: { price: money(P), ebit: pc(ebit / P) },
+      openPrice: s.open.price, openCash: s.open.cash, openCap: s.open.cap, openRisk: s.open.risk, openMix: s.open.mix,
+      tgPrice: tgl('price'), tgCash: tgl('cash'), tgCap: tgl('cap'), tgRisk: tgl('risk'), tgMix: tgl('mix'),
+      rotPrice: rot('price'), rotCash: rot('cash'), rotCap: rot('cap'), rotRisk: rot('risk'), rotMix: rot('mix'),
+      monthLess: () => { if (hm > hmMin) { const o = Object.assign({}, s.pct); o[s.mode] = pctArr.slice(0, hm - 1); this.setState({ pct: o }); } },
+      monthMore: () => { if (hm < 36) { const o = Object.assign({}, s.pct); o[s.mode] = pctArr.concat([0]); this.setState({ pct: o }); } },
+      hmText: hm + ' meses',
+      fteVal: s.fte,
+      fteSet: (e) => this.setState({ fte: e.target.value }),
+      sem, kpis, ladder, wf, cush, rate, cash, sched, months, presetBtns, cap: capO, ams: amsO, checks, drivers, risk, sens, sensCols, mix, mixMg: pc(bruto / P), deal, acvBtns
+    };
+  }
+}
+
+(function(){
+  const logic = new Component({});
+  const eng = VOPEngine(document.getElementById('vopTpl'), document.getElementById('vopMount'), logic);
+  const status = document.getElementById('statusBox');
+  async function handleFile(f){
+    if(!f) return;
+    status.innerHTML = '';
+    try{
+      if(typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería de Excel.');
+      const wb = XLSX.read(await f.arrayBuffer(), { type:'array', cellDates:true });
+      let type, data;
+      if(wb.Sheets['Modelo Económico']){ type = 'proj'; data = parsearVOPProyecto(wb, f.name); }
+      else if(wb.Sheets['3. Resumen'] && wb.Sheets['1. Recursos']){ type = 'ams'; data = parsearVOPAMS(wb, f.name); }
+      else throw new Error('No reconozco el formato. Usa la hoja de estimación de proyecto o la Calculadora AMS.');
+      logic.load(type, data);
+      eng.render();
+      window.scrollTo(0, 0);
+    }catch(e){
+      status.innerHTML = '<div class="vop-err">' + String(e.message || e).replace(/</g,'&lt;') + '</div>';
+    }
+    document.getElementById('fileInput').value = '';
+  }
+  document.getElementById('fileInput').addEventListener('change', function(){ handleFile(this.files[0]); });
+})();
+
+</script>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

@@ -393,6 +393,7 @@ const PAGINAS_REGISTRO = {
   'wbr-ccflex': 'WBR — CCFlex',
   'wbr-cta': 'WBR — Call to Action',
   'wbr-anuncios': 'WBR — Anuncios',
+  'wbr-vop': 'WBR — Tablero VOP',
   'bx-base-instalada': 'Business Experience — Base Instalada',
   'auditoria': 'Auditoría',
   'agentes': 'Agentes',
