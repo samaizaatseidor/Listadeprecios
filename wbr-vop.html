@@ -817,7 +817,7 @@ class Component extends DCLogic {
       mk('Colchón en tu nivel', li === 3 ? '—' : money(cushAmt), li === 3 ? 'Ya en Nivel 3' : pc(cushAmt / P) + ' del precio', 'Descuento posible sin cambiar de nivel')
     ];
 
-    const lrow = (label, how, v, total) => ({ label, how, amt: (total ? '' : '− ') + money(Math.abs(v)), pct: pc(Math.abs(v) / P), fw: total ? 600 : 400, lc: total ? '#0F1D40' : '#2B3A60' });
+    const lrow = (label, how, v, total) => ({ label, how, amt: total ? money(v) : '− ' + money(Math.abs(v)), pct: pc((total ? v : Math.abs(v)) / P), lc2: v < 0 && total ? '#8F1D1D' : '', fw: total ? 600 : 400, lc: total ? '#0F1D40' : '#2B3A60' });
     const ladder = isProj ? [
       lrow('Costo del proyecto', 'Consultoría + 3ros + provisiones + viáticos', Cd, false),
       lrow('Margen bruto', 'Precio − costo del proyecto', bruto, true),
