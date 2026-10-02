@@ -536,19 +536,23 @@ body,.vop{background:#FFFFFF !important}
 </div>
 <div style="font-size:12px;color:#4A5B80;margin-top:12px;border-top:1px solid #D3DCEB;padding-top:10px;line-height:1.5">Margen sobre servicios propios: <b style="color:#0F1D40">{{mixMg}}</b> · Margen total: <b style="color:#0F1D40">{{mixMg}}</b>. Con $30K de pass-through en $100K, un 35% propio se vería 24.5% total.</div>
 </div>
+<sc-if value="{{isProj}}" hint-placeholder-val="{{true}}">
 <div>
-<h2 class="h2">Margen del deal completo <span class="tag" style="background:#E3E9F3;color:#0F1D40;margin-left:6px;font-size:11px">EJEMPLO</span></h2>
-<p class="sub">Servicios + CCF 10% sobre TCV de suscripción. Esta hoja no trae suscripción.</p>
-<div style="display:flex;gap:8px;margin-bottom:12px">
-<sc-for list="{{acvBtns}}" as="o" hint-placeholder-count="3"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for>
+<h2 class="h2">Margen del deal completo <span class="tag" style="background:#E3E9F3;color:#0F1D40;margin-left:6px;font-size:11px">{{deal.src}}</span></h2>
+<p class="sub">Servicios + CCF sobre TCV de suscripción. Toma ACV, TCV y CCF % de la hoja; puedes ajustarlos aquí.</p>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px">
+<div><div class="cap" style="margin-bottom:4px">ACV (USD)</div><input class="inp" style="width:100%" type="number" min="0" step="1000" value="{{deal.acvIn}}" onChange="{{dealAcv}}" aria-label="ACV"></div>
+<div><div class="cap" style="margin-bottom:4px">TCV (USD)</div><input class="inp" style="width:100%" type="number" min="0" step="1000" value="{{deal.tcvIn}}" onChange="{{dealTcv}}" aria-label="TCV"></div>
+<div><div class="cap" style="margin-bottom:4px">CCF %</div><input class="inp" style="width:100%" type="number" min="0" max="100" step="0.5" value="{{deal.ccfIn}}" onChange="{{dealCcf}}" aria-label="CCF por ciento"></div>
 </div>
 <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
-<div><div class="cap">TCV (3 años)</div><div style="font-size:17px;font-weight:600;margin-top:4px">{{deal.tcv}}</div></div>
-<div><div class="cap">CCF 10%</div><div style="font-size:17px;font-weight:600;margin-top:4px">{{deal.ccf}}</div></div>
-<div><div class="cap">Margen deal</div><div style="font-size:17px;font-weight:600;margin-top:4px;color:#0A6FD6">{{deal.mg}}</div></div>
+<div><div class="cap">TCV usado</div><div style="font-size:17px;font-weight:600;margin-top:4px">{{deal.tcv}}</div></div>
+<div><div class="cap">Monto CCF</div><div style="font-size:17px;font-weight:600;margin-top:4px">{{deal.ccf}}</div></div>
+<div><div class="cap">Margen deal completo</div><div style="font-size:17px;font-weight:600;margin-top:4px;color:#0A6FD6">{{deal.mg}}</div></div>
 </div>
+<div style="font-size:11.5px;color:#5B6C92;margin-top:10px">{{deal.note}}</div>
 </div>
-</div>
+</sc-if>
 </sc-if>
 </div>
 
@@ -603,7 +607,7 @@ function parsearVOPProyecto(wb, fname){
   const cp = String(vopCell(dp, 'B6') || '');
   const pp = cp.split(/\s+\+\s+/);
   const p10 = vopNum(vopCell(me, 'G10')), p11 = vopNum(vopCell(me, 'G11'));
-  return { cb, jt, G, JM, CM, n: nMax, gar: vopNum(vopCell(dp, 'B22')), cliente: pp[0] || cp, producto: pp.slice(1).join(' + '), id: vopCell(dp, 'B7') || '', desc: vopCell(dp, 'E4') || '', gc: vopCell(dp, 'B4') || '', gn: vopCell(dp, 'B5') || '', tc: (p10 && p11) ? p11 / p10 : 0, file: fname };
+  return { cb, jt, G, JM, CM, n: nMax, gar: vopNum(vopCell(dp, 'B22')), cliente: pp[0] || cp, producto: pp.slice(1).join(' + '), id: vopCell(dp, 'B7') || '', desc: vopCell(dp, 'E4') || '', gc: vopCell(dp, 'B4') || '', gn: vopCell(dp, 'B5') || '', tc: (p10 && p11) ? p11 / p10 : 0, acv: vopNum(vopCell(me, 'C19')), tcv: vopNum(vopCell(me, 'C20')), ccf: (vopCell(me, 'C21') == null ? 0.10 : vopNum(vopCell(me, 'C21'))) * 100, dealFromSheet: (vopNum(vopCell(me, 'C19')) + vopNum(vopCell(me, 'C20'))) > 0, file: fname };
 }
 function parsearVOPAMS(wb, fname){
   const rc = wb.Sheets['1. Recursos'], rs = wb.Sheets['3. Resumen'], ad = wb.Sheets['2. Costos adicionales'];
@@ -691,7 +695,7 @@ class DCLogic { constructor(props){ this.props = props || {}; } }
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { mode: 'proj', tgt: { proj: 35, ams: 10 }, dev: 0, dso: 1, acv: 1, risk: [1, 1, 1, 1, 1, 1, 1], pct: { proj: [], ams: [] }, fte: '', hov: -1, open: { price: true, cash: true, cap: true, risk: true, mix: false } };
+    this.state = { mode: 'proj', tgt: { proj: 35, ams: 10 }, dev: 0, dso: 1, deal: { acv: 0, tcv: 0, ccf: 10 }, risk: [1, 1, 1, 1, 1, 1, 1], pct: { proj: [], ams: [] }, fte: '', hov: -1, open: { price: true, cash: true, cap: true, risk: true, mix: false } };
   }
   load(type, data) {
     this.data = this.data || {};
@@ -705,6 +709,7 @@ class Component extends DCLogic {
       const v = data.vig;
       s.pct.ams = [20].concat(new Array(v).fill(80 / v)); s.tgt.ams = Math.round(data.util * 1000) / 10;
     }
+    if (type === 'proj') s.deal = { acv: data.acv || 0, tcv: data.tcv || 0, ccf: data.ccf };
     s.mode = type; s.dev = 0; s.hov = -1; s.risk = [1, 1, 1, 1, 1, 1, 1];
   }
   renderVals() {
@@ -1037,12 +1042,18 @@ class Component extends DCLogic {
       { label: 'Integrados (margen 0)', w: '0%', amt: money(0) },
       { label: 'Terceros', w: '0%', amt: money(0) }
     ];
-    const acvs = [0, 120000, 240000];
-    const acv = acvs[s.acv];
-    const tcv = acv * 3, ccf = tcv * 0.10;
-    const deal = { tcv: acv ? money(tcv) : '—', ccf: acv ? money(ccf) : '—', mg: pc((bruto + ccf) / (P + ccf)) };
-    const acvBtns = ['Solo servicios', 'ACV $120K', 'ACV $240K'].map((l, i) => ({ label: l, cls: 'seg sm' + (s.acv === i ? ' on' : ''), pick: () => this.setState({ acv: i }) }));
-
+    const dl = s.deal || { acv: 0, tcv: 0, ccf: 10 };
+    const tcvEff = dl.tcv > 0 ? dl.tcv : dl.acv * 3;
+    const ccfAmt = tcvEff * (dl.ccf / 100);
+    const revT = P + ccfAmt;
+    const deal = {
+      src: (PD && PD.dealFromSheet) ? 'DE LA HOJA' : (tcvEff > 0 ? 'CAPTURADO' : 'SIN SUSCRIPCIÓN'),
+      acvIn: dl.acv || '', tcvIn: dl.tcv || '', ccfIn: dl.ccf,
+      tcv: tcvEff > 0 ? money(tcvEff) : '—', ccf: tcvEff > 0 ? money(ccfAmt) : '—',
+      mg: pc((revT - Cd) / revT),
+      note: tcvEff > 0 ? 'Margen = (precio + CCF − costo) ÷ (precio + CCF)' + (dl.tcv > 0 ? '.' : '. TCV estimado como ACV × 3 años.') : 'La hoja no trae ACV ni TCV; con suscripción en cero el margen del deal es el de servicios.'
+    };
+    const setDeal = (k) => (e) => { const v = parseFloat(e.target.value); const o = Object.assign({}, s.deal || { acv: 0, tcv: 0, ccf: 10 }); o[k] = isNaN(v) ? 0 : Math.max(0, v); this.setState({ deal: o }); };
     const lim = isProj ? [15, 60] : [0, 40];
     const clampMg = (v) => Math.max(lim[0], Math.min(lim[1], v));
     const setTgt = (v) => { const o = Object.assign({}, s.tgt); o[s.mode] = clampMg(v); this.setState({ tgt: o }); };
@@ -1079,7 +1090,7 @@ class Component extends DCLogic {
       hmText: hm + ' meses',
       fteVal: s.fte,
       fteSet: (e) => this.setState({ fte: e.target.value }),
-      sem, kpis, ladder, wf, cush, rate, cash, sched, months, presetBtns, cap: capO, ams: amsO, checks, drivers, risk, sens, sensCols, mix, mixMg: pc(bruto / P), deal, acvBtns
+      sem, kpis, ladder, wf, cush, rate, cash, sched, months, presetBtns, cap: capO, ams: amsO, checks, drivers, risk, sens, sensCols, mix, mixMg: pc(bruto / P), deal, dealAcv: setDeal('acv'), dealTcv: setDeal('tcv'), dealCcf: setDeal('ccf')
     };
   }
 }
