@@ -126,6 +126,7 @@
   .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
   .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <script>
@@ -263,6 +264,8 @@
   </select>
   <button class="btn btn-primary" onclick="openSheet(null)">+ Nuevo</button>
   <button class="btn btn-ghost" onclick="loadFromServer()">↻ Actualizar</button>
+  <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()" title="Carga masiva desde la plantilla CRMPresalesMX_Carga_Inicial.xlsx">⬆ Importar Excel</button>
+  <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" onchange="importExcel(this)">
   <button class="btn btn-danger" onclick="clearAll()">Borrar todo</button>
 </div>
 
@@ -704,6 +707,168 @@ function viewFicha(id){
     ${body}
   `;
   document.getElementById('overlay').classList.add('open');
+}
+
+/* ---------- Importar Excel (carga masiva) ---------- */
+const IMPORT_HEADERS = {
+  'cliente / proyecto':'client', 'descripcion':'desc', 'etapa':'stage', 'riesgo':'risk',
+  'go / no-go':'goNoGo', 'asignado a preventa':'asignadoA', 'handover formal':'handoverFormal',
+  'producto(s)':'products', 'modalidad':'modalidad', 'contratacion':'contratacion',
+  'tipo de compromiso':'tipoCompromiso', 'valor estimado':'valor', 'modulos / alcance':'modulos',
+  'liga a sharepoint':'sharepoint', 'proximo paso':'next', 'notas':'notes',
+  'fecha entrada a etapa actual':'fecha'
+};
+function impNorm(s){
+  return String(s==null?'':s).replace(/\s*\*\s*$/,'').trim().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
+}
+function impPick(raw, options){ // devuelve el valor canónico de options o null
+  const k = impNorm(raw);
+  if(!k) return '';
+  const hit = options.find(o => impNorm(o) === k);
+  return hit === undefined ? null : hit;
+}
+function impDateISO(v){
+  if(v==null || v==='') return null;
+  let y,m,d;
+  if(typeof v === 'number'){
+    const p = XLSX.SSF.parse_date_code(v); if(!p) return null;
+    y=p.y; m=p.m; d=p.d;
+  }else{
+    const mt = String(v).trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(!mt) return null;
+    y=+mt[1]; m=+mt[2]; d=+mt[3];
+  }
+  return new Date(Date.UTC(y, m-1, d, 12)).toISOString();
+}
+function parseImportRows(aoa, existingNames){
+  const warnings = [];
+  let hIdx = aoa.findIndex(r => (r||[]).some(c => impNorm(c) === 'cliente / proyecto'));
+  if(hIdx === -1) throw new Error('No encontré la columna "Cliente / Proyecto". Usa la plantilla CRMPresalesMX_Carga_Inicial.xlsx (hoja "Carga").');
+  const colOf = {};
+  aoa[hIdx].forEach((h,i)=>{ const key = IMPORT_HEADERS[impNorm(h)]; if(key && !(key in colOf)) colOf[key] = i; });
+  const stageByNorm = {};
+  STAGES.forEach(s=>{ stageByNorm[impNorm(s.label)] = s.id; stageByNorm[impNorm(s.id)] = s.id; });
+  const seen = new Set(existingNames);
+  const out = []; let skippedEmpty = 0, skippedExample = 0, skippedDup = 0;
+  const now = new Date().toISOString();
+  const stamp = Date.now().toString(36);
+
+  for(let i = hIdx+1; i < aoa.length; i++){
+    const row = aoa[i] || [];
+    const g = key => (key in colOf && row[colOf[key]] != null) ? row[colOf[key]] : '';
+    const gs = key => String(g(key)).trim();
+    const xl = i+1; // número de fila en Excel
+    const client = gs('client');
+    if(!client){ if(row.some(c=>String(c==null?'':c).trim()!=='')) skippedEmpty++; continue; }
+    if(/^cliente ejemplo/i.test(client) || /fila de ejemplo/i.test(gs('notes'))){ skippedExample++; continue; }
+    const nk = impNorm(client);
+    if(seen.has(nk)){ skippedDup++; continue; }
+    seen.add(nk);
+
+    const warn = msg => warnings.push(`Fila ${xl} (${client}): ${msg}`);
+    const pickOr = (key, options, label) => {
+      const v = impPick(g(key), options);
+      if(v === null){ warn(`${label} "${gs(key)}" no es válido, se dejó vacío`); return ''; }
+      return v;
+    };
+    let goNoGo = pickOr('goNoGo', GONOGO, 'Go/No-Go');
+    let stage = '';
+    if(gs('stage')){
+      stage = stageByNorm[impNorm(g('stage'))] || '';
+      if(!stage) warn(`Etapa "${gs('stage')}" no es válida, se cargó como Prospección`);
+    }else if(goNoGo === 'No-Go') stage = 'no_go';
+    else if(goNoGo === 'Go') stage = 'asignada_preventa';
+    if(!stage) stage = 'prospeccion';
+
+    let handoverFormal = pickOr('handoverFormal', HANDOVER_OPTS, 'Handover');
+    if(handoverFormal && stage !== 'implementacion'){ warn('Handover solo aplica en Implementación, se dejó vacío'); handoverFormal = ''; }
+
+    const products = [];
+    gs('products').split(/[,;\n]/).map(x=>x.trim()).filter(Boolean).forEach(x=>{
+      const v = impPick(x, PRODUCTS);
+      if(v === null){ warn(`Producto "${x}" no está en el catálogo, se cargó como Otro`); if(!products.includes('Otro')) products.push('Otro'); }
+      else if(v && !products.includes(v)) products.push(v);
+    });
+
+    const fechaRaw = g('fecha');
+    let at = impDateISO(fechaRaw);
+    if(fechaRaw !== '' && !at) warn('Fecha de entrada a etapa no reconocida, se usó la fecha de carga');
+    at = at || now;
+
+    out.push({
+      id: client.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '-' + stamp + '-' + out.length,
+      client,
+      desc: gs('desc'),
+      stage,
+      risk: pickOr('risk', ['Bajo','Medio','Alto'], 'Riesgo'),
+      goNoGo,
+      asignadoA: pickOr('asignadoA', ASIGNADOS, 'Asignado a'),
+      handoverFormal,
+      stageHistory: [{ stage, at }],
+      products,
+      modalidad: pickOr('modalidad', MODALIDADES, 'Modalidad'),
+      contratacion: pickOr('contratacion', CONTRATACIONES, 'Contratación'),
+      tipoCompromiso: pickOr('tipoCompromiso', COMPROMISOS, 'Tipo de compromiso'),
+      valor: gs('valor'),
+      modulos: gs('modulos'),
+      sharepoint: gs('sharepoint'),
+      next: gs('next'),
+      notes: gs('notes'),
+      activityLog: [{ at: now, by: currentUser, note: 'Creó la tarjeta (importación Excel)' }]
+    });
+  }
+  return { projects: out, warnings, skippedEmpty, skippedExample, skippedDup };
+}
+
+async function importExcel(input){
+  const file = input.files && input.files[0];
+  input.value = '';
+  if(!file) return;
+  try{
+    if(!/\.(xlsx|xls)$/i.test(file.name)) throw new Error('El archivo debe ser .xlsx o .xls.');
+    if(typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería de Excel. Revisa tu conexión y recarga la página.');
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    const sheetName = wb.SheetNames.find(n => impNorm(n) === 'carga') || wb.SheetNames[0];
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {header:1, defval:'', raw:true});
+
+    // Traer lo más reciente del servidor para no pisar cambios de otros
+    const r = await fetch('/api/projects');
+    const data = await r.json();
+    projects = data.projects || [];
+    lastSync = data;
+
+    const res = parseImportRows(aoa, projects.map(p => impNorm(p.client)));
+    if(!res.projects.length){
+      alert('No hay proyectos nuevos para importar.' +
+        (res.skippedDup ? `\n${res.skippedDup} ya existen en el tablero (mismo nombre).` : '') +
+        (res.skippedExample ? '\nSe omitió la fila de ejemplo.' : ''));
+      return;
+    }
+    const byStage = STAGES.map(s => [s.label, res.projects.filter(p=>p.stage===s.id).length]).filter(x=>x[1]);
+    let msg = `Se importarán ${res.projects.length} proyectos nuevos al tablero (hoja "${sheetName}"):\n` +
+      byStage.map(([l,n]) => `  • ${l}: ${n}`).join('\n') +
+      `\n\nYa existen y se omiten: ${res.skippedDup}` +
+      (res.skippedExample ? `\nFila de ejemplo omitida: ${res.skippedExample}` : '') +
+      (res.skippedEmpty ? `\nFilas sin Cliente / Proyecto omitidas: ${res.skippedEmpty}` : '') +
+      `\nLos proyectos actuales no se modifican.`;
+    if(res.warnings.length){
+      msg += `\n\nAvisos (${res.warnings.length}):\n` + res.warnings.slice(0,8).map(w=>'  - '+w).join('\n') +
+        (res.warnings.length>8 ? `\n  … y ${res.warnings.length-8} más` : '');
+    }
+    msg += '\n\n¿Continuar?';
+    if(!confirm(msg)) return;
+
+    projects = projects.concat(res.projects);
+    await logAudit('Importó Excel', `${res.projects.length} proyectos nuevos desde ${file.name}`);
+    await saveToServer();
+    render();
+    alert(`Listo: ${res.projects.length} proyectos importados.`);
+  }catch(e){
+    console.error(e);
+    alert('No se pudo importar: ' + (e.message || e));
+  }
 }
 
 document.getElementById('search').addEventListener('input', render);
