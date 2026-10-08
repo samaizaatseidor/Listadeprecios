@@ -1296,13 +1296,19 @@ ${JSON.stringify(checklist || [])}`;
       const raw = await env.PM_KV.get('wbr_finanzas_historial');
       let historial = raw ? JSON.parse(raw) : [];
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
-      snapshot.guardadoPor = email;
-      snapshot.guardadoEn = new Date().toISOString();
-
-      // Si ya existe un snapshot con la misma fecha de revisión, se reemplaza (re-subieron el mismo corte)
-      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
-      historial.push(snapshot);
-      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      // Cada carga es un registro nuevo (quién y cuándo). Si el snapshot trae el guardadoEn de un registro existente
+      // (p. ej. al agregarle el insight), se actualiza ese mismo registro conservando autor y hora de carga.
+      const idx = snapshot.guardadoEn ? historial.findIndex(h => h.guardadoEn === snapshot.guardadoEn) : -1;
+      if (idx >= 0) {
+        snapshot.guardadoPor = historial[idx].guardadoPor;
+        snapshot.guardadoEn = historial[idx].guardadoEn;
+        historial[idx] = snapshot;
+      } else {
+        snapshot.guardadoPor = email;
+        snapshot.guardadoEn = new Date().toISOString();
+        historial.push(snapshot);
+      }
+      historial.sort((a,b) => (new Date(a.fechaRevision) - new Date(b.fechaRevision)) || String(a.guardadoEn||'').localeCompare(String(b.guardadoEn||'')));
       if (historial.length > 52) historial = historial.slice(historial.length - 52); // ~1 año de historial semanal
 
       await env.PM_KV.put('wbr_finanzas_historial', JSON.stringify(historial));
@@ -1344,11 +1350,19 @@ ${JSON.stringify(checklist || [])}`;
       const raw = await env.PM_KV.get('wbr_ventas_historial');
       let historial = raw ? JSON.parse(raw) : [];
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
-      snapshot.guardadoPor = email;
-      snapshot.guardadoEn = new Date().toISOString();
-      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
-      historial.push(snapshot);
-      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      // Cada carga es un registro nuevo (quién y cuándo). Si el snapshot trae el guardadoEn de un registro existente
+      // (p. ej. al agregarle el insight), se actualiza ese mismo registro conservando autor y hora de carga.
+      const idx = snapshot.guardadoEn ? historial.findIndex(h => h.guardadoEn === snapshot.guardadoEn) : -1;
+      if (idx >= 0) {
+        snapshot.guardadoPor = historial[idx].guardadoPor;
+        snapshot.guardadoEn = historial[idx].guardadoEn;
+        historial[idx] = snapshot;
+      } else {
+        snapshot.guardadoPor = email;
+        snapshot.guardadoEn = new Date().toISOString();
+        historial.push(snapshot);
+      }
+      historial.sort((a,b) => (new Date(a.fechaRevision) - new Date(b.fechaRevision)) || String(a.guardadoEn||'').localeCompare(String(b.guardadoEn||'')));
       if (historial.length > 52) historial = historial.slice(historial.length - 52);
 
       await env.PM_KV.put('wbr_ventas_historial', JSON.stringify(historial));
@@ -1391,11 +1405,19 @@ ${JSON.stringify(checklist || [])}`;
       const raw = await env.PM_KV.get('wbr_operaciones_historial');
       let historial = raw ? JSON.parse(raw) : [];
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
-      snapshot.guardadoPor = email;
-      snapshot.guardadoEn = new Date().toISOString();
-      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
-      historial.push(snapshot);
-      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      // Cada carga es un registro nuevo (quién y cuándo). Si el snapshot trae el guardadoEn de un registro existente
+      // (p. ej. al agregarle el insight), se actualiza ese mismo registro conservando autor y hora de carga.
+      const idx = snapshot.guardadoEn ? historial.findIndex(h => h.guardadoEn === snapshot.guardadoEn) : -1;
+      if (idx >= 0) {
+        snapshot.guardadoPor = historial[idx].guardadoPor;
+        snapshot.guardadoEn = historial[idx].guardadoEn;
+        historial[idx] = snapshot;
+      } else {
+        snapshot.guardadoPor = email;
+        snapshot.guardadoEn = new Date().toISOString();
+        historial.push(snapshot);
+      }
+      historial.sort((a,b) => (new Date(a.fechaRevision) - new Date(b.fechaRevision)) || String(a.guardadoEn||'').localeCompare(String(b.guardadoEn||'')));
       if (historial.length > 52) historial = historial.slice(historial.length - 52);
 
       await env.PM_KV.put('wbr_operaciones_historial', JSON.stringify(historial));
@@ -1437,11 +1459,19 @@ ${JSON.stringify(checklist || [])}`;
       const raw = await env.PM_KV.get('wbr_productos_historial');
       let historial = raw ? JSON.parse(raw) : [];
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
-      snapshot.guardadoPor = email;
-      snapshot.guardadoEn = new Date().toISOString();
-      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
-      historial.push(snapshot);
-      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      // Cada carga es un registro nuevo (quién y cuándo). Si el snapshot trae el guardadoEn de un registro existente
+      // (p. ej. al agregarle el insight), se actualiza ese mismo registro conservando autor y hora de carga.
+      const idx = snapshot.guardadoEn ? historial.findIndex(h => h.guardadoEn === snapshot.guardadoEn) : -1;
+      if (idx >= 0) {
+        snapshot.guardadoPor = historial[idx].guardadoPor;
+        snapshot.guardadoEn = historial[idx].guardadoEn;
+        historial[idx] = snapshot;
+      } else {
+        snapshot.guardadoPor = email;
+        snapshot.guardadoEn = new Date().toISOString();
+        historial.push(snapshot);
+      }
+      historial.sort((a,b) => (new Date(a.fechaRevision) - new Date(b.fechaRevision)) || String(a.guardadoEn||'').localeCompare(String(b.guardadoEn||'')));
       if (historial.length > 52) historial = historial.slice(historial.length - 52);
 
       await env.PM_KV.put('wbr_productos_historial', JSON.stringify(historial));
@@ -1483,11 +1513,19 @@ ${JSON.stringify(checklist || [])}`;
       const raw = await env.PM_KV.get('wbr_ccflex_historial');
       let historial = raw ? JSON.parse(raw) : [];
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
-      snapshot.guardadoPor = email;
-      snapshot.guardadoEn = new Date().toISOString();
-      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
-      historial.push(snapshot);
-      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      // Cada carga es un registro nuevo (quién y cuándo). Si el snapshot trae el guardadoEn de un registro existente
+      // (p. ej. al agregarle el insight), se actualiza ese mismo registro conservando autor y hora de carga.
+      const idx = snapshot.guardadoEn ? historial.findIndex(h => h.guardadoEn === snapshot.guardadoEn) : -1;
+      if (idx >= 0) {
+        snapshot.guardadoPor = historial[idx].guardadoPor;
+        snapshot.guardadoEn = historial[idx].guardadoEn;
+        historial[idx] = snapshot;
+      } else {
+        snapshot.guardadoPor = email;
+        snapshot.guardadoEn = new Date().toISOString();
+        historial.push(snapshot);
+      }
+      historial.sort((a,b) => (new Date(a.fechaRevision) - new Date(b.fechaRevision)) || String(a.guardadoEn||'').localeCompare(String(b.guardadoEn||'')));
       if (historial.length > 52) historial = historial.slice(historial.length - 52);
 
       await env.PM_KV.put('wbr_ccflex_historial', JSON.stringify(historial));
@@ -1529,11 +1567,19 @@ ${JSON.stringify(checklist || [])}`;
       const raw = await env.PM_KV.get('wbr_bx_historial');
       let historial = raw ? JSON.parse(raw) : [];
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
-      snapshot.guardadoPor = email;
-      snapshot.guardadoEn = new Date().toISOString();
-      historial = historial.filter(h => h.fechaRevision !== snapshot.fechaRevision);
-      historial.push(snapshot);
-      historial.sort((a,b) => new Date(a.fechaRevision) - new Date(b.fechaRevision));
+      // Cada carga es un registro nuevo (quién y cuándo). Si el snapshot trae el guardadoEn de un registro existente
+      // (p. ej. al agregarle el insight), se actualiza ese mismo registro conservando autor y hora de carga.
+      const idx = snapshot.guardadoEn ? historial.findIndex(h => h.guardadoEn === snapshot.guardadoEn) : -1;
+      if (idx >= 0) {
+        snapshot.guardadoPor = historial[idx].guardadoPor;
+        snapshot.guardadoEn = historial[idx].guardadoEn;
+        historial[idx] = snapshot;
+      } else {
+        snapshot.guardadoPor = email;
+        snapshot.guardadoEn = new Date().toISOString();
+        historial.push(snapshot);
+      }
+      historial.sort((a,b) => (new Date(a.fechaRevision) - new Date(b.fechaRevision)) || String(a.guardadoEn||'').localeCompare(String(b.guardadoEn||'')));
       if (historial.length > 52) historial = historial.slice(historial.length - 52);
 
       await env.PM_KV.put('wbr_bx_historial', JSON.stringify(historial));

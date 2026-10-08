@@ -327,8 +327,18 @@ async function pedirInsight(anterior){
   }
 }
 
-function verSnapshotHistorico(fechaRevision){
-  const encontrado = historial.find(h => h.fechaRevision === fechaRevision);
+function etiquetaCarga(h){
+  if(!h || !h.guardadoEn) return '';
+  const cuando = new Date(h.guardadoEn).toLocaleString('es-MX', { timeZone:'America/Mexico_City', dateStyle:'medium', timeStyle:'short' });
+  return 'cargado por ' + esc(h.guardadoPor || 'desconocido') + ' el ' + cuando;
+}
+function celdasCarga(h){
+  const cuando = h.guardadoEn ? new Date(h.guardadoEn).toLocaleString('es-MX', { timeZone:'America/Mexico_City', dateStyle:'medium', timeStyle:'short' }) : '—';
+  return '<td>' + esc(h.guardadoPor || '—') + '</td><td>' + cuando + '</td>';
+}
+
+function verSnapshotHistorico(idCarga){
+  const encontrado = historial.find(h => h.guardadoEn === idCarga);
   if(!encontrado) return;
   snapshotVisto = encontrado;
   render();
@@ -372,7 +382,7 @@ function render(){
 
   const bannerHistorico = snapshotVisto ? `
     <div class="section" style="background:#FBF1DE; border:1px solid #E9D9AE; display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
-      <span style="font-size:13px; color:#8A6414;">📅 Estás viendo el corte del <b>${new Date(snapshotVisto.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</b> — no es la semana actual.</span>
+      <span style="font-size:13px; color:#8A6414;">📅 Estás viendo el corte del <b>${new Date(snapshotVisto.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</b> (${etiquetaCarga(snapshotVisto)}) — no es la semana actual.</span>
       <button class="btn btn-primary" style="background:#8A6414; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; cursor:pointer;" onclick="volverActual()">Volver a la semana actual</button>
     </div>
   ` : '';
@@ -442,12 +452,12 @@ function render(){
       <h2>📅 Bitácora semanal</h2>
       <p class="sub">Haz clic en una semana para ver el dashboard completo tal como se veía entonces.</p>
       <table>
-        <tr><th>Semana</th><th class="num">Ventas YTD %</th><th class="num">Ventas CQ %</th><th class="num">Pipeline CQ</th></tr>
+        <tr><th>Semana</th><th>Cargó</th><th>Cargado el</th><th class="num">Ventas YTD %</th><th class="num">Ventas CQ %</th><th class="num">Pipeline CQ</th></tr>
         ${historial.slice().reverse().map(h => {
           const v = h.ventas.find(x=>x.nombre.toLowerCase().includes('totales')) || h.ventas[0];
           const p = h.pipeline.find(x=>x.nombre.toLowerCase().includes('total')) || h.pipeline[0];
-          const esEsta = mostrando.fechaRevision === h.fechaRevision;
-          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.fechaRevision}')" title="Ver el dashboard completo de esta semana"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td class="num">${fmtPct(v.pctYTD)}</td><td class="num">${fmtPct(v.pctCQ)}</td><td class="num">${fmtK(p.resultadoCQ)}</td></tr>`;
+          const esEsta = mostrando.guardadoEn === h.guardadoEn;
+          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.guardadoEn}')" title="Ver el dashboard completo de esta semana"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td>${celdasCarga(h)}<td class="num">${fmtPct(v.pctYTD)}</td><td class="num">${fmtPct(v.pctCQ)}</td><td class="num">${fmtK(p.resultadoCQ)}</td></tr>`;
         }).join('')}
       </table>
     </div>
