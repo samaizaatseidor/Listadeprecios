@@ -250,24 +250,72 @@ function parsearOportunidadesEnRango(m, desde, hasta){
   }
   return out;
 }
+function quitarColumnasVacias(m){
+  // Si la hoja empieza en la columna A pero los datos arrancan en la B (o más a la derecha), recorre todo para que el nombre quede en la posición 0
+  let min = Infinity;
+  for(const f of m){ if(!f) continue; for(let j=0;j<f.length;j++){ const c=f[j]; if(c!==null && c!==undefined && String(c).trim()!=='' && String(c).trim()!==' '){ if(j<min) min=j; break; } } }
+  return (min===Infinity || min===0) ? m : m.map(f => f ? f.slice(min) : f);
+}
+// Formato nuevo (desde Q4): tablas con encabezados Comentarios | SE | CLIENTE | TIPO | LOB | Q | MES | SW | SERVICIOS | TOTAL
+function parsearTablaNueva(m, desde, hasta){
+  let enc = null;
+  for(let i=desde;i<m.length && i<hasta;i++){
+    const f=m[i]; if(!f) continue;
+    const ix=f.findIndex(c=>typeof c==='string' && c.trim().toUpperCase()==='CLIENTE');
+    if(ix>=0){ enc = { fila:i, cols:{} }; f.forEach((c,j)=>{ if(typeof c==='string') enc.cols[c.trim().toUpperCase()] = j; }); break; }
+  }
+  if(!enc) return [];
+  const g = (f,k)=>{ const j = enc.cols[k]; return j===undefined ? null : f[j]; };
+  const out=[];
+  for(let i=enc.fila+1;i<m.length && i<hasta;i++){
+    const f=m[i]; if(!f) continue;
+    const cliente = g(f,'CLIENTE');
+    if(!cliente || String(cliente).trim().toUpperCase()==='CLIENTE') continue;
+    const num = v => (typeof v==='number') ? v : 0;
+    out.push({ cliente:String(cliente).trim(), lineaSAP:g(f,'LOB')||'', tipo:g(f,'TIPO')||'', sw:num(g(f,'SW')), services:num(g(f,'SERVICIOS')), total:num(g(f,'TOTAL')), etapa:g(f,'Q')||'', estatus:'', fechaCierre:null, mes:g(f,'MES')||'', vendedor:g(f,'SE')||'', comentario:String(f[0]||'').replace(/ /g,' ').trim() });
+  }
+  return out;
+}
 function parsearVentasPipeline(wb){
   const ws = wb.Sheets['Ventas & Pipeline Q3'] || wb.Sheets[Object.keys(wb.Sheets).find(n => n.toLowerCase().startsWith('ventas & pipeline'))];
   if(!ws) throw new Error('No se encontró una pestaña "Ventas & Pipeline..."');
-  const m = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true });
+  const m = quitarColumnasVacias(XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true }));
   const idxFecha = encontrarFila(m, 'Semana de revisión');
   const fechaRevision = idxFecha>=0 ? (m[idxFecha].find(c => c instanceof Date) || null) : null;
-  const ventas = parsearBloqueVentas(m, encontrarFila(m,'RESULTADO YTD'));
-  const pipeline = parsearBloquePipeline(m, encontrarFila(m,'# X'));
+  const idxVentas = encontrarFila(m,'RESULTADO YTD');
+  const idxPipe = encontrarFila(m,'# X');
+  if(idxVentas<0) throw new Error('No se encontró el bloque "RESULTADO YTD" en la pestaña de Ventas & Pipeline.');
+  if(idxPipe<0) throw new Error('No se encontró el bloque de Pipeline ("# X") en la pestaña de Ventas & Pipeline.');
+  const ventas = parsearBloqueVentas(m, idxVentas);
+  const pipeline = parsearBloquePipeline(m, idxPipe);
+  if(!ventas.length || !pipeline.length) throw new Error('Los bloques de Ventas o Pipeline vienen vacíos; revisa el formato de la pestaña.');
   const idxDetalle = encontrarFila(m, 'DETALLE DE OPORTUNIDADES');
+  const idxFin = encontrarFila(m, 'AGREGAR ESTATUS DE CCFLEX');
+  const finReal = idxFin>=0 ? idxFin : m.length;
+  const base = { fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(), ventas, pipeline };
+
+  const idxSalio = encontrarFila(m, 'LO QUE SALIO');
+  if(idxSalio>=0){
+    // Formato nuevo: Activas / Lo que salió / Lo que entró (movidas de Q) / Oportunidades nuevas
+    const idxEntro = encontrarFila(m, 'LO QUE ENTRO');
+    const idxNuevas = encontrarFila(m, 'OPORTUNIDADES NUEVAS');
+    const finSalio = idxEntro>=0 ? idxEntro : (idxNuevas>=0 ? idxNuevas : finReal);
+    const finEntro = idxNuevas>=0 ? idxNuevas : finReal;
+    return { ...base,
+      oportunidadesActivas: parsearTablaNueva(m, idxDetalle>=0?idxDetalle:0, idxSalio),
+      ganadas: [],
+      bajaron: parsearTablaNueva(m, idxSalio, finSalio),
+      movidas: idxEntro>=0 ? parsearTablaNueva(m, idxEntro, finEntro) : [],
+      bigDeals: [],
+      nuevas: idxNuevas>=0 ? parsearTablaNueva(m, idxNuevas, finReal) : []
+    };
+  }
+
   const idxGanadas = encontrarFila(m, 'GANADAS');
   const idxBajaron = encontrarFila(m, 'BAJARON');
   const idxMovidas = encontrarFila(m, 'SE MOVIERON DE Q');
   const idxBigDeals = encontrarFila(m, 'BIG DEALS');
-  const idxFin = encontrarFila(m, 'AGREGAR ESTATUS DE CCFLEX');
-  const finReal = idxFin>=0 ? idxFin : m.length;
-  return {
-    fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(),
-    ventas, pipeline,
+  return { ...base,
     oportunidadesActivas: parsearOportunidadesEnRango(m, idxDetalle+2, idxGanadas>=0?idxGanadas:finReal),
     ganadas: idxGanadas>=0 ? parsearOportunidadesEnRango(m, idxGanadas+1, idxBajaron>=0?idxBajaron:finReal) : [],
     bajaron: idxBajaron>=0 ? parsearOportunidadesEnRango(m, idxBajaron+1, idxMovidas>=0?idxMovidas:finReal) : [],
@@ -304,7 +352,7 @@ async function cargarHistorial(){
   try{
     const r = await fetch('/api/wbr-ventas');
     const d = await r.json();
-    historial = d.historial || [];
+    historial = (d.historial || []).filter(h => h && Array.isArray(h.ventas) && h.ventas.length && Array.isArray(h.pipeline) && h.pipeline.length);
     if(historial.length) actual = historial[historial.length-1];
   }catch(e){ historial = []; }
 }
@@ -355,11 +403,11 @@ function volverActual(){
 function filaOportunidad(o){
   return `<tr>
     <td>${esc(o.cliente)}</td>
-    <td>${esc(o.lineaSAP)}</td>
+    <td>${esc(o.lineaSAP)}${o.tipo ? ' · ' + esc(o.tipo) : ''}</td>
     <td class="num">${fmtK(o.total)}</td>
     <td><span class="etapa-tag">${esc(o.etapa)}</span></td>
-    <td><span class="estatus-tag ${claseEstatus(o.estatus)}">${esc(o.estatus)}</span></td>
-    <td>${o.fechaCierre ? new Date(o.fechaCierre).toLocaleDateString('es-MX') : '—'}</td>
+    <td>${o.estatus ? `<span class="estatus-tag ${claseEstatus(o.estatus)}">${esc(o.estatus)}</span>` : '—'}</td>
+    <td>${o.fechaCierre ? new Date(o.fechaCierre).toLocaleDateString('es-MX') : (o.mes ? esc(o.mes) : '—')}</td>
     <td>${esc(o.vendedor)}</td>
     <td class="comentario-cell">${esc(o.comentario)}</td>
   </tr>`;
@@ -439,11 +487,12 @@ function render(){
     <div class="section">
       <h2>Detalle de oportunidades</h2>
       <div class="tabbar" id="tabbarOps">
-        <button class="active" onclick="setTabOps('activas')">Activas (${mostrando.oportunidadesActivas.length})</button>
-        <button onclick="setTabOps('ganadas')">Ganadas (${mostrando.ganadas.length})</button>
-        <button onclick="setTabOps('bajaron')">Bajaron del FCST (${mostrando.bajaron.length})</button>
-        <button onclick="setTabOps('movidas')">Movidas de Q (${mostrando.movidas.length})</button>
-        <button onclick="setTabOps('bigDeals')">Big Deals (${mostrando.bigDeals.length})</button>
+        <button data-tab="activas" class="active" onclick="setTabOps('activas')">Activas (${mostrando.oportunidadesActivas.length})</button>
+        ${(mostrando.ganadas||[]).length ? `<button data-tab="ganadas" onclick="setTabOps('ganadas')">Ganadas (${mostrando.ganadas.length})</button>` : ''}
+        <button data-tab="bajaron" onclick="setTabOps('bajaron')">Bajaron del FCST (${(mostrando.bajaron||[]).length})</button>
+        <button data-tab="movidas" onclick="setTabOps('movidas')">Movidas de Q (${(mostrando.movidas||[]).length})</button>
+        ${(mostrando.nuevas||[]).length ? `<button data-tab="nuevas" onclick="setTabOps('nuevas')">Nuevas (${mostrando.nuevas.length})</button>` : ''}
+        ${(mostrando.bigDeals||[]).length ? `<button data-tab="bigDeals" onclick="setTabOps('bigDeals')">Big Deals (${mostrando.bigDeals.length})</button>` : ''}
       </div>
       <div id="opsContent"></div>
     </div>
@@ -489,10 +538,9 @@ function renderCharts(){
 }
 
 function setTabOps(cual){
-  const mapa = { activas:0, ganadas:1, bajaron:2, movidas:3, bigDeals:4 };
-  document.querySelectorAll('#tabbarOps button').forEach((b,i) => b.classList.toggle('active', i===mapa[cual]));
-  const listas = { activas:mostrando.oportunidadesActivas, ganadas:mostrando.ganadas, bajaron:mostrando.bajaron, movidas:mostrando.movidas, bigDeals:mostrando.bigDeals };
-  document.getElementById('opsContent').innerHTML = tablaOportunidades(listas[cual]);
+  document.querySelectorAll('#tabbarOps button').forEach(b => b.classList.toggle('active', b.dataset.tab === cual));
+  const listas = { activas:mostrando.oportunidadesActivas, ganadas:mostrando.ganadas, bajaron:mostrando.bajaron, movidas:mostrando.movidas, nuevas:mostrando.nuevas, bigDeals:mostrando.bigDeals };
+  document.getElementById('opsContent').innerHTML = tablaOportunidades(listas[cual] || []);
 }
 
 async function init(){

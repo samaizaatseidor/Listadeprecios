@@ -1347,6 +1347,7 @@ ${JSON.stringify(checklist || [])}`;
       const snapshot = body.snapshot;
       if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
+      if (!Array.isArray(snapshot.ventas) || !snapshot.ventas.length || !Array.isArray(snapshot.pipeline) || !snapshot.pipeline.length) return new Response(JSON.stringify({ ok:false, error:'El corte viene sin datos de Ventas o Pipeline' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
       const raw = await env.PM_KV.get('wbr_ventas_historial');
       let historial = raw ? JSON.parse(raw) : [];
       const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
