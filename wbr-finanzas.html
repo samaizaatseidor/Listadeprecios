@@ -242,7 +242,7 @@ let snapshotVisto = null;
 let mostrando = null;
 
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-function fmtEUR(n){ return '€' + (n||0).toLocaleString('es-MX', {minimumFractionDigits:0, maximumFractionDigits:0}) + 'K'; }
+function fmtUSD(n){ return '$' + (n||0).toLocaleString('es-MX', {minimumFractionDigits:0, maximumFractionDigits:0}) + 'K'; }
 function fmtPct(n){ return Math.round((n||0)*100) + '%'; }
 function claseAvance(pct){ return pct >= 0.85 ? 'verde' : (pct >= 0.6 ? 'ambar' : 'rojo'); }
 function claseDias(d){ return d <= 30 ? 'dias-ok' : (d <= 90 ? 'dias-warn' : 'dias-bad'); }
@@ -431,19 +431,19 @@ function render(){
       <div class="kpi-card ${claseAvance(factYTD.avance)}">
         <div class="label">Facturación YTD</div>
         <div class="value">${fmtPct(factYTD.avance)}</div>
-        <div class="sub-value">${fmtEUR(factYTD.real)} de ${fmtEUR(factYTD.objetivo)} objetivo</div>
+        <div class="sub-value">${fmtUSD(factYTD.real)} de ${fmtUSD(factYTD.objetivo)} objetivo</div>
         <div class="kpi-bar"><div class="kpi-bar-fill ${claseAvance(factYTD.avance)}" style="width:${Math.min(100, factYTD.avance*100)}%"></div></div>
       </div>
       <div class="kpi-card ${claseAvance(cobrYTD.avance)}">
         <div class="label">Cobranza YTD</div>
         <div class="value">${fmtPct(cobrYTD.avance)}</div>
-        <div class="sub-value">${fmtEUR(cobrYTD.real)} de ${fmtEUR(cobrYTD.objetivo)} objetivo</div>
+        <div class="sub-value">${fmtUSD(cobrYTD.real)} de ${fmtUSD(cobrYTD.objetivo)} objetivo</div>
         <div class="kpi-bar"><div class="kpi-bar-fill ${claseAvance(cobrYTD.avance)}" style="width:${Math.min(100, cobrYTD.avance*100)}%"></div></div>
       </div>
       <div class="kpi-card ${totalVencido > totalCartera*0.5 ? 'rojo' : 'ambar'}">
         <div class="label">Total cartera vencida</div>
-        <div class="value">${fmtEUR(totalVencido)}</div>
-        <div class="sub-value">de ${fmtEUR(totalCartera)} en cartera total</div>
+        <div class="value">${fmtUSD(totalVencido)}</div>
+        <div class="sub-value">de ${fmtUSD(totalCartera)} en cartera total</div>
       </div>
       <div class="kpi-card ${pctCritico > 0.3 ? 'rojo' : (pctCritico > 0.15 ? 'ambar' : 'verde')}">
         <div class="label">En zona crítica (+6 meses)</div>
@@ -479,7 +479,7 @@ function render(){
         <div style="overflow-y:auto; max-height:260px;">
           <table>
             <tr><th>Cliente</th><th class="num">Total</th></tr>
-            ${mostrando.aging.filas.slice(0,10).map(f => `<tr><td>${esc(f.cliente)}</td><td class="num">${fmtEUR(f.valores[7])}</td></tr>`).join('')}
+            ${mostrando.aging.filas.slice(0,10).map(f => `<tr><td>${esc(f.cliente)}</td><td class="num">${fmtUSD(f.valores[7])}</td></tr>`).join('')}
           </table>
         </div>
       </div>
@@ -504,7 +504,7 @@ function render(){
           const c = h.cobranza.find(p=>p.periodo.toUpperCase().includes('YTD')) || h.cobranza[h.cobranza.length-1];
           const v = h.aging.totalGeneral.slice(0,6).reduce((s,x)=>s+x,0);
           const esEsta = mostrando.guardadoEn === h.guardadoEn;
-          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.guardadoEn}')" title="Ver el dashboard completo de esta semana"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td>${celdasCarga(h)}<td class="num">${fmtPct(f.avance)}</td><td class="num">${fmtPct(c.avance)}</td><td class="num">${fmtEUR(v)}</td></tr>`;
+          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.guardadoEn}')" title="Ver el dashboard completo de esta semana"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td>${celdasCarga(h)}<td class="num">${fmtPct(f.avance)}</td><td class="num">${fmtPct(c.avance)}</td><td class="num">${fmtUSD(v)}</td></tr>`;
         }).join('')}
       </table>
     </div>
@@ -560,12 +560,12 @@ function setTabTop10(cual){
   const lista = cual === 'SAP' ? mostrando.top10SAP : mostrando.top10B1;
   document.getElementById('top10Content').innerHTML = `
     <table>
-      <tr><th>Cliente</th><th>LOB</th><th class="num">Monto €</th><th class="num">Monto MXN</th><th class="num">Días vencidos</th><th>Next Step</th></tr>
+      <tr><th>Cliente</th><th>LOB</th><th class="num">Monto USD</th><th class="num">Monto MXN</th><th class="num">Días vencidos</th><th>Next Step</th></tr>
       ${lista.map(c => `
         <tr>
           <td>${esc(c.cliente)}</td>
           <td>${esc(c.lob)}</td>
-          <td class="num">${fmtEUR(c.montoEUR)}</td>
+          <td class="num">${fmtUSD(c.montoEUR)}</td>
           <td class="num">${(c.montoMXN||0).toLocaleString('es-MX')}</td>
           <td class="num"><span class="dias-tag ${claseDias(c.diasVencidos)}">${c.diasVencidos}</span></td>
           <td class="comentario-cell">${esc(c.nextStep)}</td>

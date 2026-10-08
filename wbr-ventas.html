@@ -223,7 +223,7 @@ let mostrando = null;
 let chartVentas, chartPipeline;
 
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
-function fmtK(n){ return '€' + Math.round(n||0).toLocaleString('es-MX') + 'K'; }
+function fmtK(n){ return '$' + Math.round(n||0).toLocaleString('es-MX') + 'K'; }
 function fmtPct(n){ return Math.round((n||0)*100) + '%'; }
 function claseAvance(pct){ return pct >= 0.85 ? 'verde' : (pct >= 0.6 ? 'ambar' : 'rojo'); }
 function claseEstatus(e){
