@@ -215,7 +215,7 @@ var CSS = [
 '.wk-pop .ph:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 62%,rgba(5,10,24,.5));pointer-events:none;}',
 '.wk-owner-cap em{font-style:normal;font-size:13px;color:var(--wk-grey);font-weight:500;}',
 
-'.wk-pops{display:flex;} .wk-pops .wk-pop{zoom:.78;margin-right:-4px;} .wk-pops .wk-pop+.wk-pop{margin-left:14px;} .wk-owner-multi .wk-owner-cap b{font-size:16px;} .wk-owner-multi .wk-owner-cap b em{margin-left:6px;} .wk-owner-cap{display:grid;gap:3px;} .wk-owner-cap small{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#8FE6FF;font-weight:700;} .wk-owner-cap b{font-size:20px;color:#fff;font-weight:700;}',
+'.wk-pop .ph .ini{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);font:800 44px Poppins,sans-serif;color:#fff;text-shadow:0 4px 14px rgba(0,0,0,.5);letter-spacing:1px;} .wk-pops{display:flex;} .wk-pops .wk-pop{zoom:.78;margin-right:-4px;} .wk-pops .wk-pop+.wk-pop{margin-left:14px;} .wk-owner-multi .wk-owner-cap b{font-size:16px;} .wk-owner-multi .wk-owner-cap b em{margin-left:6px;} .wk-owner-cap{display:grid;gap:3px;} .wk-owner-cap small{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#8FE6FF;font-weight:700;} .wk-owner-cap b{font-size:20px;color:#fff;font-weight:700;}',
 '@media(prefers-reduced-motion:reduce){.wk-avatar,.wk-avatar>div{animation:none;}}',
 
 '@media(max-width:700px){.wk-grid2{grid-template-columns:1fr;}.wk-kpi-val{font-size:28px;}.wk-nav{padding:8px 14px;margin:0 -14px 14px;}}',
@@ -704,7 +704,8 @@ function wiRender(id, root){
 WK.OWNERS = {
   finanzas:{ nombre:'Mauricio Reyes', cargo:'CFO', rol:'Finanzas' }, ventas:{ nombre:'Omar Dávila', cargo:'Director Comercial', rol:'Ventas & Pipeline', foto:'/assets/owners/omar.png' }, operaciones:{ nombre:'Yurima Choco', cargo:'Directora de Operaciones', rol:'Operaciones', foto:'/assets/owners/yurima.png' },
   productos:{ nombre:'Omar Dávila', cargo:'Director Comercial', rol:'Target clientes', foto:'/assets/owners/omar.png' }, ccflex:{ rol:'CC Flex' }, bx:{ nombre:'María Flores', cargo:'Gerente de BX', rol:'Business Experience', foto:'/assets/owners/maria.png' },
-  anuncios:{ nombre:'Paul Sirrs', cargo:'CEO', rol:'Anuncios', foto:'/assets/owners/paul.png' }, cta:{ nombre:'Angel Aiza', cargo:'Director de Estrategia y Procesos', rol:'Call to Action', foto:'/assets/owners/angel.png' }, vop:{ rol:'VOP', equipo:[ { nombre:'Omar Dávila', cargo:'Director Comercial', foto:'/assets/owners/omar.png' }, { nombre:'Yurima Choco', cargo:'Directora de Operaciones', foto:'/assets/owners/yurima.png' }, { nombre:'Samuel Aiza', cargo:'Presales Manager', foto:'/assets/owners/sam.png' } ] }, baseinstalada:{ nombre:'Daniela Flores', cargo:'Cultura y Business Experience', rol:'Base Instalada', foto:'/assets/owners/daniela.png' }
+  anuncios:{ nombre:'Paul Sirrs', cargo:'CEO', rol:'Anuncios', foto:'/assets/owners/paul.png' }, cta:{ nombre:'Angel Aiza', cargo:'Director de Estrategia y Procesos', rol:'Call to Action', foto:'/assets/owners/angel.png' }, vop:{ rol:'VOP', equipo:[ { nombre:'Omar Dávila', cargo:'Director Comercial', foto:'/assets/owners/omar.png' }, { nombre:'Yurima Choco', cargo:'Directora de Operaciones', foto:'/assets/owners/yurima.png' }, { nombre:'Samuel Aiza', cargo:'Presales Manager', foto:'/assets/owners/sam.png' } ] }, presales:{ rol:'Tablero de control', etiqueta:'Solution Engineers', equipo:[ { nombre:'Gustavo Najar', cargo:'Solution Engineer', foto:'/assets/owners/gustavo.png' }, { nombre:'Rocío Anaya', cargo:'Solution Engineer', foto:'/assets/owners/rocio.png' }, { nombre:'Samuel Aiza', cargo:'Presales Manager', foto:'/assets/owners/sam.png' } ] },
+  baseinstalada:{ nombre:'Daniela Flores', cargo:'Cultura y Business Experience', rol:'Base Instalada', foto:'/assets/owners/daniela.png' }
 };
 function iniciales(t){ return String(t||'').split(/\s+/).filter(Boolean).slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase(); }
 function ownerSlug(){ var b = document.body && document.body.getAttribute('data-wk-owner'); if(b) return b; var m = (location.pathname||'').match(/wbr-([a-z0-9]+)/i); return m ? m[1].toLowerCase() : null; }
@@ -736,15 +737,21 @@ function ownerEquipo(cfg){
   cfg.equipo.forEach(function(p){
     var pop = document.createElement('div'); pop.className = 'wk-pop'; pop.setAttribute('data-tip', p.nombre+'\n'+p.cargo);
     pop.innerHTML = '<div class="ring"></div><div class="disc"></div><div class="ph"></div>'; fotos.appendChild(pop);
-    var im = new Image(); im.alt = p.nombre; im.onload = function(){ pop.querySelector('.ph').appendChild(im); }; im.src = p.foto;
+    var im = new Image(); im.alt = p.nombre; im.onload = function(){ pop.querySelector('.ph').appendChild(im); }; im.onerror = function(){ pop.querySelector('.ph').innerHTML = '<span class="ini">'+WK.esc(iniciales(p.nombre))+'</span>'; }; im.src = p.foto;
     if(h){ h.addEventListener('mousemove', function(e){ var r = h.getBoundingClientRect(); pop.style.setProperty('--px', (((e.clientX-r.left)/r.width)*2-1).toFixed(3)); pop.style.setProperty('--py', (((e.clientY-r.top)/r.height)*2-1).toFixed(3)); });
       h.addEventListener('mouseleave', function(){ pop.style.setProperty('--px', 0); pop.style.setProperty('--py', 0); }); }
   });
   var cap = document.createElement('div'); cap.className = 'wk-owner-cap';
-  cap.innerHTML = '<small>Dueños del tablero · '+WK.esc(cfg.rol)+'</small>' + cfg.equipo.map(function(p){ return '<b>'+WK.esc(p.nombre)+' <em>'+WK.esc(p.cargo)+'</em></b>'; }).join('');
+  cap.innerHTML = '<small>'+WK.esc(cfg.etiqueta || ('Dueños del tablero · '+cfg.rol))+'</small>' + cfg.equipo.map(function(p){ return '<b>'+WK.esc(p.nombre)+' <em>'+WK.esc(p.cargo)+'</em></b>'; }).join('');
   box.appendChild(cap);
   return box;
 }
+/* Cambia el retrato del encabezado (p. ej. al filtrar por una persona): cfg con equipo[] */
+WK.ownerSet = function(cfg){
+  var h = document.querySelector('header'); if(!h) return;
+  var viejo = h.querySelector('.wk-owner'); if(!viejo) return;
+  var nuevo = ownerEquipo(cfg); viejo.parentNode.replaceChild(nuevo, viejo);
+};
 function inyectarOwner(){
   var slug = ownerSlug(); if(!slug) return;
   var h = document.querySelector('header'); if(!h || h.getAttribute('data-wk-owner-ok')) return;
