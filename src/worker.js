@@ -1632,6 +1632,7 @@ ${JSON.stringify(checklist || [])}`;
       try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
       const snapshot = body.snapshot;
       if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      if (snapshot.formato !== 'bx-semanal-v2' || !snapshot.secciones || typeof snapshot.secciones !== 'object') return new Response(JSON.stringify({ ok:false, error:'El archivo no tiene el formato del Excel semanal de BX.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
       const raw = await env.PM_KV.get('wbr_bx_historial');
       let historial = raw ? JSON.parse(raw) : [];
@@ -1652,7 +1653,7 @@ ${JSON.stringify(checklist || [])}`;
       if (historial.length > 52) historial = historial.slice(historial.length - 52);
 
       await env.PM_KV.put('wbr_bx_historial', JSON.stringify(historial));
-      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length, guardadoEn: snapshot.guardadoEn }), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname === '/api/wbr-bx-insight' && request.method === 'POST') {
@@ -1664,7 +1665,7 @@ ${JSON.stringify(checklist || [])}`;
       const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
       const sessionId = crypto.randomUUID();
 
-      const prompt = `Eres un analista de Business Experience senior presentando el Weekly Business Review de renovaciones, CCFlex, oportunidades y riesgo de churn de SEIDOR México a la dirección.\n\nCorte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres, no genérico.`;
+      const prompt = `Eres un analista de Business Experience senior presentando el Weekly Business Review de Business Experience (clientes tocados, oportunidades, escalaciones, riesgos de churn, reuniones y estrategia; montos en USD) de SEIDOR México a la dirección.\n\nCorte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres, no genérico.`;
 
       try {
         const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });

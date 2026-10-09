@@ -169,111 +169,209 @@
 <header>
   <div>
     <h1>✨ Weekly Business Review — Business Experience</h1>
-    <p>Renovaciones, cumplimiento CCFlex, oportunidades y riesgo de churn</p>
+    <p>Clientes tocados, riesgos de churn, escalaciones, oportunidades y estrategia del área · USD · Fechas DD/MM/AA</p>
     <div id="fechaRevisionBadge"></div>
   </div>
   <label class="upload-label" for="fileInput">⬆️ Subir corte de esta semana</label>
-  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0], this)">
 </header>
 
-<main>
+<main class="wk-main">
   <div id="statusBox"></div>
   <div id="content"></div>
 </main>
 
+<script src="/wbr-kit.js?v=20261008"></script>
 <script>
-let historial = [];
+const FORMATO = 'bx-semanal-v2';
+let historial = [];      // solo cortes en el formato del Excel de BX
 let actual = null;
 let snapshotVisto = null;
 let mostrando = null;
 
-function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+/* ---------- Parseo del Excel de BX ---------- */
+function esFecha(v){ return Object.prototype.toString.call(v) === '[object Date]'; }
+function limpiar(v){
+  if(v == null) return '';
+  if(esFecha(v) || typeof v === 'number') return v;
+  return String(v).replace(/ /g,' ').replace(/\s+/g,' ').trim();
+}
+function textoCelda(f, i){ const v = f ? limpiar(f[i]) : ''; return esFecha(v) ? '' : String(v); }
+function quitarColumnasVacias(m){
+  let min = Infinity;
+  for(const f of m){ if(!f) continue; for(let j=0;j<f.length;j++){ if(limpiar(f[j]) !== ''){ if(j<min) min=j; break; } } }
+  return (min === Infinity || min === 0) ? m : m.map(f => f ? f.slice(min) : f);
+}
+const RE_SUB = /^\s*(\d)\.(\d)\s+(.+)$/;
+const RE_MAIN = /^\s*(\d)\.\s+(.+)$/;
+// Columnas que la plantilla ya trae prellenadas: no cuentan para saber si una fila tiene datos
+const PRELLENADAS = { '1.3': ['tipo'], '2.4': ['tipo de sesion'] };
 
-function parsearBX(wb){
-  const ws = wb.Sheets['BX'];
-  if(!ws) throw new Error('No se encontró una pestaña "BX"');
-  const get = (addr) => { const c = ws[addr]; return c ? c.v : null; };
-  const kpis = ['A','B','C','D','E'].map(col => ({
-    nombre: (get(col+'5')||'').toString().replace(/\n/g,' '),
-    valor: (get(col+'6')||'').toString()
-  })).filter(k => k.nombre);
-  const bullets = [8,11,14,17].map(r => get('B'+r)).filter(Boolean);
-  const mensajeClave = get('A22') || '';
-  return { fechaRevision: new Date().toISOString(), kpis, bullets, mensajeClave };
+function tipoColumna(label, esPrimera){
+  const n = WK.norm(label);
+  if(n.indexOf('monto') >= 0) return 'usd';
+  if(n.indexOf('fecha') >= 0 || n === 'inicio') return 'date';
+  if(n.indexOf('semaforo') >= 0 || n.indexOf('riesgo') >= 0 || n.indexOf('probabilidad') >= 0 || n.indexOf('estatus') >= 0) return 'badge';
+  if(esPrimera) return 'strong';
+  if(/(resultado|feedback|nota|seguimiento|accion|objetivo|senal|avance|hito|estadistica)/.test(n)) return 'note';
+  return 'text';
+}
+function valorCelda(v, tipo){
+  v = limpiar(v);
+  if(v === '') return '';
+  if(esFecha(v)) return WK.fecha(v) || '';
+  if(tipo === 'date'){ return WK.fecha(v) || String(v); }          // si no es fecha (p. ej. una nota), se conserva el texto
+  if(tipo === 'usd'){
+    if(typeof v === 'number') return v;
+    const n = Number(String(v).replace(/[$,\s]|usd/gi,''));
+    return (String(v).trim() !== '' && isFinite(n)) ? n : String(v);
+  }
+  return v;                                                         // texto o número tal cual
 }
 
-async function handleFile(file){
+function parsearBX(wb){
+  const nombre = wb.SheetNames.find(n => /dashboard|semanal|bx/i.test(n)) || wb.SheetNames[0];
+  const ws = wb.Sheets[nombre];
+  if(!ws) throw new Error('No se encontró la hoja del reporte de BX.');
+  const m = quitarColumnasVacias(XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true }));
+
+  const titulos = [];
+  m.forEach((f, i) => {
+    const t = textoCelda(f, 0); let x;
+    if((x = t.match(RE_SUB))) titulos.push({ fila:i, num:x[1]+'.'+x[2], titulo:x[3].trim(), sub:true });
+    else if((x = t.match(RE_MAIN))) titulos.push({ fila:i, num:x[1], titulo:x[2].trim(), sub:false });
+  });
+  if(!titulos.some(t => t.sub)) throw new Error('No se encontró el formato del reporte de BX (secciones 1.1, 1.2 … 3.1). Usa el Excel semanal de BX.');
+  const idxPie = m.findIndex(f => /actualizado por/i.test(textoCelda(f, 0)));
+
+  const secciones = {};
+  titulos.forEach((t, k) => {
+    if(!t.sub) return;
+    const fin = Math.min(...titulos.slice(k+1).map(x => x.fila).concat([idxPie >= 0 ? idxPie : m.length, m.length]));
+    const filas = m.slice(t.fila + 1, fin);
+    if(t.num === '3.1'){
+      const items = filas.map(f => textoCelda(f, 0)).filter(Boolean);
+      secciones[t.num] = { titulo:t.titulo, items };
+      return;
+    }
+    // encabezado = primera fila con al menos 2 celdas llenas
+    const iEnc = filas.findIndex(f => f && f.filter(c => limpiar(c) !== '').length >= 2);
+    if(iEnc < 0){ secciones[t.num] = { titulo:t.titulo, columnas:[], filas:[] }; return; }
+    const enc = filas[iEnc];
+    const idxCols = []; enc.forEach((c, j) => { if(limpiar(c) !== '') idxCols.push(j); });
+    const columnas = idxCols.map((j, c) => { const label = String(limpiar(enc[j])); return { k:'c'+c, label, tipo:tipoColumna(label, c === 0), j }; });
+    const ignorar = (PRELLENADAS[t.num] || []);
+    const datos = [];
+    filas.slice(iEnc + 1).forEach(f => {
+      if(!f) return;
+      const tieneDatos = columnas.some(c => ignorar.indexOf(WK.norm(c.label)) < 0 && limpiar(f[c.j]) !== '');
+      if(!tieneDatos) return;
+      const fila = {}; columnas.forEach(c => { fila[c.k] = valorCelda(f[c.j], c.tipo); });
+      datos.push(fila);
+    });
+    secciones[t.num] = { titulo:t.titulo, columnas:columnas.map(c => ({ k:c.k, label:c.label, tipo:c.tipo })), filas:datos };
+  });
+
+  // Pie: "Actualizado por: … · Semana del: …"
+  let actualizadoPor = '', semanaDel = '';
+  if(idxPie >= 0){
+    const pie = textoCelda(m[idxPie], 0);
+    const a = pie.match(/Actualizado por:\s*(.*?)\s*(?:·|$)/i); if(a) actualizadoPor = a[1].replace(/_+/g,'').trim();
+    const s = pie.match(/Semana del:\s*(.*)$/i); if(s){ const t = s[1].replace(/_+/g,'').trim(); semanaDel = WK.fecha(t) || (/\d/.test(t) ? t : ''); }
+  }
+  let fechaRevision = new Date().toISOString();
+  const mf = (semanaDel||'').match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if(mf) fechaRevision = new Date(2000 + (+mf[3]), (+mf[2]) - 1, +mf[1]).toISOString();
+
+  const snap = { formato:FORMATO, fechaRevision, semanaDel, actualizadoPor, hoja:nombre, secciones };
+  snap.kpis = calcularKpis(snap);
+  return snap;
+}
+
+function colKey(sec, prefijo){ const c = (sec && sec.columnas || []).find(c => WK.norm(c.label).indexOf(prefijo) === 0); return c ? c.k : null; }
+function calcularKpis(s){
+  const S = s.secciones, n = k => (S[k] && S[k].filas ? S[k].filas.length : 0);
+  const kSem = colKey(S['1.1'], 'semaforo'); let verdes = 0, amarillos = 0, rojos = 0;
+  if(kSem) S['1.1'].filas.forEach(f => { const t = WK.tono(f[kSem]); if(t === 'green') verdes++; else if(t === 'amber') amarillos++; else if(t === 'red') rojos++; });
+  const kMonto = colKey(S['2.2'], 'monto'); let montoChurn = 0;
+  if(kMonto) S['2.2'].filas.forEach(f => { if(typeof f[kMonto] === 'number') montoChurn += f[kMonto]; });
+  const kRiesgo = colKey(S['1.5'], 'riesgo'); let altas = 0;
+  if(kRiesgo) S['1.5'].filas.forEach(f => { if(WK.tono(f[kRiesgo]) === 'red') altas++; });
+  return { clientes:n('1.1'), verdes, amarillos, rojos, detectadas:n('1.2'), churn:n('2.2'), montoChurn, escalaciones:n('1.5'), altas, seguimiento:n('2.3'), reuniones:n('2.1') + n('2.4') };
+}
+
+/* ---------- Carga y guardado ---------- */
+async function handleFile(file, input){
   if(!file) return;
   const statusBox = document.getElementById('statusBox');
   statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Leyendo el archivo…</div>';
   try{
     if(typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería de Excel.');
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type:'array', cellDates:true });
-    actual = parsearBX(wb);
-    snapshotVisto = null;
-    statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando…</div>';
-    const anterior = historial.length ? historial[historial.length-1] : null;
-    const rGuardar = await fetch('/api/wbr-bx', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
-    if(!rGuardar.ok){ const eg = await rGuardar.json().catch(()=>({})); throw new Error(eg.error || ('No se pudo guardar (error ' + rGuardar.status + ')')); }
+    const wb = XLSX.read(await file.arrayBuffer(), { type:'array', cellDates:true });
+    const snap = parsearBX(wb);
+    statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando el corte de esta semana…</div>';
+    const r = await fetch('/api/wbr-bx', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: snap }) });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || !d.ok) throw new Error(d.error || ('No se pudo guardar (error ' + r.status + ')'));
     await cargarHistorial();
+    const i = historial.findIndex(h => h.guardadoEn === d.guardadoEn);
+    actual = i >= 0 ? historial[i] : historial[historial.length-1];
+    snapshotVisto = null;
     render();
+    const anterior = i > 0 ? historial[i-1] : (i < 0 && historial.length > 1 ? historial[historial.length-2] : null);
     pedirInsight(anterior);
-    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte guardado.</div>';
+    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte guardado correctamente.</div>';
   }catch(e){
     console.error(e);
-    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo cargar el archivo: ${esc(e.message||String(e))}</div>`;
+    statusBox.innerHTML = '<div style="color:#B23A3A; font-size:13px;">No se pudo cargar el archivo: ' + WK.esc(e.message || String(e)) + '</div>';
   }
+  if(input) input.value = '';
 }
+
 async function cargarHistorial(){
   try{
     const r = await fetch('/api/wbr-bx');
     const d = await r.json();
-    historial = d.historial || [];
+    historial = (d.historial || []).filter(h => h && h.formato === FORMATO && h.secciones);
     if(historial.length) actual = historial[historial.length-1];
   }catch(e){ historial = []; }
 }
+
 async function pedirInsight(anterior){
-  const box = document.getElementById('insightBox');
+  const box = document.getElementById('insightText');
   if(!box) return;
-  box.innerHTML = '<div class="loading"><span class="spinner"></span>Delfos está analizando el corte…</div>';
+  box.textContent = 'Delfos está analizando el corte…';
   try{
     const r = await fetch('/api/wbr-bx-insight', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ actual, anterior }) });
     const d = await r.json();
-    box.innerHTML = d.ok
-      ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(d.resumen)}</div></div>`
-      : `<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">${esc(d.error||'No se pudo generar el insight.')}</div></div>`;
-    if(d.ok){
-      actual.insightGuardado = d.resumen;
-      fetch('/api/wbr-bx', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
-    }
-  }catch(e){
-    box.innerHTML = '<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">No se pudo conectar con Delfos.</div></div>';
-  }
+    if(!d.ok){ box.textContent = d.error || 'No se pudo generar el insight.'; return; }
+    box.textContent = d.resumen;
+    // Se guarda junto con el corte para verlo igual al revisitar la bitácora
+    actual.insightGuardado = d.resumen;
+    fetch('/api/wbr-bx', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(() => {});
+  }catch(e){ box.textContent = 'No se pudo conectar con Delfos.'; }
 }
 
-function etiquetaCarga(h){
-  if(!h || !h.guardadoEn) return '';
-  const cuando = new Date(h.guardadoEn).toLocaleString('es-MX', { timeZone:'America/Mexico_City', dateStyle:'medium', timeStyle:'short' });
-  return 'cargado por ' + esc(h.guardadoPor || 'desconocido') + ' el ' + cuando;
-}
-function celdasCarga(h){
-  const cuando = h.guardadoEn ? new Date(h.guardadoEn).toLocaleString('es-MX', { timeZone:'America/Mexico_City', dateStyle:'medium', timeStyle:'short' }) : '—';
-  return '<td>' + esc(h.guardadoPor || '—') + '</td><td>' + cuando + '</td>';
-}
-
-function verSnapshotHistorico(idCarga){
-  const encontrado = historial.find(h => h.guardadoEn === idCarga);
+function verSnapshotHistorico(id){
+  const encontrado = historial.find(h => h.guardadoEn === id);
   if(!encontrado) return;
-  snapshotVisto = encontrado;
-  render();
-  window.scrollTo({top:0, behavior:'smooth'});
+  snapshotVisto = encontrado; render(); window.scrollTo({ top:0, behavior:'smooth' });
+}
+function volverActual(){
+  snapshotVisto = null; render();
+  pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
 }
 
-function volverActual(){
-  snapshotVisto = null;
-  render();
-  pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
+/* ---------- Pintado ---------- */
+const NOMBRE_BLOQUE = { '1':'Ejecutado', '2':'Planeado', '3':'Estrategia' };
+const SUB_BLOQUE = { '1':'Lo que pasó esta semana', '2':'Lo que viene', '3':'Hitos internos y madurez del área' };
+const ICONO = { '1.1':'🤝', '1.2':'💡', '1.3':'🚀', '1.4':'📈', '1.5':'🚨', '2.1':'📅', '2.2':'⚠️', '2.3':'🎯', '2.4':'🗓️' };
+
+function seccionHtml(num, s){
+  const cols = s.columnas.map(c => ({ k:c.k, label: c.tipo === 'usd' ? c.label + ' (USD)' : c.label, tipo:c.tipo }));
+  // si una columna "text" trae solo números, se alinea como número
+  cols.forEach(c => { if(c.tipo === 'text' && s.filas.length && s.filas.every(f => f[c.k] === '' || typeof f[c.k] === 'number')) c.tipo = 'num'; });
+  return WK.card({ id:'s'+num.replace('.','-'), ico:ICONO[num], titulo: num + '  ' + s.titulo, count: s.filas.length, body: WK.table(cols, s.filas) });
 }
 
 function render(){
@@ -282,57 +380,66 @@ function render(){
   mostrando = snapshotVisto || actual;
   if(!mostrando){
     badge.innerHTML = '';
-    content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con la pestaña "BX") para generar el primer dashboard.</p></div></div>`;
+    content.innerHTML = '<div class="wk-card">' + WK.empty('Todavía no hay ningún corte cargado. Sube el Excel semanal de BX (hoja “BX Dashboard Semanal”) para generar el primer dashboard.') + '</div>';
     return;
   }
-  badge.innerHTML = `<span class="fecha-revision">Última carga: ${new Date(mostrando.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
+  const S = mostrando.secciones, K = mostrando.kpis || calcularKpis(mostrando);
+  const semana = mostrando.semanaDel || WK.fecha(mostrando.fechaRevision);
+  badge.innerHTML = '<span class="fecha-revision">Semana: ' + WK.esc(semana || '—') + (mostrando.actualizadoPor ? ' · Actualizó: ' + WK.esc(mostrando.actualizadoPor) : '') + '</span>';
 
-  const bannerHistorico = snapshotVisto ? `
-    <div class="section" style="background:#FBF1DE; border:1px solid #E9D9AE; display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
-      <span style="font-size:13px; color:#8A6414;">📅 Estás viendo el corte del <b>${new Date(snapshotVisto.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</b> (${etiquetaCarga(snapshotVisto)}) — no es el más reciente.</span>
-      <button class="btn btn-primary" style="background:#8A6414; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; cursor:pointer;" onclick="volverActual()">Volver al corte más reciente</button>
-    </div>
-  ` : '';
+  const idx = historial.findIndex(h => h.guardadoEn === mostrando.guardadoEn);
+  const previo = idx > 0 ? historial[idx-1] : null, PK = previo ? (previo.kpis || calcularKpis(previo)) : null;
+  const serie = clave => historial.slice(Math.max(0, (idx < 0 ? historial.length : idx + 1) - 8), idx < 0 ? historial.length : idx + 1).map(h => (h.kpis || calcularKpis(h))[clave]);
 
-  content.innerHTML = `
-    ${bannerHistorico}
-    <div class="kpi-grid">
-      ${mostrando.kpis.map(k=>`<div class="kpi-card"><div class="label">${esc(k.nombre)}</div><div class="value">${esc(k.valor.split(':')[1]||k.valor)}</div><div class="meta">${esc(k.valor.split(':')[0]||'')}</div></div>`).join('')}
-    </div>
+  const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte de la semana <b>' + WK.esc(semana || '—') + '</b> (' + WK.esc(etiquetaCarga(snapshotVisto)) + ') — no es el más reciente.</span><button class="wk-btn" onclick="volverActual()">Volver al más reciente</button></div>' : '';
 
-    <div class="section">
-      <h2>🤖 Insight de Delfos</h2>
-      ${snapshotVisto
-        ? (mostrando.insightGuardado
-            ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(mostrando.insightGuardado)}</div></div>`
-            : `<div class="insight-box"><div class="insight-icon">🗂️</div><div class="insight-text">Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible.</div></div>`)
-        : `<div id="insightBox"><div class="loading">Generando…</div></div>`}
-    </div>
+  const sub1 = [K.verdes ? K.verdes + ' en verde' : '', K.amarillos ? K.amarillos + ' en amarillo' : '', K.rojos ? K.rojos + ' en rojo' : ''].filter(Boolean).join(' · ');
+  const kpis = [
+    WK.kpi({ label:'Clientes tocados', ico:'🤝', value:K.clientes, sub:sub1 || 'Sin interacciones registradas', tono: K.rojos ? 'red' : (K.amarillos ? 'amber' : 'green'),
+             delta: PK ? WK.delta(K.clientes, PK.clientes, { bueno:'up' }) : '', spark: WK.spark(serie('clientes'), { color:'#1F8A4C' }) }),
+    WK.kpi({ label:'Riesgos de churn', ico:'⚠️', value:K.churn, sub: K.montoChurn ? WK.usd(K.montoChurn) + ' USD en riesgo' : (K.churn ? 'Monto sin capturar' : 'Sin riesgos reportados'), tono: K.churn ? 'red' : 'green',
+             delta: PK ? WK.delta(K.churn, PK.churn, { bueno:'down' }) : '', spark: WK.spark(serie('churn'), { color:'#B23A3A' }) }),
+    WK.kpi({ label:'Escalaciones', ico:'🚨', value:K.escalaciones, sub: K.altas ? K.altas + ' de riesgo alto' : (K.escalaciones ? 'Ninguna de riesgo alto' : 'Sin escalaciones'), tono: K.altas ? 'red' : (K.escalaciones ? 'amber' : 'green'),
+             delta: PK ? WK.delta(K.escalaciones, PK.escalaciones, { bueno:'down' }) : '' }),
+    WK.kpi({ label:'Oportunidades en seguimiento', ico:'🎯', value:K.seguimiento, sub: K.detectadas ? K.detectadas + ' detectadas esta semana' : 'Con responsable comercial', tono:'cyan',
+             delta: PK ? WK.delta(K.seguimiento, PK.seguimiento, { bueno:'up' }) : '' }),
+    WK.kpi({ label:'Reuniones programadas', ico:'🗓️', value:K.reuniones, sub:'Con clientes y por venir', tono:'' })
+  ].join('');
 
-    <div class="section">
-      <h2>Detalle de la semana</h2>
-      ${mostrando.bullets.map(b=>`<div class="bullet"><span class="dot">●</span><span>${esc(b)}</span></div>`).join('')}
-    </div>
+  const insight = snapshotVisto
+    ? (mostrando.insightGuardado ? WK.esc(mostrando.insightGuardado) : 'Este corte se guardó sin insight de Delfos.')
+    : 'Generando…';
 
-    ${mostrando.mensajeClave ? `
-    <div class="section">
-      <h2>Mensaje clave / Prioridad de la semana</h2>
-      <div class="mensaje-clave">${esc(mostrando.mensajeClave)}</div>
-    </div>` : ''}
+  const hechas = [], vacias = [];
+  const bloque = (n, claves) => {
+    const cards = claves.filter(k => S[k] && S[k].filas && S[k].filas.length).map(k => seccionHtml(k, S[k]));
+    claves.forEach(k => { if(S[k] && !(S[k].filas && S[k].filas.length)) vacias.push(k); });
+    return { n:cards.length, html: WK.band('b' + n, n + '. ' + NOMBRE_BLOQUE[n], SUB_BLOQUE[n]) + (cards.join('') || '<div class="wk-card">' + WK.empty('Sin datos esta semana.') + '</div>') };
+  };
+  const b1 = bloque('1', ['1.1','1.2','1.3','1.4','1.5']);
+  const b2 = bloque('2', ['2.1','2.2','2.3','2.4']);
+  const items = (S['3.1'] && S['3.1'].items) || [];
+  const b3html = WK.band('b3', '3. ' + NOMBRE_BLOQUE['3'], SUB_BLOQUE['3']) +
+    WK.card({ id:'s3-1', ico:'🧭', titulo:'3.1  ' + ((S['3.1'] && S['3.1'].titulo) || 'Capacitación, documentación e iniciativas internas'), count: items.length,
+      body: items.length ? '<div style="display:grid;gap:10px">' + items.map(t => '<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--wk-line);border-radius:12px;background:#FAFCFE"><span style="font-size:18px">🎯</span><span style="font-size:13.5px;line-height:1.5">' + WK.esc(t) + '</span></div>').join('') + '</div>' : WK.empty('Sin datos esta semana.') });
 
-    <div class="section">
-      <h2>📅 Bitácora de cortes</h2>
-      <p class="sub">Haz clic en un corte para verlo completo tal como se veía entonces.</p>
-      <table>
-        <tr><th>Fecha del corte</th><th>Cargó</th><th>Cargado el</th><th>Mensaje clave de esa semana</th></tr>
-        ${historial.slice().reverse().map(h => {
-          const esEsta = mostrando.guardadoEn === h.guardadoEn;
-          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.guardadoEn}')" title="Ver este corte completo"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td>${celdasCarga(h)}<td>${esc((h.mensajeClave||'').slice(0,100))}</td></tr>`;
-        }).join('')}
-      </table>
-    </div>
-  `;
+  const bitacora = WK.card({ id:'bitacora', ico:'📅', titulo:'Bitácora de cortes', sub:'Haz clic en un corte para verlo completo tal como se veía entonces. Puedes ordenar por cualquier columna.', count: historial.length,
+    body: WK.table([
+      { k:'semana', label:'Semana', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' },
+      { k:'clientes', label:'Clientes', tipo:'num' }, { k:'churn', label:'Churn', tipo:'num' }, { k:'esc', label:'Escalaciones', tipo:'num' }
+    ], historial.slice().reverse().map(h => { const k = h.kpis || calcularKpis(h); return { semana: h.semanaDel || WK.fecha(h.fechaRevision), cargo: h.guardadoPor || '—', cuando: (WK.hora(h.guardadoEn)).split(' ')[0], clientes:k.clientes, churn:k.churn, esc:k.escalaciones, _id:h.guardadoEn }; }),
+      { rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver este corte completo"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') }) });
+
+  const omitidas = vacias.length ? '<div class="wk-foot">Secciones sin datos esta semana (omitidas): ' + vacias.join(', ') + '. Montos en USD · Fechas en DD/MM/AA.</div>' : '<div class="wk-foot">Montos en USD · Fechas en DD/MM/AA.</div>';
+
+  content.innerHTML = banner +
+    WK.chips([{ id:'resumen', label:'Resumen' }, { id:'b1', label:'1. Ejecutado', n:b1.n }, { id:'b2', label:'2. Planeado', n:b2.n }, { id:'b3', label:'3. Estrategia', n:items.length }, { id:'bitacora', label:'Bitácora', n:historial.length }]) +
+    '<div id="resumen" style="scroll-margin-top:70px"><div class="wk-kpis">' + kpis + '</div>' + WK.callout('Lectura ejecutiva', insight, 'insightText') + '</div>' +
+    b1.html + b2.html + b3html + '<div style="height:18px"></div>' + bitacora + omitidas;
+  WK.sortable(content);
+  WK.observarSecciones();
 }
+function etiquetaCarga(h){ return 'cargado por ' + (h.guardadoPor || 'desconocido') + ' el ' + WK.hora(h.guardadoEn); }
 
 async function init(){
   await cargarHistorial();
