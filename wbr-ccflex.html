@@ -224,14 +224,15 @@ async function handleFile(file){
     // Usamos la fecha del nombre del archivo o la de hoy, ya que esta pestaña no trae "Semana de revisión" propia
     statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando…</div>';
     const anterior = historial.length ? historial[historial.length-1] : null;
-    await fetch('/api/wbr-ccflex', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
+    const rGuardar = await fetch('/api/wbr-ccflex', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
+    if(!rGuardar.ok){ const eg = await rGuardar.json().catch(()=>({})); throw new Error(eg.error || ('No se pudo guardar (error ' + rGuardar.status + ')')); }
     await cargarHistorial();
     render();
     pedirInsight(anterior);
     statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte guardado.</div>';
   }catch(e){
     console.error(e);
-    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
+    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo cargar el archivo: ${esc(e.message||String(e))}</div>`;
   }
 }
 async function cargarHistorial(){

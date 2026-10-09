@@ -431,32 +431,100 @@ async function getPermiso(env, email, pageId){
   return nivel || 'ninguno';
 }
 
-function pageIdFromReferer(request){
-  const ref = request.headers.get('Referer') || '';
-  try {
-    const path = new URL(ref).pathname;
-    const m = path.match(/\/([a-z0-9-]+)\.html$/i);
-    return m ? m[1].toLowerCase() : null;
-  } catch(e){ return null; }
-}
-
 const NIVEL_RANGO = { 'ninguno': 0, 'lectura': 1, 'completo': 2 };
 
-// Llamar al inicio de cualquier endpoint que guarde o borre datos.
-// Devuelve null si el usuario puede continuar, o una Response 403 lista para regresar.
-async function requierePermiso(request, env, nivelMinimo){
-  const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
-  const pageId = pageIdFromReferer(request);
-  if (!pageId) return null; // si no se puede determinar la página de origen, no se bloquea (evita falsos bloqueos)
-  const permiso = await getPermiso(env, email, pageId);
-  if (NIVEL_RANGO[permiso] >= NIVEL_RANGO[nivelMinimo]) return null;
-  return new Response(JSON.stringify({ ok:false, error: 'No tienes permiso de edición para esta página. Pide a un Administrador que revise tu rol en Roles y Permisos.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+// ---- Control de acceso en el servidor ----
+// Cada ruta /api/* declara qué páginas la usan y qué nivel exige. El permiso se calcula
+// con el correo autenticado por Cloudflare Access; NO se usa el Referer (se puede omitir o falsificar).
+// modo 'datos':  GET exige 'lectura' y escribir exige 'completo' en alguna de las páginas indicadas.
+// modo 'ia':     cualquier método exige 'lectura' (generadores y análisis que no guardan datos).
+// modo 'accion': exige 'completo' (p. ej. enviar correos).
+// modo 'admin':  solo administradores.  modo 'audit': leer = Auditoría; escribir = cualquier usuario autenticado.
+// Una ruta /api/* sin regla aquí queda denegada (acceso por defecto = ninguno).
+const RUTAS_PROPIAS = ['/api/mi-permiso', '/api/whoami', '/api/roles-config']; // validan por su cuenta
+const PAGINAS_PROYECTO = ['proyecto', 'vista-general', 'checklist', 'handover', 'iniciar-proyecto', 'reporte-cuenta'];
+const RUTAS_PERMISO = {
+  '/api/projects': { modo:'datos', paginas:['pipeline','ficha','kpis'], escritura:['pipeline','ficha'] },
+  '/api/proyecto-dashboard': { modo:'datos', paginas:PAGINAS_PROYECTO },
+  '/api/checklist': { modo:'datos', paginas:['checklist','proyecto','reporte-cuenta','vista-general'] },
+  '/api/linea-base': { modo:'datos', paginas:['proyecto','vista-general','handover','iniciar-proyecto','reporte-cuenta'] },
+  '/api/consumo-horas': { modo:'datos', paginas:['proyecto','iniciar-proyecto','vista-general'] },
+  '/api/wbs': { modo:'datos', paginas:['proyecto','vista-general'] },
+  '/api/documentos': { modo:'datos', paginas:['documentos'] },
+  '/api/docs/file': { modo:'datos', paginas:['documentos'] },
+  '/api/contactos-sap': { modo:'datos', paginas:['contactos-sap'] },
+  '/api/bx-base-instalada': { modo:'datos', paginas:['bx-base-instalada'] },
+  '/api/wbr-finanzas': { modo:'datos', paginas:['wbr-finanzas'] },
+  '/api/wbr-ventas': { modo:'datos', paginas:['wbr-ventas'] },
+  '/api/wbr-operaciones': { modo:'datos', paginas:['wbr-operaciones'] },
+  '/api/wbr-productos': { modo:'datos', paginas:['wbr-productos'] },
+  '/api/wbr-ccflex': { modo:'datos', paginas:['wbr-ccflex'] },
+  '/api/wbr-bx': { modo:'datos', paginas:['wbr-bx'] },
+  '/api/wbr-finanzas-insight': { modo:'ia', paginas:['wbr-finanzas'] },
+  '/api/wbr-ventas-insight': { modo:'ia', paginas:['wbr-ventas'] },
+  '/api/wbr-operaciones-insight': { modo:'ia', paginas:['wbr-operaciones'] },
+  '/api/wbr-productos-insight': { modo:'ia', paginas:['wbr-productos'] },
+  '/api/wbr-ccflex-insight': { modo:'ia', paginas:['wbr-ccflex'] },
+  '/api/wbr-bx-insight': { modo:'ia', paginas:['wbr-bx'] },
+  '/api/sow-review': { modo:'ia', paginas:['sow-review'] },
+  '/api/revisor-cronograma': { modo:'ia', paginas:['sow-review','iniciar-proyecto','proyecto'] },
+  '/api/alta/extract': { modo:'ia', paginas:['alta'] },
+  '/api/minutas': { modo:'ia', paginas:['minutas'] },
+  '/api/correo-cliente': { modo:'ia', paginas:['correo-cliente'] },
+  '/api/prospecto': { modo:'ia', paginas:['prospecto'] },
+  '/api/proyecto-resumen': { modo:'ia', paginas:['proyecto'] },
+  '/api/audit-resumen': { modo:'ia', paginas:['auditoria'] },
+  '/api/checklist-resumen': { modo:'ia', paginas:['checklist'] },
+  '/api/iniciar-proyecto/extract': { modo:'ia', paginas:['iniciar-proyecto'] },
+  '/api/estimador/public': { modo:'ia', paginas:['estimador'] },
+  '/api/estimador/private': { modo:'ia', paginas:['estimador'] },
+  '/api/resumen-cuenta': { modo:'ia', paginas:['reporte-cuenta'] },
+  '/api/handover-extraer': { modo:'ia', paginas:['handover'] },
+  '/api/metricas-sap': { modo:'ia', paginas:['metricas-sap'] },
+  '/api/wbs-generar': { modo:'ia', paginas:['proyecto'] },
+  '/api/resumen-general': { modo:'ia', paginas:['vista-general'] },
+  '/api/notify': { modo:'accion', paginas:['ficha'] },
+  '/api/audit': { modo:'audit', paginas:['auditoria'] },
+  '/api/backup-completo': { modo:'admin' },
+};
+
+function respuestaDenegada(msg){
+  return new Response(JSON.stringify({ ok:false, error: msg }), { status: 403, headers: { 'Content-Type': 'application/json' } });
 }
+
+// Devuelve null si el usuario puede continuar, o una Response 403 lista para regresar.
+async function autorizarRuta(request, env, pathname){
+  if (!pathname.startsWith('/api/') || RUTAS_PROPIAS.includes(pathname)) return null;
+  const regla = RUTAS_PERMISO[pathname];
+  if (!regla) return respuestaDenegada('Ruta sin permisos configurados. Pide a un Administrador que la habilite.');
+  const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+  const cfg = await getRolesConfig(env);
+  if (esAdmin(email, cfg)) return null;
+  if (regla.modo === 'admin') return respuestaDenegada('Solo un Administrador puede hacer esto.');
+  if (!email) return respuestaDenegada('No se pudo identificar al usuario.');
+  const esLectura = request.method === 'GET' || request.method === 'HEAD';
+  if (regla.modo === 'audit' && !esLectura) return null; // cualquier usuario autenticado registra su actividad
+  const esEscritura = regla.modo === 'accion' || (regla.modo === 'datos' && !esLectura);
+  const nivelMin = esEscritura ? 'completo' : 'lectura';
+  const paginas = (esEscritura && regla.escritura) ? regla.escritura : regla.paginas;
+  const rolNombre = cfg.asignaciones[email.toLowerCase()];
+  const rol = rolNombre ? cfg.roles[rolNombre] : null;
+  const mejor = rol ? Math.max(0, ...paginas.map(p => NIVEL_RANGO[rol[p]] || 0)) : 0;
+  if (mejor >= NIVEL_RANGO[nivelMin]) return null;
+  return respuestaDenegada(esEscritura
+    ? 'No tienes permiso de edición para esta página. Pide a un Administrador que revise tu rol en Roles y Permisos.'
+    : 'No tienes acceso a esta información. Pide a un Administrador que revise tu rol en Roles y Permisos.');
+}
+
+// Se conserva por compatibilidad con los endpoints existentes; la validación real ya ocurrió en autorizarRuta.
+async function requierePermiso(request, env, nivelMinimo){ return null; }
 /* ==================== FIN ROLES Y PERMISOS ==================== */
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    { const _acceso = await autorizarRuta(request, env, url.pathname); if (_acceso) return _acceso; }
 
     if (url.pathname === '/api/sow-review' && request.method === 'POST') {
       const token = await getDelfosToken(env);
