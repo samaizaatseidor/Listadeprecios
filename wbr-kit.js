@@ -704,7 +704,7 @@ function wiRender(id, root){
 WK.OWNERS = {
   finanzas:{ nombre:'Mauricio Reyes', cargo:'CFO', rol:'Finanzas' }, ventas:{ nombre:'Omar Dávila', cargo:'Director Comercial', rol:'Ventas & Pipeline', foto:'/assets/owners/omar.png' }, operaciones:{ rol:'Operaciones' },
   productos:{ nombre:'Omar Dávila', cargo:'Director Comercial', rol:'Target clientes', foto:'/assets/owners/omar.png' }, ccflex:{ rol:'CC Flex' }, bx:{ rol:'Business Experience' },
-  anuncios:{ nombre:'Paul Sirrs', cargo:'CEO', rol:'Anuncios', foto:'/assets/owners/paul.png' }, cta:{ rol:'Call to Action' }, vop:{ rol:'VOP' }, baseinstalada:{ rol:'Base Instalada' }
+  anuncios:{ nombre:'Paul Sirrs', cargo:'CEO', rol:'Anuncios', foto:'/assets/owners/paul.png' }, cta:{ nombre:'Angel Aiza', cargo:'Director de Estrategia y Procesos', rol:'Call to Action', foto:'/assets/owners/angel.png' }, vop:{ rol:'VOP' }, baseinstalada:{ rol:'Base Instalada' }
 };
 function iniciales(t){ return String(t||'').split(/\s+/).filter(Boolean).slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase(); }
 function ownerSlug(){ var b = document.body && document.body.getAttribute('data-wk-owner'); if(b) return b; var m = (location.pathname||'').match(/wbr-([a-z0-9]+)/i); return m ? m[1].toLowerCase() : null; }
