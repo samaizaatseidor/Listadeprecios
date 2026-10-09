@@ -1,36 +1,106 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#0A1226">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
-<meta name="robots" content="noindex, nofollow" />
-<title>Tarifario Baseline — SEIDOR</title>
+<meta name="robots" content="noindex, nofollow">
+<title>Lista de Precios — SEIDOR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  .nav-link{color:#0E1E3F; text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
-  .nav-link:hover{color:#1E5BB8;}
-  .nav-link.active{color:#1E5BB8;}
-  .nav-dropdown{position:relative; display:inline-block;}
-  .nav-dropdown-btn{background:none; border:none; font-family:'Poppins',sans-serif; color:#0E1E3F; font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; border-radius:6px;}
-  .nav-dropdown-btn:hover{color:#1E5BB8;}
-  .nav-dropdown-btn.active{color:#1E5BB8;}
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+    .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-link.active{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
   .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
   .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
-  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid #D8E2EE; border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60; text-align:left;}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
   .nav-dropdown.open .nav-dropdown-menu{display:block;}
-  .nav-dropdown-menu a{display:block; padding:8px 10px; color:#0E1E3F; text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
-  .nav-dropdown-menu a:hover{background:#F4F8FC; color:#1E5BB8;}
-  .nav-dropdown-menu a.active{color:#1E5BB8; font-weight:600; background:#F4F8FC;}
-  .nav-dropdown-sep{height:1px; background:#D8E2EE; margin:6px 4px;}
-  .nav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
+  body{background:#fff;}
+  main{max-width:none;margin:0;padding:48px 48px 90px;}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:44px;}
+  .kick{font-size:12px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--blue);margin-bottom:10px;}
+  h1{margin:0;font-size:40px;line-height:1.1;font-weight:600;letter-spacing:-1px;color:var(--navy2);}
+  .lede{margin:12px 0 0;font-size:15px;color:var(--grey);max-width:640px;line-height:1.55;}
+  .upd{font-size:12.5px;color:var(--greyl);}
+  h2{margin:0 0 6px;font-size:22px;font-weight:600;letter-spacing:-.3px;color:var(--navy2);}
+  .sec-sub{margin:0 0 22px;font-size:13.5px;color:var(--greyl);}
+  section{margin-bottom:72px;}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+  .seg{display:inline-flex;background:#F1F4F9;border-radius:999px;padding:4px;gap:2px;}
+  .seg button{font:500 13px Poppins,sans-serif;color:var(--grey);background:none;border:none;border-radius:999px;padding:7px 18px;cursor:pointer;transition:all .15s;}
+  .seg button:hover{color:var(--navy2);}
+  .seg button.on{background:#fff;color:var(--navy2);font-weight:600;box-shadow:0 1px 4px rgba(14,30,63,.12);}
+  .find{font:400 13.5px Poppins,sans-serif;border:none;border-bottom:1px solid var(--line);background:none;padding:8px 2px;width:240px;color:var(--ink);outline:none;}
+  .find:focus{border-color:var(--blue);}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;}
+  .card{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:18px;padding:26px 24px 22px;background:#fff;cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .2s;text-align:left;font-family:inherit;}
+  .card:hover{border-color:#B9CCE6;box-shadow:0 14px 34px rgba(14,30,63,.08);transform:translateY(-2px);}
+  .tag{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--grey);}
+  .tag i{width:8px;height:8px;border-radius:50%;background:var(--c);}
+  .c-ams{--c:#33B4DD;} .c-tm{--c:#8B7CFF;} .c-impl{--c:#2FB67C;}
+  .card h3{margin:14px 0 4px;font-size:17px;font-weight:600;color:var(--navy2);line-height:1.3;min-height:44px;}
+  .card .sub{font-size:12.5px;color:var(--greyl);line-height:1.5;min-height:38px;}
+  .card .price{margin:auto 0 4px;padding-top:20px;}.price{margin:20px 0 4px;font-size:34px;font-weight:600;letter-spacing:-1px;color:var(--navy2);font-variant-numeric:tabular-nums;}
+  .price small{font-size:13px;font-weight:500;color:var(--greyl);letter-spacing:0;margin-left:4px;}
+  .more{margin-top:18px;padding-top:14px;border-top:1px solid #EDF1F7;font-size:13px;font-weight:500;color:var(--blue);display:flex;justify-content:space-between;}
+
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--greyl);padding:0 12px 12px;border-bottom:1px solid var(--navy2);}
+  td{padding:16px 12px;border-bottom:1px solid #EDF1F7;font-size:14px;color:var(--ink);vertical-align:top;}
+  tr:hover td{background:#FAFBFD;}
+  td.r,th.r{text-align:right;} td .n{display:block;font-size:12.5px;color:var(--greyl);margin-top:2px;}
+  td.role{font-weight:500;color:var(--navy2);} td.rate{font-weight:600;font-size:16px;color:var(--navy2);font-variant-numeric:tabular-nums;white-space:nowrap;} td.rate small{font-size:12px;color:var(--greyl);font-weight:400;}
+  td.cat{white-space:nowrap;color:var(--grey);font-size:13px;}
+  .empty{padding:40px;text-align:center;color:var(--greyl);font-size:14px;}
+  .foot{font-size:12px;color:var(--greyl);line-height:1.6;max-width:760px;border-top:1px solid #EDF1F7;padding-top:18px;}
+
+  /* panel lateral */
+  .veil{position:fixed;inset:0;background:rgba(10,18,38,.35);opacity:0;pointer-events:none;transition:opacity .25s;z-index:90;}
+  .veil.on{opacity:1;pointer-events:auto;}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:min(520px,100vw);background:#fff;z-index:100;transform:translateX(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);overflow:auto;padding:34px 34px 40px;}
+  .drawer.on{transform:none;box-shadow:-20px 0 60px rgba(10,18,38,.18);}
+  .x{position:absolute;top:18px;right:20px;border:none;background:#F1F4F9;width:34px;height:34px;border-radius:50%;font-size:18px;color:var(--grey);cursor:pointer;}
+  .x:hover{background:#E3EAF3;color:var(--navy2);}
+  .drawer h3{margin:12px 0 4px;font-size:24px;font-weight:600;letter-spacing:-.5px;color:var(--navy2);line-height:1.25;padding-right:30px;}
+  .drawer .price{margin:18px 0 6px;font-size:40px;}
+  .facts{margin:22px 0;display:grid;gap:14px;}
+  .facts div{font-size:13.5px;color:var(--ink);line-height:1.5;} .facts b{display:block;font-size:11.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--greyl);margin-bottom:2px;}
+  .lst h4{margin:26px 0 10px;font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;}
+  .lst ul{margin:0;padding:0;list-style:none;} .lst li{position:relative;padding:7px 0 7px 22px;font-size:13.5px;line-height:1.5;color:var(--ink);border-bottom:1px solid #F3F6FA;}
+  .lst li:before{position:absolute;left:0;top:7px;font-weight:700;}
+  .inc h4{color:#17703E;} .inc li:before{content:"✓";color:#1F8A4C;}
+  .exc h4{color:#9A2E2E;} .exc li:before{content:"–";color:#B23A3A;}
+  .dl{display:inline-flex;margin-top:28px;align-items:center;gap:8px;background:var(--navy2);color:#fff;text-decoration:none;font-size:13.5px;font-weight:500;border-radius:12px;padding:12px 20px;}
+  .dl:hover{background:var(--blue);}
+  @media (max-width:700px){main{padding:28px 18px 60px;}h1{font-size:30px;}.find{width:100%;}}
 </style>
 </head>
 <body>
@@ -74,13 +144,11 @@
 })();
 </script>
 
-<div class="confidential-bar">USO INTERNO — CONFIDENCIAL · NO COMPARTIR FUERA DE SEIDOR</div>
-
-<nav class="nav" id="nav">
-  <div class="wrap">
-    <div class="nav-logo"><img src="assets/logo_light.png" alt="SEIDOR" /></div>
-<div class="nav-links">
-  <a href="/index.html" class="nav-link">Inicio</a>
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
@@ -96,45 +164,45 @@
           <a href="/wbr-vop.html">Tablero VOP</a>
         </div>
       </div>
-  <div class="nav-dropdown">
-    <button type="button" class="nav-dropdown-btn active">Comercial <span class="caret">&#9662;</span></button>
-    <div class="nav-dropdown-menu">
-      <a href="/precios.html" class="active">Lista de Precios</a>
-      <a href="/ficha.html">Ficha del Cliente</a>
-      <div class="nav-dropdown-sep"></div>
-      <a href="/prospecto.html">Investigación de Prospecto</a>
-      <a href="/alta.html">Generador de Formato de Alta</a>
-      <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html" class="active">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
           <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
           <a href="/contactos-sap.html">Contactos SAP</a>
-    </div>
-  </div>
-  <div class="nav-dropdown">
-    <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
-    <div class="nav-dropdown-menu">
-      <a href="/pipeline.html">CRM PresalesMX</a>
-      <a href="/documentos.html">Documentos de Apoyo</a>
-      <a href="/kpis.html">Tablero de Control</a>
-      <div class="nav-dropdown-sep"></div>
-      <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
-      <a href="/handover.html">Handover Comercial → Operaciones</a>
-      <a href="/estimador.html">Estimador de Esfuerzo</a>
-      <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
-    </div>
-  </div>
-  <div class="nav-dropdown">
-    <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
-    <div class="nav-dropdown-menu">
-      <a href="/dias-habiles.html">Días Hábiles México</a>
-      <a href="/minutas.html">Generador de Minutas / Status</a>
-      <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
-      <a href="/proyecto.html">Dashboard de Proyecto</a>
-      <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
-      <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
-      <a href="/vista-general.html">Vista General del Proyecto</a>
-      <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
-    </div>
-  </div>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
@@ -147,106 +215,95 @@
           <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
         </div>
       </div>
-  <div class="nav-dropdown">
-    <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
-    <div class="nav-dropdown-menu">
-      <a href="/auditoria.html">Auditoría</a>
-      <a href="/roles.html">Roles y Permisos</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+        </div>
+      </div>
     </div>
+  </div></nav>
+
+<main>
+  <div class="top">
+    <div>
+      <div class="kick">Tarifario interno · Uso comercial</div>
+      <h1>Lista de Precios</h1>
+      <p class="lede">Paquetes y tarifas baseline en USD para armar propuestas. Son un punto de partida: el valor final depende del alcance.</p>
+    </div>
+    <div class="upd" id="upd"></div>
   </div>
-</div>
+
+  <section id="paquetes">
+    <div class="bar">
+      <div><h2>Paquetes</h2><p class="sec-sub" style="margin:0">Haz clic en un paquete para ver su alcance.</p></div>
+      <div class="seg" id="segPkg"></div>
     </div>
-</nav>
+    <div class="cards" id="cards"></div>
+  </section>
 
-<header class="hero">
-  <div class="wrap">
-    <div class="hero-top">
-      <img src="assets/logo_dark.png" alt="SEIDOR" />
-      <span class="hero-updated" id="heroUpdated"></span>
+  <section id="tarifas">
+    <div class="bar">
+      <div><h2>Tarifas individuales</h2><p class="sec-sub" style="margin:0">Por rol y nivel, para AMS, T&amp;M e implementación.</p></div>
+      <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap"><div class="seg" id="segCat"></div><input class="find" id="find" type="search" placeholder="Buscar rol…"></div>
     </div>
-    <div class="kicker">Tarifario interno · Uso comercial</div>
-    <h1>Precios baseline de servicios</h1>
-    <p class="lede">
-      Referencia rápida de tarifas para armar propuestas: servicios individuales
-      por hora (AMS y consultoría) y paquetes de implementación baseline para
-      SAP Cloud ERP, en sus ediciones Public y Private.
-    </p>
-    <div class="chip-row">
-      <span class="chip accent">USD</span>
-      <span class="chip">Precios de referencia</span>
-      <span class="chip">Sujetos a alcance final</span>
-    </div>
-  </div>
-</header>
+    <div id="tabla"></div>
+  </section>
 
-<section class="disclaimer">
-  <div class="wrap">
-    <span class="dot"></span>
-    <p>
-      Estos son precios <strong>baseline</strong>, es decir, un punto de partida para
-      cotizar con el cliente. El valor final depende del alcance real, la complejidad
-      del proceso, integraciones y volumen de datos. Ante cualquier duda de scoping,
-      valida con el equipo de Presales antes de comunicar una cifra al cliente.
-    </p>
-  </div>
-</section>
+  <p class="foot">Estos precios son <b>baseline</b>; el valor final depende del alcance real, la complejidad, integraciones y volumen de datos. Valida con Presales antes de comunicar una cifra al cliente. Material interno de SEIDOR: no compartir con clientes ni terceros sin aprobación.</p>
+</main>
 
-<section class="section-light" id="individuales">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="kicker" style="color:var(--blue)">Tarifas por hora</div>
-      <h2>Servicios individuales</h2>
-      <p>Tarifas de referencia por rol y nivel de seniority, para AMS y para
-        proyectos de implementación cotizados por horas/bolsa de horas.</p>
-    </div>
+<div class="veil" id="veil"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"></aside>
 
-    <div class="controls" id="controls">
-      <!-- filtros insertados por JS -->
-      <input type="text" class="search-input" id="searchInput" placeholder="Buscar rol…" />
-    </div>
+<script src="/data.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const USD = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
+const norm = s => String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const grupo = p => p.id==='tm' ? 'T&M' : (p.id.indexOf('ams')===0 ? 'AMS' : 'Implementación');
+const clase = p => ({'AMS':'c-ams','T&M':'c-tm','Implementación':'c-impl'})[grupo(p)];
+const mensual = p => p.priceUnit && p.priceUnit.indexOf('mes')===0;
+let gPkg='Todos', cat='Todos', q='';
+$('upd').textContent = 'Actualizado — ' + LAST_UPDATED;
 
-    <div class="rate-table-wrap">
-      <table class="rate-table">
-        <thead>
-          <tr>
-            <th>Categoría</th>
-            <th>Rol</th>
-            <th>Nivel</th>
-            <th>Tarifa (USD)</th>
-          </tr>
-        </thead>
-        <tbody id="rateTableBody">
-          <!-- filas insertadas por JS -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<section class="section-dark" id="paquetes">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="kicker">Baseline de implementación</div>
-      <h2>Paquetes SAP Cloud ERP</h2>
-      <p>Alcance y precio de referencia para un proyecto de implementación baseline,
-        antes de ajustar por los requerimientos específicos del cliente.</p>
-    </div>
-
-    <div class="pkg-grid" id="pkgGrid">
-      <!-- tarjetas insertadas por JS -->
-    </div>
-  </div>
-</section>
-
-<footer>
-  <div class="wrap">
-    <img src="assets/logo_dark.png" alt="SEIDOR" />
-    <p>Este tarifario es material interno de SEIDOR para uso del equipo comercial.
-      No debe compartirse con clientes ni terceros sin aprobación de Presales.</p>
-    <p class="fine" id="footerUpdated"></p>
-  </div>
-</footer>
-
+function seg(el, items, actual, fn){
+  el.innerHTML = items.map(i=>'<button type="button" class="'+(i===actual?'on':'')+'" data-v="'+esc(i)+'">'+esc(i)+'</button>').join('');
+  el.onclick = e => { const b=e.target.closest('button'); if(b){ fn(b.dataset.v); } };
+}
+function cards(){
+  seg($('segPkg'), ['Todos',...new Set(PACKAGES.map(grupo))], gPkg, v=>{gPkg=v;cards();});
+  $('cards').innerHTML = PACKAGES.filter(p=>gPkg==='Todos'||grupo(p)===gPkg).map(p=>
+    '<button type="button" class="card '+clase(p)+'" data-id="'+p.id+'"><span class="tag"><i></i>'+esc(p.badge)+'</span><h3>'+esc(p.title)+'</h3><div class="sub">'+esc(p.subtitle)+'</div>'+
+    '<div class="price">'+USD(p.price)+'<small>'+(mensual(p)?'/ mes':'baseline')+'</small></div><div class="more"><span>Ver alcance</span><span>→</span></div></button>').join('');
+}
+function tabla(){
+  seg($('segCat'), ['Todos',...new Set(INDIVIDUAL_SERVICES.map(s=>s.category))], cat, v=>{cat=v;tabla();});
+  const f = INDIVIDUAL_SERVICES.filter(s=>(cat==='Todos'||s.category===cat) && (!q || norm(s.role+' '+s.level+' '+s.category+' '+s.notes).includes(norm(q))));
+  $('tabla').innerHTML = f.length ? '<table><thead><tr><th>Categoría</th><th>Rol</th><th>Nivel</th><th class="r">Tarifa</th></tr></thead><tbody>'+
+    f.map(s=>'<tr><td class="cat">'+esc(s.category)+'</td><td class="role">'+esc(s.role)+'<span class="n">'+esc(s.notes)+'</span></td><td>'+esc(s.level)+'</td><td class="r rate">'+USD(s.rate)+' <small>/ '+(s.unit==='hora'?'h':'día')+'</small></td></tr>').join('')+'</tbody></table>'
+    : '<div class="empty">No se encontraron servicios con ese filtro.</div>';
+}
+function abrir(id){
+  const p = PACKAGES.find(x=>x.id===id); if(!p) return;
+  $('drawer').innerHTML = '<button class="x" aria-label="Cerrar" id="cerrar">×</button><span class="tag '+clase(p)+'"><i></i>'+esc(p.badge)+'</span><h3>'+esc(p.title)+'</h3>'+
+    '<div class="price">'+USD(p.price)+'<small>'+(mensual(p)?'/ mes'+(p.priceNote?' '+esc(p.priceNote):''):'baseline')+'</small></div>'+
+    '<div class="facts"><div><b>Duración</b>'+esc(p.duration)+'</div><div><b>'+(p.id==='ams'?'Distribución':'Equipo')+'</b>'+esc(p.team)+'</div></div>'+
+    '<div class="lst inc"><h4>Incluye</h4><ul>'+p.includes.map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul></div>'+
+    '<div class="lst exc"><h4>No incluye</h4><ul>'+p.excludes.map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul></div>'+
+    (p.pptFile?'<a class="dl" href="'+p.pptFile+'" download>⬇ '+esc(p.pptLabel||'Descargar PPT de alcance')+'</a>':'');
+  $('drawer').classList.add('on'); $('veil').classList.add('on'); $('drawer').setAttribute('aria-hidden','false');
+  $('cerrar').onclick = cerrar;
+}
+function cerrar(){ $('drawer').classList.remove('on'); $('veil').classList.remove('on'); $('drawer').setAttribute('aria-hidden','true'); }
+$('veil').onclick = cerrar;
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') cerrar(); });
+$('cards').onclick = e => { const c=e.target.closest('.card'); if(c) abrir(c.dataset.id); };
+$('find').oninput = e => { q=e.target.value; tabla(); };
+cards(); tabla();
+</script>
 <script>
 (function(){
   var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
@@ -273,8 +330,6 @@
   });
 })();
 </script>
-<script src="data.js"></script>
-<script src="script.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){
