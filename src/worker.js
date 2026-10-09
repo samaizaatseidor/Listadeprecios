@@ -460,6 +460,8 @@ const RUTAS_PERMISO = {
   '/api/wbr-productos': { modo:'datos', paginas:['wbr-productos'] },
   '/api/wbr-ccflex': { modo:'datos', paginas:['wbr-ccflex'] },
   '/api/wbr-bx': { modo:'datos', paginas:['wbr-bx'] },
+  '/api/wbr-anuncios': { modo:'datos', paginas:['wbr-anuncios'] },
+  '/api/wbr-cta': { modo:'datos', paginas:['wbr-cta'] },
   '/api/wbr-finanzas-insight': { modo:'ia', paginas:['wbr-finanzas'] },
   '/api/wbr-ventas-insight': { modo:'ia', paginas:['wbr-ventas'] },
   '/api/wbr-operaciones-insight': { modo:'ia', paginas:['wbr-operaciones'] },
@@ -1673,6 +1675,42 @@ ${JSON.stringify(checklist || [])}`;
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
       }
+    }
+
+    // Bitácora de cortes de Anuncios y Call to Action (mismo patrón que los demás WBR: quién y cuándo, hasta 52 cortes)
+    const WBR_BITACORA = {
+      '/api/wbr-anuncios': { clave:'wbr_anuncios_historial', valida:s => Array.isArray(s.anuncios) },
+      '/api/wbr-cta': { clave:'wbr_cta_historial', valida:s => Array.isArray(s.acciones) }
+    };
+    const bit = WBR_BITACORA[url.pathname];
+    if (bit && request.method === 'GET') {
+      const raw = await env.PM_KV.get(bit.clave);
+      return new Response(JSON.stringify({ ok: true, historial: raw ? JSON.parse(raw) : [] }), { headers: { 'Content-Type': 'application/json' } });
+    }
+    if (bit && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      if (!snapshot || !bit.valida(snapshot)) return new Response(JSON.stringify({ ok:false, error:'El corte no tiene el formato esperado.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      if (JSON.stringify(snapshot).length > 2 * 1024 * 1024) return new Response(JSON.stringify({ ok:false, error:'El corte es demasiado grande.' }), { status: 413, headers: { 'Content-Type': 'application/json' } });
+      const raw = await env.PM_KV.get(bit.clave);
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      const idx = snapshot.guardadoEn ? historial.findIndex(h => h.guardadoEn === snapshot.guardadoEn) : -1;
+      if (idx >= 0) {
+        snapshot.guardadoPor = historial[idx].guardadoPor;
+        snapshot.guardadoEn = historial[idx].guardadoEn;
+        historial[idx] = snapshot;
+      } else {
+        snapshot.guardadoPor = email;
+        snapshot.guardadoEn = new Date().toISOString();
+        historial.push(snapshot);
+      }
+      historial.sort((a,b) => (new Date(a.fechaRevision) - new Date(b.fechaRevision)) || String(a.guardadoEn||'').localeCompare(String(b.guardadoEn||'')));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+      await env.PM_KV.put(bit.clave, JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length, guardadoEn: snapshot.guardadoEn }), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname === '/api/bx-base-instalada' && request.method === 'GET') {

@@ -192,6 +192,21 @@ const plural = (n, s, p) => n + ' ' + (n === 1 ? s : p);
 const corto = (t, n) => { t = String(t); return t.length > n ? t.slice(0, n - 1) + '…' : t; };
 function hoyTs(){ const d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); }
 
+let historial = [], actual = null, snapshotVisto = null, mostrando = null;
+function etiquetaCarga(h){ return h && h.guardadoEn ? 'cargado por ' + (h.guardadoPor || 'desconocido') + ' el ' + WK.hora(h.guardadoEn) : ''; }
+async function cargarHistorial(){
+  try{
+    const r = await fetch('/api/wbr-cta'); const d = await r.json();
+    historial = (d.historial || []).filter(h => h && Array.isArray(h.acciones));
+    if(historial.length) actual = historial[historial.length - 1];
+  }catch(e){ historial = []; }
+}
+function verSnapshotHistorico(id){
+  const h = historial.find(x => x.guardadoEn === id); if(!h) return;
+  snapshotVisto = h; render(); window.scrollTo({ top:0, behavior:'smooth' });
+}
+function volverActual(){ snapshotVisto = null; render(); }
+
 async function handleFile(file){
   if(!file) return;
   const statusBox = document.getElementById('statusBox');
@@ -215,22 +230,39 @@ async function handleFile(file){
       const fecha = WK.fecha(f[2]);
       acciones.push({ accion:f[0], responsable:f[1]||'', fecha: fecha || (f[2]==null ? '' : String(f[2])), estatus:f[3]||'Pendiente' });
     }
-    render(acciones, semana);
-    statusBox.innerHTML = `<div class="st-ok">${acciones.length} acción(es) cargadas de "${WK.esc(file.name)}".</div>`;
+    statusBox.innerHTML = '<div class="loading">Guardando…</div>';
+    const snap = { fechaRevision:new Date().toISOString(), semana:semana || '', archivo:String(file.name).slice(0, 200), acciones:acciones };
+    const r = await fetch('/api/wbr-cta', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ snapshot:snap }) });
+    if(!r.ok){ const eg = await r.json().catch(()=>({})); throw new Error(eg.error || ('No se pudo guardar (error ' + r.status + ')')); }
+    snapshotVisto = null;
+    await cargarHistorial();
+    render();
+    statusBox.innerHTML = `<div class="st-ok">${acciones.length} acción(es) cargadas de "${WK.esc(file.name)}" y guardadas en la bitácora.</div>`;
   }catch(e){
     console.error(e);
     statusBox.innerHTML = `<div class="st-err">No se pudo leer el archivo: ${WK.esc(e.message||String(e))}</div>`;
   }
 }
 
-function render(acciones, semana){
+function bitacoraHtml(){
+  const bitacora = WK.table([
+    { k:'corte', label:'Fecha del corte', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' },
+    { k:'n', label:'Acciones', tipo:'num' }, { k:'comp', label:'Completadas', tipo:'num' }, { k:'abiertas', label:'Abiertas', tipo:'num' }
+  ], historial.slice().reverse().map(h => { const c = h.acciones.filter(a => catEstatus(a.estatus) === 'comp').length; return { corte:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:WK.hora(h.guardadoEn).split(' ')[0], n:h.acciones.length, comp:c, abiertas:h.acciones.length - c, _id:h.guardadoEn }; }),
+    { rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver las acciones de este corte"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
+  return WK.band('bitacora', 'Bitácora de cortes', 'Haz clic en un corte para ver el tablero tal como estaba entonces') + WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora });
+}
+function render(){
   const content = document.getElementById('content');
+  mostrando = snapshotVisto || actual;
+  const acciones = mostrando ? mostrando.acciones : null, semana = mostrando ? mostrando.semana : null;
+  const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte del <b>' + WK.esc(WK.fecha(new Date(snapshotVisto.fechaRevision))) + '</b> (' + WK.esc(etiquetaCarga(snapshotVisto)) + ') — no es el más reciente. “Vencida” se calcula a la fecha de ese corte.</span><button class="wk-btn" onclick="volverActual()">Volver al corte más reciente</button></div>' : '';
   document.getElementById('fechaRevisionBadge').innerHTML = semana ? '<span class="fecha-revision">Semana de revisión: ' + WK.esc(semana) + '</span>' : '';
   if(!acciones || !acciones.length){
-    content.innerHTML = `<div class="wk-card"><div class="cta-vacio"><div class="big">✅</div><h2>Sin acciones capturadas esta semana</h2><p>Sube el Excel semanal (con la pestaña "Call to Action") para verlas aquí.</p></div></div>`;
+    content.innerHTML = banner + `<div class="wk-card"><div class="cta-vacio"><div class="big">✅</div><h2>Sin acciones capturadas esta semana</h2><p>Sube el Excel semanal (con la pestaña "Call to Action") para verlas aquí.</p></div></div>` + bitacoraHtml();
     return;
   }
-  const hoy = hoyTs();
+  const hoy = snapshotVisto ? (d => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))(new Date(snapshotVisto.fechaRevision)) : hoyTs();
   const A = acciones.map((a, i) => {
     const cat = catEstatus(a.estatus), ts = WK.fechaTs(a.fecha);
     const abierta = cat !== 'comp';
@@ -310,15 +342,16 @@ function render(acciones, semana){
       ], filas.map(f => Object.assign({}, f, { estatusH: WK.badge(f.estatus, f.cat === 'comp' ? 'green' : (f.cat === 'proc' ? 'amber' : 'blue')) + (f.venc ? ' ' + WK.badge('Vencida', 'red') : '') })),
         { id:'tablaCta', rowAttrs:f => f.venc ? 'class="cta-venc"' : '' }) });
 
-  content.innerHTML = WK.chips([{ id:'resumen', label:'Resumen' }, { id:'estatus', label:'Estatus' }, { id:'responsables', label:'Responsables' }].concat(ks.length ? [{ id:'calendario', label:'Calendario' }] : []).concat([{ id:'tabla', label:'Todas las acciones', n:N }])) +
+
+  content.innerHTML = banner + WK.chips([{ id:'resumen', label:'Resumen' }, { id:'estatus', label:'Estatus' }, { id:'responsables', label:'Responsables' }].concat(ks.length ? [{ id:'calendario', label:'Calendario' }] : []).concat([{ id:'tabla', label:'Todas las acciones', n:N }, { id:'bitacora', label:'Bitácora', n:historial.length }])) +
     '<div id="resumen" style="scroll-margin-top:70px">' + kpis + '</div>' +
-    '<div class="wk-grid2" style="margin-bottom:18px">' + dona + porResp + '</div>' + calendario + tabla +
+    '<div class="wk-grid2" style="margin-bottom:18px">' + dona + porResp + '</div>' + calendario + tabla + bitacoraHtml() +
     '<div class="wk-foot">Fechas en DD/MM/AA. “Vencida” = acción abierta con fecha anterior a hoy.</div>';
   WK.sortable(content);
   if(WK.observarSecciones) WK.observarSecciones();
 }
 
-render(null);
+(async function(){ await cargarHistorial(); render(); })();
 </script>
 <script>
 (function(){

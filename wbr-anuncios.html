@@ -169,6 +169,7 @@
   <div>
     <h1>📣 Weekly Business Review — Anuncios</h1>
     <p>Comunicados y anuncios internos de la sesión de esta semana</p>
+    <div id="fechaRevisionBadge"></div>
   </div>
   <label class="upload-label" for="fileInput">⬆️ Subir corte de esta semana</label>
   <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
@@ -194,6 +195,21 @@ const GENERAL = { id:'gral', ico:'📣', nombre:'Aviso general', color:'#6FD3F0'
 function temaDe(t){ const n = WK.norm(t); return TEMAS.find(x => x.re.test(n)) || GENERAL; }
 const corto = (t, n) => { t = String(t); return t.length > n ? t.slice(0, n - 1) + '…' : t; };
 
+let historial = [], actual = null, snapshotVisto = null, mostrando = null;
+function etiquetaCarga(h){ return h && h.guardadoEn ? 'cargado por ' + (h.guardadoPor || 'desconocido') + ' el ' + WK.hora(h.guardadoEn) : ''; }
+async function cargarHistorial(){
+  try{
+    const r = await fetch('/api/wbr-anuncios'); const d = await r.json();
+    historial = (d.historial || []).filter(h => h && Array.isArray(h.anuncios));
+    if(historial.length) actual = historial[historial.length - 1];
+  }catch(e){ historial = []; }
+}
+function verSnapshotHistorico(id){
+  const h = historial.find(x => x.guardadoEn === id); if(!h) return;
+  snapshotVisto = h; render(); window.scrollTo({ top:0, behavior:'smooth' });
+}
+function volverActual(){ snapshotVisto = null; render(); }
+
 async function handleFile(file){
   if(!file) return;
   const statusBox = document.getElementById('statusBox');
@@ -209,18 +225,36 @@ async function handleFile(file){
     for(let i=0;i<m.length;i++){ if(m[i].some(c=>typeof c==='string' && c.trim()==='#')) { idxHeader = i; break; } }
     const anuncios = [];
     for(let i=idxHeader+1; i<m.length; i++){ const f = m[i]; if(f && f[1]!=null && f[1]!==''){ anuncios.push(String(f[1])); } }
-    render(anuncios);
-    statusBox.innerHTML = `<div class="st-ok">${anuncios.length} anuncio(s) cargados de "${WK.esc(file.name)}".</div>`;
+    statusBox.innerHTML = '<div class="loading">Guardando…</div>';
+    const snap = { fechaRevision:new Date().toISOString(), archivo:String(file.name).slice(0, 200), anuncios:anuncios };
+    const r = await fetch('/api/wbr-anuncios', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ snapshot:snap }) });
+    if(!r.ok){ const eg = await r.json().catch(()=>({})); throw new Error(eg.error || ('No se pudo guardar (error ' + r.status + ')')); }
+    snapshotVisto = null;
+    await cargarHistorial();
+    render();
+    statusBox.innerHTML = `<div class="st-ok">${anuncios.length} anuncio(s) cargados de "${WK.esc(file.name)}" y guardados en la bitácora.</div>`;
   }catch(e){
     console.error(e);
     statusBox.innerHTML = `<div class="st-err">No se pudo leer el archivo: ${WK.esc(e.message||String(e))}</div>`;
   }
 }
 
-function render(anuncios){
+function bitacoraHtml(){
+  const bitacora = WK.table([
+    { k:'corte', label:'Fecha del corte', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' },
+    { k:'archivo', label:'Archivo', tipo:'text' }, { k:'n', label:'Anuncios', tipo:'num' }
+  ], historial.slice().reverse().map(h => ({ corte:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:WK.hora(h.guardadoEn).split(' ')[0], archivo:h.archivo || '—', n:h.anuncios.length, _id:h.guardadoEn })),
+    { rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver los anuncios de este corte"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
+  return historial.length ? WK.band('bitacora', 'Bitácora de cortes', 'Haz clic en un corte para ver los anuncios tal como estaban entonces') + WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora }) : '';
+}
+function render(){
   const content = document.getElementById('content');
+  mostrando = snapshotVisto || actual;
+  const anuncios = mostrando ? mostrando.anuncios : null;
+  document.getElementById('fechaRevisionBadge').innerHTML = mostrando ? '<span class="fecha-revision">Último corte: ' + WK.esc(WK.fecha(new Date(mostrando.fechaRevision)) || '—') + '</span>' : '';
+  const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte del <b>' + WK.esc(WK.fecha(new Date(snapshotVisto.fechaRevision))) + '</b> (' + WK.esc(etiquetaCarga(snapshotVisto)) + ') — no es el más reciente.</span><button class="wk-btn" onclick="volverActual()">Volver al corte más reciente</button></div>' : '';
   if(!anuncios || !anuncios.length){
-    content.innerHTML = `<div class="wk-card"><div class="an-vacio"><div class="big">📣</div><h2>Sin anuncios todavía</h2><p>Sube el Excel semanal (con la pestaña "Anuncios") para verlos aquí.</p></div></div>`;
+    content.innerHTML = banner + `<div class="wk-card"><div class="an-vacio"><div class="big">📣</div><h2>Sin anuncios todavía</h2><p>Sube el Excel semanal (con la pestaña "Anuncios") para verlos aquí.</p></div></div>` + bitacoraHtml();
     return;
   }
   const items = anuncios.map((t, i) => ({ n:i+1, texto:t, tema:temaDe(t), palabras:t.trim().split(/\s+/).length }));
@@ -253,11 +287,12 @@ function render(anuncios){
         { k:'n', label:'#', tipo:'text' }, { k:'tema', label:'Tema', tipo:'tag' }, { k:'texto', label:'Anuncio', tipo:'strong' }, { k:'palabras', label:'Palabras', tipo:'num' }
       ], items.map(it => ({ n:it.n, tema:it.tema.ico + ' ' + it.tema.nombre, texto:it.texto, palabras:it.palabras })), { id:'tablaAnuncios' }) }) : '';
 
-  content.innerHTML = hero + WK.band('anuncios', 'Anuncios de la sesión', N + (N === 1 ? ' anuncio' : ' anuncios') + ' · pasa el mouse para ver el tema') + tarjetas + tabla;
+
+  content.innerHTML = banner + hero + WK.band('anuncios', 'Anuncios de la sesión', N + (N === 1 ? ' anuncio' : ' anuncios') + ' · pasa el mouse para ver el tema') + tarjetas + tabla + bitacoraHtml();
   WK.sortable(content);
 }
 
-render(null);
+(async function(){ await cargarHistorial(); render(); })();
 </script>
 <script>
 (function(){
