@@ -391,16 +391,17 @@ const TONO_AV = p => p >= 0.85 ? 'green' : (p >= 0.6 ? 'amber' : 'red');
 function tonoEstatus(e){ e = (e||'').toLowerCase(); if(e.includes('commited') || e.includes('won')) return 'green'; if(e.includes('probable')) return 'amber'; return 'grey'; }
 const fechaOp = o => o.fechaCierre ? (WK.fecha(new Date(o.fechaCierre)) || '') : (o.mes || '');
 function filasOps(lista){
+  const _c = {}; [mostrando.oportunidadesActivas, mostrando.bajaron, mostrando.movidas, mostrando.nuevas, mostrando.ganadas, mostrando.bigDeals].forEach(l => (l||[]).forEach(o => { const n = String(o.vendedor||'').trim(); if(!n) return; const k = WK.norm(n); if(!_c[k] || (/[^\x00-\x7f]/.test(n) && !/[^\x00-\x7f]/.test(_c[k]))) _c[k] = n; }));
   return (lista||[]).map(o => ({
     cliente:o.cliente, linea:[o.lineaSAP, o.tipo].filter(Boolean).join(' · '), total:o.total, etapa:o.etapa,
     estatus: o.estatus ? WK.badge(o.estatus, tonoEstatus(o.estatus)) : '', _est:o.estatus||'',
-    cierre:fechaOp(o), vendedor:o.vendedor, comentario:o.comentario
+    cierre:fechaOp(o), vendedor:(o.vendedor ? _c[WK.norm(String(o.vendedor).trim())] : ''), comentario:o.comentario
   }));
 }
 const COLS_OPS = [
   { k:'cliente', label:'Cliente', tipo:'strong' }, { k:'linea', label:'Línea', tipo:'text' }, { k:'total', label:'Total (USD)', tipo:'usdK' },
   { k:'etapa', label:'Etapa', tipo:'tag' }, { k:'estatus', label:'Estatus', tipo:'html' }, { k:'cierre', label:'Cierre est.', tipo:'date' },
-  { k:'vendedor', label:'Vendedor', tipo:'text' }, { k:'comentario', label:'Comentario', tipo:'note' }
+  { k:'vendedor', label:'SE', tipo:'text' }, { k:'comentario', label:'Comentario', tipo:'note' }
 ];
 function sumaTotal(lista){ return (lista||[]).reduce((a,o) => a + (Number(o.total)||0), 0); }
 function tablaOportunidades(lista){
@@ -462,11 +463,23 @@ function render(){
     { t:'Entraron (movidas de Q)', l:mostrando.movidas, ico:'↔️', tono:'amber' }, { t:'Nuevas', l:mostrando.nuevas, ico:'✨', tono:'cyan' }
   ].filter(x => (x.l||[]).length).map(x => WK.kpi({ label:x.t, ico:x.ico, value:x.l.length, tono:x.tono, sub:WK.usdK(sumaTotal(x.l)) + ' en total' })).join('');
 
-  // Por vendedor (oportunidades activas)
-  const porV = {};
-  (mostrando.oportunidadesActivas||[]).forEach(o => { const k = o.vendedor || 'Sin asignar'; (porV[k] = porV[k] || { vendedor:k, n:0, total:0 }); porV[k].n++; porV[k].total += Number(o.total)||0; });
-  const tablaV = WK.table([{ k:'vendedor', label:'Vendedor', tipo:'strong' }, { k:'n', label:'Oportunidades', tipo:'num' }, { k:'total', label:'Total (USD)', tipo:'usdKbar' }],
-    Object.values(porV).sort((a,b) => b.total - a.total), { vacio:'Sin oportunidades activas.' });
+  // Por Solution Engineer (columna SE del Excel) — nombres unificados sin importar acentos/mayúsculas
+  const canon = {};
+  [mostrando.oportunidadesActivas, mostrando.ganadas, mostrando.bajaron, mostrando.movidas, mostrando.nuevas, mostrando.bigDeals].forEach(l => (l||[]).forEach(o => {
+    const n = String(o.vendedor||'').replace(/\s+/g,' ').trim(); if(!n) return;
+    const k = WK.norm(n); if(!canon[k] || (/[^\x00-\x7f]/.test(n) && !/[^\x00-\x7f]/.test(canon[k]))) canon[k] = n;
+  }));
+  const nombreSE = o => { const n = String(o.vendedor||'').trim(); return n ? canon[WK.norm(n)] : ''; };
+  const esAgrupada = o => /[<≤]\s*\$?\s*\d+\s*k/i.test(o.cliente || '');
+  const porV = {}; let agrupado = null;
+  (mostrando.oportunidadesActivas||[]).forEach(o => {
+    const se = nombreSE(o);
+    if(!se && esAgrupada(o)){ agrupado = o; return; }
+    const k = se || 'Sin asignar'; (porV[k] = porV[k] || { vendedor:k, n:0, total:0 }); porV[k].n++; porV[k].total += Number(o.total)||0;
+  });
+  const tablaV = WK.table([{ k:'vendedor', label:'Solution Engineer', tipo:'strong' }, { k:'n', label:'Oportunidades', tipo:'num' }, { k:'total', label:'Total (USD)', tipo:'usdKbar' }],
+    Object.values(porV).sort((a,b) => b.total - a.total), { vacio:'Sin oportunidades activas.' }) +
+    (agrupado ? '<p class="wk-note" style="margin:12px 2px 0;font-size:12.5px">Además, el Excel trae una línea agrupada “' + WK.esc(agrupado.cliente) + '” por ' + WK.usdK(agrupado.total) + ' sin detalle por SE; no se incluye en esta tabla.</p>' : '');
 
   const tabs = [['activas','Activas',mostrando.oportunidadesActivas], ['ganadas','Ganadas',mostrando.ganadas], ['bajaron','Bajaron del FCST',mostrando.bajaron], ['movidas','Movidas de Q',mostrando.movidas], ['nuevas','Nuevas',mostrando.nuevas], ['bigDeals','Big Deals',mostrando.bigDeals]]
     .filter(t => t[0] === 'activas' || t[0] === 'bajaron' || t[0] === 'movidas' || (t[2]||[]).length);
@@ -488,7 +501,7 @@ function render(){
     WK.band('ops', 'Oportunidades', 'Detalle del pipeline') +
     (mov ? '<div class="wk-kpis">' + mov + '</div>' : '') +
     WK.card({ ico:'🔎', titulo:'Detalle de oportunidades', sub:'Ordena por cualquier columna y filtra por texto.', body: barraTabs + '<div id="opsContent"></div>' }) +
-    WK.card({ ico:'👤', titulo:'Pipeline activo por vendedor', body:tablaV }) +
+    WK.card({ ico:'👤', titulo:'Pipeline activo por Solution Engineer', body:tablaV }) +
     WK.band('bitacora', 'Bitácora semanal', 'Haz clic en una semana para ver el dashboard completo tal como se veía entonces') +
     WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora }) +
     '<div class="wk-foot">Montos en USD (miles) · Fechas en DD/MM/AA.</div>';
