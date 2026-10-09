@@ -59,6 +59,16 @@
   .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
   .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
   @keyframes spin{ to { transform:rotate(360deg); } }
+  .bx-trend{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:28px;}
+  .bx-trend h4{margin:0 0 8px; font-size:14.5px; font-weight:600; color:var(--wk-grey); display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
+  .bx-trend h4 b{color:#fff; font-size:24px; font-weight:800; letter-spacing:-.5px;}
+  .bx-item{display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border:1px solid var(--wk-line); border-radius:14px; background:rgba(255,255,255,.05); transition:background .2s, border-color .2s;}
+  .bx-item:hover{background:rgba(61,214,255,.09); border-color:rgba(61,214,255,.35);}
+  .bx-item .ic{font-size:20px;} .bx-item .tx{font-size:15.5px; line-height:1.55; color:var(--wk-ink);}
+  .bx-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(520px,1fr)); gap:22px; margin-bottom:18px;} .bx-grid>.wk-card{margin-bottom:0;}
+  .wk-wi-out .wk-stat-row{width:100%;}
+  .wk-hero-grid .wk-hero:nth-child(2) .wk-hero-val{font-size:clamp(42px,3.5vw,54px);} .bx-grid>.wk-card:has(.bx-trend){grid-column:1/-1;}
+  .bx-nota{margin:14px 2px 0; font-size:13px; color:var(--wk-greyl);}
 </style>
 </head>
 <body>
@@ -320,10 +330,10 @@ async function handleFile(file, input){
     render();
     const anterior = i > 0 ? historial[i-1] : (i < 0 && historial.length > 1 ? historial[historial.length-2] : null);
     pedirInsight(anterior);
-    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte guardado correctamente.</div>';
+    statusBox.innerHTML = '<div style="color:#2FE29B; font-size:14px;">Corte guardado correctamente.</div>';
   }catch(e){
     console.error(e);
-    statusBox.innerHTML = '<div style="color:#B23A3A; font-size:13px;">No se pudo cargar el archivo: ' + WK.esc(e.message || String(e)) + '</div>';
+    statusBox.innerHTML = '<div style="color:#FF8CA2; font-size:14px;">No se pudo cargar el archivo: ' + WK.esc(e.message || String(e)) + '</div>';
   }
   if(input) input.value = '';
 }
@@ -374,6 +384,90 @@ function seccionHtml(num, s){
   return WK.card({ id:'s'+num.replace('.','-'), ico:ICONO[num], titulo: num + '  ' + s.titulo, count: s.filas.length, body: WK.table(cols, s.filas) });
 }
 
+/* ---------- Visualizaciones con datos del corte ---------- */
+const COL_TONO = { red:'#FF5C7A', amber:'#FFC857', green:'#2FE29B', grey:'#8B7CFF' };
+const ORDEN_TONO = ['red', 'amber', 'green', 'grey'];
+const NOM_TONO = {
+  semaforo: { red:'Rojo', amber:'Amarillo', green:'Verde', grey:'Sin semáforo' },
+  probabilidad: { red:'Alta', amber:'Media', green:'Baja', grey:'Sin dato' },
+  riesgo: { red:'Alto', amber:'Medio', green:'Bajo', grey:'Sin clasificar' }
+};
+const filasSec = sec => (sec && sec.filas) || [];
+const nombreDe = (sec, f) => String(f[sec.columnas[0].k] || '').trim();
+
+/* Agrupa las filas de una sección por el tono de una columna (semáforo / probabilidad / riesgo) */
+function grupos(sec, prefijo){
+  const kc = colKey(sec, prefijo); if(!kc) return [];
+  const kMonto = colKey(sec, 'monto'), g = {};
+  filasSec(sec).forEach(f => {
+    const t = WK.tono(f[kc]); const x = g[t] = g[t] || { tono:t, nombre:NOM_TONO[prefijo][t], n:0, monto:0, nombres:[] };
+    x.n++; if(kMonto && typeof f[kMonto] === 'number') x.monto += f[kMonto]; x.nombres.push(nombreDe(sec, f));
+  });
+  return ORDEN_TONO.filter(t => g[t]).map(t => g[t]);
+}
+function tipDe(titulo, g, conMonto){
+  return titulo + ': ' + g.nombre + '\n' + g.n + (g.n === 1 ? ' registro' : ' registros') + (conMonto && g.monto ? ' · ' + WK.usd(g.monto) + ' USD' : '') + '\n' + g.nombres.join(', ');
+}
+
+/* Ranking de monto USD en riesgo por cliente (barra coloreada por probabilidad de churn) */
+function rankingChurn(S, max){
+  const sec = S['2.2']; if(!sec || !filasSec(sec).length) return '';
+  const kM = colKey(sec, 'monto'), kP = colKey(sec, 'probabilidad'), kS = colKey(sec, 'senal'), kA = colKey(sec, 'plan');
+  if(!kM) return '';
+  const items = filasSec(sec).filter(f => typeof f[kM] === 'number' && f[kM] > 0).sort((a, b) => b[kM] - a[kM]).slice(0, max || 8).map(f => ({
+    label: nombreDe(sec, f), value: f[kM], tono: kP ? (WK.tono(f[kP]) === 'grey' ? '' : WK.tono(f[kP])) : '',
+    tip: nombreDe(sec, f) + '\n' + WK.usd(f[kM]) + ' USD en riesgo' + (kP && f[kP] ? '\nProbabilidad de churn: ' + f[kP] : '') + (kS && f[kS] ? '\nSeñal: ' + f[kS] : '') + (kA && f[kA] ? '\nPlan de acción: ' + f[kA] : '') }));
+  return items.length ? WK.ranked(items, { fmt: WK.usd }) : '';
+}
+
+function resumenConcentracion(S, K){
+  const sec = S['2.2'], kM = colKey(sec, 'monto'); if(!kM) return '';
+  const top = filasSec(sec).filter(f => typeof f[kM] === 'number' && f[kM] > 0).sort((a, b) => b[kM] - a[kM])[0];
+  if(!top || !K.montoChurn) return '';
+  return '<div style="margin-top:22px">' + WK.stats([{ valor:WK.usd(K.montoChurn), label:'USD en riesgo (total)' }, { valor:WK.pct(top[kM] / K.montoChurn), label:'concentrado en ' + nombreDe(sec, top) }, { valor:K.churn, label: K.churn === 1 ? 'cliente en riesgo' : 'clientes en riesgo' }]) + '</div>';
+}
+
+function graficasResumen(S, K, cortes, etiquetas){
+  const tarjetas = [], ancho = [];
+  const sec22 = S['2.2'], gProb = grupos(sec22, 'probabilidad'), gSem = grupos(S['1.1'], 'semaforo'), gEsc = grupos(S['1.5'], 'riesgo');
+  const rank = rankingChurn(S, 8);
+  const sinMonto = sec22 ? filasSec(sec22).filter(f => { const k = colKey(sec22, 'monto'); return !k || typeof f[k] !== 'number' || !(f[k] > 0); }).length : 0;
+  if(rank) tarjetas.push(WK.card({ ico:'💸', titulo:'Monto en riesgo por cliente', sub:'USD · el color indica la probabilidad de churn (rojo alta, amarillo media, verde baja)', count: WK.usd(K.montoChurn) + ' USD',
+    body: rank + resumenConcentracion(S, K) + (sinMonto ? '<p class="bx-nota">' + sinMonto + (sinMonto === 1 ? ' cliente en riesgo sin monto capturado.' : ' clientes en riesgo sin monto capturado.') + '</p>' : '') }));
+  if(gProb.length){
+    const usaMonto = gProb.some(g => g.monto > 0);
+    tarjetas.push(WK.card({ ico:'🎲', titulo:'Probabilidad de churn', sub: usaMonto ? 'Participación del monto en riesgo según la probabilidad capturada' : 'Clientes en riesgo según la probabilidad capturada', count: K.churn,
+      body: WK.donut(gProb.map(g => ({ label: g.nombre + ' · ' + g.n + (g.n === 1 ? ' cliente' : ' clientes'), value: usaMonto ? g.monto : g.n, color: COL_TONO[g.tono], tip: tipDe('Probabilidad', g, true) })), { centro: String(K.churn), sub: K.churn === 1 ? 'cliente' : 'clientes', tamano:'clamp(190px,17vw,280px)' }) }));
+  }
+  if(gSem.length) tarjetas.push(WK.card({ ico:'🚦', titulo:'Semáforo de clientes tocados', sub:'Estado de la relación con cada cliente atendido esta semana', count: K.clientes,
+    body: WK.donut(gSem.map(g => ({ label: g.nombre + ' · ' + g.n + (g.n === 1 ? ' cliente' : ' clientes'), value: g.n, color: COL_TONO[g.tono], tip: tipDe('Semáforo', g, false) })), { centro: String(K.clientes), sub:'clientes', tamano:'clamp(190px,17vw,280px)' }) }));
+  if(gEsc.length) tarjetas.push(WK.card({ ico:'🚨', titulo:'Escalaciones por nivel de riesgo', sub:'Temas abiertos con otras áreas', count: K.escalaciones,
+    body: WK.donut(gEsc.map(g => ({ label: g.nombre + ' · ' + g.n + (g.n === 1 ? ' tema' : ' temas'), value: g.n, color: COL_TONO[g.tono], tip: tipDe('Riesgo', g, false) })), { centro: String(K.escalaciones), sub: K.escalaciones === 1 ? 'tema' : 'temas', tamano:'clamp(190px,17vw,280px)' }) }));
+
+  // tendencia semanal: solo con 2 o más cortes
+  const ks = cortes.map(h => h.kpis || calcularKpis(h));
+  if(ks.length >= 2){
+    const bt = (t, clave, color, fmt) => { const v = ks.map(k => k[clave]); const a = WK.area(v, { labels:etiquetas, color, fmt, nombre:t }); return a ? '<div><h4><span>' + t + '</span><b>' + fmt(v[v.length-1]) + '</b></h4>' + a + '</div>' : ''; };
+    tarjetas.push(WK.card({ ico:'📈', titulo:'Tendencia semanal', sub:'Últimos ' + ks.length + ' cortes · pasa el cursor sobre un punto',
+      body:'<div class="bx-trend">' + bt('Clientes tocados', 'clientes', '#2FE29B', WK.num) + bt('Riesgos de churn', 'churn', '#FF5C7A', WK.num) + bt('USD en riesgo', 'montoChurn', '#FFC857', WK.usd) + bt('Escalaciones', 'escalaciones', '#8B7CFF', WK.num) + '</div>' }));
+  }
+
+  let html = tarjetas.length ? WK.band('analisis', 'Panorama', 'Lo importante del corte de un vistazo · pasa el cursor sobre las gráficas') + '<div class="bx-grid">' + tarjetas.join('') + '</div>' : '';
+
+  // simulador what-if: solo si hay montos de churn capturados
+  let simulador = false;
+  if(K.montoChurn > 0){
+    simulador = true; const M = K.montoChurn, N = K.churn;
+    html += WK.card({ id:'simulador', ico:'🧪', titulo:'Simulador: ¿y si retenemos…?', sub:'Mueve el control y mira cuánto de los ' + WK.usd(M) + ' USD en riesgo de churn quedaría protegido. Es una simulación, no se guarda.',
+      body: WK.whatif({ id:'bxchurn', sliders:[ { k:'ret', label:'% del monto en riesgo que logramos retener', min:0, max:100, step:5, val:50, fmt:x => x + '%' } ],
+        calc: vals => { const prot = M * vals.ret / 100, queda = M - prot, p = vals.ret / 100;
+          return { gauge:{ valor:prot, max:M, tono: p >= 0.7 ? 'green' : (p >= 0.4 ? 'amber' : 'red'), texto:WK.pct(p), label:'del monto protegido', tip:'Monto protegido\n' + WK.usd(prot) + ' USD de ' + WK.usd(M) + ' USD' },
+            stats:[ { valor:WK.usd(prot), label:'USD protegidos' }, { valor:WK.usd(queda), label:'USD aún en riesgo' }, { valor:N, label: N === 1 ? 'cliente en riesgo' : 'clientes en riesgo' } ],
+            nota: queda > 0 ? 'Reteniendo ' + vals.ret + '% quedarían ' + WK.usd(queda) + ' USD en riesgo.' : 'Con retención total se protegen los ' + WK.usd(M) + ' USD.' }; } }) });
+  }
+  return { html, simulador };
+}
+
 function render(){
   const content = document.getElementById('content');
   const badge = document.getElementById('fechaRevisionBadge');
@@ -389,22 +483,40 @@ function render(){
 
   const idx = historial.findIndex(h => h.guardadoEn === mostrando.guardadoEn);
   const previo = idx > 0 ? historial[idx-1] : null, PK = previo ? (previo.kpis || calcularKpis(previo)) : null;
-  const serie = clave => historial.slice(Math.max(0, (idx < 0 ? historial.length : idx + 1) - 8), idx < 0 ? historial.length : idx + 1).map(h => (h.kpis || calcularKpis(h))[clave]);
 
   const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte de la semana <b>' + WK.esc(semana || '—') + '</b> (' + WK.esc(etiquetaCarga(snapshotVisto)) + ') — no es el más reciente.</span><button class="wk-btn" onclick="volverActual()">Volver al más reciente</button></div>' : '';
 
   const sub1 = [K.verdes ? K.verdes + ' en verde' : '', K.amarillos ? K.amarillos + ' en amarillo' : '', K.rojos ? K.rojos + ' en rojo' : ''].filter(Boolean).join(' · ');
-  const kpis = [
-    WK.kpi({ label:'Clientes tocados', ico:'🤝', value:K.clientes, sub:sub1 || 'Sin interacciones registradas', tono: K.rojos ? 'red' : (K.amarillos ? 'amber' : 'green'),
-             delta: PK ? WK.delta(K.clientes, PK.clientes, { bueno:'up' }) : '', spark: WK.spark(serie('clientes'), { color:'#1F8A4C' }) }),
-    WK.kpi({ label:'Riesgos de churn', ico:'⚠️', value:K.churn, sub: K.montoChurn ? WK.usd(K.montoChurn) + ' USD en riesgo' : (K.churn ? 'Monto sin capturar' : 'Sin riesgos reportados'), tono: K.churn ? 'red' : 'green',
-             delta: PK ? WK.delta(K.churn, PK.churn, { bueno:'down' }) : '', spark: WK.spark(serie('churn'), { color:'#B23A3A' }) }),
-    WK.kpi({ label:'Escalaciones', ico:'🚨', value:K.escalaciones, sub: K.altas ? K.altas + ' de riesgo alto' : (K.escalaciones ? 'Ninguna de riesgo alto' : 'Sin escalaciones'), tono: K.altas ? 'red' : (K.escalaciones ? 'amber' : 'green'),
-             delta: PK ? WK.delta(K.escalaciones, PK.escalaciones, { bueno:'down' }) : '' }),
-    WK.kpi({ label:'Oportunidades en seguimiento', ico:'🎯', value:K.seguimiento, sub: K.detectadas ? K.detectadas + ' detectadas esta semana' : 'Con responsable comercial', tono:'cyan',
-             delta: PK ? WK.delta(K.seguimiento, PK.seguimiento, { bueno:'up' }) : '' }),
-    WK.kpi({ label:'Reuniones programadas', ico:'🗓️', value:K.reuniones, sub:'Con clientes y por venir', tono:'' })
-  ].join('');
+  const semTotal = K.verdes + K.amarillos + K.rojos;
+  const tonoSem = !K.clientes ? 'cyan' : (K.rojos ? 'red' : ((semTotal && K.verdes / semTotal >= 0.75) ? 'green' : (K.amarillos ? 'amber' : 'green')));
+  const plural = (n, s, p) => n + ' ' + (n === 1 ? s : p);
+  const montoPrev = PK ? PK.montoChurn : null;
+  const cortesVis = historial.slice(Math.max(0, (idx < 0 ? historial.length : idx + 1) - 8), idx < 0 ? historial.length : idx + 1);
+  const histLbl = cortesVis.map(h => (h.semanaDel || WK.fecha(h.fechaRevision) || '').slice(0, 5));
+  const gEsc = grupos(S['1.5'], 'riesgo');
+
+  const kpis = WK.heroGrid([
+    WK.hero({ label:'Clientes tocados', ico:'🤝', value:K.clientes, tono:tonoSem, sub:sub1 || 'Sin interacciones registradas',
+      delta: PK ? WK.delta(K.clientes, PK.clientes, { bueno:'up' }) : '',
+      chart: semTotal ? WK.gauge({ valor:K.verdes, max:semTotal, tono:tonoSem, texto:K.verdes + ' de ' + semTotal, label:'clientes en verde', dark:true,
+        tip:'Semáforo de clientes tocados\n' + K.verdes + ' verde · ' + K.amarillos + ' amarillo · ' + K.rojos + ' rojo' }) : '' }),
+    WK.hero({ label:'Riesgos de churn', ico:'⚠️', value: K.montoChurn ? WK.usd(K.montoChurn) : K.churn, tono: K.churn ? 'red' : 'green',
+      sub: K.churn ? 'USD · ' + plural(K.churn, 'cliente en riesgo', 'clientes en riesgo') + (K.montoChurn ? '' : ' · monto sin capturar') : 'Sin riesgos reportados',
+      delta: (PK && K.montoChurn && montoPrev != null) ? WK.delta(K.montoChurn, montoPrev, { bueno:'down', fmt:x => WK.usd(x) }) : (PK ? WK.delta(K.churn, PK.churn, { bueno:'down' }) : ''),
+      chart: rankingChurn(S, 3) }),
+    WK.hero({ label:'Escalaciones', ico:'🚨', value:K.escalaciones, tono: K.altas ? 'red' : (K.escalaciones ? 'amber' : 'green'),
+      sub: K.altas ? K.altas + ' de riesgo alto' : (K.escalaciones ? 'Ninguna de riesgo alto' : 'Sin escalaciones'),
+      delta: PK ? WK.delta(K.escalaciones, PK.escalaciones, { bueno:'down' }) : '',
+      chart: K.escalaciones ? WK.gauge({ valor:K.altas, max:K.escalaciones, tono: K.altas ? 'red' : 'amber', texto:K.altas + ' de ' + K.escalaciones, label:'de riesgo alto', dark:true,
+        tip:'Escalaciones por nivel de riesgo\n' + (gEsc.map(g => g.nombre + ': ' + g.n).join(' · ') || 'Sin clasificar') }) : '' }),
+    WK.hero({ label:'Oportunidades en seguimiento', ico:'🎯', value:K.seguimiento, tono:'cyan',
+      sub: K.detectadas ? K.detectadas + ' detectadas esta semana' : 'Con responsable comercial',
+      delta: PK ? WK.delta(K.seguimiento, PK.seguimiento, { bueno:'up' }) : '',
+      chart: WK.area(cortesVis.map(h => (h.kpis || calcularKpis(h)).seguimiento), { labels:histLbl, color:'#3DD6FF', nombre:'En seguimiento' }) ||
+        WK.stats([{ valor:K.reuniones, label:'Reuniones programadas' }, { valor:K.detectadas, label:'Oportunidades detectadas' }]) })
+  ]);
+
+  const analisis = graficasResumen(S, K, cortesVis, histLbl);
 
   const insight = snapshotVisto
     ? (mostrando.insightGuardado ? WK.esc(mostrando.insightGuardado) : 'Este corte se guardó sin insight de Delfos.')
@@ -421,7 +533,7 @@ function render(){
   const items = (S['3.1'] && S['3.1'].items) || [];
   const b3html = WK.band('b3', '3. ' + NOMBRE_BLOQUE['3'], SUB_BLOQUE['3']) +
     WK.card({ id:'s3-1', ico:'🧭', titulo:'3.1  ' + ((S['3.1'] && S['3.1'].titulo) || 'Capacitación, documentación e iniciativas internas'), count: items.length,
-      body: items.length ? '<div style="display:grid;gap:10px">' + items.map(t => '<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--wk-line);border-radius:12px;background:#FAFCFE"><span style="font-size:18px">🎯</span><span style="font-size:13.5px;line-height:1.5">' + WK.esc(t) + '</span></div>').join('') + '</div>' : WK.empty('Sin datos esta semana.') });
+      body: items.length ? '<div style="display:grid;gap:12px">' + items.map(t => '<div class="bx-item"><span class="ic">🎯</span><span class="tx">' + WK.esc(t) + '</span></div>').join('') + '</div>' : WK.empty('Sin datos esta semana.') });
 
   const bitacora = WK.card({ id:'bitacora', ico:'📅', titulo:'Bitácora de cortes', sub:'Haz clic en un corte para verlo completo tal como se veía entonces. Puedes ordenar por cualquier columna.', count: historial.length,
     body: WK.table([
@@ -433,8 +545,9 @@ function render(){
   const omitidas = vacias.length ? '<div class="wk-foot">Secciones sin datos esta semana (omitidas): ' + vacias.join(', ') + '. Montos en USD · Fechas en DD/MM/AA.</div>' : '<div class="wk-foot">Montos en USD · Fechas en DD/MM/AA.</div>';
 
   content.innerHTML = banner +
-    WK.chips([{ id:'resumen', label:'Resumen' }, { id:'b1', label:'1. Ejecutado', n:b1.n }, { id:'b2', label:'2. Planeado', n:b2.n }, { id:'b3', label:'3. Estrategia', n:items.length }, { id:'bitacora', label:'Bitácora', n:historial.length }]) +
-    '<div id="resumen" style="scroll-margin-top:70px"><div class="wk-kpis">' + kpis + '</div>' + WK.callout('Lectura ejecutiva', insight, 'insightText') + '</div>' +
+    WK.chips([{ id:'resumen', label:'Resumen' }].concat(analisis.simulador ? [{ id:'simulador', label:'Simulador' }] : []).concat([{ id:'b1', label:'1. Ejecutado', n:b1.n }, { id:'b2', label:'2. Planeado', n:b2.n }, { id:'b3', label:'3. Estrategia', n:items.length }, { id:'bitacora', label:'Bitácora', n:historial.length }])) +
+    '<div id="resumen" style="scroll-margin-top:70px">' + kpis + WK.callout('Lectura ejecutiva', insight, 'insightText') + '</div>' +
+    analisis.html +
     b1.html + b2.html + b3html + '<div style="height:18px"></div>' + bitacora + omitidas;
   WK.sortable(content);
   WK.observarSecciones();

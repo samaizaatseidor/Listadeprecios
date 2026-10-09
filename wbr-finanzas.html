@@ -54,18 +54,65 @@
   .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
   @keyframes spin{ to { transform:rotate(360deg); } }
 
-  /* barras apiladas de antigüedad */
-  .ag-row{display:grid; grid-template-columns:minmax(110px,200px) 1fr 72px; gap:12px; align-items:center; font-size:13px; margin-bottom:11px;}
-  .ag-row .n{font-weight:600; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .ag-row b{text-align:right; font-variant-numeric:tabular-nums; color:var(--navy2);}
-  .ag-bar{display:flex; height:14px; border-radius:99px; overflow:hidden; background:#E6EDF6;}
-  .ag-bar i{display:block; height:100%;}
-  .ag-leg{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:11.5px; color:var(--grey); margin-top:14px;}
-  .ag-leg i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:middle;}
-  .wk-table td.z{color:#B8C3D3;}
-  .ctr{display:flex; align-items:center; min-height:300px;}
-  .ctr .wk-donut-wrap{width:100%;}
+  /* ---------- Finanzas: estilos locales (tema oscuro del kit) ---------- */
+  .wk-area text{font-size:15px;}
+  .wk-cols text{font-size:14px;} .wk-cols .val{font-size:13px;}
+  .fin-alerts{display:flex; flex-wrap:wrap; gap:10px; margin:6px 0 20px;}
+  .fin-alerts .wk-b{font-size:14px; padding:8px 16px;}
+  /* tendencia semanal */
+  .fin-trend{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px;}
+  .fin-tc{padding:16px 18px 10px; border-radius:18px; background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02)); border:1px solid var(--wk-line); box-shadow:inset 0 1px 0 rgba(255,255,255,.08);}
+  .fin-tc small{display:block; font-size:12.5px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--wk-grey);}
+  .fin-tc b{display:block; font-size:34px; font-weight:800; color:#fff; letter-spacing:-1px; margin:2px 0 6px;}
+  .fin-tc .wk-area{max-height:120px;}
+  /* periodos (facturación / cobranza) */
+  .fin-per{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-top:18px;}
+  .fin-p{position:relative; padding:14px 16px 12px; border-radius:16px; background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02)); border:1px solid var(--wk-line); overflow:hidden;}
+  .fin-p:before{content:""; position:absolute; left:0; right:0; top:0; height:4px; background:var(--tc,#3DD6FF); box-shadow:0 0 16px var(--tc,#3DD6FF);}
+  .fin-p small{display:block; font-size:12.5px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--wk-grey);}
+  .fin-p b{display:block; font-size:34px; font-weight:800; line-height:1.1; color:var(--tc,#fff); margin:4px 0 2px; letter-spacing:-1px;}
+  .fin-p span{display:block; font-size:14px; color:#E3ECFA; font-weight:600;}
+  .fin-p em{display:block; font-style:normal; margin-top:6px; font-size:13.5px; color:var(--wk-grey); line-height:1.4;}
+  .fin-p.g{--tc:#2FE29B;} .fin-p.a{--tc:#FFC857;} .fin-p.r{--tc:#FF5C7A;}
+  /* distribución: dona grande + leyenda + estadísticas */
+  .fin-dist{display:flex; flex-wrap:wrap; gap:30px 44px; align-items:center; justify-content:center;}
+  .fin-dist .wk-donut-wrap{flex:0 0 auto;}
+  .fin-lg-wrap{flex:1 1 340px; min-width:280px; display:grid; gap:14px;}
+  .fin-lg{display:grid; grid-template-columns:16px 1fr 92px 52px; gap:14px; align-items:center; padding:6px 8px; border-radius:12px; transition:background .15s;}
+  .fin-lg:hover{background:rgba(255,255,255,.06);}
+  .fin-lg>i{width:16px; height:16px; border-radius:5px; box-shadow:0 0 12px currentColor;}
+  .fin-lg .nm span{display:block; font-size:16px; font-weight:600; color:#E3ECFA; margin-bottom:6px;}
+  .fin-lg .nm .wk-bar{height:8px; margin-top:0;}
+  .fin-lg b{font-size:17px; font-weight:700; color:#fff; font-variant-numeric:tabular-nums; text-align:right;}
+  .fin-lg u{text-decoration:none; font-size:15px; font-weight:700; color:var(--wk-grey); text-align:right; font-variant-numeric:tabular-nums;}
+  .fin-side{flex:1 1 300px; min-width:260px;}
+  .fin-side .wk-stat-row{grid-template-columns:1fr 1fr;}
+  .fin-side .wk-stat{padding:16px 18px;} .fin-side .wk-stat b{font-size:30px;} .fin-side .wk-stat span{font-size:13.5px;}
+  /* barras apiladas de antigüedad: números solo en tooltip */
+  .ag-row{display:grid; grid-template-columns:minmax(220px,360px) 1fr 96px; gap:16px; align-items:center; font-size:15.5px; margin-bottom:14px; padding:2px 6px; border-radius:12px;}
+  .ag-row:hover{background:rgba(255,255,255,.04);}
+  .ag-row .n{font-weight:600; color:#E3ECFA; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .ag-row b{text-align:right; font-variant-numeric:tabular-nums; color:#fff; font-size:16px;}
+  .ag-bar{display:flex; height:26px; border-radius:99px; overflow:hidden; background:rgba(255,255,255,.07); box-shadow:inset 0 2px 6px rgba(0,0,0,.35); animation:wkgrowx 1.4s cubic-bezier(.2,.8,.2,1) both; animation-play-state:paused;}
+  .wk-vis .ag-bar{animation-play-state:running;}
+  .ag-bar i{display:block; height:100%; border-right:2px solid rgba(5,10,24,.55); cursor:pointer; transition:filter .15s;}
+  .ag-bar i:hover{filter:brightness(1.35) drop-shadow(0 0 8px rgba(255,255,255,.45));}
+  .ag-leg{display:flex; flex-wrap:wrap; gap:10px 24px; font-size:14px; color:var(--wk-grey); margin-top:20px;}
+  .ag-leg i{display:inline-block; width:14px; height:14px; border-radius:4px; margin-right:7px; vertical-align:-2px;}
+  .wk-table td.z{color:rgba(255,255,255,.25);} .wk-table td.neg{color:#8FE6FF;}
   #top10Content .wk-tablewrap{max-height:none;}
+  .fin-gap{height:18px;}
+  body.wk-dark .wk-delta{font-size:13.5px; padding:4px 11px;} body.wk-dark .wk-b{font-size:13.5px;} body.wk-dark .wk-tag{font-size:13.5px;} body.wk-dark .wk-count{font-size:13.5px;} body.wk-dark .wk-hint,body.wk-dark .wk-foot{font-size:13.5px;} body.wk-dark .wk-chip small{font-size:12.5px;} body.wk-dark .wk-table th{font-size:12.5px;} body.wk-dark .wk-stat span{font-size:13.5px;} body.wk-dark .wk-band span{font-size:13px;}
+  .fin-dist .wk-donut .v{font-size:24px!important;} .fin-dist .wk-donut .l{font-size:12.5px!important;}
+  body.wk-dark .wk-rank-row{grid-template-columns:minmax(200px,360px) 1fr auto;}
+  /* simulador */
+  .wk-wi{grid-template-columns:minmax(300px,1fr) minmax(380px,1.1fr); gap:40px;}
+  .wk-wi-row label{font-size:16px;} .wk-wi-row label b{font-size:18px;}
+  .wk-wi-out{justify-items:stretch; width:100%;}
+  .wk-wi-out .wk-gauge{max-width:380px; margin:0 auto;}
+  .wk-wi-out .wk-stat-row{grid-template-columns:1fr 1fr; width:100%;}
+  .wk-wi-out .wk-stat{padding:16px 18px;} .wk-wi-out .wk-stat b{font-size:30px;} .wk-wi-out .wk-stat span{font-size:13.5px; line-height:1.4;}
+  .wk-wi-note{font-size:15.5px; margin:0 auto;}
 </style>
 </head>
 <body>
@@ -213,7 +260,7 @@ let tabTop10 = 'SAP';
 
 const esc = WK.esc;
 const TONO_AV = p => p >= 0.85 ? 'green' : (p >= 0.6 ? 'amber' : 'red');
-const COLOR_BUCKET = ['#B23A3A','#E2574C','#F59E4B','#EBC260','#A8D86E','#33B4DD','#2FCB73'];
+const COLOR_BUCKET = ['#FF4D6A','#FF7A59','#FFA94D','#FFD166','#B8E986','#3DD6FF','#2FE29B'];
 
 /* ---------- Parseo del Excel (mismo motor validado en sandbox) ---------- */
 function encontrarFila(matriz, textoAncla){
@@ -298,10 +345,10 @@ async function handleFile(file){
 
     render();
     pedirInsight(anterior);
-    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte del ' + WK.fecha(new Date(actual.fechaRevision)) + ' guardado.</div>';
+    statusBox.innerHTML = '<div style="color:#2FE29B; font-size:14.5px; font-weight:600; margin-bottom:12px;">Corte del ' + WK.fecha(new Date(actual.fechaRevision)) + ' guardado.</div>';
   }catch(e){
     console.error(e);
-    statusBox.innerHTML = '<div style="color:#B23A3A; font-size:13px;">No se pudo cargar el archivo: ' + esc(e.message||String(e)) + '</div>';
+    statusBox.innerHTML = '<div style="color:#FF8CA2; font-size:14.5px; font-weight:600; margin-bottom:12px;">No se pudo cargar el archivo: ' + esc(e.message||String(e)) + '</div>';
   }
 }
 
@@ -363,32 +410,48 @@ const claseDias = d => d <= 30 ? 'green' : (d <= 90 ? 'amber' : 'red');
 const pillDias = d => '<span class="wk-b ' + claseDias(d) + '">' + (d==null?'—':d) + '</span>';
 const dpp = (a, b) => WK.delta((a||0)*100, (b||0)*100, { bueno:'up', fmt: x => Math.round(x*10)/10 + ' pp' });
 const dppMenos = (a, b) => WK.delta((a||0)*100, (b||0)*100, { bueno:'down', fmt: x => Math.round(x*10)/10 + ' pp' });
-/* Medidor semicircular local (el del kit dibuja mal el arco cuando el avance pasa de 50%: usa el flag de arco grande) */
-function gaugeOK(o){
-  const max = o.max || 1, p = Math.max(0, Math.min(1, (o.valor||0)/max));
-  const cx = 130, cy = 120, r = 90, sw = 20;
-  const pt = (f, rad) => { const a = Math.PI*(1-f); return [cx + rad*Math.cos(a), cy - rad*Math.sin(a)]; };
-  const arco = (f0, f1) => { const a = pt(f0, r), b = pt(f1, r); return 'M'+a[0].toFixed(1)+' '+a[1].toFixed(1)+' A'+r+' '+r+' 0 0 1 '+b[0].toFixed(1)+' '+b[1].toFixed(1); };
-  const col = { green:'#2FCB73', amber:'#EBC260', red:'#FF6B6B' }[o.tono] || '#33B4DD';
-  return '<svg class="wk-gauge" viewBox="0 0 260 150" role="img" aria-label="'+esc(o.label||'Medidor')+'">' +
-    '<path d="'+arco(0,0.9999)+'" fill="none" stroke="#26385F" stroke-width="'+sw+'" stroke-linecap="round"/>' +
-    (p>0.001 ? '<path d="'+arco(0,Math.min(p,0.9999))+'" fill="none" stroke="'+col+'" stroke-width="'+sw+'" stroke-linecap="round"/>' : '') +
-    '<text class="v" x="'+cx+'" y="'+(cy-6)+'" text-anchor="middle">'+esc(o.texto!=null?o.texto:Math.round(p*100)+'%')+'</text>' +
-    (o.label ? '<text class="l" x="'+cx+'" y="'+(cy+18)+'" text-anchor="middle">'+esc(o.label)+'</text>' : '') + '</svg>';
-}
 const compacto = n => Math.abs(n) >= 1000 ? (n<0?'-':'') + '$' + (Math.abs(n)/1000).toFixed(2).replace(/0$/,'') + 'M' : WK.usdK(n);
 const nombreBucket = (i) => (mostrando.aging.buckets[i] || ('Rango ' + (i+1)));
 
 /* ---------- Render ---------- */
+const MID_DIAS = [210,165,120,75,45,15,0]; // días vencidos estimados (punto medio) de cada rango del Aging, solo para la simulación
+const fmtC = n => n === 0 ? '$0' : (Math.abs(n) >= 1000 ? (n<0?'-':'') + '$' + (+(Math.abs(n)/1000).toFixed(1)) + 'M' : (n<0?'-':'') + '$' + Math.round(Math.abs(n)) + 'K');
+const diasPromedio = vals => { let s = 0, w = 0; for(let i=0; i<6; i++){ const v = Math.max(0, vals[i]||0); s += v*MID_DIAS[i]; w += v; } return w ? s/w : 0; };
+
 function stackAging(filas){
   const sumaPos = f => f.valores.slice(0,7).reduce((s,v) => s + (v>0 ? v : 0), 0);
   const max = Math.max.apply(null, filas.map(sumaPos).concat([1]));
   const filasHtml = filas.map(f => {
-    const segs = f.valores.slice(0,7).map((v,i) => v > 0 ? '<i style="width:' + (v/max*100).toFixed(2) + '%;background:' + COLOR_BUCKET[i] + '" title="' + esc(nombreBucket(i)) + ': ' + WK.usdK(v) + '"></i>' : '').join('');
-    return '<div class="ag-row"><span class="n" title="' + esc(f.cliente) + '">' + esc(f.cliente) + '</span><div class="ag-bar">' + segs + '</div><b>' + WK.usdK(f.valores[7]) + '</b></div>';
+    const pos = sumaPos(f) || 1;
+    const segs = f.valores.slice(0,7).map((v,i) => v > 0 ? '<i data-tip="' + esc(f.cliente + ' · ' + nombreBucket(i) + '\n' + WK.usdK(v) + '\n' + Math.round(v/pos*100) + '% del saldo positivo del cliente') + '" style="width:' + (v/max*100).toFixed(2) + '%;background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,0) 62%),' + COLOR_BUCKET[i] + '"></i>' : '').join('');
+    const detalle = f.valores.slice(0,7).map((v,i) => v ? nombreBucket(i) + ': ' + WK.usdK(v) : '').filter(Boolean).join('\n');
+    const tipFila = f.cliente + '\nTotal ' + WK.usdK(f.valores[7]) + (detalle ? '\n' + detalle : '');
+    return '<div class="ag-row" data-tip="' + esc(tipFila) + '"><span class="n">' + esc(f.cliente) + '</span><div class="ag-bar">' + segs + '</div><b>' + WK.usdK(f.valores[7]) + '</b></div>';
   }).join('');
   const leyenda = '<div class="ag-leg">' + COLOR_BUCKET.map((c,i) => '<span><i style="background:' + c + '"></i>' + esc(nombreBucket(i)) + '</span>').join('') + '</div>';
-  return filasHtml + leyenda;
+  return '<div class="wk-anim">' + filasHtml + '</div>' + leyenda;
+}
+
+/* Dona grande + leyenda legible (monto, %, barra) + estadísticas al lado */
+function distribucion(items, o){
+  const tot = items.reduce((s,i) => s + (i.value > 0 ? i.value : 0), 0) || 1;
+  const dona = WK.donut(items, { centro:o.centro, sub:o.sub, fmt:WK.usdK, sinLeyenda:true, tamano:'clamp(240px,23vw,380px)' });
+  const leyenda = '<div class="fin-lg-wrap wk-anim">' + items.map(it => {
+    const pct = it.value > 0 ? it.value/tot : 0;
+    return '<div class="fin-lg" data-tip="' + esc(it.label + '\n' + WK.usdK(it.value) + ' · ' + Math.round(pct*100) + '% del total') + '"><i style="background:' + it.color + ';color:' + it.color + '"></i><div class="nm"><span>' + esc(it.label) + '</span><div class="wk-bar"><i style="width:' + (pct*100).toFixed(1) + '%;background:' + it.color + '"></i></div></div><b>' + WK.usdK(it.value) + '</b><u>' + Math.round(pct*100) + '%</u></div>';
+  }).join('') + '</div>';
+  return '<div class="fin-dist">' + dona + leyenda + '<div class="fin-side">' + o.stats + '</div></div>';
+}
+
+function cardPeriodos(ico, titulo, sub, lista, nomReal, colorReal, id){
+  if(!lista.length) return WK.card({ ico, titulo, sub, body:WK.empty('Sin datos.') });
+  const chart = WK.columns(lista.map(p => p.periodo), [
+    { nombre:'Objetivo', valores:lista.map(p => p.objetivo||0), color:'#8B7CFF', extra:lista.map(p => 'Exacto ' + WK.usdK(p.objetivo||0)) },
+    { nombre:nomReal, valores:lista.map(p => p.real||0), color:colorReal, extra:lista.map(p => 'Exacto ' + WK.usdK(p.real||0) + '\nAvance ' + WK.pct(p.avance) + ' · Falta ' + WK.usdK(Math.max(0, (p.objetivo||0) - (p.real||0)))) }
+  ], { fmt:fmtC, id, h:320 });
+  const tonos = { green:'g', amber:'a', red:'r' };
+  const chips = '<div class="fin-per">' + lista.map(p => '<div class="fin-p ' + tonos[TONO_AV(p.avance)] + '" data-tip="' + esc(p.periodo + '\nObjetivo ' + WK.usdK(p.objetivo) + ' · ' + nomReal + ' ' + WK.usdK(p.real) + (p.comentario ? '\n' + p.comentario : '')) + '"><small>' + esc(p.periodo) + '</small><b>' + WK.pct(p.avance) + '</b><span>Falta ' + WK.usdK(Math.max(0, (p.objetivo||0) - (p.real||0))) + '</span>' + (p.comentario ? '<em>' + esc(p.comentario) + '</em>' : '') + '</div>').join('') + '</div>';
+  return WK.card({ ico, titulo, sub, body:chart + chips });
 }
 
 function render(){
@@ -419,15 +482,15 @@ function render(){
 
   const kpis = WK.heroGrid([
     WK.hero({ label:'Facturación YTD', ico:'🧾', value:WK.pct(factYTD.avance), tono:TONO_AV(factYTD.avance), sub:'Objetivo ' + WK.usdK(factYTD.objetivo), delta:P ? dpp(factYTD.avance, P.f.avance) : '',
-      chart:gaugeOK({ valor:factYTD.real, max:factYTD.objetivo || 1, tono:TONO_AV(factYTD.avance), texto:compacto(factYTD.real), label:'emitido (USD)', dark:true }) }),
+      chart:WK.gauge({ valor:factYTD.real, max:factYTD.objetivo || 1, tono:TONO_AV(factYTD.avance), texto:fmtC(factYTD.real), label:'emitido (USD)', dark:true, tip:'Facturación YTD\nEmitido ' + WK.usdK(factYTD.real) + ' de ' + WK.usdK(factYTD.objetivo) + '\nAvance ' + WK.pct(factYTD.avance) }) }),
     WK.hero({ label:'Cobranza YTD', ico:'💵', value:WK.pct(cobrYTD.avance), tono:TONO_AV(cobrYTD.avance), sub:'Objetivo ' + WK.usdK(cobrYTD.objetivo), delta:P ? dpp(cobrYTD.avance, P.c.avance) : '',
-      chart:gaugeOK({ valor:cobrYTD.real, max:cobrYTD.objetivo || 1, tono:TONO_AV(cobrYTD.avance), texto:compacto(cobrYTD.real), label:'cobrado (USD)', dark:true }) }),
+      chart:WK.gauge({ valor:cobrYTD.real, max:cobrYTD.objetivo || 1, tono:TONO_AV(cobrYTD.avance), texto:fmtC(cobrYTD.real), label:'cobrado (USD)', dark:true, tip:'Cobranza YTD\nCobrado ' + WK.usdK(cobrYTD.real) + ' de ' + WK.usdK(cobrYTD.objetivo) + '\nAvance ' + WK.pct(cobrYTD.avance) }) }),
     WK.hero({ label:'Cartera vencida', ico:'⏳', value:WK.usdK(totalVencido), tono:tonoVenc, sub:'de ' + WK.usdK(totalCartera) + ' en cartera total',
       delta:P ? WK.delta(totalVencido, P.vencido, { bueno:'down', fmt:x => WK.usdK(x) }) : '',
-      chart: WK.area(serie.map(s => s.vencido), { labels:lbl, color: tonoVenc === 'red' ? '#FF6B6B' : '#EBC260', fmt:WK.usdK }) ||
-             gaugeOK({ valor:totalVencido, max:totalCartera || 1, tono:tonoVenc, texto:WK.pct(totalCartera ? totalVencido/totalCartera : 0), label:'de la cartera está vencida', dark:true }) }),
+      chart: WK.area(serie.map(s => s.vencido), { labels:lbl, color: tonoVenc === 'red' ? '#FF5C7A' : '#FFC857', fmt:WK.usdK, nombre:'Vencido' }) ||
+             WK.gauge({ valor:totalVencido, max:totalCartera || 1, tono:tonoVenc, texto:WK.pct(totalCartera ? totalVencido/totalCartera : 0), label:'de la cartera está vencida', dark:true, tip:'Cartera vencida\n' + WK.usdK(totalVencido) + ' de ' + WK.usdK(totalCartera) }) }),
     WK.hero({ label:'Zona crítica (+6 meses)', ico:'🚨', value:WK.pct(pctCritico), tono:tonoCrit, sub:clientesCriticos + ' cliente(s) con saldo ahí', delta:P ? dppMenos(pctCritico, P.pctCrit) : '',
-      chart:gaugeOK({ valor:totalCritico, max:totalVencido || 1, tono:tonoCrit, texto:WK.usdK(totalCritico), label:'del vencido (USD)', dark:true }) })
+      chart:WK.gauge({ valor:totalCritico, max:totalVencido || 1, tono:tonoCrit, texto:WK.usdK(totalCritico), label:'del vencido (USD)', dark:true, tip:'Zona crítica (+6 meses)\n' + WK.usdK(totalCritico) + ' de ' + WK.usdK(totalVencido) + ' vencidos\n' + WK.pct(pctCritico) + ' del vencido' }) })
   ]);
 
   const alertas = [];
@@ -437,22 +500,20 @@ function render(){
   if(peorCliente && peorCliente.valores[0] > 0) alertas.push({ tipo:'red', texto:peorCliente.cliente + ' tiene cartera en zona +6 meses' });
   const masVencidoSAP = (mostrando.top10SAP||[]).slice().sort((a,b) => b.diasVencidos - a.diasVencidos)[0];
   if(masVencidoSAP && masVencidoSAP.diasVencidos > 180) alertas.push({ tipo:'red', texto:masVencidoSAP.cliente + ': ' + masVencidoSAP.diasVencidos + ' días vencidos' });
-  const alertasHtml = alertas.length ? '<div class="wk-tools" style="margin-bottom:18px">' + alertas.map(a => WK.badge('⚠ ' + a.texto, a.tipo)).join('') + '</div>' : '';
+  const alertasHtml = alertas.length ? '<div class="fin-alerts">' + alertas.map(a => WK.badge('⚠ ' + a.texto, a.tipo)).join('') + '</div>' : '';
 
   const insight = snapshotVisto
     ? (mostrando.insightGuardado ? esc(mostrando.insightGuardado) : 'Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para esta semana.')
     : 'Generando…';
 
-  const sp = (fn, color) => WK.spark(serie.map(fn), { w:110, h:32, color });
-  const tendencia = serie.length >= 2 ? WK.card({ ico:'📈', titulo:'Tendencia semanal', sub:'Últimos ' + serie.length + ' cortes guardados', body: WK.stats([
-    { valor:'<span style="display:flex;justify-content:space-between;align-items:center;gap:8px">' + WK.pct(factYTD.avance) + sp(s => s.f.avance, '#1E5BB8') + '</span>', label:'Facturación YTD' },
-    { valor:'<span style="display:flex;justify-content:space-between;align-items:center;gap:8px">' + WK.pct(cobrYTD.avance) + sp(s => s.c.avance, '#33B4DD') + '</span>', label:'Cobranza YTD' },
-    { valor:'<span style="display:flex;justify-content:space-between;align-items:center;gap:8px">' + WK.usdK(totalVencido) + sp(s => s.vencido, '#B23A3A') + '</span>', label:'Cartera vencida (USD)' },
-    { valor:'<span style="display:flex;justify-content:space-between;align-items:center;gap:8px">' + WK.pct(pctCritico) + sp(s => s.pctCrit, '#D8A63A') + '</span>', label:'En zona crítica' }
-  ]) }) : '';
+  const celda = (label, valor, vals, color, fmt, nombre) => '<div class="fin-tc"><small>' + esc(label) + '</small><b>' + valor + '</b>' + WK.area(vals, { labels:lbl, color, fmt, nombre }) + '</div>';
+  const tendencia = serie.length >= 2 ? WK.card({ ico:'📈', titulo:'Tendencia semanal', sub:'Últimos ' + serie.length + ' cortes guardados · pasa el mouse sobre los puntos', body:'<div class="fin-trend">' +
+    celda('Facturación YTD', WK.pct(factYTD.avance), serie.map(s => s.f.avance), '#3DD6FF', WK.pct, 'Avance') +
+    celda('Cobranza YTD', WK.pct(cobrYTD.avance), serie.map(s => s.c.avance), '#2FE29B', WK.pct, 'Avance') +
+    celda('Cartera vencida (USD)', WK.usdK(totalVencido), serie.map(s => s.vencido), '#FF5C7A', WK.usdK, 'Vencido') +
+    celda('En zona crítica', WK.pct(pctCritico), serie.map(s => s.pctCrit), '#FFC857', WK.pct, 'Del vencido') + '</div>' }) : '';
 
   /* Facturación y cobranza */
-  const bullets = (lista, etiqueta) => lista.map(p => WK.bullet({ label:p.periodo, valor:p.real, meta:p.objetivo, tono:TONO_AV(p.avance), nota:esc(p.comentario || '') })).join('') || WK.empty('Sin datos.');
   const statsFC = WK.stats([
     { valor:WK.usdK(Math.max(0, factYTD.objetivo - factYTD.real)), label:'Por facturar para la meta YTD' },
     { valor:WK.usdK(Math.max(0, cobrYTD.objetivo - cobrYTD.real)), label:'Por cobrar para la meta YTD' },
@@ -490,16 +551,39 @@ function render(){
   const footAging = '<tr><td>Total</td>' + tg.slice(0,7).map(v => '<td class="wk-num">' + WK.usdK(v) + '</td>').join('') + '<td class="wk-num">' + WK.usdK(totalVencido) + '</td><td class="wk-num">' + WK.usdK(totalCartera) + '</td></tr>';
   const tablaAging = WK.table(colsAging, filasAging, { id:'tablaAging', vacio:'Sin cartera registrada.', footer:footAging });
   const bodyAging = filasAging.length
-    ? '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar cliente…" oninput="WK.filtrar(document.getElementById(\'tablaAging\'), this.value)"><span class="wk-hint">Montos en miles de USD · negativos = saldo a favor del cliente</span></div>' + tablaAging
+    ? '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar cliente…" oninput="WK.filtrar(document.getElementById(\'tablaAging\'), this.value)"><span class="wk-hint">Montos en miles de USD · en celeste = saldo a favor del cliente</span></div>' + tablaAging
     : tablaAging;
 
+  /* Simulador de cartera */
+  const cobrable = tg.slice(0,6).map(v => Math.max(0, v||0));
+  const sanaHoy = totalCartera ? 1 - totalVencido/totalCartera : 0;
+  const diasHoy = diasPromedio(tg);
+  const simCartera = WK.whatif({ id:'finCartera', sliders:[
+    { k:'rec', label:'% de la cartera vencida (hasta 6 meses) que se cobra', min:0, max:100, step:5, val:30, fmt:x => x + '%' },
+    { k:'crit', label:'% de la zona crítica (+6 meses) que se recupera', min:0, max:100, step:5, val:20, fmt:x => x + '%' } ],
+    calc: vals => {
+      const cobrado = cobrable[0]*vals.crit/100 + cobrable.slice(1).reduce((s,v) => s + v*vals.rec/100, 0);
+      const res = tg.slice(0,6).map((v,i) => (v||0) - cobrable[i]*(i === 0 ? vals.crit : vals.rec)/100);
+      const vencRes = totalVencido - cobrado, carteraRes = totalCartera - cobrado;
+      const sana = carteraRes > 0 ? Math.max(0, Math.min(1, 1 - vencRes/carteraRes)) : 0;
+      const cobrProy = cobrYTD.objetivo ? (cobrYTD.real + cobrado)/cobrYTD.objetivo : 0;
+      const dias = diasPromedio(res);
+      return { gauge:{ valor:sana, max:1, meta:sanaHoy, tono: sana >= 0.6 ? 'green' : (sana >= 0.4 ? 'amber' : 'red'), texto:WK.pct(sana), label:'de la cartera está sana',
+          tip:'Cartera sana (no vencida)\nHoy ' + WK.pct(sanaHoy) + ' → simulado ' + WK.pct(sana) + '\nLa marca blanca es el nivel actual' },
+        stats:[ { valor:WK.usdK(vencRes), label:'Vencido resultante (hoy ' + WK.usdK(totalVencido) + ')' }, { valor:WK.usdK(cobrado), label:'Efectivo recuperado' },
+                { valor:WK.pct(cobrProy), label:'Cobranza YTD proyectada (hoy ' + WK.pct(cobrYTD.avance) + ')' }, { valor:Math.round(dias) + ' d', label:'Días vencidos prom. est. (hoy ' + Math.round(diasHoy) + ' d)' } ],
+        nota:'Si cobramos ' + vals.rec + '% de lo vencido hasta 6 meses y ' + vals.crit + '% de la zona crítica, entran ' + WK.usdK(cobrado) + ': la cartera vencida baja a ' + WK.usdK(vencRes) + ' y la cartera sana pasa de ' + WK.pct(sanaHoy) + ' a ' + WK.pct(sana) + '.' + (dias > diasHoy + 1 ? ' El promedio de días sube porque lo que queda vencido es lo más antiguo.' : '') }; } });
+
   /* Bitácora */
+  const filasBit = historial.slice().reverse().map(h => { const r = resumenCorte(h), hc = WK.hora(h.guardadoEn).split(' ');
+    return { semana:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:hc[0] === '—' ? '' : hc[0], hora:hc[1] || '', fact:r.f.avance, cobr:r.c.avance, venc:r.vencido, _id:h.guardadoEn }; });
   const bitacora = WK.table([
     { k:'semana', label:'Semana', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' }, { k:'hora', label:'Hora', tipo:'text' },
     { k:'fact', label:'Facturación %', tipo:'pct' }, { k:'cobr', label:'Cobranza %', tipo:'pct' }, { k:'venc', label:'Cartera vencida', tipo:'usdK' }
-  ], historial.slice().reverse().map(h => { const r = resumenCorte(h), hc = WK.hora(h.guardadoEn).split(' ');
-    return { semana:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:hc[0] === '—' ? '' : hc[0], hora:hc[1] || '', fact:r.f.avance, cobr:r.c.avance, venc:r.vencido, _id:h.guardadoEn }; }),
-    { rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver el dashboard completo de esta semana"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
+  ], filasBit, { id:'tablaBitacora', rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver el dashboard completo de esta semana"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
+  const bodyBit = filasBit.length > 6
+    ? '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar semana o persona…" oninput="WK.filtrar(document.getElementById(\'tablaBitacora\'), this.value)"></div>' + bitacora
+    : bitacora;
 
   const nSAP = (mostrando.top10SAP||[]).length, nB1 = (mostrando.top10B1||[]).length;
   const barraTabs = '<div class="wk-tools" id="tabbarTop10">' +
@@ -509,25 +593,25 @@ function render(){
   content.innerHTML = banner +
     WK.chips([{ id:'resumen', label:'Resumen' }, { id:'fact', label:'Facturación y cobranza' }, { id:'aging', label:'Cartera (Aging)' }, { id:'top10', label:'Top por cobrar', n:nSAP + nB1 }, { id:'bitacora', label:'Bitácora', n:historial.length }]) +
     '<div id="resumen" style="scroll-margin-top:70px">' + kpis + alertasHtml + WK.callout('Insight de Delfos', insight, 'insightText') + '</div>' +
-    '<div style="height:18px"></div>' + tendencia +
-    WK.band('fact', 'Facturación y cobranza', 'Montos en miles de USD · contra el objetivo de cada periodo') +
-    '<div class="wk-grid2">' + WK.card({ ico:'🧾', titulo:'Facturación vs. objetivo', body:bullets(mostrando.facturacion) }) + WK.card({ ico:'💵', titulo:'Cobranza vs. objetivo', body:bullets(mostrando.cobranza) }) + '</div>' +
-    '<div style="height:18px"></div>' + WK.card({ ico:'🎯', titulo:'Brechas del año', body:statsFC }) +
+    '<div class="fin-gap"></div>' + tendencia +
+    WK.band('fact', 'Facturación y cobranza', 'Montos en miles de USD · objetivo vs. real de cada periodo') +
+    '<div class="wk-grid2">' + cardPeriodos('🧾', 'Facturación vs. objetivo', 'Pasa el mouse sobre las columnas', mostrando.facturacion, 'Emitida', '#3DD6FF', 'F') +
+      cardPeriodos('💵', 'Cobranza vs. objetivo', 'Pasa el mouse sobre las columnas', mostrando.cobranza, 'Cobrada', '#2FE29B', 'C') + '</div>' +
+    '<div class="fin-gap"></div>' + WK.card({ ico:'🎯', titulo:'Brechas del año', body:statsFC }) +
     WK.card({ ico:'📋', titulo:'Detalle por periodo', sub:'Haz clic en un encabezado para ordenar.', body:tablaPeriodos }) +
     WK.band('aging', 'Cartera por antigüedad (Aging)', 'Montos en miles de USD · del rango más antiguo (rojo) al corriente (verde)') +
-    WK.card({ ico:'🧮', titulo:'Resumen de cartera', body:statsAging }) +
-    '<div class="wk-grid2">' + WK.card({ ico:'🍩', titulo:'Distribución por antigüedad', sub:'Cartera total por rango (USD)', body:'<div class="ctr">' + WK.donut(itemsDonut, { centro:compacto(totalCartera), sub:'cartera total', fmt:WK.usdK }) + '</div>' }) +
-      WK.card({ ico:'📊', titulo:'Antigüedad de los 10 clientes con más saldo', body:stackAging(mostrando.aging.filas.slice(0,10)) }) + '</div>' +
-    '<div style="height:18px"></div>' +
+    WK.card({ ico:'🍩', titulo:'Distribución por antigüedad', sub:'Cartera total por rango (USD) · pasa el mouse sobre la dona', body:distribucion(itemsDonut, { centro:compacto(totalCartera), sub:'cartera total', stats:statsAging }) }) +
+    WK.card({ ico:'📊', titulo:'Antigüedad de los 10 clientes con más saldo', sub:'Pasa el mouse sobre una barra para ver los montos por rango', body:stackAging(mostrando.aging.filas.slice(0,10)) }) +
+    WK.card({ ico:'🧪', titulo:'Simulador: ¿y si cobramos…?', sub:'Mueve los controles y mira cómo cambia la cartera. Es una simulación, no se guarda.', body:simCartera }) +
     WK.card({ ico:'🔎', titulo:'Cartera por cliente', sub:'Ordena por cualquier columna y filtra por texto.', count:filasAging.length, body:bodyAging }) +
     WK.band('top10', 'Top clientes por cobrar', 'Montos en miles de USD · días vencidos con semáforo') +
     barraTabs + '<div id="top10Content"></div>' +
     WK.band('bitacora', 'Bitácora semanal', 'Haz clic en una semana para ver el dashboard completo tal como se veía entonces') +
-    WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora }) +
+    WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bodyBit }) +
     '<div class="wk-foot">Montos en USD (miles) · Fechas en DD/MM/AA.</div>';
   setTabTop10(tabTop10);
   WK.sortable(content);
-  content.querySelectorAll('#tablaAging td[data-v="0"]').forEach(td => td.classList.add('z'));
+  content.querySelectorAll('#tablaAging td[data-v]').forEach(td => { const v = Number(td.getAttribute('data-v')); if(v === 0) td.classList.add('z'); else if(v < 0) td.classList.add('neg'); });
   WK.observarSecciones();
 }
 
@@ -538,26 +622,47 @@ function setTabTop10(cual){
   if(!cont || !mostrando) return;
   const lista = (cual === 'SAP' ? mostrando.top10SAP : mostrando.top10B1) || [];
   if(!lista.length){ cont.innerHTML = WK.card({ titulo:'Top 10 ' + cual, body:WK.empty('Este corte no trae clientes en el Top 10 ' + cual + '.') }); return; }
-  const total = lista.reduce((s,c) => s + (Number(c.montoEUR)||0), 0);
-  const ponderado = total ? lista.reduce((s,c) => s + (Number(c.montoEUR)||0) * (Number(c.diasVencidos)||0), 0) / total : 0;
-  const m180 = lista.filter(c => c.diasVencidos > 180).reduce((s,c) => s + (Number(c.montoEUR)||0), 0);
+  const monto = c => Number(c.montoEUR)||0, dias = c => Number(c.diasVencidos)||0;
+  const total = lista.reduce((s,c) => s + monto(c), 0);
+  const ponderado = total ? lista.reduce((s,c) => s + monto(c) * dias(c), 0) / total : 0;
+  const m180 = lista.filter(c => c.diasVencidos > 180).reduce((s,c) => s + monto(c), 0);
   const stats = WK.stats([
     { valor:WK.usdK(total), label:'Total Top 10 ' + cual + ' (USD)' },
     { valor:Math.round(ponderado) + ' d', label:'Días vencidos promedio (ponderado)' },
     { valor:WK.usdK(m180), label:'Con más de 180 días' },
     { valor:WK.pct(total ? m180/total : 0), label:'% del monto con +180 días' }
   ]);
-  const grupos = [['0–30 días', c => c.diasVencidos <= 30, '#2FCB73'], ['31–90 días', c => c.diasVencidos > 30 && c.diasVencidos <= 90, '#EBC260'], ['91–180 días', c => c.diasVencidos > 90 && c.diasVencidos <= 180, '#F59E4B'], ['+180 días', c => c.diasVencidos > 180, '#FF6B6B']];
-  const donut = WK.donut(grupos.map(g => ({ label:g[0], value:lista.filter(g[1]).reduce((s,c) => s + (Number(c.montoEUR)||0), 0), color:g[2] })), { centro:compacto(total), sub:'por cobrar', fmt:WK.usdK });
-  const ranking = WK.ranked(lista.slice().sort((a,b) => b.montoEUR - a.montoEUR).map(c => ({ label:c.cliente, value:c.montoEUR, tono:claseDias(c.diasVencidos) })), { fmt:WK.usdK });
-  const filas = lista.map(c => ({ cliente:c.cliente, lob:c.lob, monto:c.montoEUR, mxn:Math.round(c.montoMXN||0), dias:pillDias(c.diasVencidos), next:c.nextStep }));
+  const grupos = [['0–30 días', c => c.diasVencidos <= 30, '#2FE29B'], ['31–90 días', c => c.diasVencidos > 30 && c.diasVencidos <= 90, '#FFD166'], ['91–180 días', c => c.diasVencidos > 90 && c.diasVencidos <= 180, '#FFA94D'], ['+180 días', c => c.diasVencidos > 180, '#FF5C7A']];
+  const itemsDona = grupos.map(g => ({ label:g[0], value:lista.filter(g[1]).reduce((s,c) => s + monto(c), 0), color:g[2] })).filter(i => i.value > 0);
+  const dist = distribucion(itemsDona, { centro:compacto(total), sub:'por cobrar', stats });
+  const recorta = t => { t = String(t||'').trim(); return t.length > 150 ? t.slice(0,147) + '…' : t; };
+  const ranking = WK.ranked(lista.slice().sort((a,b) => b.montoEUR - a.montoEUR).map(c => ({ label:c.cliente, value:c.montoEUR, tono:claseDias(c.diasVencidos),
+    tip:c.cliente + '\n' + WK.usdK(c.montoEUR) + ' · ' + dias(c) + ' días vencidos' + (c.nextStep ? '\nNext step: ' + recorta(c.nextStep) : '') })), { fmt:WK.usdK });
+  const filas = lista.map(c => ({ cliente:c.cliente, lob:c.lob, monto:c.montoEUR, mxn:Math.round(c.montoMXN||0), dias:pillDias(c.diasVencidos), diasN:dias(c), next:c.nextStep }));
   const tabla = WK.table([
     { k:'cliente', label:'Cliente', tipo:'strong' }, { k:'lob', label:'LOB', tipo:'tag' }, { k:'monto', label:'Monto (USD)', tipo:'usdKbar' },
     { k:'mxn', label:'Monto MXN (miles)', tipo:'num' }, { k:'dias', label:'Días vencidos', tipo:'html' }, { k:'next', label:'Next step', tipo:'note' }
   ], filas, { id:'tablaTop10', footer:'<tr><td>Total Top 10</td><td></td><td class="wk-num">' + WK.usdK(total) + '</td><td class="wk-num">' + WK.num(Math.round(lista.reduce((s,c) => s + (Number(c.montoMXN)||0), 0))) + '</td><td colspan="2"></td></tr>' });
-  cont.innerHTML = WK.card({ ico:'🧮', titulo:'Top 10 ' + cual + ' en números', body:stats }) +
-    '<div class="wk-grid2">' + WK.card({ ico:'🍩', titulo:'Monto por días vencidos', body:'<div class="ctr">' + donut + '</div>' }) + WK.card({ ico:'🏁', titulo:'Clientes por monto', sub:'Color según días vencidos', body:ranking }) + '</div>' +
-    '<div style="height:18px"></div>' +
+
+  /* Simulador Top 10: cobrar primero a los más atrasados */
+  const orden = lista.slice().sort((a,b) => dias(b) - dias(a));
+  const sim = WK.whatif({ id:'finTop10', sliders:[
+    { k:'n', label:'Clientes que pagan (empezando por los más atrasados)', min:0, max:lista.length, step:1, val:Math.min(3, lista.length), fmt:x => x + ' de ' + lista.length },
+    { k:'p', label:'% de cada saldo que se cobra', min:10, max:100, step:10, val:100, fmt:x => x + '%' } ],
+    calc: vals => {
+      const rest = orden.map((c,i) => monto(c) * (1 - (i < vals.n ? vals.p/100 : 0)));
+      const restante = rest.reduce((s,v) => s + v, 0), cobrado = total - restante;
+      const dProm = restante ? rest.reduce((s,v,i) => s + v*dias(orden[i]), 0) / restante : 0;
+      const r180 = rest.reduce((s,v,i) => s + (dias(orden[i]) > 180 ? v : 0), 0);
+      const pc = total ? cobrado/total : 0;
+      return { gauge:{ valor:cobrado, max:total || 1, tono: pc >= 0.5 ? 'green' : (pc > 0 ? 'amber' : 'cyan'), texto:WK.pct(pc), label:'del Top 10 cobrado', tip:'Top 10 ' + cual + ' cobrado\n' + WK.usdK(cobrado) + ' de ' + WK.usdK(total) },
+        stats:[ { valor:WK.usdK(restante), label:'Por cobrar restante (hoy ' + WK.usdK(total) + ')' }, { valor:WK.usdK(cobrado), label:'Efectivo recuperado' },
+                { valor:Math.round(dProm) + ' d', label:'Días vencidos promedio (hoy ' + Math.round(ponderado) + ' d)' }, { valor:WK.usdK(r180), label:'Con +180 días (hoy ' + WK.usdK(m180) + ')' } ],
+        nota: vals.n ? 'Si pagan los ' + vals.n + ' clientes más atrasados (' + vals.p + '% de su saldo), entran ' + WK.usdK(cobrado) + ' y el promedio de días vencidos pasa de ' + Math.round(ponderado) + ' a ' + Math.round(dProm) + '.' : 'Sube el número de clientes que pagan para ver el efecto.' }; } });
+
+  cont.innerHTML = WK.card({ ico:'🍩', titulo:'Monto por días vencidos — Top 10 ' + cual, sub:'Pasa el mouse sobre la dona para ver cada rango', body:dist }) +
+    WK.card({ ico:'🏁', titulo:'Clientes por monto', sub:'Color según días vencidos · pasa el mouse para ver el next step', body:ranking }) +
+    WK.card({ ico:'🧪', titulo:'Simulador: ¿y si cobramos a los más atrasados?', sub:'Es una simulación sobre el Top 10 ' + cual + ', no se guarda.', body:sim }) +
     WK.card({ ico:'📋', titulo:'Detalle Top 10 ' + cual, sub:'Ordena por cualquier columna y filtra por texto.', count:lista.length,
       body:'<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar cliente, next step…" oninput="WK.filtrar(document.getElementById(\'tablaTop10\'), this.value)"></div>' + tabla });
   WK.sortable(cont);

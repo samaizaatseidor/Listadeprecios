@@ -42,19 +42,27 @@
   .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
   @keyframes spin{ to { transform:rotate(360deg); } }
 
-  /* Salud por LOB (componente local) */
-  .ob-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px;}
-  .ob-blk{border:1px solid var(--line); border-radius:14px; padding:14px 16px; background:#FAFCFE;}
-  .ob-head{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;}
-  .ob-head b{font-size:15px; font-weight:800; color:var(--navy2);}
-  .ob-row{display:grid; grid-template-columns:78px 1fr 62px; gap:10px; align-items:center; font-size:12px; margin-top:8px;}
-  .ob-row span{color:var(--grey); font-weight:600;}
-  .ob-t{height:12px; border-radius:99px; background:#E6EDF6; overflow:hidden;}
-  .ob-t i{display:block; height:100%; border-radius:99px;}
-  .ob-t i.b{background:linear-gradient(90deg,#1E5BB8,#33B4DD);} .ob-t i.a{background:linear-gradient(90deg,#C8921F,#EBC260);} .ob-t i.r{background:linear-gradient(90deg,#B23A3A,#E27676);} .ob-t i.g{background:linear-gradient(90deg,#1F8A4C,#4CC27F);}
-  .ob-row b{text-align:right; color:var(--navy2); font-variant-numeric:tabular-nums;}
-  .ob-row b small{font-weight:600; color:var(--greyl); margin-left:3px;}
+  /* Salud por LOB (componente local, tema oscuro) */
+  .ob-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:22px;}
+  .ob-blk{--oc:#3DD6FF; position:relative; border-radius:22px; padding:22px 24px 20px; background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.10); box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 16px 40px rgba(0,0,0,.4); overflow:hidden; transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;}
+  .ob-blk:before{content:""; position:absolute; left:0; right:0; top:0; height:4px; background:linear-gradient(90deg,var(--oc),transparent);}
+  .ob-blk:after{content:""; position:absolute; right:-70px; top:-90px; width:240px; height:200px; background:radial-gradient(ellipse,var(--oc),transparent 70%); opacity:.16; pointer-events:none;}
+  .ob-blk:hover{transform:translateY(-3px); border-color:var(--oc); box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 22px 50px rgba(0,0,0,.5),0 0 40px -12px var(--oc);}
+  .ob-head{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; position:relative; z-index:1;}
+  .ob-head b{font-size:24px; font-weight:800; color:#fff; letter-spacing:-.3px;}
   .ob-deltas{display:flex; gap:6px; flex-wrap:wrap;}
+  .ob-blk .wk-gauge{max-width:230px; margin:4px auto 8px; position:relative; z-index:1;}
+  .ob-row{margin-top:14px; position:relative; z-index:1; padding:6px 8px 8px; border-radius:10px;}
+  .ob-row:hover{background:rgba(255,255,255,.05);}
+  .ob-row .t{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:7px;}
+  .ob-row span{color:var(--wk-grey); font-weight:600; font-size:14.5px; white-space:nowrap;}
+  .ob-row .wk-bar{height:14px; margin:0;}
+  .ob-row b{color:#fff; font-size:19px; font-variant-numeric:tabular-nums;}
+  .ob-row b small{font-weight:600; color:var(--wk-greyl); margin-left:7px; font-size:13px;}
+  .wk-wi-out{gap:24px;} .wk-wi-out .wk-stat-row{width:100%;}
+  .ob-sec{font-size:12.5px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--wk-greyl); margin:0 0 12px;}
+  .ob-sec.sp{margin-top:26px;}
+  .ob-note{font-size:13px; color:var(--wk-greyl); margin-top:16px;}
 </style>
 </head>
 <body>
@@ -225,10 +233,10 @@ async function handleFile(file){
     await cargarHistorial();
     render();
     pedirInsight(anterior);
-    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte del ' + WK.fecha(new Date(actual.fechaRevision)) + ' guardado.</div>';
+    statusBox.innerHTML = '<div style="color:var(--wk-green,#1F8A4C); font-size:14px;">Corte del ' + WK.fecha(new Date(actual.fechaRevision)) + ' guardado.</div>';
   }catch(e){
     console.error(e);
-    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo cargar el archivo: ${esc(e.message||String(e))}</div>`;
+    statusBox.innerHTML = `<div style="color:var(--wk-red,#B23A3A); font-size:14px;">No se pudo cargar el archivo: ${esc(e.message||String(e))}</div>`;
   }
 }
 async function cargarHistorial(){
@@ -271,22 +279,32 @@ function volverActual(){
 
 /* ---------- Componentes locales ---------- */
 const pctDe = (a, b) => b ? a / b : null;
-// Un bloque por LOB: barras de proyectos, desvío y riesgo a la misma escala + cambio vs. corte anterior
+// Un bloque por LOB (tema oscuro): medidor de proyectos sanos + barras de proyectos, desvío, riesgo y Go-Live, con tooltips y cambio vs. corte anterior
+const LOBCOL = ['#3DD6FF','#8B7CFF','#2FE29B','#FFC857','#FF5C7A','#F59E4B'];
+const colorLob = (lobs, nombre) => LOBCOL[Math.max(0, lobs.findIndex(l => String(l.lob) === String(nombre))) % LOBCOL.length];
+// Proyectos sanos (mínimo estimado): el Excel solo trae conteos, así que se asume que ningún proyecto tiene desvío y riesgo a la vez
+const sanosMin = (p, d, r) => p ? Math.max(0, p - d - r) : 0;
+const TONO_SANO = f => f == null ? 'cyan' : (f >= 0.8 ? 'green' : (f >= 0.65 ? 'amber' : 'red'));
 function saludPorLob(lobs, prev){
   const max = Math.max.apply(null, lobs.map(l => l.proyectos || 0)) || 1;
   const pv = {}; (prev ? prev.porLob : []).forEach(l => { pv[String(l.lob)] = l; });
-  const fila = (txt, n, cls, total) => '<div class="ob-row"><span>' + txt + '</span><div class="ob-t"><i class="' + cls + '" style="width:' + Math.min(100, (n||0)/max*100).toFixed(1) + '%"></i></div><b>' + WK.num(n||0) + (total ? '<small>' + WK.pct(pctDe(n||0, total)) + '</small>' : '') + '</b></div>';
   return '<div class="ob-grid">' + lobs.map(l => {
-    const p = pv[String(l.lob)];
+    const p = pv[String(l.lob)], nom = String(l.lob), P = l.proyectos || 0, D = l.conDesvio || 0, R = l.conRiesgo || 0;
+    const fila = (txt, n, tono, total, prevN) => {
+      const tip = nom + ' · ' + txt + '\n' + WK.num(n||0) + (total ? ' de ' + WK.num(total) + ' proyectos (' + WK.pct(pctDe(n||0, total)) + ')' : (txt === 'Proyectos' ? ' proyectos activos' : ' en el año')) + (p && prevN != null ? '\nCorte anterior: ' + WK.num(prevN) : '');
+      return '<div class="ob-row" data-tip="' + esc(tip) + '"><div class="t"><span>' + txt + '</span><b>' + WK.num(n||0) + (total ? '<small>' + WK.pct(pctDe(n||0, total)) + '</small>' : '') + '</b></div>' + WK.bar(Math.min(1, (n||0)/max), tono) + '</div>';
+    };
     const chip = (a, b, t) => { const c = p && a !== b ? WK.delta(a, b, { bueno:'down' }) : ''; return c ? c.replace('Contra el corte anterior', t + ' vs. corte anterior').replace('>▲', '>' + t + ' ▲').replace('>▼', '>' + t + ' ▼') : ''; };
     const d = '<div class="ob-deltas">' + chip(l.conDesvio, p && p.conDesvio, 'Desvíos') + chip(l.conRiesgo, p && p.conRiesgo, 'Riesgos') + '</div>';
-    return '<div class="ob-blk"><div class="ob-head"><b>' + esc(l.lob) + '</b>' + d + '</div>' +
-      fila('Proyectos', l.proyectos, 'b') + fila('Con desvío', l.conDesvio, 'a', l.proyectos) + fila('Con riesgo', l.conRiesgo, 'r', l.proyectos) + fila('Go-Live anual', l.goLiveAnual, 'g') + '</div>';
-  }).join('') + '</div><div class="wk-hint" style="margin-top:12px">Barras a la misma escala · los chips aparecen cuando cambian desvíos o riesgos contra el corte anterior (verde = bajaron).</div>';
+    const sano = pctDe(sanosMin(P, D, R), P);
+    const gauge = P ? WK.gauge({ valor:sanosMin(P, D, R), max:P, tono:TONO_SANO(sano), texto:WK.pct(sano), label:'proyectos sanos (mín.)', tip:nom + ' · proyectos sanos\n' + WK.num(sanosMin(P, D, R)) + ' de ' + WK.num(P) + ' sin desvío ni riesgo\nEstimación mínima: supone que ningún proyecto tiene desvío y riesgo a la vez' }) : '';
+    return '<div class="ob-blk" style="--oc:' + colorLob(lobs, nom) + '"><div class="ob-head"><b>' + esc(nom) + '</b>' + d + '</div>' + gauge +
+      fila('Proyectos', P, 'cyan', 0, p && p.proyectos) + fila('Con desvío', D, 'amber', P, p && p.conDesvio) + fila('Con riesgo', R, 'red', P, p && p.conRiesgo) + fila('Go-Live anual', l.goLiveAnual, 'green', 0, p && p.goLiveAnual) + '</div>';
+  }).join('') + '</div><div class="ob-note">Barras a la misma escala · los chips aparecen cuando cambian desvíos o riesgos contra el corte anterior (verde = bajaron) · pasa el mouse sobre cualquier barra o medidor para ver el detalle.</div>';
 }
 function proyectosClave(lobs){
   const out = [];
-  lobs.forEach(l => String(l.topProyectos||'').split('|').map(s => s.trim()).filter(Boolean).forEach(p => out.push({ proyecto:p, lob:String(l.lob) })));
+  lobs.forEach(l => String(l.topProyectos||'').split('|').map(s => s.trim()).filter(Boolean).forEach(p => out.push({ proyecto:p, lob:String(l.lob), proyLob:l.proyectos || 0, pctD:pctDe(l.conDesvio, l.proyectos), pctR:pctDe(l.conRiesgo, l.proyectos), gl:l.goLiveAnual || 0 })));
   return out;
 }
 
@@ -335,15 +353,50 @@ function render(){
     : 'Generando…';
 
   const conProy = lobs.filter(l => l.proyectos > 0);
-  const donutProy = WK.card({ ico:'🧩', titulo:'Proyectos por LOB', sub:'Cuántos proyectos activos lleva cada línea', body: WK.donut(conProy.map(l => ({ label:String(l.lob), value:l.proyectos })), { centro:WK.num(tP), sub:'proyectos' }) });
+  const detalleLob = l => nomLob(l) + '\n' + WK.num(l.proyectos) + ' proyectos · ' + WK.num(l.conDesvio) + ' con desvío · ' + WK.num(l.conRiesgo) + ' con riesgo\nGo-Live: ' + WK.num(l.goLiveAnual) + ' en el año · ' + WK.num(l.goLiveQ) + ' este trimestre';
+  const nomLob = l => String(l.lob);
+  const donutProy = WK.card({ ico:'🧩', titulo:'Proyectos por LOB', sub:'Cuántos proyectos activos lleva cada línea', body: WK.donut(conProy.map(l => ({ label:nomLob(l), value:l.proyectos, color:colorLob(lobs, l.lob), tip:detalleLob(l) })), { centro:WK.num(tP), sub:'proyectos' }) +
+    '<div style="margin-top:20px">' + WK.stats([{ valor:WK.num(tP), label:'Proyectos activos' }, { valor:WK.num(tD), label:'Con desvío' }, { valor:WK.num(tR), label:'Con riesgo' }, { valor:WK.pct(pctDe(sanosMin(tP, tD, tR), tP)), label:'Sanos (mín. estimado)' }]) + '</div>' });
   const donutGL = WK.card({ ico:'🚀', titulo:'Go-Live por LOB', sub:'Go-Live programados en el año', body:
-    WK.donut(lobs.filter(l => l.goLiveAnual > 0).map(l => ({ label:String(l.lob), value:l.goLiveAnual })), { centro:WK.num(tGA), sub:'en el año' }) +
-    '<div style="margin-top:16px">' + WK.stats([{ valor:WK.num(tGQ), label:'Go-Live este trimestre' }, { valor:WK.num(tGA), label:'Go-Live en el año' }].concat(lobs.filter(l => l.goLiveQ > 0).map(l => ({ valor:WK.num(l.goLiveQ), label:'Q · ' + l.lob })))) + '</div>' });
+    WK.donut(lobs.filter(l => l.goLiveAnual > 0).map(l => ({ label:nomLob(l), value:l.goLiveAnual, color:colorLob(lobs, l.lob), tip:nomLob(l) + '\n' + WK.num(l.goLiveAnual) + ' Go-Live en el año (' + WK.pct(pctDe(l.goLiveAnual, tGA)) + ')\n' + WK.num(l.goLiveQ) + ' este trimestre\n' + WK.num(l.proyectos) + ' proyectos activos' })), { centro:WK.num(tGA), sub:'en el año' }) +
+    '<div style="margin-top:20px">' + WK.stats([{ valor:WK.num(tGQ), label:'Go-Live este trimestre' }, { valor:WK.num(tGA), label:'Go-Live en el año' }].concat(lobs.filter(l => l.goLiveQ > 0).map(l => ({ valor:WK.num(l.goLiveQ), label:'Q · ' + l.lob })))) + '</div>' });
 
-  const rk = (k) => WK.ranked(lobs.map(l => { const p = pctDe(l[k], l.proyectos); return { label:String(l.lob), value:p || 0, tono:TONO_RIESGO(p) }; }).sort((x,y) => y.value - x.value), { fmt:WK.pct, max:1 });
-  const exposicion = WK.card({ ico:'🎯', titulo:'Exposición por LOB', sub:'% de proyectos con desvío y con riesgo', body:'<div style="font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--greyl);margin-bottom:10px">Con desvío</div>' + rk('conDesvio') + '<div style="font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--greyl);margin:22px 0 10px">Con riesgo</div>' + rk('conRiesgo') });
+  const rk = (k) => WK.ranked(lobs.map(l => { const p = pctDe(l[k], l.proyectos); return { label:nomLob(l), value:p || 0, tono:TONO_RIESGO(p), tip:nomLob(l) + ' · ' + (k === 'conDesvio' ? 'con desvío' : 'con riesgo') + '\n' + WK.num(l[k]) + ' de ' + WK.num(l.proyectos) + ' proyectos (' + WK.pct(p) + ')' }; }).sort((x,y) => y.value - x.value), { fmt:WK.pct, max:1 });
+  const exposicion = WK.card({ ico:'🎯', titulo:'Exposición por LOB', sub:'% de proyectos con desvío y con riesgo (rojo > 30%, ámbar > 15%)', body:'<div class="ob-sec">Con desvío</div>' + rk('conDesvio') + '<div class="ob-sec sp">Con riesgo</div>' + rk('conRiesgo') });
+  const pctTxt = (n, t) => WK.pct(pctDe(n, t)) + ' del total';
+  const columnas = WK.card({ ico:'📊', titulo:'Proyectos, desvíos y riesgos', sub:'Conteo por LOB — pasa el mouse sobre una barra', body: WK.columns(lobs.map(nomLob), [
+    { nombre:'Proyectos', valores:lobs.map(l => l.proyectos || 0), color:'#3DD6FF', extra:lobs.map(l => 'Go-Live anual: ' + WK.num(l.goLiveAnual)) },
+    { nombre:'Con desvío', valores:lobs.map(l => l.conDesvio || 0), color:'#FFC857', extra:lobs.map(l => WK.pct(pctDe(l.conDesvio, l.proyectos)) + ' de sus proyectos') },
+    { nombre:'Con riesgo', valores:lobs.map(l => l.conRiesgo || 0), color:'#FF5C7A', extra:lobs.map(l => WK.pct(pctDe(l.conRiesgo, l.proyectos)) + ' de sus proyectos') },
+    { nombre:'Go-Live anual', valores:lobs.map(l => l.goLiveAnual || 0), color:'#2FE29B', extra:lobs.map(l => WK.num(l.goLiveQ) + ' este trimestre') }
+  ], { fmt:WK.num, id:'ops' }) });
 
-  const filasLob = lobs.map(l => ({ lob:String(l.lob), proyectos:l.proyectos, conDesvio:l.conDesvio, conRiesgo:l.conRiesgo, pctD:pctDe(l.conDesvio, l.proyectos), pctR:pctDe(l.conRiesgo, l.proyectos), ga:l.goLiveAnual, gq:l.goLiveQ, top:String(l.topProyectos||'').split('|').map(s => s.trim()).filter(Boolean).join(' · ') }));
+  /* ---------- Simuladores (no se guardan) ---------- */
+  // Reparte N resoluciones entre las LOB empezando por la que más tiene
+  const repartir = (arr, n) => { const a = arr.slice(); for(let i=0; i<n; i++){ let m = 0; a.forEach((x, j) => { if(x > a[m]) m = j; }); if(a[m] <= 0) break; a[m]--; } return a; };
+  const simSalud = WK.whatif({ id:'opsSalud', sliders:[
+    { k:'d', label:'Proyectos con desvío que resolvemos', min:0, max:Math.max(1, tD), step:1, val:0, fmt:x => WK.num(x) + ' de ' + WK.num(tD) },
+    { k:'r', label:'Proyectos con riesgo que mitigamos', min:0, max:Math.max(1, tR), step:1, val:0, fmt:x => WK.num(x) + ' de ' + WK.num(tR) } ],
+    calc: vals => {
+      const nd = repartir(lobs.map(l => l.conDesvio || 0), Math.min(vals.d, tD)), nr = repartir(lobs.map(l => l.conRiesgo || 0), Math.min(vals.r, tR));
+      const sanos = lobs.map((l, i) => sanosMin(l.proyectos || 0, nd[i], nr[i])), tS = sanos.reduce((a, b) => a + b, 0), tS0 = lobs.reduce((a, l) => a + sanosMin(l.proyectos || 0, l.conDesvio || 0, l.conRiesgo || 0), 0);
+      const f = pctDe(tS, tP), f0 = pctDe(tS0, tP), ganancia = f != null && f0 != null ? Math.round((f - f0) * 100) : 0;
+      return { gauge:{ valor:tS, max:tP || 1, tono:TONO_SANO(f), texto:WK.pct(f), label:'proyectos sanos', tip:'Proyectos sanos (total)\n' + WK.num(tS) + ' de ' + WK.num(tP) + ' sin desvío ni riesgo\nHoy: ' + WK.pct(f0) },
+        stats:lobs.map((l, i) => ({ valor:WK.pct(pctDe(sanos[i], l.proyectos)), label:'Sanos · ' + l.lob })).concat([{ valor:'+' + ganancia + ' pp', label:'vs. hoy (' + WK.pct(f0) + ')' }]),
+        nota:vals.d + vals.r === 0 ? 'Mueve los controles para ver cuántos proyectos quedarían sanos si resolvemos desvíos y riesgos (se atacan primero las LOB con más casos).' : 'Resolviendo ' + WK.num(Math.min(vals.d, tD)) + ' desvío(s) y mitigando ' + WK.num(Math.min(vals.r, tR)) + ' riesgo(s), ' + WK.num(tS) + ' de ' + WK.num(tP) + ' proyectos quedarían sin desvío ni riesgo. Estimación mínima: supone que ningún proyecto tiene ambos.' };
+    } });
+  const simGoLive = WK.whatif({ id:'opsGL', sliders:[
+    { k:'ade', label:'Go-Live que se adelantan a este trimestre', min:0, max:Math.max(1, tGA - tGQ), step:1, val:0, fmt:x => '+' + WK.num(x) },
+    { k:'atr', label:'Go-Live del trimestre que se atrasan', min:0, max:Math.max(1, tGQ), step:1, val:0, fmt:x => '−' + WK.num(x) } ],
+    calc: vals => {
+      const ade = Math.min(vals.ade, Math.max(0, tGA - tGQ)), atr = Math.min(vals.atr, tGQ), q = tGQ + ade - atr, resto = Math.max(0, tGA - q), f = pctDe(q, tGA);
+      return { gauge:{ valor:q, max:tGA || 1, tono:q >= tGQ ? 'green' : 'amber', texto:WK.num(q) + ' / ' + WK.num(tGA), label:'Go-Live del trimestre vs. año', tip:'Go-Live del trimestre\n' + WK.num(q) + ' de ' + WK.num(tGA) + ' del año (' + WK.pct(f) + ')\nHoy: ' + WK.num(tGQ) },
+        stats:[ { valor:WK.num(q), label:'Go-Live este trimestre' }, { valor:WK.num(resto), label:'Quedan para el resto del año' }, { valor:(q - tGQ >= 0 ? '+' : '−') + WK.num(Math.abs(q - tGQ)), label:'vs. hoy (' + WK.num(tGQ) + ')' } ],
+        nota:ade + atr === 0 ? 'Mueve los controles para ver cómo cambia la carga del trimestre si se adelantan o se atrasan Go-Live.' : 'El trimestre pasaría de ' + WK.num(tGQ) + ' a ' + WK.num(q) + ' Go-Live y quedarían ' + WK.num(resto) + ' por entregar en el resto del año.' };
+    } });
+  const simulador = (ico, titulo, sub, sim) => WK.card({ ico, titulo, sub:sub + ' Es una simulación, no se guarda.', body:sim });
+
+  const filasLob = lobs.map(l => ({ lob:nomLob(l), proyectos:l.proyectos, conDesvio:l.conDesvio, conRiesgo:l.conRiesgo, pctD:pctDe(l.conDesvio, l.proyectos), pctR:pctDe(l.conRiesgo, l.proyectos), ga:l.goLiveAnual, gq:l.goLiveQ, top:String(l.topProyectos||'').split('|').map(s => s.trim()).filter(Boolean).join(' · ') }));
   const tablaLob = WK.table([
     { k:'lob', label:'LOB', tipo:'strong' }, { k:'proyectos', label:'Proyectos', tipo:'num' }, { k:'conDesvio', label:'Con desvío', tipo:'num' }, { k:'conRiesgo', label:'Con riesgo', tipo:'num' },
     { k:'pctD', label:'% desvío', tipo:'pct' }, { k:'pctR', label:'% riesgo', tipo:'pct' }, { k:'ga', label:'Go-Live anual', tipo:'num' }, { k:'gq', label:'Go-Live Q', tipo:'num' }, { k:'top', label:'Proyectos más relevantes', tipo:'note' }
@@ -353,25 +406,29 @@ function render(){
   const clave = proyectosClave(lobs);
   const tablaClave = clave.length
     ? '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar proyecto o LOB…" oninput="WK.filtrar(document.getElementById(\'tablaClave\'), this.value)"></div>' +
-      WK.table([{ k:'proyecto', label:'Proyecto', tipo:'strong' }, { k:'lob', label:'LOB', tipo:'tag' }], clave, { id:'tablaClave' })
+      WK.table([{ k:'proyecto', label:'Proyecto', tipo:'strong' }, { k:'lob', label:'LOB', tipo:'tag' }, { k:'proyLob', label:'Proyectos de la LOB', tipo:'num' }, { k:'pctD', label:'% desvío LOB', tipo:'pct' }, { k:'pctR', label:'% riesgo LOB', tipo:'pct' }, { k:'gl', label:'Go-Live anual LOB', tipo:'num' }], clave, { id:'tablaClave' })
     : WK.empty('El Excel no trae proyectos relevantes por LOB.');
 
-  const bitacora = WK.table([
+  const bitacora = '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar semana o quién cargó…" oninput="WK.filtrar(document.getElementById(\'tablaBitacora\'), this.value)"></div>' + WK.table([
     { k:'semana', label:'Semana', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' },
     { k:'proy', label:'Proyectos', tipo:'num' }, { k:'desv', label:'% Desvío', tipo:'pct' }, { k:'ries', label:'% Riesgo', tipo:'pct' }, { k:'gq', label:'Go-Live Q', tipo:'num' }
   ], historial.slice().reverse().map(h => { const tp = suma(h.porLob,'proyectos'); return { semana:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:WK.hora(h.guardadoEn).split(' ')[0], proy:tp, desv:pctDe(suma(h.porLob,'conDesvio'), tp), ries:pctDe(suma(h.porLob,'conRiesgo'), tp), gq:suma(h.porLob,'goLiveQ'), _id:h.guardadoEn }; }),
-    { rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver el dashboard completo de esta semana"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
+    { id:'tablaBitacora', rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver el dashboard completo de esta semana"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
 
   content.innerHTML = banner +
-    WK.chips([{ id:'resumen', label:'Resumen' }, { id:'lob', label:'Por LOB', n:lobs.length }, { id:'detalle', label:'Detalle' }, { id:'bitacora', label:'Bitácora', n:historial.length }]) +
+    WK.chips([{ id:'resumen', label:'Resumen' }, { id:'lob', label:'Por LOB', n:lobs.length }, { id:'simular', label:'Simuladores' }, { id:'detalle', label:'Detalle' }, { id:'bitacora', label:'Bitácora', n:historial.length }]) +
     '<div id="resumen" style="scroll-margin-top:70px">' + kpis + WK.callout('Insight de Delfos', insight, 'insightText') + '</div>' +
     WK.band('lob', 'Operaciones por LOB', 'Proyectos, desvíos, riesgos y Go-Lives') +
     '<div class="wk-grid2">' + donutProy + donutGL + '</div>' +
-    '<div style="height:18px"></div>' +
+    '<div style="height:22px"></div>' +
     WK.card({ ico:'🩺', titulo:'Salud por LOB', sub:'Proyectos, desvíos y riesgos de cada línea', body:saludPorLob(lobs, prev) }) +
-    '<div class="wk-grid2">' + exposicion + WK.card({ ico:'⭐', titulo:'Proyectos más relevantes', count:clave.length, body:tablaClave }) + '</div>' +
+    '<div class="wk-grid2">' + exposicion + columnas + '</div>' +
+    WK.band('simular', 'Simuladores', 'Qué pasaría si… · no se guardan') +
+    simulador('🧪', 'Simulador: ¿y si resolvemos desvíos y riesgos?', 'Mueve los controles y mira cuántos proyectos quedarían sanos por LOB.', simSalud) +
+      simulador('🚀', 'Simulador: ¿y si cambian los Go-Live?', 'Adelanta o atrasa Go-Live y mira la carga del trimestre.', simGoLive) +
     WK.band('detalle', 'Detalle', 'Ordena por cualquier columna') +
     WK.card({ ico:'📋', titulo:'Detalle por LOB', sub:'Haz clic en un encabezado para ordenar.', body:tablaLob }) +
+    WK.card({ ico:'⭐', titulo:'Proyectos más relevantes', count:clave.length, sub:'Busca por proyecto o LOB y ordena por cualquier columna.', body:tablaClave }) +
     WK.band('bitacora', 'Bitácora semanal', 'Haz clic en una semana para ver el dashboard completo tal como se veía entonces') +
     WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora }) +
     '<div class="wk-foot">Conteos de proyectos (sin montos) · Fechas en DD/MM/AA.</div>';
