@@ -12,12 +12,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow:0 3px 9px rgba(159,179,204,0.35);
-    --t1:#F28C28; --t2:#2E9D68; --t3:#AAB4C3; --nt:#4B5563; }
+  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --shadow:0 3px 9px rgba(159,179,204,0.35); }
   *{box-sizing:border-box;}
-  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; background:#060C1B; min-height:100vh;}
   .topnav{background:#fff; border-bottom:1px solid var(--line);}
   .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
   .topnav-logo img{height:26px; display:block;}
@@ -36,77 +34,93 @@
   header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
   header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
   header p{margin:0; color:var(--cyan-l); font-size:13px; max-width:640px;}
-  .hd-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
   .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
+  .hd-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap; flex:none;}
   input[type=file]{position:absolute; left:-9999px;}
   .hbtn{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; display:inline-block; font-family:inherit;}
   .hbtn:hover, .hbtn:focus-visible{background:rgba(255,255,255,0.22);}
   .hbtn:focus-within{outline:2px solid var(--cyan-l);}
   .switch{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#fff; cursor:pointer; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.25); border-radius:8px; padding:8px 12px;}
   .switch input{width:18px; height:18px; accent-color:var(--cyan);}
-  .layout{display:grid; grid-template-columns:280px minmax(0,1fr); gap:20px; max-width:1600px; margin:0 auto; padding:22px 24px 60px; align-items:start;}
-  .layout > *{min-width:0;}
-  aside.filters{background:#fff; border-radius:14px; padding:18px; box-shadow:var(--shadow); position:sticky; top:12px; max-height:calc(100vh - 24px); overflow:auto;}
-  aside.filters h2{font-size:14px; margin:0 0 12px; color:var(--navy2);}
-  .fgrid{display:grid; grid-template-columns:1fr; gap:10px;}
-  .fld label{display:block; font-size:10.5px; font-weight:700; color:var(--grey); text-transform:uppercase; letter-spacing:.3px; margin-bottom:3px;}
-  .fld select, .fld input[type=search]{width:100%; font-family:inherit; font-size:13px; padding:7px 8px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink);}
-  .fld select:focus-visible, .fld input:focus-visible, button:focus-visible, a:focus-visible{outline:2px solid var(--blue); outline-offset:1px;}
-  .btn{background:var(--blue); color:#fff; border:none; border-radius:8px; padding:8px 14px; font-size:12.5px; font-weight:600; cursor:pointer; font-family:inherit;}
-  .btn.sec{background:#fff; color:var(--blue); border:1px solid var(--blue);}
-  .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
-  .section h2, .section h3{font-size:15px; color:var(--navy2); margin:0 0 4px;}
-  .sub{font-size:12px; color:var(--grey); margin:0 0 12px;}
-  .kpi-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:8px;}
-  .kpi-card{background:#fff; border-radius:14px; padding:16px 18px; box-shadow:var(--shadow); border-top:4px solid var(--blue);}
-  .kpi-card.t1{border-top-color:var(--t1);} .kpi-card.t2{border-top-color:var(--t2);} .kpi-card.t3{border-top-color:var(--t3);} .kpi-card.nt{border-top-color:var(--nt);}
-  .kpi-card .label{font-size:11px; color:var(--grey); font-weight:600; line-height:1.3;}
-  .kpi-card .value{font-size:24px; font-weight:800; color:var(--navy2); margin-top:6px;}
-  .kpi-card .meta{font-size:11px; color:var(--greyl); margin-top:2px;}
-  .nota{font-size:11.5px; color:var(--greyl); margin:0 0 18px 4px;}
-  .charts{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-bottom:18px;}
-  .charts .section{margin-bottom:0;}
-  .chart-box{position:relative; height:300px;}
-  .chart-box.tall{height:340px;}
-  table{width:100%; border-collapse:collapse; font-size:12.5px;}
-  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10px; text-transform:uppercase; white-space:nowrap;}
-  td{padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top;}
-  table.pil th, table.pil td{text-align:center;} table.pil th:first-child, table.pil td:first-child{text-align:left;}
-  .tbl-wrap{overflow:auto; max-height:640px; border:1px solid var(--line); border-radius:10px;}
-  .tbl-wrap table{min-width:2200px;}
-  .tbl-wrap th{position:sticky; top:0; background:#F4F8FC; z-index:2; cursor:pointer; user-select:none;}
-  .tbl-wrap th:hover{color:var(--blue);}
-  .tbl-wrap th .ar{font-size:9px; margin-left:3px;}
-  .tbl-wrap td.cm{max-width:280px; min-width:200px; cursor:pointer;}
-  .tbl-wrap td.cm.open{white-space:normal;} .tbl-wrap td.cm:not(.open) span{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:280px;}
-  .badge{display:inline-block; font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap; border:1px solid transparent;}
-  .b-t1{background:#FDEBD6; color:#8A4A08; border-color:var(--t1);} .b-t2{background:#DDF3E8; color:#17603F; border-color:var(--t2);} .b-t3{background:#EEF1F5; color:#4B5563; border-color:var(--t3);} .b-nt{background:#4B5563; color:#fff;} .b-sc{background:#fff; color:var(--grey); border-color:var(--line);}
-  .b-p1{background:#DCE8F8; color:#123E7E; border-color:var(--blue);} .b-p2{background:#DDF4FB; color:#0E5E78; border-color:var(--cyan);} .b-ps{background:#EEF1F5; color:#4B5563; border-color:var(--greyl);} .b-np{background:#fff; color:var(--greyl); border-color:var(--line);}
-  .pager{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:12px; font-size:12.5px; color:var(--grey);}
-  .pager select{font-family:inherit; padding:5px; border:1px solid var(--line); border-radius:6px;}
-  .pager button{border:1px solid var(--line); background:#fff; border-radius:6px; padding:5px 10px; cursor:pointer; font-family:inherit;}
-  .pager button:disabled{opacity:.4; cursor:default;}
-  details.acc{background:#fff; border-radius:14px; box-shadow:var(--shadow); padding:14px 22px; margin-bottom:18px;}
-  details.acc summary{cursor:pointer; font-weight:700; font-size:15px; color:var(--navy2);}
-  .dq-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px;}
-  .dq{background:var(--card); border-radius:10px; padding:10px 12px; font-size:12.5px;} .dq b{display:block; font-size:18px; color:var(--navy2);} .dq.warn b{color:var(--red);}
-  .alert{border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:12px;}
-  .alert.err{background:#FBEAEA; color:#8B2C2C; border:1px solid #E7B9B9;} .alert.warn{background:#FBF1DE; color:#8A6414; border:1px solid #E9D9AE;} .alert.ok{background:#E7F7EE; color:#1F6B41; border:1px solid #B9E1C9;}
-  a .lnk-ic{vertical-align:-2px; margin-left:2px;}
-  td a{color:var(--blue); text-decoration:none;} td a:hover{text-decoration:underline;}
-  .delta{font-size:11px; font-weight:600; margin-top:4px; color:var(--grey);}
-  .delta.up{color:#17603F;} .delta.down{color:#8B2C2C;}
-  .prio td:nth-child(1){font-weight:700; color:var(--greyl);}
-  .chg-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:20px; background:var(--card); border:1px solid var(--line); white-space:nowrap;}
-  .empty{text-align:center; padding:70px 20px; color:var(--greyl);} .empty h2{color:var(--navy2);}
-  .priv{font-size:11.5px; color:var(--greyl); margin-top:10px;}
-  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible{outline:2px solid #3DD6FF; outline-offset:2px;}
+
+  /* ---------- Base Instalada: componentes locales (tema oscuro) ---------- */
+  .bx-filtros summary{list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:19px; font-weight:700; color:#F2F7FF;}
+  .bx-filtros summary::-webkit-details-marker, .bx-acc summary::-webkit-details-marker{display:none;}
+  .bx-filtros summary:after, .bx-acc summary:after{content:"\25BE"; color:#8FE6FF; font-size:16px; transition:transform .2s;}
+  .bx-filtros:not([open]) summary:after, .bx-acc:not([open]) summary:after{transform:rotate(-90deg);}
+  .bx-fgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px 14px; margin-top:14px;}
+  .bx-fld label{display:block; font-size:11.5px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:var(--wk-greyl); margin-bottom:5px;}
+  .bx-fld select, .bx-fld input{width:100%; font:500 14px Poppins,"Segoe UI",sans-serif; padding:8px 12px; border-radius:12px; border:1px solid var(--wk-line); background:rgba(255,255,255,.06); color:#fff; color-scheme:dark;}
+  .bx-fld select:hover, .bx-fld input:hover{border-color:rgba(61,214,255,.5);}
+  .bx-fld select option{background:#0E1A34; color:#fff;}
+  .bx-fld input::placeholder{color:var(--wk-greyl);}
+  .bx-pills{display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; min-height:0;}
+  .bx-pills:empty{display:none;}
+  .bx-pill{font:600 13px Poppins,"Segoe UI",sans-serif; border-radius:99px; padding:6px 14px; background:rgba(61,214,255,.14); border:1px solid rgba(61,214,255,.38); color:#CFF3FF; cursor:pointer;}
+  .bx-pill:hover{background:rgba(255,92,122,.18); border-color:rgba(255,92,122,.5); color:#fff;}
+  .bx-pill:after{content:" \2715"; opacity:.7; font-size:11px;}
+  .bx-navstat{margin-left:auto; font:600 13px Poppins,"Segoe UI",sans-serif; color:#8FE6FF; padding:6px 4px;}
+  .bx-btn{background:rgba(255,255,255,.08); border:1px solid var(--wk-line); color:#CFE0FA; border-radius:99px; padding:8px 18px; font:600 13px Poppins,"Segoe UI",sans-serif; cursor:pointer;}
+  .bx-btn:hover{border-color:var(--wk-cyan); color:#fff; box-shadow:0 0 18px rgba(61,214,255,.25);}
+  .bx-nota{margin:2px 4px 26px; font-size:13.5px; color:var(--wk-greyl); max-width:1100px; line-height:1.55;}
+  .bx-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(520px,1fr)); gap:22px; margin-bottom:22px;} .bx-grid>.wk-card{margin-bottom:0;}
+  .bx-heroes .wk-hero .wk-gauge{max-width:250px;}
+  .bx-heroes .wk-hero-chart{display:flex; flex-direction:column; justify-content:flex-end;}
+  .bx-mleg{display:flex; gap:6px 14px; flex-wrap:wrap; font-size:13px; color:rgba(255,255,255,.85); margin-top:12px;}
+  .bx-mleg span{white-space:nowrap;} .bx-mleg i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; background:var(--c);}
+  .bx-split.wk-bar{display:flex; gap:3px; height:20px; margin-top:6px; background:none!important; overflow:visible;}
+  .bx-split.wk-bar>i{display:block; height:100%; min-width:8px; border-radius:99px;}
+  .bx-split.wk-bar>i:hover, .bx-srow .wk-bar>i:hover{filter:brightness(1.3) drop-shadow(0 0 8px rgba(255,255,255,.4)); cursor:pointer;}
+  .bx-stack{display:grid; gap:12px; margin-top:6px;} .bx-stack.long{max-height:640px; overflow:auto; padding-right:8px;}
+  .bx-srow{display:grid; grid-template-columns:minmax(110px,210px) 1fr auto; gap:14px; align-items:center; font-size:15px;}
+  .bx-srow .n{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#E3ECFA; font-weight:600; cursor:pointer;} .bx-srow .n:hover{color:#8FE6FF;}
+  .bx-srow b{color:#fff; font-size:15.5px; font-variant-numeric:tabular-nums; min-width:44px; text-align:right;}
+  .bx-srow .wk-bar{display:flex; gap:2px; height:20px; margin:0; background:none!important; overflow:hidden; border-radius:99px;}
+  .bx-srow .wk-bar>i{display:block; height:100%; min-width:6px; border-radius:6px;}
+  [data-fk]{cursor:pointer;}
+  .wk-rank-row .t i.otros{background:linear-gradient(90deg,#4B5E85,#8FA3C6);}
+  .bx-tier{display:inline-flex; align-items:center; gap:6px; padding:3px 11px; border-radius:99px; font-size:12px; font-weight:700; white-space:nowrap; border:1px solid transparent;}
+  .bx-tier:before{font-size:10px;}
+  .b-t1{background:rgba(255,162,58,.16); color:#FFC27A; border-color:rgba(255,162,58,.45);} .b-t1:before{content:"\25B2";}
+  .b-t2{background:rgba(47,226,155,.14); color:#6CF0BC; border-color:rgba(47,226,155,.4);} .b-t2:before{content:"\25CF";}
+  .b-t3{background:rgba(143,163,198,.16); color:#C3D0E8; border-color:rgba(143,163,198,.4);} .b-t3:before{content:"\25A0";}
+  .b-nt{background:rgba(255,92,122,.15); color:#FF9DB0; border-color:rgba(255,92,122,.4);} .b-nt:before{content:"\2298";}
+  .b-sc{background:rgba(255,255,255,.06); color:var(--wk-greyl); border-color:var(--wk-line);} .b-sc:before{content:"?";}
+  .bx-cm{max-width:330px; min-width:220px; cursor:pointer;} .bx-cm span{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:330px;} .bx-cm.open span{white-space:normal; max-width:none;}
+  .bx-tall .wk-tablewrap{max-height:680px;}
+  .bx-wide .wk-table{min-width:2700px;}
+  .bx-wide .wk-table td{white-space:nowrap;} .bx-wide .wk-table td.bx-cm{white-space:normal;}
+  .bx-prio .wk-table td{font-size:15px;}
+  .bx-link{color:#8FE6FF; text-decoration:none; font-weight:700;} .bx-link:hover{text-decoration:underline; color:#fff;}
+  .lnk-ic{vertical-align:-2px; margin-left:3px; opacity:.7;}
+  .bx-pager{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:16px; font-size:14px; color:var(--wk-grey);}
+  .bx-pager select{font:600 13.5px Poppins,"Segoe UI",sans-serif; padding:7px 10px; border-radius:10px; border:1px solid var(--wk-line); background:rgba(255,255,255,.06); color:#fff; color-scheme:dark;}
+  .bx-pager select option{background:#0E1A34;}
+  .bx-pager button{border:1px solid var(--wk-line); background:rgba(255,255,255,.06); color:#E3ECFA; border-radius:10px; padding:8px 16px; cursor:pointer; font:600 13.5px Poppins,"Segoe UI",sans-serif;}
+  .bx-pager button:hover:not(:disabled){border-color:var(--wk-cyan); color:#fff;} .bx-pager button:disabled{opacity:.35; cursor:default;}
+  .bx-chg{display:grid; grid-template-columns:minmax(260px,1fr) minmax(300px,1.3fr); gap:26px; align-items:start; margin-bottom:20px;}
+  .bx-chg h4{margin:0 0 12px; font-size:13px; letter-spacing:.7px; text-transform:uppercase; color:var(--wk-greyl);}
+  .bx-trend{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:28px; margin-bottom:22px;}
+  .bx-trend h4{margin:0 0 8px; font-size:14.5px; font-weight:600; color:var(--wk-grey); display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
+  .bx-trend h4 b{color:#fff; font-size:24px; font-weight:800; letter-spacing:-.5px;}
+  .bx-trend .wk-area{max-height:140px; margin:0 auto;}
+  .bx-dq .wk-stat-row{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));} .bx-w{color:#FF8CA2; font-style:normal;}
+  .bx-sub{font-size:13.5px; color:var(--wk-grey); margin:12px 2px 0;}
+  .bx-acc summary{list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; font-size:19px; font-weight:700; color:#F2F7FF;}
+  .bx-acc .bx-body{margin-top:16px;}
+  .alert{border-radius:14px; padding:12px 18px; font-size:14.5px; margin-bottom:18px; border:1px solid;}
+  .alert.err{background:rgba(255,92,122,.12); color:#FF9DB0; border-color:rgba(255,92,122,.4);} .alert.warn{background:rgba(255,200,87,.12); color:#FFD479; border-color:rgba(255,200,87,.38);} .alert.ok{background:rgba(47,226,155,.12); color:#6CF0BC; border-color:rgba(47,226,155,.38);}
+  .alert ul{margin:6px 0 0 18px; padding:0;}
+  .loading{color:var(--wk-grey,#A5B4CE); font-size:14px; text-align:center; padding:20px;}
+  .empty-bx{text-align:center; padding:70px 20px!important;} .empty-bx h2{margin:0 0 8px; font-size:24px; color:#fff;} .empty-bx p{margin:0 auto; max-width:560px; color:var(--wk-grey); font-size:15px; line-height:1.6;}
+  .wk-wi-out .wk-stat-row{width:100%;}
   .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0);}
-  @media (max-width:1100px){ .layout{grid-template-columns:minmax(0,1fr);} aside.filters{position:static; max-height:none;} .fgrid{grid-template-columns:repeat(2,minmax(0,1fr));} .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));} .charts{grid-template-columns:minmax(0,1fr);} }
-  @media (max-width:600px){ .fgrid, .kpi-grid, .dq-grid{grid-template-columns:minmax(0,1fr);} .layout{padding:14px 12px 40px;} header{padding:20px 14px;} }
+  @media (max-width:1100px){ .bx-chg{grid-template-columns:minmax(0,1fr);} }
+  @media (max-width:640px){ .bx-grid{grid-template-columns:minmax(0,1fr);} .bx-srow{grid-template-columns:minmax(90px,130px) 1fr auto;} header{padding:20px 14px;} }
 </style>
 </head>
-<body>
+<body class="wk-dark" data-wk-owner="baseinstalada">
 <script>
 (async function(){
   const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
@@ -118,8 +132,8 @@
     window.__permiso = d.permiso;
     if(d.permiso === 'ninguno'){
       const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
-      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías tenerlo, pide a un Administrador que revise tu rol en Roles y Permisos.</p>';
+      overlay.style.cssText = 'position:fixed; inset:0; background:#060C1B; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#F2F7FF; margin:0 0 8px; font-size:20px;">No tienes acceso a esta página</h2><p style="color:#A5B4CE; font-size:14.5px; max-width:380px; margin:0;">Si crees que deberías tenerlo, pide a un Administrador que revise tu rol en Roles y Permisos.</p>';
       document.body.appendChild(overlay);
       document.body.style.overflow = 'hidden';
     }else if(d.permiso === 'lectura'){
@@ -215,7 +229,7 @@
 <header>
   <div>
     <h1>📊 Base Instalada — Resumen Ejecutivo Business Experience</h1>
-    <p>Vista de priorización de cuentas Tier 1, Tier 2 y Tier 3. Las cuentas clasificadas como “No tocar” se excluyen por defecto.</p>
+    <p>Vista de priorización de cuentas Tier 1, Tier 2 y Tier 3. Las cuentas clasificadas como “No tocar” se excluyen por defecto. · Fechas DD/MM/AA</p>
     <div id="fechaBadge"></div>
   </div>
   <div class="hd-actions">
@@ -227,70 +241,23 @@
   </div>
 </header>
 
-<div class="layout">
-  <aside class="filters" aria-label="Filtros">
-    <h2>Filtros</h2>
-    <div class="fgrid" id="filters"></div>
-  </aside>
-  <main>
-    <div id="alerts" role="status"></div>
-    <div id="empty" class="section empty"><h2>Todavía no hay una base cargada</h2><p>Selecciona “Base Instalada Full - Ranking Cuentas.xlsx” (hoja “Hoja1”, y opcionalmente “Pilotos”) para construir el tablero.</p></div>
-    <div id="dash" style="display:none">
-      <div class="kpi-grid" id="kpis"></div>
-      <p class="nota">Los resultados se calculan directamente desde el Excel cargado. No se utilizan cifras escritas manualmente. Total base instalada, No tocar y Cobertura respetan todos los filtros excepto Tier y el interruptor “Mostrar cuentas No tocar”.</p>
+<main class="wk-main">
+  <div id="alerts" role="status"></div>
+  <div id="empty" class="wk-card empty-bx"><h2>Todavía no hay una base cargada</h2><p>Selecciona “Base Instalada Full - Ranking Cuentas.xlsx” (hoja “Hoja1”, y opcionalmente “Pilotos”) para construir el tablero.</p></div>
+  <div id="dash" style="display:none"></div>
+</main>
 
-      <div class="section">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
-          <div><h2>Prioridades de contacto — Tier 1</h2><p class="sub">Las 10 cuentas Tier 1 por mayor oportunidad y menor relación. Respeta los filtros (excepto Tier).</p></div>
-          <button type="button" class="btn sec" id="btnVerTier1" aria-label="Ver todas las cuentas Tier 1 en la tabla">Ver todas en la tabla</button>
-        </div>
-        <div style="overflow:auto"><table class="prio" id="prioTable"></table></div>
-      </div>
-
-      <details class="acc" id="chgBox"><summary id="chgSummary">Cambios vs. carga anterior</summary><div id="chg"></div></details>
-
-      <div class="section">
-        <h2>Pilotos por Tier</h2>
-        <p class="sub">Se recalcula con los filtros activos.</p>
-        <div style="overflow:auto"><table class="pil" id="pilTable"></table></div>
-      </div>
-
-      <div class="charts">
-        <div class="section"><h3>Distribución por Tier</h3><p class="sub">Clic en un segmento para filtrar.</p><div class="chart-box" role="img" id="ariaTier"><canvas id="cTier"></canvas></div></div>
-        <div class="section"><h3>Cuentas por territorio</h3><p class="sub">Top 10 estados; el resto en “Otros”.</p><div class="chart-box" role="img" id="ariaTerr"><canvas id="cTerr"></canvas></div></div>
-        <div class="section"><h3>Cuentas por industria</h3><p class="sub">MX Industria, segmentado por Tier.</p><div class="chart-box" role="img" id="ariaInd"><canvas id="cInd"></canvas></div></div>
-        <div class="section"><h3>Pilotos por Tier</h3><p class="sub">Piloto 1, Piloto 2 y Piloto sin fase.</p><div class="chart-box" role="img" id="ariaPil"><canvas id="cPil"></canvas></div></div>
-      </div>
-      <div class="section"><h3>Cuentas por KAM</h3><p class="sub">Segmentado por Tier, orden descendente por total.</p><div class="chart-box tall" role="img" id="ariaKam"><canvas id="cKam"></canvas></div></div>
-
-      <div class="section">
-        <h2>Tabla operativa</h2>
-        <p class="sub" id="tblInfo"></p>
-        <div class="tbl-wrap"><table id="tbl" aria-label="Tabla operativa de cuentas"></table></div>
-        <div class="pager">
-          <div>Mostrar <select id="pgSize" aria-label="Registros por página"><option>25</option><option>50</option><option>100</option></select> registros</div>
-          <div id="pgInfo"></div>
-          <div><button type="button" id="pgPrev" aria-label="Página anterior">‹ Anterior</button> <button type="button" id="pgNext" aria-label="Página siguiente">Siguiente ›</button></div>
-        </div>
-      </div>
-
-      <details class="acc" id="dqBox"><summary>Calidad de datos</summary><div id="dq"></div></details>
-      <div class="section"><h3>📅 Historial de cargas</h3><div id="hist"></div></div>
-      <p class="priv">Este tablero guarda la última carga en el portal (acceso restringido por Roles y Permisos) para que el equipo la consulte sin volver a subir el Excel.</p>
-    </div>
-  </main>
-</div>
-
+<script src="/wbr-kit.js?v=20261008"></script>
 <script>
 'use strict';
 /* ===== Constantes ===== */
 var TIERS = ['Tier 1','Tier 2','Tier 3','No tocar'];
-var TIER_COLOR = {'Tier 1':'#F28C28','Tier 2':'#2E9D68','Tier 3':'#AAB4C3','No tocar':'#4B5563','Sin clasificación':'#D8E2EE'};
+var TIER_COLOR = {'Tier 1':'#FFA23A','Tier 2':'#2FE29B','Tier 3':'#8FA3C6','No tocar':'#FF5C7A','Sin clasificación':'#5B6B88'};
 var TIER_CLASS = {'Tier 1':'b-t1','Tier 2':'b-t2','Tier 3':'b-t3','No tocar':'b-nt','Sin clasificación':'b-sc'};
-var TIER_ICON = {'Tier 1':'▲ ','Tier 2':'● ','Tier 3':'■ ','No tocar':'⊘ ','Sin clasificación':'? '};
+var TIER_SHORT = {'Tier 1':'T1','Tier 2':'T2','Tier 3':'T3','No tocar':'No tocar','Sin clasificación':'Sin clasif.'};
 var PILOTS = ['Piloto 1','Piloto 2','Piloto sin fase'];
-var PIL_CLASS = {'Piloto 1':'b-p1','Piloto 2':'b-p2','Piloto sin fase':'b-ps','No es piloto':'b-np'};
-var PIL_COLOR = {'Piloto 1':'#1E5BB8','Piloto 2':'#33B4DD','Piloto sin fase':'#8A97AC'};
+var PIL_TONO = {'Piloto 1':'blue','Piloto 2':'green','Piloto sin fase':'amber','No es piloto':'grey'};
+var PIL_COLOR = {'Piloto 1':'#5BC8FF','Piloto 2':'#8B7CFF','Piloto sin fase':'#FFC857'};
 var COLS = ['ID_ Hubspot','Cuenta','LOB','Ejecutivo BX','Comentarios BX','KAM','Sector','MX Industria','Subindustria','Estado','Ciudad','Empleados','Facturación','Comentarios KAM','Score Relación','Score Oportunidad','Cuadrante','Prioridad (orden)','Palabras clave detectadas','Ranking Global','Tier','Piloto'];
 var FILTERS = [
   {id:'estado', label:'Estado', get:function(r){return [r.estadoN];}},
@@ -309,23 +276,26 @@ var HUBSPOT_PORTAL = '6740520';
 var LINK_ICON = ' <svg class="lnk-ic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
 function hubspotLink(id, label){
   if(!/^\d+$/.test(String(id||''))) return escapeHtml(label==null?id:label);
-  return '<a href="https://app.hubspot.com/contacts/'+HUBSPOT_PORTAL+'/record/0-2/'+id+'" target="_blank" rel="noopener noreferrer" aria-label="Abrir cuenta en HubSpot">'+escapeHtml(label==null?id:label)+LINK_ICON+'</a>';
+  return '<a class="bx-link" href="https://app.hubspot.com/contacts/'+HUBSPOT_PORTAL+'/record/0-2/'+id+'" target="_blank" rel="noopener noreferrer" aria-label="Abrir cuenta en HubSpot">'+escapeHtml(label==null?id:label)+LINK_ICON+'</a>';
 }
+/* Columnas de la tabla operativa (k = campo, t = encabezado, tipo = tipo de WK.table) */
 var TBL_COLS = [
-  {k:'ranking',t:'Ranking Global'},{k:'cuenta',t:'Cuenta'},{k:'tierN',t:'Tier Normalizado'},{k:'pilotoN',t:'Piloto Normalizado'},{k:'kamN',t:'KAM'},{k:'bxN',t:'Ejecutivo BX'},
-  {k:'estadoN',t:'Estado Normalizado'},{k:'ciudadN',t:'Ciudad Normalizada'},{k:'industria',t:'MX Industria'},{k:'subindustria',t:'Subindustria'},{k:'lob',t:'LOB'},
-  {k:'empleados',t:'Empleados'},{k:'facturacion',t:'Facturación'},{k:'scoreRel',t:'Score Relación'},{k:'scoreOpp',t:'Score Oportunidad'},{k:'cuadrante',t:'Cuadrante'},
-  {k:'comKam',t:'Comentarios KAM'},{k:'comBx',t:'Comentarios BX'},{k:'id',t:'ID HubSpot'}
+  {k:'ranking',t:'Ranking Global',tipo:'num'},{k:'cuenta',t:'Cuenta',tipo:'strong'},{k:'tierN',t:'Tier Normalizado',tipo:'html'},{k:'pilotoN',t:'Piloto Normalizado',tipo:'html'},{k:'kamN',t:'KAM',tipo:'text'},{k:'bxN',t:'Ejecutivo BX',tipo:'text'},
+  {k:'estadoN',t:'Estado Normalizado',tipo:'text'},{k:'ciudadN',t:'Ciudad Normalizada',tipo:'text'},{k:'industria',t:'MX Industria',tipo:'text'},{k:'subindustria',t:'Subindustria',tipo:'text'},{k:'lob',t:'LOB',tipo:'text'},
+  {k:'empleados',t:'Empleados',tipo:'text'},{k:'facturacion',t:'Facturación',tipo:'text'},{k:'scoreRel',t:'Score Relación',tipo:'num'},{k:'scoreOpp',t:'Score Oportunidad',tipo:'num'},{k:'cuadrante',t:'Cuadrante',tipo:'text'},
+  {k:'comKam',t:'Comentarios KAM',tipo:'html',cls:'bx-cm'},{k:'comBx',t:'Comentarios BX',tipo:'html',cls:'bx-cm'},{k:'id',t:'ID HubSpot',tipo:'html'}
 ];
 /* ===== Estado ===== */
-var S = { raw:null, rows:[], meta:null, warnings:[], sel:{}, search:'', showNT:false, sortKey:null, sortDir:1, page:0, pageSize:25, charts:{}, historial:[], permiso:null, prevRows:null, prevMeta:null };
+var S = { raw:null, rows:[], meta:null, warnings:[], sel:{}, search:'', showNT:false, sortKey:null, sortDir:1, page:0, pageSize:25, historial:[], permiso:null, prevRows:null, prevMeta:null };
 
 /* ===== Utilidades ===== */
+function $(id){ return document.getElementById(id); }
 function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function normaliseText(s){ return (s==null?'':String(s)).replace(/[\r\n]+/g,' ').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }
 function cleanStr(s){ return (s==null?'':String(s)).replace(/[\r\n]+/g,' ').replace(/\s+/g,' ').trim(); }
 function parseNumber(v){ if(v==null||v==='') return null; var n = typeof v==='number' ? v : parseFloat(String(v).replace(/[^0-9.\-]/g,'')); return isFinite(n) ? n : null; }
-function fmtDate(iso){ try{ return new Date(iso).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'}); }catch(e){ return iso||''; } }
+function fmtDate(iso){ return WK.hora(iso); }   /* DD/MM/AA HH:MM */
+function pct(n, d){ return d ? Math.round(n/d*100) : 0; }
 
 function normaliseHeaders(headerRow){
   var canon = {}; COLS.forEach(function(c){ canon[normaliseText(c).replace(/[_\s]+/g,'')] = c; });
@@ -476,17 +446,18 @@ function scopeRows(){ // todos los filtros salvo Tier; incluye No tocar y Sin cl
     return true;
   });
 }
+function isFiltered(){ return !!(S.search || S.showNT || FILTERS.some(function(f){ return S.sel[f.id]; })); }
 function populateFilters(){
-  var host = document.getElementById('filters'); var h = '';
-  h += '<div class="fld"><label for="fSearch">Buscar cuenta o ID HubSpot</label><input type="search" id="fSearch" aria-label="Buscar cuenta o ID HubSpot" placeholder="Nombre o ID…"></div>';
-  FILTERS.forEach(function(f){ h += '<div class="fld"><label for="f_'+f.id+'">'+escapeHtml(f.label)+'</label><select id="f_'+f.id+'"></select></div>'; });
+  var host = $('filters'); var h = '';
+  h += '<div class="bx-fld"><label for="fSearch">Buscar cuenta o ID HubSpot</label><input type="search" id="fSearch" aria-label="Buscar cuenta o ID HubSpot" placeholder="Nombre o ID…"></div>';
+  FILTERS.forEach(function(f){ h += '<div class="bx-fld"><label for="f_'+f.id+'">'+escapeHtml(f.label)+'</label><select id="f_'+f.id+'"></select></div>'; });
   host.innerHTML = h;
-  document.getElementById('fSearch').addEventListener('input', function(e){ S.search = e.target.value; S.page=0; refresh(); });
-  FILTERS.forEach(function(f){ document.getElementById('f_'+f.id).addEventListener('change', function(e){ S.sel[f.id]=e.target.value||''; S.page=0; refresh(); }); });
+  $('fSearch').addEventListener('input', function(e){ S.search = e.target.value; S.page=0; refresh(); });
+  FILTERS.forEach(function(f){ $('f_'+f.id).addEventListener('change', function(e){ S.sel[f.id]=e.target.value||''; S.page=0; refresh(); }); });
 }
 function updateDependentFilters(){
   FILTERS.forEach(function(f){
-    var sel = document.getElementById('f_'+f.id); if(!sel) return;
+    var sel = $('f_'+f.id); if(!sel) return;
     var counts = {};
     S.rows.forEach(function(r){ if(!matches(r, f.id)) return; f.get(r).forEach(function(v){ counts[v]=(counts[v]||0)+1; }); });
     var vals = Object.keys(counts);
@@ -497,8 +468,17 @@ function updateDependentFilters(){
     var html = '<option value="">Todos</option>' + vals.map(function(v){ return '<option value="'+escapeHtml(v)+'"'+(S.sel[f.id]===v?' selected':'')+'>'+escapeHtml(v)+'</option>'; }).join('');
     sel.innerHTML = html;
   });
+  var fs = $('fSearch'); if(fs && fs.value!==S.search) fs.value = S.search;
 }
-function resetFilters(){ S.sel={}; S.search=''; S.page=0; var s=document.getElementById('fSearch'); if(s) s.value=''; refresh(); }
+function resetFilters(){ S.sel={}; S.search=''; S.page=0; var s=$('fSearch'); if(s) s.value=''; refresh(); }
+function renderPills(){
+  var p = [];
+  FILTERS.forEach(function(f){ if(S.sel[f.id]) p.push('<button type="button" class="bx-pill" data-clr="'+f.id+'" aria-label="Quitar filtro '+escapeHtml(f.label)+'">'+escapeHtml(f.label)+': '+escapeHtml(S.sel[f.id])+'</button>'); });
+  if(S.search) p.push('<button type="button" class="bx-pill" data-clr="__search" aria-label="Quitar búsqueda">Búsqueda: '+escapeHtml(S.search)+'</button>');
+  $('pills').innerHTML = p.join('');
+  var n = p.length, total = getFilteredRows().length;
+  $('navStat').textContent = WK.num(total)+' cuentas en la vista'+(n?' · '+n+(n===1?' filtro':' filtros'):'');
+}
 
 /* ===== KPIs ===== */
 function calculateKPIs(){
@@ -513,57 +493,130 @@ function calculateKPIs(){
   return {totalBase:totalBase, prioridad:prioridad, t1:cnt['Tier 1'], t2:cnt['Tier 2'], t3:cnt['Tier 3'], noTocar:noTocar, cobertura: totalBase? prioridad/totalBase*100 : 0, pilotos:pilotos};
 }
 function withRows(rows, fn){ var keep = S.rows; S.rows = rows; try{ return fn(); } finally{ S.rows = keep; } }
-function deltaHtml(cur, prev, isPct){
-  if(prev==null) return '';
-  var d = cur - prev;
-  if(Math.abs(d) < 0.05) return '<div class="delta">= sin cambio vs. carga anterior</div>';
-  var txt = (d>0?'▲ +':'▼ ')+(isPct? d.toFixed(1)+' pts' : d)+' vs. carga anterior';
-  return '<div class="delta '+(d>0?'up':'down')+'">'+txt+'</div>';
+
+function tierChip(t){ return '<span class="bx-tier '+TIER_CLASS[t]+'">'+escapeHtml(t)+'</span>'; }
+function pilBadge(p){ return WK.badge(p, PIL_TONO[p]||'grey'); }
+function tipTxt(parts){ return parts.join('\n'); }
+
+/* Barra segmentada (mezcla de Tier) para el tile de Total base */
+function splitBar(parts){
+  var tot = parts.reduce(function(a,p){ return a+p.v; }, 0);
+  if(!tot) return '';
+  var bar = '<div class="wk-bar bx-split">'+parts.filter(function(p){ return p.v>0; }).map(function(p){
+    return '<i style="flex:'+p.v+' 1 0;background:linear-gradient(90deg,'+p.color+','+p.color+'cc)" data-tip="'+WK.esc(tipTxt([p.label, WK.num(p.v)+' cuentas · '+pct(p.v,tot)+'% de la base']))+'"></i>';
+  }).join('')+'</div>';
+  var leg = '<div class="bx-mleg">'+parts.filter(function(p){ return p.v>0; }).map(function(p){ return '<span><i style="--c:'+p.color+'"></i>'+WK.esc(TIER_SHORT[p.label]||p.label)+' '+WK.num(p.v)+'</span>'; }).join('')+'</div>';
+  return bar + leg;
 }
-function updateKPIs(){
-  var k = calculateKPIs();
-  var pk = S.prevRows ? withRows(S.prevRows, calculateKPIs) : null;
-  var dl = pk ? [pk.totalBase, pk.prioridad, pk.t1, pk.t2, pk.t3, pk.noTocar, pk.cobertura, pk.pilotos] : [];
-  var cards = [
-    ['Total base instalada', k.totalBase, 'Registros válidos, incluye No tocar',''],
-    ['Prioridad Business Experience', k.prioridad, 'Tier 1 + Tier 2 + Tier 3',''],
-    ['Tier 1', k.t1, 'Contactar desde BX','t1'],
-    ['Tier 2', k.t2, 'Satisfechos con SEIDOR','t2'],
-    ['Tier 3', k.t3, 'Sin información','t3'],
-    ['No tocar', k.noTocar, S.showNT?'Incluidas en la vista':'Excluidas de la vista','nt'],
-    ['Cobertura BX', k.cobertura.toFixed(1)+'%', 'Prioridad BX / Total base',''],
-    ['Total pilotos', k.pilotos, 'Piloto 1, Piloto 2 y sin fase','']
+function histTrend(fn){ return S.historial.slice(-12).map(fn); }
+
+function renderHeroes(){
+  var k = calculateKPIs(), pk = S.prevRows ? withRows(S.prevRows, calculateKPIs) : null;
+  var D = function(cur, key, o){ return pk ? WK.delta(cur, pk[key], o||{}) : ''; };
+  var base = k.totalBase, pr = k.prioridad;
+  var mix = {}; scopeRows().forEach(function(r){ mix[r.tierN] = (mix[r.tierN]||0)+1; });
+  var parts = ['Tier 1','Tier 2','Tier 3','No tocar','Sin clasificación'].map(function(t){ return {label:t, v:mix[t]||0, color:TIER_COLOR[t]}; });
+  function gauge(n, d, tono, label, nombre){
+    return WK.gauge({valor:n, max:d||1, tono:tono, texto:pct(n,d)+'%', label:label, tip:tipTxt([nombre, WK.num(n)+' cuentas · '+pct(n,d)+'% '+label])});
+  }
+  var canTrend = S.historial.length>=2 && !isFiltered();
+  var prChart;
+  if(canTrend){
+    prChart = WK.area(histTrend(function(x){ return x.prioridad!=null ? x.prioridad : (x.t1||0)+(x.t2||0)+(x.t3||0); }), {labels:histTrend(function(x){ return WK.fecha(x.fecha); }), color:'#E4DCFF', nombre:'Prioridad BX', fmt:WK.num, h:110});
+  }else{
+    prChart = WK.bar(base ? pr/base : 0, '');
+  }
+  var pc = {}; PILOTS.forEach(function(p){ pc[p]=0; }); getFilteredRows().forEach(function(r){ if(pc[r.pilotoN]!=null) pc[r.pilotoN]++; });
+  var pilItems = PILOTS.map(function(p){ return {label:p, value:pc[p], color:PIL_COLOR[p]}; });
+  var tiles = [
+    WK.hero({label:'Total base instalada', ico:'🏢', tono:'cyan', value:WK.num(k.totalBase), sub:'Registros válidos, incluye No tocar', delta:D(k.totalBase,'totalBase'), chart:splitBar(parts)}),
+    WK.hero({label:'Prioridad Business Experience', ico:'🎯', tono:'violet', value:WK.num(k.prioridad), sub:'Tier 1 + Tier 2 + Tier 3', delta:D(k.prioridad,'prioridad'), chart:prChart}),
+    WK.hero({label:'Tier 1', ico:'▲', tono:'amber', value:WK.num(k.t1), sub:'Contactar desde BX', delta:D(k.t1,'t1'), chart:gauge(k.t1, pr, 'amber', 'de la prioridad BX', 'Tier 1')}),
+    WK.hero({label:'Tier 2', ico:'●', tono:'green', value:WK.num(k.t2), sub:'Satisfechos con SEIDOR', delta:D(k.t2,'t2'), chart:gauge(k.t2, pr, 'green', 'de la prioridad BX', 'Tier 2')}),
+    WK.hero({label:'Tier 3', ico:'■', value:WK.num(k.t3), sub:'Sin información', delta:D(k.t3,'t3'), chart:gauge(k.t3, pr, 'cyan', 'de la prioridad BX', 'Tier 3')}),
+    WK.hero({label:'No tocar', ico:'⊘', tono:'red', value:WK.num(k.noTocar), sub:S.showNT?'Incluidas en la vista':'Excluidas de la vista', delta:D(k.noTocar,'noTocar',{bueno:null}), chart:gauge(k.noTocar, base, 'red', 'de la base instalada', 'No tocar')}),
+    WK.hero({label:'Cobertura BX', ico:'📡', tono:'cyan', value:k.cobertura.toFixed(1), unit:'%', sub:'Prioridad BX / Total base', delta:pk ? WK.delta(k.cobertura/100, pk.cobertura/100, {tipo:'pts'}) : '', chart:WK.gauge({valor:pr, max:base||1, tono:'cyan', texto:WK.num(pr), label:'de '+WK.num(base)+' cuentas', tip:tipTxt(['Cobertura BX', WK.num(pr)+' de '+WK.num(base)+' cuentas · '+k.cobertura.toFixed(1)+'%'])})}),
+    WK.hero({label:'Total pilotos', ico:'🚀', tono:'violet', value:WK.num(k.pilotos), sub:'P1 '+pc['Piloto 1']+' · P2 '+pc['Piloto 2']+' · sin fase '+pc['Piloto sin fase'], delta:D(k.pilotos,'pilotos'), chart:WK.donut(pilItems, {centro:String(k.pilotos), sub:'pilotos', tamano:'170px', sinLeyenda:true})})
   ];
-  var curVals = [k.totalBase, k.prioridad, k.t1, k.t2, k.t3, k.noTocar, k.cobertura, k.pilotos];
-  document.getElementById('kpis').innerHTML = cards.map(function(c,i){ return '<div class="kpi-card '+c[3]+'"><div class="label">'+escapeHtml(c[0])+'</div><div class="value">'+escapeHtml(c[1])+'</div><div class="meta">'+escapeHtml(c[2])+'</div>'+(pk?deltaHtml(curVals[i], dl[i], i===6):'')+'</div>'; }).join('');
+  $('kpis').innerHTML = '<div class="bx-heroes">'+WK.heroGrid(tiles)+'</div>';
 }
-function updatePilotMatrix(){
-  var view = getFilteredRows();
-  var h = '<thead><tr><th scope="col">Tier</th>'+PILOTS.map(function(p){return '<th scope="col">'+p+'</th>';}).join('')+'<th scope="col">Total pilotos</th></tr></thead><tbody>';
-  var tot = {}; PILOTS.forEach(function(p){tot[p]=0;});
-  ['Tier 1','Tier 2','Tier 3'].forEach(function(t){
-    var tr = 0;
-    h += '<tr><th scope="row" style="text-transform:none; font-size:12.5px; color:var(--ink);"><span class="badge '+TIER_CLASS[t]+'">'+TIER_ICON[t]+t+'</span></th>';
-    PILOTS.forEach(function(p){ var n = view.filter(function(r){return r.tierN===t && r.pilotoN===p;}).length; tr+=n; tot[p]+=n; h += '<td>'+n+'</td>'; });
-    h += '<td><b>'+tr+'</b></td></tr>';
+
+/* ===== Pilotos ===== */
+function pilotMatrix(view){
+  var m = {};
+  ['Tier 1','Tier 2','Tier 3'].forEach(function(t){ m[t] = {}; PILOTS.forEach(function(p){ m[t][p] = view.filter(function(r){ return r.tierN===t && r.pilotoN===p; }).length; }); });
+  return m;
+}
+function renderPilots(view){
+  var tiers = ['Tier 1','Tier 2','Tier 3'], m = pilotMatrix(view);
+  var series = PILOTS.map(function(p){ return { nombre:p, color:PIL_COLOR[p], valores:tiers.map(function(t){ return m[t][p]; }), extra:tiers.map(function(){ return 'Clic para filtrar'; }) }; });
+  var any = series.some(function(s){ return s.valores.some(function(v){ return v>0; }); });
+  var host = $('pilCols');
+  host.innerHTML = any ? WK.columns(tiers, series, {fmt:WK.num, id:'pil', h:320}) : WK.empty('No hay pilotos con los filtros actuales.');
+  host.querySelectorAll('.wk-colbar').forEach(function(b){
+    var pr = String(b.getAttribute('data-tip')||'').split('\n')[0].split(' · ');
+    if(pr.length===2){ b.setAttribute('data-fk','tier+piloto'); b.setAttribute('data-fv', pr[0]+'|'+pr[1]); }
   });
-  var g = PILOTS.reduce(function(a,p){return a+tot[p];},0);
-  h += '<tr><th scope="row" style="text-transform:none; font-size:12.5px; color:var(--ink);">Total</th>'+PILOTS.map(function(p){return '<td><b>'+tot[p]+'</b></td>';}).join('')+'<td><b>'+g+'</b></td></tr></tbody>';
-  document.getElementById('pilTable').innerHTML = h;
+  var tot = {}; PILOTS.forEach(function(p){ tot[p]=0; });
+  var rows = tiers.map(function(t){
+    var tr = 0; PILOTS.forEach(function(p){ tr += m[t][p]; tot[p] += m[t][p]; });
+    return {tier:tierChip(t), p1:m[t]['Piloto 1'], p2:m[t]['Piloto 2'], ps:m[t]['Piloto sin fase'], tot:tr};
+  });
+  var g = PILOTS.reduce(function(a,p){ return a+tot[p]; }, 0);
+  var foot = '<tr><td>Total</td><td class="wk-num">'+tot['Piloto 1']+'</td><td class="wk-num">'+tot['Piloto 2']+'</td><td class="wk-num">'+tot['Piloto sin fase']+'</td><td class="wk-num">'+g+'</td></tr>';
+  var tablaPil = WK.table([
+    {k:'tier',label:'Tier',tipo:'html'},{k:'p1',label:'Piloto 1',tipo:'num'},{k:'p2',label:'Piloto 2',tipo:'num'},{k:'ps',label:'Piloto sin fase',tipo:'num'},{k:'tot',label:'Total pilotos',tipo:'num'}
+  ], rows, {footer:foot, id:'tblPil'});
+  var pen = tiers.map(function(t){ var n = view.filter(function(r){ return r.tierN===t; }).length, pl = m[t]['Piloto 1']+m[t]['Piloto 2']+m[t]['Piloto sin fase']; return {valor: n ? pct(pl,n)+'%' : '—', label:'Penetración de pilotos · '+t+(n ? ' ('+pl+' de '+n+')' : '')}; });
+  $('pilTable').innerHTML = tablaPil + '<div style="margin-top:20px">'+WK.stats(pen)+'</div>';
+  renderWhatIf(view);
+}
+/* Simulador: ¿cuántas cuentas hay que activar como piloto para llegar a una meta de penetración en Tier 1 / Tier 2? */
+function renderWhatIf(view){
+  var card = $('wiCard'), n = {}, p = {};
+  ['Tier 1','Tier 2'].forEach(function(t){ var rs = view.filter(function(r){ return r.tierN===t; }); n[t] = rs.length; p[t] = rs.filter(function(r){ return PILOTS.indexOf(r.pilotoN)>=0; }).length; });
+  if(!n['Tier 1'] && !n['Tier 2']){ card.style.display = 'none'; $('wiBody').innerHTML = ''; return; }
+  card.style.display = '';
+  var pen1 = n['Tier 1'] ? p['Tier 1']/n['Tier 1']*100 : 0, pen2 = n['Tier 2'] ? p['Tier 2']/n['Tier 2']*100 : 0;
+  var def = function(x){ return Math.min(100, Math.ceil(x/5)*5 + 10); };
+  $('wiBody').innerHTML = WK.whatif({ id:'bxpil',
+    sliders:[ {k:'m1', label:'Meta de penetración de pilotos · Tier 1', min:0, max:100, step:5, val:def(pen1), fmt:function(x){ return x+'%'; }},
+              {k:'m2', label:'Meta de penetración de pilotos · Tier 2', min:0, max:100, step:5, val:def(pen2), fmt:function(x){ return x+'%'; }} ],
+    calc:function(v){
+      var need = function(t, m){ return Math.max(0, Math.ceil(m/100*n[t] - 1e-9) - p[t]); };
+      var a1 = need('Tier 1', v.m1), a2 = need('Tier 2', v.m2);
+      var proj1 = n['Tier 1'] ? (p['Tier 1']+a1)/n['Tier 1']*100 : 0;
+      return {
+        gauge:{ valor:proj1, max:100, meta:pen1, tono:'cyan', texto:Math.round(proj1)+'%', label:'Tier 1 con pilotos', tip:tipTxt(['Penetración proyectada · Tier 1', Math.round(proj1)+'% ('+(p['Tier 1']+a1)+' de '+n['Tier 1']+' cuentas)', 'Hoy: '+Math.round(pen1)+'%']) },
+        stats:[ {valor:WK.num(a1), label:'Cuentas Tier 1 por activar'}, {valor:WK.num(a2), label:'Cuentas Tier 2 por activar'}, {valor:WK.num(p['Tier 1']+p['Tier 2']), label:'Pilotos hoy (Tier 1 + 2)'}, {valor:WK.num(p['Tier 1']+p['Tier 2']+a1+a2), label:'Pilotos proyectados'} ],
+        nota:'La marca blanca del medidor es la penetración de hoy en Tier 1 ('+Math.round(pen1)+'%: '+p['Tier 1']+' de '+n['Tier 1']+' cuentas). En Tier 2 hoy es '+Math.round(pen2)+'% ('+p['Tier 2']+' de '+n['Tier 2']+'). Se calcula con las cuentas de la vista actual.'
+      };
+    } });
 }
 
 /* ===== Prioridades de contacto ===== */
+function scoreBar(v, max){
+  if(v==null) return '—';
+  return '<div class="wk-inbar"><i style="width:'+Math.min(100, Math.max(0, v/max*100)).toFixed(1)+'%"></i><span>'+escapeHtml(v)+'</span></div>';
+}
+function commentCell(txt, titulo, cuenta, corto){
+  if(!txt) return '';
+  var t = (corto && txt.length>corto) ? txt.slice(0,corto)+'…' : txt;
+  return '<span data-tip="'+WK.esc(titulo+' · '+cuenta+'\n'+txt)+'">'+escapeHtml(t)+'</span>';
+}
 function renderPriorityList(){
   var rows = scopeRows().filter(function(r){ return r.tierN==='Tier 1'; }).sort(defaultCompare);
   var top = rows.slice(0,10);
-  var h = '<thead><tr><th scope="col">#</th><th scope="col">Cuenta</th><th scope="col">KAM</th><th scope="col">Ejecutivo BX</th><th scope="col">Score Oportunidad</th><th scope="col">Score Relación</th><th scope="col">Piloto</th><th scope="col">Comentarios KAM</th></tr></thead><tbody>';
-  top.forEach(function(r,i){
-    var c = r.comKam.length>150 ? r.comKam.slice(0,150)+'…' : r.comKam;
-    h += '<tr><td>'+(i+1)+'</td><td><b>'+hubspotLink(r.id, r.cuenta)+'</b></td><td>'+escapeHtml(r.kamN)+'</td><td>'+escapeHtml(r.bxN)+'</td><td>'+escapeHtml(r.scoreOpp==null?'':r.scoreOpp)+'</td><td>'+escapeHtml(r.scoreRel==null?'':r.scoreRel)+'</td><td><span class="badge '+PIL_CLASS[r.pilotoN]+'">'+escapeHtml(r.pilotoN)+'</span></td><td title="'+escapeHtml(r.comKam)+'">'+escapeHtml(c)+'</td></tr>';
-  });
-  if(!top.length) h += '<tr><td colspan="8" style="text-align:center; color:var(--greyl); padding:20px;">No hay cuentas Tier 1 con los filtros actuales.</td></tr>';
-  document.getElementById('prioTable').innerHTML = h+'</tbody>';
-  document.getElementById('btnVerTier1').style.display = rows.length>10 ? '' : 'none';
+  var mo = Math.max.apply(null, S.rows.map(function(r){ return r.scoreOpp||0; }).concat([1])), mr = Math.max.apply(null, S.rows.map(function(r){ return r.scoreRel||0; }).concat([1]));
+  var data = top.map(function(r,i){ return {
+    n:i+1, cuenta:'<b>'+hubspotLink(r.id, r.cuenta)+'</b>', kam:r.kamN, bx:r.bxN, opp:scoreBar(r.scoreOpp, mo), rel:scoreBar(r.scoreRel, mr),
+    pil:pilBadge(r.pilotoN), com:commentCell(r.comKam, 'Comentarios KAM', r.cuenta, 110) }; });
+  $('prioTable').innerHTML = WK.table([
+    {k:'n',label:'#',tipo:'num'},{k:'cuenta',label:'Cuenta',tipo:'html',cls:'wk-strong'},{k:'kam',label:'KAM',tipo:'text'},{k:'bx',label:'Ejecutivo BX',tipo:'text'},
+    {k:'opp',label:'Score Oportunidad',tipo:'html'},{k:'rel',label:'Score Relación',tipo:'html'},{k:'pil',label:'Piloto',tipo:'html'},{k:'com',label:'Comentarios KAM',tipo:'html',cls:'wk-note'}
+  ], data, {vacio:'No hay cuentas Tier 1 con los filtros actuales.', id:'tblPrio'});
+  $('cntPrio').textContent = top.length+(rows.length>10 ? ' de '+rows.length : '');
+  $('btnVerTier1').style.display = rows.length>10 ? '' : 'none';
 }
 
 /* ===== Cambios vs. carga anterior ===== */
@@ -583,25 +636,23 @@ function computeChanges(){
   return out;
 }
 function renderChanges(){
-  var sum = document.getElementById('chgSummary'), host = document.getElementById('chg');
-  if(!S.prevRows){ sum.textContent = 'Cambios vs. carga anterior'; host.innerHTML = '<p class="sub" style="margin-top:10px">Aún no hay una carga anterior para comparar. En la siguiente carga aparecerán aquí las cuentas que cambiaron de Tier o de piloto, y las que entraron o salieron de la base.</p>'; return; }
+  var host = $('chgBody'), cnt = $('cntChg');
+  if(!S.prevRows){ cnt.textContent = ''; host.innerHTML = WK.empty('Aún no hay una carga anterior para comparar. En la siguiente carga aparecerán aquí las cuentas que cambiaron de Tier o de piloto, y las que entraron o salieron de la base.'); return; }
   var ch = computeChanges();
-  sum.textContent = 'Cambios vs. carga anterior ('+ch.length+')';
-  var cnt = {}; ch.forEach(function(x){ cnt[x.tipo]=(cnt[x.tipo]||0)+1; });
-  var chips = ['Cambió de Tier','Cambió de piloto','Nueva en la base','Salió de la base'].map(function(t){ return '<span class="chg-tag">'+t+': '+(cnt[t]||0)+'</span>'; }).join(' ');
-  var prevInfo = '<p class="sub" style="margin-top:10px">Comparado contra la carga del '+escapeHtml(fmtDate(S.prevMeta.uploadedAt))+' ('+escapeHtml(S.prevMeta.fileName||'')+'). '+chips+'</p>';
+  cnt.textContent = ch.length+(ch.length===1?' cambio':' cambios');
+  var c = {}; ch.forEach(function(x){ c[x.tipo] = (c[x.tipo]||0)+1; });
+  var stats = WK.stats(['Cambió de Tier','Cambió de piloto','Nueva en la base','Salió de la base'].map(function(t){ return {valor:WK.num(c[t]||0), label:t}; }));
+  var flows = {}; ch.forEach(function(x){ if(x.tipo==='Cambió de Tier'){ var k = x.antes+' → '+x.ahora; flows[k] = (flows[k]||0)+1; } });
+  var fl = Object.keys(flows).map(function(k){ return {label:k, value:flows[k], tip:k+'\n'+flows[k]+' cuentas'}; }).sort(function(a,b){ return b.value-a.value; }).slice(0,8);
+  var info = '<p class="bx-sub">Comparado contra la carga del '+escapeHtml(fmtDate(S.prevMeta.uploadedAt))+' ('+escapeHtml(S.prevMeta.fileName||'')+').</p>';
   var shown = ch.slice(0,200);
-  var h = shown.length ? '<div style="overflow:auto; max-height:420px"><table><thead><tr><th>Cuenta</th><th>Cambio</th><th>Antes</th><th>Ahora</th><th>KAM</th></tr></thead><tbody>'+shown.map(function(x){ return '<tr><td><b>'+escapeHtml(x.r.cuenta)+'</b></td><td><span class="chg-tag">'+escapeHtml(x.tipo)+'</span></td><td>'+escapeHtml(x.antes)+'</td><td>'+escapeHtml(x.ahora)+'</td><td>'+escapeHtml(x.r.kamN)+'</td></tr>'; }).join('')+'</tbody></table></div>'+(ch.length>200?'<p class="sub">Se muestran los primeros 200 cambios.</p>':'') : '<p class="sub">Sin cambios con los filtros actuales.</p>';
-  host.innerHTML = prevInfo+h;
+  var table = shown.length ? '<div class="wk-tools" style="margin-top:6px"><input class="wk-search" type="search" placeholder="Buscar en los cambios…" data-filt="tblChg" aria-label="Buscar en los cambios"><span class="wk-hint">'+(ch.length>200?'Se muestran los primeros 200 cambios.':'Clic en un encabezado para ordenar.')+'</span></div>'+
+    WK.table([{k:'cuenta',label:'Cuenta',tipo:'strong'},{k:'tipo',label:'Cambio',tipo:'tag'},{k:'antes',label:'Antes',tipo:'text'},{k:'ahora',label:'Ahora',tipo:'text'},{k:'kam',label:'KAM',tipo:'text'}],
+      shown.map(function(x){ return {cuenta:x.r.cuenta, tipo:x.tipo, antes:x.antes, ahora:x.ahora, kam:x.r.kamN}; }), {id:'tblChg'}) : WK.empty('Sin cambios con los filtros actuales.');
+  host.innerHTML = '<div class="bx-chg"><div><h4>Resumen de cambios</h4>'+stats+'</div><div><h4>Movimientos de Tier más frecuentes</h4>'+(fl.length ? WK.ranked(fl, {fmt:WK.num}) : WK.empty('Ninguna cuenta cambió de Tier.'))+'</div></div>'+table+info;
 }
 
 /* ===== Gráficos ===== */
-function killChart(id){ if(S.charts[id]){ S.charts[id].destroy(); delete S.charts[id]; } }
-function baseOpts(extra){
-  var o = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, font:{family:'Poppins', size:11}, color:'#16223A' } } } };
-  return Object.assign(o, extra||{});
-}
-function setAria(id, txt){ var e=document.getElementById(id); if(e) e.setAttribute('aria-label', txt); }
 function topN(map, n){
   var arr = Object.keys(map).map(function(k){return {k:k, v:map[k]};}).sort(function(a,b){return b.v-a.v;});
   return arr;
@@ -616,64 +667,45 @@ function groupByTier(view, keyFn, limit, sortAll){
   }
   return {keys:keys, g:g};
 }
-function tierDatasets(gr){
-  return TIERS.filter(function(t){ return t!=='No tocar' || S.showNT; }).map(function(t){
-    return { label:t, data:gr.keys.map(function(k){return gr.g[k][t];}), backgroundColor:TIER_COLOR[t], borderColor:'#fff', borderWidth:1, borderRadius:3 };
-  });
-}
-function renderTierChart(view){
-  killChart('tier');
+/* Barras apiladas por Tier (detalle solo en tooltip). Clic: filtra la dimensión y el Tier */
+function stackList(gr, fid){
   var ts = TIERS.filter(function(t){ return t!=='No tocar' || S.showNT; });
-  var data = ts.map(function(t){ return view.filter(function(r){return r.tierN===t;}).length; });
-  setAria('ariaTier','Distribución por Tier: '+ts.map(function(t,i){return t+' '+data[i];}).join(', '));
-  S.charts.tier = new Chart(document.getElementById('cTier'), { type:'doughnut',
-    data:{ labels:ts, datasets:[{ data:data, backgroundColor:ts.map(function(t){return TIER_COLOR[t];}), borderColor:'#fff', borderWidth:2 }] },
-    options: baseOpts({ cutout:'58%', onClick:function(e,els){ if(els.length){ setFilter('tier', ts[els[0].index]); } },
-      plugins:{ legend:{position:'bottom', labels:{boxWidth:12, font:{family:'Poppins',size:11}, generateLabels:function(ch){ var d=ch.data; return d.labels.map(function(l,i){ return {text:l+' ('+d.datasets[0].data[i]+')', fillStyle:d.datasets[0].backgroundColor[i], strokeStyle:'#fff', index:i}; }); }}}, tooltip:{callbacks:{label:function(c){ var tot=c.dataset.data.reduce(function(a,b){return a+b;},0); return ' '+c.label+': '+c.parsed+' ('+(tot?(c.parsed/tot*100).toFixed(1):0)+'%)'; }}} } }) });
+  if(!gr.keys.length) return WK.empty('Sin datos con los filtros actuales.');
+  var max = Math.max.apply(null, gr.keys.map(function(k){ return gr.g[k].total; })) || 1;
+  var leg = '<div class="wk-cols-legend">'+ts.map(function(t){ return '<span><i style="background:'+TIER_COLOR[t]+'"></i>'+t+'</span>'; }).join('')+'</div>';
+  var rows = gr.keys.map(function(k){
+    var g = gr.g[k];
+    var segs = ts.filter(function(t){ return g[t]; }).map(function(t){
+      return '<i data-fk="'+fid+'" data-fv="'+WK.esc(k)+'" data-ft="'+t+'" style="flex:'+g[t]+' 1 0;background:linear-gradient(90deg,'+TIER_COLOR[t]+','+TIER_COLOR[t]+'cc)" data-tip="'+WK.esc(tipTxt([k+' · '+t, g[t]+' cuentas · '+pct(g[t],g.total)+'% de '+k, 'Clic para filtrar']))+'"></i>';
+    }).join('');
+    var tip = tipTxt([k, g.total+' cuentas'].concat(ts.map(function(t){ return t+' · '+g[t]; })));
+    return '<div class="bx-srow" data-tip="'+WK.esc(tip)+'"><span class="n" data-fk="'+fid+'" data-fv="'+WK.esc(k)+'">'+escapeHtml(k)+'</span><div class="wk-bar" style="width:'+(g.total/max*100).toFixed(1)+'%">'+segs+'</div><b>'+g.total+'</b></div>';
+  }).join('');
+  return leg+'<div class="bx-stack wk-anim'+(gr.keys.length>14?' long':'')+'">'+rows+'</div>';
 }
-function renderTerritoryChart(view){
-  killChart('terr');
+function renderCharts(view){
+  /* Distribución por Tier */
+  var ts = TIERS.filter(function(t){ return t!=='No tocar' || S.showNT; });
+  var items = ts.map(function(t){ var n = view.filter(function(r){ return r.tierN===t; }).length; return {label:t, value:n, color:TIER_COLOR[t], tip:tipTxt([t, n+' cuentas · '+pct(n,view.length)+'% de la vista', 'Clic para filtrar'])}; });
+  var host = $('cTier');
+  host.innerHTML = view.length ? WK.donut(items, {centro:WK.num(view.length), sub:'cuentas', tamano:'clamp(250px,26vw,400px)'}) : WK.empty('Sin datos con los filtros actuales.');
+  var vis = items.filter(function(i){ return i.value>0; });
+  host.querySelectorAll('.wk-seg').forEach(function(s,i){ if(vis[i]){ s.setAttribute('data-fk','tier'); s.setAttribute('data-fv', vis[i].label); } });
+  /* Territorio: top 10 + Otros */
   var m = {}; view.forEach(function(r){ m[r.estadoN]=(m[r.estadoN]||0)+1; });
   var arr = topN(m), top = arr.slice(0,10), rest = arr.slice(10).reduce(function(a,x){return a+x.v;},0);
-  var labels = top.map(function(x){return x.k;}), data = top.map(function(x){return x.v;});
-  if(rest){ labels.push('Otros'); data.push(rest); }
-  setAria('ariaTerr','Cuentas por territorio: '+labels.map(function(l,i){return l+' '+data[i];}).join(', '));
-  S.charts.terr = new Chart(document.getElementById('cTerr'), { type:'bar',
-    data:{ labels:labels, datasets:[{ label:'Cuentas', data:data, backgroundColor:'#1E5BB8', borderRadius:4 }] },
-    options: baseOpts({ indexAxis:'y', onClick:function(e,els){ if(els.length && labels[els[0].index]!=='Otros') setFilter('estado', labels[els[0].index]); },
-      plugins:{legend:{display:false}}, scales:{ x:{beginAtZero:true, ticks:{precision:0}, grid:{color:'#EEF2F7'}}, y:{grid:{display:false}} } }) });
-}
-function stackedOpts(filterId, gr){
-  return baseOpts({ indexAxis: filterId==='kam'?'y':'x',
-    onClick:function(e,els){ if(!els.length) return; var k = gr.keys[els[0].index]; var t = TIERS.filter(function(x){ return x!=='No tocar'||S.showNT; })[els[0].datasetIndex];
-      if(k!=='Otros'){ S.sel[filterId]=k; } if(t) S.sel.tier=t; S.page=0; refresh(); },
-    scales:{ x:{stacked:true, beginAtZero:true, ticks:{precision:0}, grid:{color:'#EEF2F7'}}, y:{stacked:true, grid:{display:false}} } });
-}
-function renderIndustryChart(view){
-  killChart('ind');
-  var gr = groupByTier(view, function(r){return r.industria;}, 10);
-  setAria('ariaInd','Cuentas por industria y Tier: '+gr.keys.map(function(k){return k+' '+gr.g[k].total;}).join(', '));
-  var o = stackedOpts('industria', gr); o.indexAxis='y';
-  S.charts.ind = new Chart(document.getElementById('cInd'), { type:'bar', data:{labels:gr.keys, datasets:tierDatasets(gr)}, options:o });
-}
-function renderKamChart(view){
-  killChart('kam');
-  var gr = groupByTier(view, function(r){return r.kamN;}, 0);
-  setAria('ariaKam','Cuentas por KAM y Tier: '+gr.keys.map(function(k){return k+' '+gr.g[k].total;}).join(', '));
-  S.charts.kam = new Chart(document.getElementById('cKam'), { type:'bar', data:{labels:gr.keys, datasets:tierDatasets(gr)}, options:stackedOpts('kam', gr) });
-}
-function renderPilotChart(view){
-  killChart('pil');
-  var ts = ['Tier 1','Tier 2','Tier 3'];
-  var ds = PILOTS.map(function(p){ return { label:p, data:ts.map(function(t){ return view.filter(function(r){return r.tierN===t && r.pilotoN===p;}).length; }), backgroundColor:PIL_COLOR[p], borderRadius:4 }; });
-  setAria('ariaPil','Pilotos por Tier: '+ts.map(function(t,i){return t+' — '+ds.map(function(d){return d.label+' '+d.data[i];}).join(', ');}).join('; '));
-  S.charts.pil = new Chart(document.getElementById('cPil'), { type:'bar', data:{labels:ts, datasets:ds},
-    options: baseOpts({ onClick:function(e,els){ if(els.length){ S.sel.tier = ts[els[0].index]; S.sel.piloto = PILOTS[els[0].datasetIndex]; S.page=0; refresh(); } },
-      scales:{ y:{beginAtZero:true, ticks:{precision:0}, grid:{color:'#EEF2F7'}}, x:{grid:{display:false}} } }) });
+  var tl = top.map(function(x){ return {label:x.k, value:x.v, tip:tipTxt([x.k, x.v+' cuentas · '+pct(x.v,view.length)+'% de la vista', 'Clic para filtrar'])}; });
+  if(rest) tl.push({label:'Otros', value:rest, tono:'otros', tip:tipTxt(['Otros estados', rest+' cuentas · '+pct(rest,view.length)+'% de la vista'])});
+  var ht = $('cTerr');
+  ht.innerHTML = WK.ranked(tl, {fmt:WK.num});
+  ht.querySelectorAll('.wk-rank-row').forEach(function(row,i){ if(tl[i] && tl[i].label!=='Otros'){ row.setAttribute('data-fk','estado'); row.setAttribute('data-fv', tl[i].label); } });
+  /* Industria y KAM, segmentados por Tier */
+  $('cInd').innerHTML = stackList(groupByTier(view, function(r){return r.industria;}, 10), 'industria');
+  $('cKam').innerHTML = stackList(groupByTier(view, function(r){return r.kamN;}, 0), 'kam');
 }
 function setFilter(id, v){ S.sel[id] = (S.sel[id]===v) ? '' : v; S.page=0; refresh(); }
 
-/* ===== Tabla ===== */
+/* ===== Tabla operativa ===== */
 var TIER_ORDER = {'Tier 1':1,'Tier 2':2,'Tier 3':3,'No tocar':4,'Sin clasificación':5};
 function nz(v, d){ return v==null ? d : v; }
 function defaultCompare(a,b){
@@ -696,26 +728,31 @@ function sortedRows(view){
     return String(x).localeCompare(String(y),'es',{numeric:true})*d;
   });
 }
+/* El orden se aplica sobre TODA la vista filtrada (no solo la página visible), por eso los
+   encabezados usan data-sort="off" y este módulo reordena y vuelve a paginar. */
 function renderDataTable(view){
   var rows = sortedRows(view), total = rows.length;
   var pages = Math.max(1, Math.ceil(total/S.pageSize)); if(S.page>=pages) S.page=pages-1;
   var slice = rows.slice(S.page*S.pageSize, (S.page+1)*S.pageSize);
-  var h = '<thead><tr>'+TBL_COLS.map(function(c){ var ar = S.sortKey===c.k ? (S.sortDir>0?'▲':'▼') : ''; return '<th scope="col" data-k="'+c.k+'" tabindex="0" aria-sort="'+(S.sortKey===c.k?(S.sortDir>0?'ascending':'descending'):'none')+'">'+escapeHtml(c.t)+'<span class="ar">'+ar+'</span></th>'; }).join('')+'</tr></thead><tbody>';
-  slice.forEach(function(r){
-    h += '<tr>'+TBL_COLS.map(function(c){
-      var v = r[c.k];
-      if(c.k==='tierN') return '<td><span class="badge '+TIER_CLASS[v]+'">'+TIER_ICON[v]+escapeHtml(v)+'</span></td>';
-      if(c.k==='pilotoN') return '<td><span class="badge '+PIL_CLASS[v]+'">'+escapeHtml(v)+'</span></td>';
-      if(c.k==='id') return '<td>'+hubspotLink(v)+'</td>';
-      if(c.k==='comKam'||c.k==='comBx') return '<td class="cm" title="'+escapeHtml(v)+'" tabindex="0"><span>'+escapeHtml(v)+'</span></td>';
-      return '<td>'+escapeHtml(v==null?'':v)+'</td>';
-    }).join('')+'</tr>';
+  var data = slice.map(function(r){
+    var o = {}; TBL_COLS.forEach(function(c){ o[c.k] = r[c.k]; });
+    o.tierN = tierChip(r.tierN); o.pilotoN = pilBadge(r.pilotoN); o.id = hubspotLink(r.id);
+    o.comKam = commentCell(r.comKam, 'Comentarios KAM', r.cuenta); o.comBx = commentCell(r.comBx, 'Comentarios BX', r.cuenta);
+    return o;
   });
-  if(!slice.length) h += '<tr><td colspan="'+TBL_COLS.length+'" style="text-align:center; color:var(--greyl); padding:30px;">Sin registros con los filtros actuales.</td></tr>';
-  document.getElementById('tbl').innerHTML = h+'</tbody>';
-  document.getElementById('pgInfo').textContent = total ? ('Mostrando '+(S.page*S.pageSize+1)+'–'+Math.min(total,(S.page+1)*S.pageSize)+' de '+total) : '0 registros';
-  document.getElementById('pgPrev').disabled = S.page<=0; document.getElementById('pgNext').disabled = S.page>=pages-1;
-  document.getElementById('tblInfo').textContent = total+' cuentas en la vista. Clic en un encabezado para ordenar; clic en un comentario para expandirlo.';
+  var host = $('tbl');
+  host.innerHTML = WK.table(TBL_COLS.map(function(c){ return {k:c.k, label:c.t, tipo:c.tipo, cls:c.cls}; }), data, {vacio:'Sin registros con los filtros actuales.', id:'tblOps'});
+  var t = host.querySelector('table');
+  if(t){
+    Array.prototype.forEach.call(t.tHead.rows[0].cells, function(th, i){
+      var c = TBL_COLS[i]; th.setAttribute('data-k', c.k); th.setAttribute('data-sort','off'); th.classList.add('wk-sortable'); th.setAttribute('tabindex','0');
+      var on = S.sortKey===c.k; th.classList.toggle('asc', on && S.sortDir>0); th.classList.toggle('desc', on && S.sortDir<0);
+      th.setAttribute('aria-sort', on ? (S.sortDir>0?'ascending':'descending') : 'none');
+    });
+  }
+  $('pgInfo').textContent = total ? ('Mostrando '+(S.page*S.pageSize+1)+'–'+Math.min(total,(S.page+1)*S.pageSize)+' de '+total) : '0 registros';
+  $('pgPrev').disabled = S.page<=0; $('pgNext').disabled = S.page>=pages-1;
+  $('cntTbl').textContent = WK.num(total)+' cuentas';
 }
 
 /* ===== Calidad de datos ===== */
@@ -744,10 +781,12 @@ function renderDataQuality(){
     ['Pilotos sin fase',q.pilotoSinFase],['IDs HubSpot vacíos',q.idsVacios],['IDs HubSpot duplicados',q.idsDup],['Cuentas duplicadas',q.cuentasDup],
     ['Diferencia Tier 1+2+3 vs. Prioridad BX',q.difPrioridad],['Cuentas de hoja “Pilotos” sin match en Hoja1',q.pilotosHuerfanos],['Pilotos cuyo Tier en hoja “Pilotos” difiere de Hoja1',q.pilotoTierDif],['Filas sin Cuenta ni ID (descartadas)',q.invalidos]
   ];
-  var h = (S.warnings.length ? '<div class="alert warn" style="margin-top:12px"><b>Advertencias de lectura</b><ul style="margin:6px 0 0 18px; padding:0;">'+S.warnings.map(function(w){return '<li>'+escapeHtml(w)+'</li>';}).join('')+'</ul></div>' : '');
-  h += '<div class="dq-grid">'+items.map(function(i){ return '<div class="dq '+(i[1]>0?'warn':'')+'"><b>'+i[1]+'</b>'+escapeHtml(i[0])+'</div>'; }).join('')+'</div>';
-  h += '<p class="sub" style="margin-top:10px">La diferencia final normalmente es cero porque ambos valores proceden de la misma regla. El Tier de la columna “Tier” prevalece sobre lo que digan los comentarios.</p>';
-  document.getElementById('dq').innerHTML = h;
+  var h = (S.warnings.length ? '<div class="alert warn"><b>Advertencias de lectura</b><ul>'+S.warnings.map(function(w){return '<li>'+escapeHtml(w)+'</li>';}).join('')+'</ul></div>' : '');
+  h += WK.stats(items.map(function(i){ return {valor: i[1]>0 ? '<em class="bx-w">'+i[1]+'</em>' : String(i[1]), label:i[0]}; }));
+  h += '<p class="bx-sub">La diferencia final normalmente es cero porque ambos valores proceden de la misma regla. El Tier de la columna “Tier” prevalece sobre lo que digan los comentarios.</p>';
+  $('dq').innerHTML = h;
+  var nw = items.filter(function(i){ return i[1]>0; }).length + (S.warnings.length?1:0);
+  $('cntDq').textContent = nw ? nw+(nw===1?' control con alertas':' controles con alertas') : 'Sin alertas';
 }
 
 /* ===== CSV ===== */
@@ -761,14 +800,70 @@ function exportFilteredCsv(){
   document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 
+/* ===== Historial de cargas (solo lectura del historial ya existente; no se agregan fotos nuevas) ===== */
+function renderHistorial(){
+  var hs = S.historial.slice(), host = $('hist');
+  if(!hs.length){ host.innerHTML = WK.empty('Aún no hay cargas registradas.'); $('cntHist').textContent = ''; return; }
+  $('cntHist').textContent = hs.length+(hs.length===1?' carga':' cargas');
+  var last = hs[hs.length-1], labels = hs.map(function(x){ return WK.fecha(x.fecha); });
+  var trend = '';
+  if(hs.length>=2){
+    var tr = function(titulo, fn, color, val, fmt){ return '<div><h4><span>'+titulo+'</span><b>'+val+'</b></h4>'+WK.area(hs.map(fn), {labels:labels, color:color, nombre:titulo, fmt:fmt||WK.num, h:120})+'</div>'; };
+    trend = '<div class="bx-trend">'+
+      tr('Total base instalada', function(x){ return x.totalBase; }, '#3DD6FF', WK.num(last.totalBase))+
+      tr('Tier 1', function(x){ return x.t1; }, '#FFA23A', WK.num(last.t1))+
+      tr('Cobertura BX', function(x){ return x.cobertura; }, '#2FE29B', (last.cobertura!=null?last.cobertura:'—')+'%', function(v){ return v+'%'; })+
+    '</div>';
+  }
+  var rows = hs.slice().reverse().map(function(x){
+    var hh = fmtDate(x.fecha).split(' ')[1] || '';
+    return {fecha:WK.fecha(x.fecha), hora:hh, archivo:x.archivo, totalBase:x.totalBase, t1:x.t1, t2:x.t2, t3:x.t3, noTocar:x.noTocar, cobertura:(x.cobertura!=null?x.cobertura+'%':''), pilotos:x.pilotos, por:x.guardadoPor||''};
+  });
+  host.innerHTML = trend + '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar en el historial…" data-filt="tblHist" aria-label="Buscar en el historial"><span class="wk-hint">Clic en un encabezado para ordenar.</span></div>' +
+    WK.table([{k:'fecha',label:'Fecha de carga',tipo:'date'},{k:'hora',label:'Hora',tipo:'text'},{k:'archivo',label:'Archivo',tipo:'strong'},{k:'totalBase',label:'Total base',tipo:'num'},{k:'t1',label:'Tier 1',tipo:'num'},{k:'t2',label:'Tier 2',tipo:'num'},{k:'t3',label:'Tier 3',tipo:'num'},{k:'noTocar',label:'No tocar',tipo:'num'},{k:'cobertura',label:'Cobertura BX',tipo:'text'},{k:'pilotos',label:'Pilotos',tipo:'num'},{k:'por',label:'Cargó',tipo:'text'}], rows, {id:'tblHist'});
+}
+
+/* ===== Estructura (se construye una vez) ===== */
+function buildDash(){
+  var nav = WK.chips([{id:'sec-resumen',label:'Resumen'},{id:'sec-prio',label:'Prioridades Tier 1'},{id:'sec-cambios',label:'Cambios'},{id:'sec-pilotos',label:'Pilotos'},{id:'sec-dist',label:'Distribución'},{id:'sec-tabla',label:'Tabla operativa'},{id:'sec-dq',label:'Calidad de datos'},{id:'sec-hist',label:'Historial'}]);
+  nav = nav.replace('</nav>', '<span class="bx-navstat" id="navStat"></span></nav>');
+  var h = nav;
+  h += '<section class="wk-card" id="sec-filtros"><details class="bx-filtros" id="fBox" open><summary>🔎 Filtros</summary><div class="bx-fgrid" id="filters"></div><div class="bx-pills" id="pills"></div></details></section>';
+  h += WK.band('sec-resumen','Resumen ejecutivo','Base instalada · Business Experience');
+  h += '<div id="kpis"></div>';
+  h += '<p class="bx-nota">Los resultados se calculan directamente desde el Excel cargado. No se utilizan cifras escritas manualmente. Total base instalada, No tocar y Cobertura respetan todos los filtros excepto Tier y el interruptor “Mostrar cuentas No tocar”.</p>';
+  h += WK.band('sec-prio','Prioridades de contacto','Tier 1');
+  h += '<section class="wk-card bx-prio"><div class="wk-card-head"><div><h3>🎯 Prioridades de contacto — Tier 1</h3><p>Las 10 cuentas Tier 1 por mayor oportunidad y menor relación. Respeta los filtros (excepto Tier).</p></div><div style="display:flex;gap:10px;align-items:center"><span class="wk-count" id="cntPrio"></span><button type="button" class="bx-btn" id="btnVerTier1" aria-label="Ver todas las cuentas Tier 1 en la tabla">Ver todas en la tabla</button></div></div><div id="prioTable"></div></section>';
+  h += WK.band('sec-cambios','Cambios vs. carga anterior','Comparación con el dataset previo');
+  h += '<section class="wk-card"><div class="wk-card-head"><div><h3>🔄 Qué cambió desde la última carga</h3><p>Cuentas que cambiaron de Tier o de piloto, y las que entraron o salieron de la base.</p></div><span class="wk-count" id="cntChg"></span></div><div id="chgBody"></div></section>';
+  h += WK.band('sec-pilotos','Pilotos','Por Tier · se recalcula con los filtros activos');
+  h += '<div class="bx-grid"><section class="wk-card"><div class="wk-card-head"><div><h3>🚀 Pilotos por Tier</h3><p>Piloto 1, Piloto 2 y Piloto sin fase. Clic en una columna para filtrar.</p></div></div><div id="pilCols"></div></section>'+
+       '<section class="wk-card"><div class="wk-card-head"><div><h3>Matriz Tier × Piloto</h3><p>Se recalcula con los filtros activos.</p></div></div><div id="pilTable"></div></section></div>';
+  h += '<section class="wk-card" id="wiCard"><div class="wk-card-head"><div><h3>🎚️ Simulador de penetración de pilotos</h3><p>Mueve la meta de cada Tier y mira cuántas cuentas faltan por activar como piloto.</p></div></div><div id="wiBody"></div></section>';
+  h += WK.band('sec-dist','Distribución de la base','Clic en un segmento, barra o nombre para filtrar');
+  h += '<div class="bx-grid"><section class="wk-card"><div class="wk-card-head"><div><h3>🍩 Distribución por Tier</h3><p>Clic en un segmento para filtrar.</p></div></div><div id="cTier"></div></section>'+
+       '<section class="wk-card"><div class="wk-card-head"><div><h3>🗺️ Cuentas por territorio</h3><p>Top 10 estados; el resto en “Otros”.</p></div></div><div id="cTerr"></div></section></div>';
+  h += '<div class="bx-grid"><section class="wk-card"><div class="wk-card-head"><div><h3>🏭 Cuentas por industria</h3><p>MX Industria, segmentado por Tier. Top 10; el resto en “Otros”.</p></div></div><div id="cInd"></div></section>'+
+       '<section class="wk-card"><div class="wk-card-head"><div><h3>👤 Cuentas por KAM</h3><p>Segmentado por Tier, orden descendente por total.</p></div></div><div id="cKam"></div></section></div>';
+  h += WK.band('sec-tabla','Tabla operativa','Todas las cuentas de la vista');
+  h += '<section class="wk-card bx-tall bx-wide"><div class="wk-card-head"><div><h3>📋 Tabla operativa</h3><p id="tblInfo">Clic en un encabezado para ordenar toda la vista; clic en un comentario para expandirlo. Usa “Buscar cuenta o ID HubSpot” en Filtros para encontrar una cuenta.</p></div><span class="wk-count" id="cntTbl"></span></div><div id="tbl" aria-label="Tabla operativa de cuentas"></div>'+
+       '<div class="bx-pager"><div>Mostrar <select id="pgSize" aria-label="Registros por página"><option>25</option><option>50</option><option>100</option></select> registros</div><div id="pgInfo"></div><div><button type="button" id="pgPrev" aria-label="Página anterior">‹ Anterior</button> <button type="button" id="pgNext" aria-label="Página siguiente">Siguiente ›</button></div></div></section>';
+  h += WK.band('sec-dq','Calidad de datos','Revisión del Excel cargado');
+  h += '<section class="wk-card bx-dq"><details class="bx-acc" id="dqBox"><summary><span>🧪 Revisión del Excel cargado</span><span class="wk-count" id="cntDq" style="margin-left:auto;margin-right:14px"></span></summary><div class="bx-body" id="dq"></div></details></section>';
+  h += WK.band('sec-hist','Historial de cargas','Cargas del Excel guardadas en el portal');
+  h += '<section class="wk-card"><div class="wk-card-head"><div><h3>📅 Historial de cargas</h3><p>Cada carga del Excel registra sus totales; aquí se muestra su evolución.</p></div><span class="wk-count" id="cntHist"></span></div><div id="hist"></div></section>';
+  h += '<p class="wk-foot">Este tablero guarda la última carga en el portal (acceso restringido por Roles y Permisos) para que el equipo la consulte sin volver a subir el Excel.</p>';
+  $('dash').innerHTML = h;
+}
+
 /* ===== Orquestación ===== */
-function showAlert(kind, msg){ document.getElementById('alerts').innerHTML = msg ? '<div class="alert '+kind+'" role="alert">'+escapeHtml(msg)+'</div>' : ''; }
+function showAlert(kind, msg){ $('alerts').innerHTML = msg ? '<div class="alert '+kind+'" role="alert">'+escapeHtml(msg)+'</div>' : ''; }
 function refresh(){
   if(!S.rows.length) return;
   updateDependentFilters();
   var view = getFilteredRows();
-  updateKPIs(); updatePilotMatrix();
-  renderTierChart(view); renderTerritoryChart(view); renderIndustryChart(view); renderKamChart(view); renderPilotChart(view);
+  renderPills(); renderHeroes(); renderPilots(view);
+  renderCharts(view);
   renderPriorityList(); renderChanges();
   renderDataTable(view); renderDataQuality();
 }
@@ -786,22 +881,18 @@ function loadDataset(ds){
   S.raw = ds.raw; S.rows = built.rows; S.warnings = ds.raw.warnings || [];
   S.meta = { fileName:ds.fileName, uploadedAt:ds.uploadedAt, uploadedBy:ds.uploadedBy, pilotosHuerfanos:built.pilotosHuerfanos, invalidos: ds.raw.hoja1.length - built.rows.length };
   S.sel = {}; S.search=''; S.page=0; S.sortKey=null;
-  if(!S.rows.length){ showAlert('err','No existen registros válidos (se requiere al menos Cuenta o ID HubSpot).'); document.getElementById('dash').style.display='none'; document.getElementById('empty').style.display='block'; return false; }
-  document.getElementById('empty').style.display='none'; document.getElementById('dash').style.display='block';
-  document.getElementById('fechaBadge').innerHTML = '<span class="fecha-revision">'+escapeHtml(S.meta.fileName||'Archivo')+' · cargado '+escapeHtml(fmtDate(S.meta.uploadedAt))+(S.meta.uploadedBy?' · '+escapeHtml(S.meta.uploadedBy):'')+'</span>';
+  if(!S.rows.length){ showAlert('err','No existen registros válidos (se requiere al menos Cuenta o ID HubSpot).'); $('dash').style.display='none'; $('empty').style.display='block'; return false; }
+  $('empty').style.display='none'; $('dash').style.display='block';
+  $('fechaBadge').innerHTML = '<span class="fecha-revision">'+escapeHtml(S.meta.fileName||'Archivo')+' · cargado '+escapeHtml(fmtDate(S.meta.uploadedAt))+(S.meta.uploadedBy?' · '+escapeHtml(S.meta.uploadedBy):'')+'</span>';
   showAlert('', '');
-  if(!document.getElementById('f_estado')) populateFilters();
-  document.getElementById('fSearch').value='';
+  if(!$('f_estado')) populateFilters();
+  $('fSearch').value='';
   refresh();
   return true;
 }
-function renderHistorial(){
-  var h = S.historial.slice().reverse();
-  document.getElementById('hist').innerHTML = h.length ? '<div style="overflow:auto"><table><thead><tr><th>Fecha de carga</th><th>Archivo</th><th>Total base</th><th>Tier 1</th><th>Tier 2</th><th>Tier 3</th><th>No tocar</th><th>Cobertura BX</th><th>Pilotos</th><th>Cargó</th></tr></thead><tbody>'+h.map(function(x){ return '<tr><td>'+escapeHtml(fmtDate(x.fecha))+'</td><td>'+escapeHtml(x.archivo)+'</td><td>'+x.totalBase+'</td><td>'+x.t1+'</td><td>'+x.t2+'</td><td>'+x.t3+'</td><td>'+x.noTocar+'</td><td>'+x.cobertura+'%</td><td>'+x.pilotos+'</td><td>'+escapeHtml(x.guardadoPor||'')+'</td></tr>'; }).join('')+'</tbody></table></div>' : '<p class="sub">Aún no hay cargas registradas.</p>';
-}
 async function handleFile(file){
   showAlert('', '');
-  var box = document.getElementById('alerts'); box.innerHTML = '<div class="loading">Leyendo el archivo…</div>';
+  var box = $('alerts'); box.innerHTML = '<div class="loading">Leyendo el archivo…</div>';
   try{
     var raw = await readWorkbook(file);
     var ds = { raw:raw, fileName:file.name, uploadedAt:new Date().toISOString() };
@@ -812,28 +903,42 @@ async function handleFile(file){
     box.innerHTML = '<div class="loading">Guardando carga…</div>';
     var r = await fetch('/api/bx-base-instalada', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ dataset:ds, resumen:resumen }) });
     var d = await r.json().catch(function(){return {};});
-    if(r.ok && d.ok){ S.historial = d.historial||S.historial; renderHistorial(); showAlert('ok','Carga guardada. El equipo con acceso ya puede ver esta versión.'); }
+    if(r.ok && d.ok){ S.historial = d.historial||S.historial; renderHistorial(); refresh(); showAlert('ok','Carga guardada. El equipo con acceso ya puede ver esta versión.'); }
     else showAlert('warn','El tablero se calculó, pero no se pudo guardar para el resto del equipo: '+(d.error||('error '+r.status)));
-    if(S.warnings.length) document.getElementById('dqBox').open = true;
+    if(S.warnings.length) $('dqBox').open = true;
   }catch(e){
     console.error(e);
-    document.getElementById('alerts').innerHTML = '<div class="alert err" role="alert">No se pudo leer el archivo: '+escapeHtml(e.message||String(e))+'</div>';
+    $('alerts').innerHTML = '<div class="alert err" role="alert">No se pudo leer el archivo: '+escapeHtml(e.message||String(e))+'</div>';
   }
-  document.getElementById('fileInput').value='';
+  $('fileInput').value='';
 }
 async function init(){
-  document.getElementById('fileInput').addEventListener('change', function(e){ handleFile(e.target.files[0]); });
-  document.getElementById('btnReset').addEventListener('click', resetFilters);
-  document.getElementById('btnVerTier1').addEventListener('click', function(){ S.sel.tier='Tier 1'; S.page=0; refresh(); document.getElementById('tbl').scrollIntoView({behavior:'smooth'}); });
-  document.getElementById('btnCsv').addEventListener('click', function(){ if(S.rows.length) exportFilteredCsv(); });
-  document.getElementById('swNoTocar').addEventListener('change', function(e){ S.showNT = e.target.checked; if(S.sel.tier==='No tocar' && !S.showNT) S.sel.tier=''; S.page=0; refresh(); });
-  document.getElementById('pgSize').addEventListener('change', function(e){ S.pageSize=+e.target.value; S.page=0; refresh(); });
-  document.getElementById('pgPrev').addEventListener('click', function(){ S.page--; renderDataTable(getFilteredRows()); });
-  document.getElementById('pgNext').addEventListener('click', function(){ S.page++; renderDataTable(getFilteredRows()); });
-  var tbl = document.getElementById('tbl');
+  buildDash();
+  $('fileInput').addEventListener('change', function(e){ handleFile(e.target.files[0]); });
+  $('btnReset').addEventListener('click', resetFilters);
+  $('btnVerTier1').addEventListener('click', function(){ S.sel.tier='Tier 1'; S.page=0; refresh(); $('sec-tabla').scrollIntoView({behavior:'smooth'}); });
+  $('btnCsv').addEventListener('click', function(){ if(S.rows.length) exportFilteredCsv(); });
+  $('swNoTocar').addEventListener('change', function(e){ S.showNT = e.target.checked; if(S.sel.tier==='No tocar' && !S.showNT) S.sel.tier=''; S.page=0; refresh(); });
+  $('pgSize').addEventListener('change', function(e){ S.pageSize=+e.target.value; S.page=0; refresh(); });
+  $('pgPrev').addEventListener('click', function(){ S.page--; renderDataTable(getFilteredRows()); });
+  $('pgNext').addEventListener('click', function(){ S.page++; renderDataTable(getFilteredRows()); });
+  var tbl = $('tbl');
   function sortBy(th){ var k=th.getAttribute('data-k'); if(!k) return; if(S.sortKey===k) S.sortDir*=-1; else { S.sortKey=k; S.sortDir=1; } S.page=0; renderDataTable(getFilteredRows()); }
-  tbl.addEventListener('click', function(e){ var th=e.target.closest('th[data-k]'); if(th) return sortBy(th); var td=e.target.closest('td.cm'); if(td) td.classList.toggle('open'); });
-  tbl.addEventListener('keydown', function(e){ if(e.key!=='Enter'&&e.key!==' ') return; var th=e.target.closest('th[data-k]'); if(th){ e.preventDefault(); return sortBy(th); } var td=e.target.closest('td.cm'); if(td){ e.preventDefault(); td.classList.toggle('open'); } });
+  tbl.addEventListener('click', function(e){ var th=e.target.closest('th[data-k]'); if(th) return sortBy(th); var td=e.target.closest('td.bx-cm'); if(td) td.classList.toggle('open'); });
+  tbl.addEventListener('keydown', function(e){ if(e.key!=='Enter'&&e.key!==' ') return; var th=e.target.closest('th[data-k]'); if(th){ e.preventDefault(); return sortBy(th); } var td=e.target.closest('td.bx-cm'); if(td){ e.preventDefault(); td.classList.toggle('open'); } });
+  /* clic en gráficas: filtrar */
+  $('dash').addEventListener('click', function(e){
+    var pill = e.target.closest('[data-clr]');
+    if(pill){ var c = pill.getAttribute('data-clr'); if(c==='__search'){ S.search=''; } else { S.sel[c]=''; } S.page=0; return refresh(); }
+    var t = e.target.closest('[data-fk]'); if(!t) return;
+    var fk = t.getAttribute('data-fk'), fv = t.getAttribute('data-fv'), ft = t.getAttribute('data-ft');
+    if(fk==='tier+piloto'){ var pp = fv.split('|'); S.sel.tier = pp[0]; S.sel.piloto = pp[1]; S.page=0; return refresh(); }
+    if(fv==='Otros' && fk!=='tier') { if(ft){ S.sel.tier = ft; S.page=0; refresh(); } return; }
+    if(ft){ S.sel[fk] = fv; S.sel.tier = ft; S.page=0; return refresh(); }
+    setFilter(fk, fv);
+  });
+  /* buscador local de tablas largas (cambios, historial) */
+  document.addEventListener('input', function(e){ var t = e.target; var id = t && t.getAttribute && t.getAttribute('data-filt'); if(!id) return; var tabla = $(id); if(tabla) WK.filtrar(tabla, t.value); });
   try{
     var r = await fetch('/api/bx-base-instalada'); var d = await r.json();
     S.historial = d.historial || [];

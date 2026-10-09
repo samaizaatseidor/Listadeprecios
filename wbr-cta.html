@@ -36,17 +36,21 @@
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
   input[type=file]{display:none;}
   .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
-  main{max-width:1100px; margin:0 auto; padding:24px 24px 60px;}
-  .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
   .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
-  table{width:100%; border-collapse:collapse; font-size:13px;}
-  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10.5px; text-transform:uppercase;}
-  td{padding:10px 6px; border-bottom:1px solid var(--line);}
-  .estatus-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 10px; border-radius:10px;}
-  .estatus-completado{background:#E7F7EE; color:#1F8A4C;}
-  .estatus-enproceso{background:#FBF1DE; color:#8A6414;}
-  .estatus-pendiente{background:var(--card); color:var(--greyl);}
   .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .st-ok{color:#2FE29B; font-size:14px; font-weight:600; padding:2px 0 10px;}
+  .st-err{color:#FF8CA2; font-size:14px; font-weight:600; padding:2px 0 10px;}
+  .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
+  /* Call to Action — complementos locales (tema oscuro del kit) */
+  .cta-vacio{text-align:center; padding:56px 20px; color:var(--wk-grey,#A5B4CE);} .cta-vacio .big{font-size:64px; margin-bottom:8px; filter:drop-shadow(0 0 24px rgba(47,226,155,.6));} .cta-vacio h2{margin:0 0 8px; font-size:24px; color:#fff;} .cta-vacio p{margin:0; font-size:15px;}
+  .cta-prox{display:block; font-size:clamp(18px,1.4vw,24px); font-weight:700; line-height:1.25; color:#fff; overflow-wrap:anywhere;}
+  .wk-table tbody tr.cta-venc td:first-child{box-shadow:inset 4px 0 0 #FF5C7A;} .wk-table tbody tr.cta-venc td{background:rgba(255,92,122,.07);}
+  .wk-table td.cta-dias{font-weight:700;}
+  .wk-tools{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  /* ranking dentro de tiles: la pista de la barra nunca se colapsa a 0 */
+  body.wk-dark .wk-hero .wk-rank-row{grid-template-columns:minmax(80px,max-content) minmax(60px,1fr) auto; gap:12px;} body.wk-dark .wk-hero .wk-rank-row .n{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px;}
+  .cta-split{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:34px; align-items:center;} .cta-prox-t{font-size:12.5px; letter-spacing:1.4px; text-transform:uppercase; color:#8FE6FF; font-weight:700; margin-bottom:14px;}
+  @media(max-width:1000px){ .cta-split{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -157,25 +161,36 @@
 <header>
   <div>
     <h1>✅ Weekly Business Review — Call to Action</h1>
-    <p>Acciones de la semana — foco principal, responsable, fecha y estatus</p>
+    <p>Acciones de la semana — foco principal, responsable, fecha y estatus · Fechas DD/MM/AA</p>
+    <div id="fechaRevisionBadge"></div>
   </div>
   <label class="upload-label" for="fileInput">⬆️ Subir corte de esta semana</label>
   <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
 </header>
 
-<main>
+<main class="wk-main">
   <div id="statusBox"></div>
   <div id="content"></div>
 </main>
 
+<script src="/wbr-kit.js?v=20261008"></script>
+
 <script>
-function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
-function claseEstatusCta(e){
+/* Categoría del estatus (misma regla de siempre): completado / en proceso / pendiente */
+function catEstatus(e){
   const s = (e||'').toLowerCase();
-  if(s.includes('complet') || s.includes('cerrad') || s.includes('listo')) return 'estatus-completado';
-  if(s.includes('proceso') || s.includes('curso') || s.includes('avance')) return 'estatus-enproceso';
-  return 'estatus-pendiente';
+  if(s.includes('complet') || s.includes('cerrad') || s.includes('listo')) return 'comp';
+  if(s.includes('proceso') || s.includes('curso') || s.includes('avance')) return 'proc';
+  return 'pend';
 }
+const CAT = {
+  comp:{ nombre:'Completadas', color:'#2FE29B', tono:'green' },
+  proc:{ nombre:'En proceso',  color:'#FFC857', tono:'amber' },
+  pend:{ nombre:'Pendientes',  color:'#8B7CFF', tono:'' }
+};
+const plural = (n, s, p) => n + ' ' + (n === 1 ? s : p);
+const corto = (t, n) => { t = String(t); return t.length > n ? t.slice(0, n - 1) + '…' : t; };
+function hoyTs(){ const d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); }
 
 async function handleFile(file){
   if(!file) return;
@@ -190,30 +205,117 @@ async function handleFile(file){
     const m = XLSX.utils.sheet_to_json(ws, { header:1, defval:null });
     let idxHeader = -1;
     for(let i=0;i<m.length;i++){ if(m[i].some(c=>typeof c==='string' && c.trim().toUpperCase().startsWith('ACCIÓN'))) { idxHeader = i; break; } }
+    // Semana de revisión (si la hoja la trae)
+    let semana = null;
+    for(let i=0;i<m.length;i++){ if(typeof m[i][0]==='string' && WK.norm(m[i][0]).startsWith('semana de revision')){ semana = WK.fecha(m[i][1]); break; } }
     const acciones = [];
     for(let i=idxHeader+1; i<m.length; i++){
       const f = m[i];
       if(!f || !f[0]) continue;
-      acciones.push({ accion:f[0], responsable:f[1]||'', fecha: f[2] instanceof Date ? f[2].toLocaleDateString('es-MX') : (f[2]||''), estatus:f[3]||'Pendiente' });
+      const fecha = WK.fecha(f[2]);
+      acciones.push({ accion:f[0], responsable:f[1]||'', fecha: fecha || (f[2]==null ? '' : String(f[2])), estatus:f[3]||'Pendiente' });
     }
-    render(acciones);
-    statusBox.innerHTML = `<div style="color:#1F8A4C; font-size:13px;">${acciones.length} acción(es) cargadas de "${esc(file.name)}".</div>`;
+    render(acciones, semana);
+    statusBox.innerHTML = `<div class="st-ok">${acciones.length} acción(es) cargadas de "${WK.esc(file.name)}".</div>`;
   }catch(e){
     console.error(e);
-    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
+    statusBox.innerHTML = `<div class="st-err">No se pudo leer el archivo: ${WK.esc(e.message||String(e))}</div>`;
   }
 }
 
-function render(acciones){
+function render(acciones, semana){
   const content = document.getElementById('content');
+  document.getElementById('fechaRevisionBadge').innerHTML = semana ? '<span class="fecha-revision">Semana de revisión: ' + WK.esc(semana) + '</span>' : '';
   if(!acciones || !acciones.length){
-    content.innerHTML = `<div class="section"><div class="empty"><h2 style="color:var(--navy2); font-size:16px;">Sin acciones capturadas esta semana</h2><p>Sube el Excel semanal (con la pestaña "Call to Action") para verlas aquí.</p></div></div>`;
+    content.innerHTML = `<div class="wk-card"><div class="cta-vacio"><div class="big">✅</div><h2>Sin acciones capturadas esta semana</h2><p>Sube el Excel semanal (con la pestaña "Call to Action") para verlas aquí.</p></div></div>`;
     return;
   }
-  content.innerHTML = `<div class="section"><table>
-    <tr><th>Acción</th><th>Responsable</th><th>Fecha</th><th>Estatus</th></tr>
-    ${acciones.map(a=>`<tr><td>${esc(a.accion)}</td><td>${esc(a.responsable)}</td><td>${esc(a.fecha)}</td><td><span class="estatus-tag ${claseEstatusCta(a.estatus)}">${esc(a.estatus)}</span></td></tr>`).join('')}
-  </table></div>`;
+  const hoy = hoyTs();
+  const A = acciones.map((a, i) => {
+    const cat = catEstatus(a.estatus), ts = WK.fechaTs(a.fecha);
+    const abierta = cat !== 'comp';
+    return Object.assign({}, a, { i, cat, ts, abierta, venc: abierta && ts != null && ts < hoy,
+      dias: (abierta && ts != null) ? Math.round((ts - hoy) / 864e5) : null });
+  });
+  const N = A.length, por = c => A.filter(a => a.cat === c);
+  const comp = por('comp'), proc = por('proc'), pend = por('pend');
+  const venc = A.filter(a => a.venc);
+  const pct = comp.length / N;
+  const tonoCump = pct >= 0.75 ? 'green' : (pct >= 0.4 ? 'amber' : 'red');
+  const lista = (arr, n) => arr.slice(0, n || 6).map(a => '• ' + corto(a.accion, 60)).join('\n') + (arr.length > (n || 6) ? '\n+ ' + (arr.length - (n || 6)) + ' más' : '');
+
+  // próximas a vencer
+  const proximas = A.filter(a => a.abierta && a.ts != null && a.ts >= hoy).sort((x, y) => x.ts - y.ts);
+  const prox = proximas[0], en7 = proximas.filter(a => a.dias <= 7).length, sinFecha = A.filter(a => a.abierta && a.ts == null).length;
+
+  // vencidas por responsable
+  const vencResp = {}; venc.forEach(a => { const r = a.responsable || 'Sin responsable'; (vencResp[r] = vencResp[r] || []).push(a); });
+  const rankVenc = Object.keys(vencResp).map(r => ({ label:r, value:vencResp[r].length, tono:'red', tip:r + '\n' + lista(vencResp[r]) })).sort((a, b) => b.value - a.value).slice(0, 3);
+
+  const kpis = WK.heroGrid([
+    WK.hero({ label:'Cumplimiento', ico:'🎯', value:Math.round(pct * 100) + '%', tono:tonoCump,
+      sub:plural(comp.length, 'acción completada', 'acciones completadas') + ' de ' + N,
+      chart: WK.gauge({ valor:comp.length, max:N, tono:tonoCump, texto:comp.length + ' de ' + N, label:'completadas', dark:true,
+        tip:'Cumplimiento de la semana\n' + comp.length + ' completadas · ' + proc.length + ' en proceso · ' + pend.length + ' pendientes' }) }),
+    WK.hero({ label:'Acciones de la semana', ico:'✅', value:N, tono:'cyan',
+      sub:[comp.length ? comp.length + ' completadas' : '', proc.length ? proc.length + ' en proceso' : '', pend.length ? pend.length + ' pendientes' : ''].filter(Boolean).join(' · '),
+      chart: WK.ranked(['comp','proc','pend'].map(c => ({ label:CAT[c].nombre, value:por(c).length, tono:CAT[c].tono, tip:CAT[c].nombre + '\n' + (por(c).length ? lista(por(c)) : 'Ninguna') })),
+        { fmt:v => String(v), max:N }) }),
+    WK.hero({ label:'Vencidas', ico:'⏰', value:venc.length, tono: venc.length ? 'red' : 'green',
+      sub: venc.length ? 'Abiertas con fecha ya pasada' : 'Todo al corriente, nada vencido',
+      chart: venc.length ? WK.ranked(rankVenc, { fmt:v => String(v), max:venc.length }) : '' }),
+    WK.hero({ label:'Próximo vencimiento', ico:'📆', value: prox ? prox.dias : '—', unit: prox ? (prox.dias === 1 ? 'día' : 'días') : '', tono:'violet',
+      sub: prox ? '<span class="cta-prox">' + WK.esc(corto(prox.accion, 70)) + '</span>' + WK.esc((prox.responsable ? prox.responsable + ' · ' : '') + prox.fecha) : 'Sin fechas por venir',
+      chart: WK.stats([{ valor:en7, label:'vencen en 7 días' }, { valor:sinFecha, label:'abiertas sin fecha' }]) })
+  ]);
+
+  // Dona por estatus
+  const dona = WK.card({ id:'estatus', ico:'🍩', titulo:'Estatus de las acciones', sub:'Pasa el mouse sobre cada segmento para ver las acciones', count:N,
+    body: WK.donut(['comp','proc','pend'].map(c => ({ label:CAT[c].nombre, value:por(c).length, color:CAT[c].color, tip:CAT[c].nombre + ' · ' + plural(por(c).length, 'acción', 'acciones') + '\n' + lista(por(c)) })),
+      { centro:Math.round(pct * 100) + '%', sub:'completado', fmt:v => String(v) }) });
+
+  // Columnas por responsable
+  const resp = {}; A.forEach(a => { const r = a.responsable || 'Sin responsable'; (resp[r] = resp[r] || []).push(a); });
+  const rs = Object.keys(resp).sort((x, y) => resp[y].length - resp[x].length || x.localeCompare(y, 'es'));
+  const abrev = r => (rs.length > 5 && r.length > 12) ? r.split(/\s+/)[0] + (r.split(/\s+/)[1] ? ' ' + r.split(/\s+/)[1][0] + '.' : '') : r;
+  const porResp = WK.card({ id:'responsables', ico:'👥', titulo:'Carga por responsable', sub:'Acciones por persona y estatus', count:rs.length,
+    body: WK.columns(rs.map(abrev), ['comp','proc','pend'].map(c => ({ nombre:CAT[c].nombre, color:CAT[c].color, valores:rs.map(r => resp[r].filter(a => a.cat === c).length),
+      extra:rs.map(r => r + '\n' + (resp[r].filter(a => a.cat === c).length ? lista(resp[r].filter(a => a.cat === c), 4) : '')) })), { fmt:v => String(Math.round(v)), id:'resp', h:300 }) });
+
+  // Vencimientos por fecha
+  const fechas = {}; A.filter(a => a.ts != null).forEach(a => { (fechas[a.ts] = fechas[a.ts] || []).push(a); });
+  const ks = Object.keys(fechas).map(Number).sort((a, b) => a - b);
+  const corta = ts => { const t = new Date(ts); return String(t.getUTCDate()).padStart(2, '0') + '/' + String(t.getUTCMonth() + 1).padStart(2, '0'); };
+  const full = ts => { const t = new Date(ts); return String(t.getUTCDate()).padStart(2, '0') + '/' + String(t.getUTCMonth() + 1).padStart(2, '0') + '/' + String(t.getUTCFullYear() % 100).padStart(2, '0'); };
+  const serie = (nombre, color, fn) => ({ nombre, color, valores:ks.map(k => fechas[k].filter(fn).length), extra:ks.map(k => full(k) + '\n' + (fechas[k].filter(fn).length ? lista(fechas[k].filter(fn), 4) : '')) });
+  const abiertas = A.filter(a => a.abierta && a.ts != null).sort((x, y) => x.ts - y.ts).slice(0, 6);
+  const rankProx = abiertas.length ? '<div class="cta-prox-lista"><div class="cta-prox-t">Siguientes compromisos abiertos · la barra es la distancia en días</div>' +
+    WK.ranked(abiertas.map(a => ({ label:corto(a.accion, 34), value:a.dias, tono: a.venc ? 'red' : (a.dias <= 3 ? 'amber' : 'green'),
+      tip:a.accion + '\n' + (a.responsable || 'Sin responsable') + ' · ' + a.fecha + '\n' + a.estatus })),
+      { fmt:v => v < 0 ? 'hace ' + (-v) + ' d' : (v === 0 ? 'hoy' : 'en ' + v + ' d'), max:Math.max.apply(null, abiertas.map(a => Math.abs(a.dias))) || 1 }) + '</div>' : '';
+  const calendario = ks.length ? WK.card({ id:'calendario', ico:'📆', titulo:'Vencimientos por fecha', sub: venc.length ? 'En rojo, lo que ya venció sin completarse' : 'Completadas contra abiertas, por fecha compromiso', count:ks.length + (ks.length === 1 ? ' fecha' : ' fechas'),
+    body: '<div class="cta-split"><div>' + WK.columns(ks.map(corta), [
+      serie('Completadas', '#2FE29B', a => a.cat === 'comp'),
+      serie('Abiertas en tiempo', '#3DD6FF', a => a.abierta && !a.venc),
+      serie('Vencidas', '#FF5C7A', a => a.venc)
+    ], { fmt:v => String(Math.round(v)), id:'cal', h:280 }) + '</div>' + rankProx + '</div>' }) : '';
+
+  // Tabla completa
+  const filas = A.map(a => ({ accion:a.accion, responsable:a.responsable, fecha:a.fecha, estatus:a.estatus, dias:a.dias, venc:a.venc, cat:a.cat }));
+  const tabla = WK.card({ id:'tabla', ico:'🗂️', titulo:'Todas las acciones', sub:'Ordena por cualquier columna o busca por acción, responsable o estatus. Marcadas en rojo las vencidas.', count:N,
+    body: '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar acción, responsable, estatus…" oninput="WK.filtrar(document.getElementById(\'tablaCta\'), this.value)"></div>' +
+      WK.table([
+        { k:'accion', label:'Acción', tipo:'strong' }, { k:'responsable', label:'Responsable', tipo:'tag' }, { k:'fecha', label:'Fecha', tipo:'date' },
+        { k:'estatusH', label:'Estatus', tipo:'html' }, { k:'dias', label:'Días para vencer', tipo:'num', cls:'cta-dias' }
+      ], filas.map(f => Object.assign({}, f, { estatusH: WK.badge(f.estatus, f.cat === 'comp' ? 'green' : (f.cat === 'proc' ? 'amber' : 'blue')) + (f.venc ? ' ' + WK.badge('Vencida', 'red') : '') })),
+        { id:'tablaCta', rowAttrs:f => f.venc ? 'class="cta-venc"' : '' }) });
+
+  content.innerHTML = WK.chips([{ id:'resumen', label:'Resumen' }, { id:'estatus', label:'Estatus' }, { id:'responsables', label:'Responsables' }].concat(ks.length ? [{ id:'calendario', label:'Calendario' }] : []).concat([{ id:'tabla', label:'Todas las acciones', n:N }])) +
+    '<div id="resumen" style="scroll-margin-top:70px">' + kpis + '</div>' +
+    '<div class="wk-grid2" style="margin-bottom:18px">' + dona + porResp + '</div>' + calendario + tabla +
+    '<div class="wk-foot">Fechas en DD/MM/AA. “Vencida” = acción abierta con fecha anterior a hoy.</div>';
+  WK.sortable(content);
+  if(WK.observarSecciones) WK.observarSecciones();
 }
 
 render(null);
