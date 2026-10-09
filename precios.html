@@ -1,113 +1,39 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0A1226">
 <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
-<meta name="robots" content="noindex, nofollow">
-<title>Lista de Precios — SEIDOR</title>
+<meta name="robots" content="noindex, nofollow" />
+<title>Tarifario Baseline — SEIDOR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
 <style>
-  :root{
-    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
-    --cyan:#33B4DD; --cyan-l:#6FD3F0;
-    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
-    --line:#D8E2EE; --card:#F4F8FC;
-    --shadow: 0 3px 9px rgba(159,179,204,0.35);
-  }
-  *{box-sizing:border-box;}
-  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
-  .topnav{background:#fff; border-bottom:1px solid var(--line);}
-  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
-  .topnav-logo img{height:26px; display:block;}
-    .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
-  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
-  .nav-link:hover{color:var(--blue);}
-  .nav-link.active{color:var(--blue);}
-  .nav-dropdown{position:relative;}
-  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
-  .nav-dropdown-btn:hover{color:var(--blue);}
-  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-link{color:#0E1E3F; text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:#1E5BB8;}
+  .nav-link.active{color:#1E5BB8;}
+  .nav-dropdown{position:relative; display:inline-block;}
+  .nav-dropdown-btn{background:none; border:none; font-family:'Poppins',sans-serif; color:#0E1E3F; font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:#1E5BB8;}
+  .nav-dropdown-btn.active{color:#1E5BB8;}
   .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
   .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
-  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid #D8E2EE; border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60; text-align:left;}
   .nav-dropdown.open .nav-dropdown-menu{display:block;}
-  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
-  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
-  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
-  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
-
-  .nav-link.active{color:var(--blue);}
-  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
-  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
-  header p{margin:0; color:var(--cyan-l); font-size:13px;}
-  .fecha-revision{display:inline-block;margin-top:8px;background:rgba(111,211,240,.14);border:1px solid rgba(111,211,240,.35);color:#8FE6FF;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:600;}
-  .loading{color:var(--grey); padding:40px; text-align:center;}
-
-  /* ===== Cristal sobre fondo blanco ===== */
-  body[data-wk-light]{background:#fff!important;position:relative;}
-  body[data-wk-light]:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-    background:radial-gradient(620px 420px at 6% 8%,rgba(61,214,255,.22),transparent 65%),radial-gradient(560px 420px at 96% 12%,rgba(139,124,255,.18),transparent 65%),radial-gradient(640px 460px at 55% 105%,rgba(47,226,155,.16),transparent 65%),#fff;}
-  body[data-wk-light] .topnav{background:rgba(255,255,255,.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
-  body[data-wk-light] header{background:linear-gradient(120deg,rgba(255,255,255,.75),rgba(230,243,255,.55));backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.9);box-shadow:0 8px 30px rgba(30,91,184,.10);color:var(--navy2);}
-  body[data-wk-light] header h1{color:var(--navy2);} body[data-wk-light] header p{color:var(--grey);}
-  body[data-wk-light] .fecha-revision{background:rgba(30,91,184,.08);border-color:rgba(30,91,184,.25);color:#1E5BB8;}
-  body[data-wk-light] .wk-nav{background:rgba(255,255,255,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
-  body[data-wk-light] .wk-chip{background:rgba(255,255,255,.65);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.95);box-shadow:0 2px 10px rgba(30,91,184,.08);}
-  body[data-wk-light] .wk-chip.on{background:linear-gradient(135deg,#1E5BB8,#33B4DD);color:#fff;border-color:transparent;}
-  body[data-wk-light] .wk-card,body[data-wk-light] .wk-callout,body[data-wk-light] .wk-hero,body[data-wk-light] .pk{background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(255,255,255,.42));backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid rgba(255,255,255,.95);box-shadow:0 10px 36px rgba(30,91,184,.12),inset 0 1px 0 rgba(255,255,255,.9);color:var(--ink);}
-  body[data-wk-light] .wk-hero{min-height:170px;overflow:hidden;}
-  body[data-wk-light] .wk-hero:after{background:radial-gradient(ellipse,rgba(51,180,221,.30),transparent 70%);}
-  body[data-wk-light] .wk-hero.wk-t-green{box-shadow:inset 0 -4px 0 #2FCB73,0 10px 36px rgba(30,91,184,.12);} body[data-wk-light] .wk-hero.wk-t-amber{box-shadow:inset 0 -4px 0 #EBC260,0 10px 36px rgba(30,91,184,.12);} body[data-wk-light] .wk-hero.wk-t-cyan{box-shadow:inset 0 -4px 0 #33B4DD,0 10px 36px rgba(30,91,184,.12);}
-  body[data-wk-light] .wk-hero-top{color:var(--greyl);} body[data-wk-light] .wk-hero-val{color:var(--navy2);text-shadow:none;font-size:46px;} body[data-wk-light] .wk-hero-val small{color:var(--grey);} body[data-wk-light] .wk-hero-sub{color:var(--grey);}
-  body[data-wk-light] .wk-callout h3{color:var(--blue);} body[data-wk-light] .wk-callout .txt{color:var(--ink);}
-  body[data-wk-light] .wk-band h2{color:var(--navy2);}
-  body[data-wk-light] .wk-tablewrap{background:rgba(255,255,255,.55);border-color:rgba(255,255,255,.95);}
-  body[data-wk-light] .wk-table th{background:rgba(241,245,250,.85);color:var(--grey);}
-  body[data-wk-light] .wk-table td{color:var(--ink);background:transparent;} body[data-wk-light] .wk-table tbody tr:nth-child(even) td{background:rgba(244,248,252,.55);} body[data-wk-light] .wk-table tbody tr:hover td{background:rgba(228,238,251,.8);}
-  body[data-wk-light] .wk-table td.wk-strong{color:var(--navy2);}
-
-  body[data-wk-light] .wk-hero{background:linear-gradient(145deg,rgba(255,255,255,.80),rgba(255,255,255,.42))!important;box-shadow:0 10px 36px rgba(30,91,184,.12),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -4px 0 var(--ht,#33B4DD)!important;min-height:170px!important;transform:none;}
-  body[data-wk-light] .wk-hero:hover{box-shadow:0 18px 44px rgba(30,91,184,.18),inset 0 1px 0 #fff,inset 0 -4px 0 var(--ht,#33B4DD)!important;}
-  body[data-wk-light] .wk-hero.wk-t-green{--ht:#2FCB73;} body[data-wk-light] .wk-hero.wk-t-amber{--ht:#EBC260;} body[data-wk-light] .wk-hero.wk-t-cyan{--ht:#33B4DD;}
-  body[data-wk-light] .wk-hero-top,body[data-wk-light] .wk-hero-top span{color:#5E6B82!important;} body[data-wk-light] .wk-hero-val{color:#0E1E3F!important;text-shadow:none!important;} body[data-wk-light] .wk-hero-val small,body[data-wk-light] .wk-hero-sub{color:#5E6B82!important;}
-  .pk-grid{align-items:start;}
-  .pr-filtro{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
-  .pr-filtro>span{font-size:13px;font-weight:700;color:var(--blue);letter-spacing:.4px;margin-right:4px;}
-  .pr-filtro button{font:600 13.5px Poppins,sans-serif;color:var(--navy2);background:rgba(255,255,255,.65);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.95);box-shadow:0 2px 10px rgba(30,91,184,.08);border-radius:999px;padding:8px 16px;cursor:pointer;transition:all .15s;}
-  .pr-filtro button i{font-style:normal;margin-left:6px;background:rgba(30,91,184,.10);border-radius:999px;padding:1px 8px;font-size:12px;}
-  .pr-filtro button:hover{border-color:#33B4DD;color:var(--blue);}
-  .pr-filtro button.on{background:linear-gradient(135deg,#1E5BB8,#33B4DD);border-color:transparent;color:#fff;box-shadow:0 6px 22px rgba(51,180,221,.35);} .pr-filtro button.on i{background:rgba(255,255,255,.25);}
-  .pr-filtro .wk-search{margin-left:auto;background:rgba(255,255,255,.7);border-color:rgba(255,255,255,.95);}
-
-  .pk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:18px;}
-  .pk{position:relative;border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;overflow:hidden;}
-  .pk:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--pk,#33B4DD);}
-  .pk.t-ams{--pk:#33B4DD;} .pk.t-tm{--pk:#8B7CFF;} .pk.t-impl{--pk:#2FB67C;}
-  .pk-badge{align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:#fff;background:var(--pk,#33B4DD);border-radius:99px;padding:3px 11px;}
-  .pk h3{margin:0;font-size:18px;font-weight:700;color:var(--navy2);}
-  .pk-sub{margin:0;font-size:13px;color:var(--grey);}
-  .pk-price{font-size:40px;font-weight:800;letter-spacing:-1px;color:var(--navy2);line-height:1.05;font-variant-numeric:tabular-nums;}
-  .pk-price small{font-size:15px;font-weight:600;color:var(--grey);margin-left:6px;letter-spacing:0;}
-  .pk-plabel{font-size:11.5px;color:var(--greyl);margin-top:-8px;font-weight:600;}
-  .pk-meta{display:grid;gap:6px;font-size:13px;color:var(--ink);} .pk-meta b{color:var(--blue);font-weight:600;}
-  .pk-toggle{align-self:flex-start;font:600 13px Poppins,sans-serif;color:var(--blue);background:rgba(255,255,255,.6);border:1px solid rgba(30,91,184,.3);border-radius:10px;padding:7px 14px;cursor:pointer;transition:all .15s;}
-  .pk-toggle:hover{background:rgba(30,91,184,.08);}
-  .pk-detail{display:none;gap:14px;grid-template-columns:1fr 1fr;} .pk-detail.open{display:grid;}
-  .pk-detail h4{margin:0 0 6px;font-size:11.5px;letter-spacing:.7px;text-transform:uppercase;font-weight:700;}
-  .pk-detail .inc h4{color:#17703E;} .pk-detail .exc h4{color:#9A2E2E;}
-  .pk-detail ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.55;color:var(--ink);} .pk-detail li{margin-bottom:4px;}
-  .pk-dl{margin-top:auto;display:inline-flex;align-items:center;gap:8px;align-self:flex-start;color:#fff;background:linear-gradient(135deg,#1E5BB8,#33B4DD);border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 6px 18px rgba(51,180,221,.3);}
-  .pk-dl:hover{filter:brightness(1.08);}
-  @media (max-width:900px){.pk-grid{grid-template-columns:1fr;}.pk-detail{grid-template-columns:1fr;}.pr-filtro .wk-search{margin-left:0;}}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:#0E1E3F; text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:#F4F8FC; color:#1E5BB8;}
+  .nav-dropdown-menu a.active{color:#1E5BB8; font-weight:600; background:#F4F8FC;}
+  .nav-dropdown-sep{height:1px; background:#D8E2EE; margin:6px 4px;}
+  .nav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
 </style>
 </head>
-<body data-wk-light>
+<body>
 <script>
 (async function(){
   const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
@@ -148,11 +74,13 @@
 })();
 </script>
 
-<nav class="topnav">
-  <div class="topnav-wrap">
-    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
-    <div class="topnav-links">
-      <a href="/index.html" class="nav-link">Inicio</a>
+<div class="confidential-bar">USO INTERNO — CONFIDENCIAL · NO COMPARTIR FUERA DE SEIDOR</div>
+
+<nav class="nav" id="nav">
+  <div class="wrap">
+    <div class="nav-logo"><img src="assets/logo_light.png" alt="SEIDOR" /></div>
+<div class="nav-links">
+  <a href="/index.html" class="nav-link">Inicio</a>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
@@ -168,45 +96,45 @@
           <a href="/wbr-vop.html">Tablero VOP</a>
         </div>
       </div>
-      <div class="nav-dropdown">
-        <button type="button" class="nav-dropdown-btn active">Comercial <span class="caret">&#9662;</span></button>
-        <div class="nav-dropdown-menu">
-          <a href="/precios.html" class="active">Lista de Precios</a>
-          <a href="/ficha.html">Ficha del Cliente</a>
-          <div class="nav-dropdown-sep"></div>
-          <a href="/prospecto.html">Investigación de Prospecto</a>
-          <a href="/alta.html">Generador de Formato de Alta</a>
-          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+  <div class="nav-dropdown">
+    <button type="button" class="nav-dropdown-btn active">Comercial <span class="caret">&#9662;</span></button>
+    <div class="nav-dropdown-menu">
+      <a href="/precios.html" class="active">Lista de Precios</a>
+      <a href="/ficha.html">Ficha del Cliente</a>
+      <div class="nav-dropdown-sep"></div>
+      <a href="/prospecto.html">Investigación de Prospecto</a>
+      <a href="/alta.html">Generador de Formato de Alta</a>
+      <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
           <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
           <a href="/contactos-sap.html">Contactos SAP</a>
-        </div>
-      </div>
-      <div class="nav-dropdown">
-        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
-        <div class="nav-dropdown-menu">
-          <a href="/pipeline.html">CRM PresalesMX</a>
-          <a href="/documentos.html">Documentos de Apoyo</a>
-          <a href="/kpis.html">Tablero de Control</a>
-          <div class="nav-dropdown-sep"></div>
-          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
-          <a href="/handover.html">Handover Comercial → Operaciones</a>
-          <a href="/estimador.html">Estimador de Esfuerzo</a>
-          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
-        </div>
-      </div>
-      <div class="nav-dropdown">
-        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
-        <div class="nav-dropdown-menu">
-          <a href="/dias-habiles.html">Días Hábiles México</a>
-          <a href="/minutas.html">Generador de Minutas / Status</a>
-          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
-          <a href="/proyecto.html">Dashboard de Proyecto</a>
-          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
-          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
-          <a href="/vista-general.html">Vista General del Proyecto</a>
-          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
-        </div>
-      </div>
+    </div>
+  </div>
+  <div class="nav-dropdown">
+    <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+    <div class="nav-dropdown-menu">
+      <a href="/pipeline.html">CRM PresalesMX</a>
+      <a href="/documentos.html">Documentos de Apoyo</a>
+      <a href="/kpis.html">Tablero de Control</a>
+      <div class="nav-dropdown-sep"></div>
+      <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+      <a href="/handover.html">Handover Comercial → Operaciones</a>
+      <a href="/estimador.html">Estimador de Esfuerzo</a>
+      <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+    </div>
+  </div>
+  <div class="nav-dropdown">
+    <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+    <div class="nav-dropdown-menu">
+      <a href="/dias-habiles.html">Días Hábiles México</a>
+      <a href="/minutas.html">Generador de Minutas / Status</a>
+      <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+      <a href="/proyecto.html">Dashboard de Proyecto</a>
+      <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+      <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+      <a href="/vista-general.html">Vista General del Proyecto</a>
+      <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+    </div>
+  </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
@@ -219,126 +147,106 @@
           <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
         </div>
       </div>
-      <div class="nav-dropdown">
-        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
-        <div class="nav-dropdown-menu">
-          <a href="/auditoria.html">Auditoría</a>
-          <a href="/roles.html">Roles y Permisos</a>
-        </div>
-      </div>
+  <div class="nav-dropdown">
+    <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+    <div class="nav-dropdown-menu">
+      <a href="/auditoria.html">Auditoría</a>
+      <a href="/roles.html">Roles y Permisos</a>
     </div>
-  </div></nav>
+  </div>
+</div>
+    </div>
+</nav>
 
-<header>
-  <div>
-    <h1>💲 Lista de Precios</h1>
-    <p>Tarifario baseline de servicios y paquetes · AMS, Time &amp; Material e implementación SAP Cloud ERP</p>
-    <div id="fechaRevisionBadge"></div>
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <img src="assets/logo_dark.png" alt="SEIDOR" />
+      <span class="hero-updated" id="heroUpdated"></span>
+    </div>
+    <div class="kicker">Tarifario interno · Uso comercial</div>
+    <h1>Precios baseline de servicios</h1>
+    <p class="lede">
+      Referencia rápida de tarifas para armar propuestas: servicios individuales
+      por hora (AMS y consultoría) y paquetes de implementación baseline para
+      SAP Cloud ERP, en sus ediciones Public y Private.
+    </p>
+    <div class="chip-row">
+      <span class="chip accent">USD</span>
+      <span class="chip">Precios de referencia</span>
+      <span class="chip">Sujetos a alcance final</span>
+    </div>
   </div>
 </header>
 
-<main id="main" class="wk-main"><div class="loading">Cargando…</div></main>
+<section class="disclaimer">
+  <div class="wrap">
+    <span class="dot"></span>
+    <p>
+      Estos son precios <strong>baseline</strong>, es decir, un punto de partida para
+      cotizar con el cliente. El valor final depende del alcance real, la complejidad
+      del proceso, integraciones y volumen de datos. Ante cualquier duda de scoping,
+      valida con el equipo de Presales antes de comunicar una cifra al cliente.
+    </p>
+  </div>
+</section>
 
-<script src="/data.js"></script>
-<script src="/wbr-kit.js?v=20261009c"></script>
-<script>
-const USD = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
-const grupoPkg = p => p.id==='tm' ? 'T&M' : (p.id.indexOf('ams')===0 ? 'AMS' : 'Implementación');
-const clsPkg = p => ({ 'AMS':'t-ams', 'T&M':'t-tm', 'Implementación':'t-impl' })[grupoPkg(p)];
-let cat = 'Todos', q = '', gPkg = 'Todos';
+<section class="section-light" id="individuales">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker" style="color:var(--blue)">Tarifas por hora</div>
+      <h2>Servicios individuales</h2>
+      <p>Tarifas de referencia por rol y nivel de seniority, para AMS y para
+        proyectos de implementación cotizados por horas/bolsa de horas.</p>
+    </div>
 
-document.getElementById('fechaRevisionBadge').innerHTML = '<span class="fecha-revision">Actualizado — '+WK.esc(LAST_UPDATED)+'</span>';
+    <div class="controls" id="controls">
+      <!-- filtros insertados por JS -->
+      <input type="text" class="search-input" id="searchInput" placeholder="Buscar rol…" />
+    </div>
 
-function pkgCard(p){
-  const mensual = p.priceUnit && p.priceUnit.indexOf('mes')===0;
-  const sufijo = mensual ? '/mes' : 'baseline';
-  const etiqueta = mensual ? 'Precio de referencia mensual' + (p.priceNote ? ' ' + p.priceNote : '') : 'Precio de referencia total';
-  const eq = p.id==='ams' ? 'Distribución' : (p.id==='ams-basis' ? 'Equipo' : 'Equipo típico');
-  return '<article class="pk '+clsPkg(p)+'" data-pk="'+p.id+'">'+
-    '<span class="pk-badge">'+WK.esc(p.badge)+'</span>'+
-    '<h3>'+WK.esc(p.title)+'</h3><p class="pk-sub">'+WK.esc(p.subtitle)+'</p>'+
-    '<div class="pk-price">'+USD(p.price)+'<small>'+sufijo+'</small></div><div class="pk-plabel">'+WK.esc(etiqueta)+'</div>'+
-    '<div class="pk-meta"><div><b>Duración:</b> '+WK.esc(p.duration)+'</div><div><b>'+eq+':</b> '+WK.esc(p.team)+'</div></div>'+
-    '<button type="button" class="pk-toggle" data-tg="'+p.id+'">Ver alcance detallado ▾</button>'+
-    '<div class="pk-detail" id="det-'+p.id+'"><div class="inc"><h4>Incluye</h4><ul>'+p.includes.map(i=>'<li>'+WK.esc(i)+'</li>').join('')+'</ul></div>'+
-    '<div class="exc"><h4>No incluye</h4><ul>'+p.excludes.map(i=>'<li>'+WK.esc(i)+'</li>').join('')+'</ul></div></div>'+
-    (p.pptFile ? '<a class="pk-dl" href="'+p.pptFile+'" download>⬇ '+WK.esc(p.pptLabel || 'Descargar PPT de Alcance')+'</a>' : '')+
-  '</article>';
-}
+    <div class="rate-table-wrap">
+      <table class="rate-table">
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Rol</th>
+            <th>Nivel</th>
+            <th>Tarifa (USD)</th>
+          </tr>
+        </thead>
+        <tbody id="rateTableBody">
+          <!-- filas insertadas por JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 
-function tablaTarifas(){
-  const filas = INDIVIDUAL_SERVICES.filter(s => (cat==='Todos' || s.category===cat) && (!q || WK.norm(s.role+' '+s.category+' '+s.level+' '+(s.notes||'')).indexOf(WK.norm(q))>=0))
-    .map(s => ({ categoria:s.category, rol:s.role, nivel:s.level, tarifa:s.rate, unidad:s.unit==='hora'?'por hora':'por día', notas:s.notes }));
-  return WK.table([
-    { k:'categoria', label:'Categoría', tipo:'tag' },
-    { k:'rol', label:'Rol', tipo:'strong' },
-    { k:'nivel', label:'Nivel', tipo:'tag' },
-    { k:'tarifa', label:'Tarifa (USD)', tipo:'usd' },
-    { k:'unidad', label:'Unidad', tipo:'text' },
-    { k:'notas', label:'Notas', tipo:'note' }
-  ], filas, { vacio:'No se encontraron servicios con ese filtro.' });
-}
+<section class="section-dark" id="paquetes">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Baseline de implementación</div>
+      <h2>Paquetes SAP Cloud ERP</h2>
+      <p>Alcance y precio de referencia para un proyecto de implementación baseline,
+        antes de ajustar por los requerimientos específicos del cliente.</p>
+    </div>
 
-function tablaComparativa(){
-  const filas = PACKAGES.map(p => ({ tipo:grupoPkg(p), paquete:p.title, precio:p.price, esquema:p.priceUnit && p.priceUnit.indexOf('mes')===0?'Mensual':'Total baseline', duracion:p.duration }));
-  return WK.table([
-    { k:'tipo', label:'Tipo', tipo:'tag' },
-    { k:'paquete', label:'Paquete', tipo:'strong' },
-    { k:'precio', label:'Precio (USD)', tipo:'usd' },
-    { k:'esquema', label:'Esquema', tipo:'text' },
-    { k:'duracion', label:'Duración', tipo:'note' }
-  ], filas);
-}
+    <div class="pkg-grid" id="pkgGrid">
+      <!-- tarjetas insertadas por JS -->
+    </div>
+  </div>
+</section>
 
-function render(){
-  const main = document.getElementById('main');
-  const cats = ['Todos', ...new Set(INDIVIDUAL_SERVICES.map(s=>s.category))];
-  const grupos = ['Todos', ...new Set(PACKAGES.map(grupoPkg))];
-  const mensuales = PACKAGES.filter(p=>p.priceUnit && p.priceUnit.indexOf('mes')===0);
-  const impl = PACKAGES.filter(p=>grupoPkg(p)==='Implementación');
-  const tarifas = INDIVIDUAL_SERVICES.map(s=>s.rate);
-  const minMes = mensuales.reduce((a,p)=>p.price<a.price?p:a), minImpl = impl.reduce((a,p)=>p.price<a.price?p:a);
+<footer>
+  <div class="wrap">
+    <img src="assets/logo_dark.png" alt="SEIDOR" />
+    <p>Este tarifario es material interno de SEIDOR para uso del equipo comercial.
+      No debe compartirse con clientes ni terceros sin aprobación de Presales.</p>
+    <p class="fine" id="footerUpdated"></p>
+  </div>
+</footer>
 
-  const kpis = WK.heroGrid([
-    WK.hero({ label:'Paquetes disponibles', ico:'📦', value:PACKAGES.length, tono:'cyan', sub:mensuales.length+' mensuales · '+impl.length+' de implementación' }),
-    WK.hero({ label:'Servicio mensual desde', ico:'🔁', value:USD(minMes.price), unit:'/mes', tono:'green', sub:WK.esc(minMes.badge) }),
-    WK.hero({ label:'Implementación desde', ico:'🏗️', value:USD(minImpl.price), tono:'amber', sub:WK.esc(minImpl.badge) }),
-    WK.hero({ label:'Tarifas individuales', ico:'👥', value:INDIVIDUAL_SERVICES.length, sub:'Desde '+USD(Math.min(...tarifas))+' hasta '+USD(Math.max(...tarifas))+' (hora o día según el rol)' })
-  ]);
-
-  const aviso = WK.callout('Precios baseline', 'Son un punto de partida para cotizar. El valor final depende del alcance real, la complejidad, integraciones y volumen de datos. Ante dudas de scoping, valida con Presales antes de comunicar una cifra al cliente. Precios en USD, sin IVA.');
-
-  const filtroT = '<div class="pr-filtro"><span>🔎 Categoría</span>'+cats.map(c=>'<button type="button" class="'+(c===cat?'on':'')+'" data-cat="'+WK.esc(c)+'">'+WK.esc(c)+' <i>'+(c==='Todos'?INDIVIDUAL_SERVICES.length:INDIVIDUAL_SERVICES.filter(s=>s.category===c).length)+'</i></button>').join('')+
-    '<input type="search" class="wk-search" id="prBuscar" placeholder="Buscar rol, nivel o nota…" value="'+WK.esc(q)+'"></div>';
-  const filtroP = '<div class="pr-filtro"><span>📦 Tipo</span>'+grupos.map(g=>'<button type="button" class="'+(g===gPkg?'on':'')+'" data-g="'+WK.esc(g)+'">'+WK.esc(g)+' <i>'+(g==='Todos'?PACKAGES.length:PACKAGES.filter(p=>grupoPkg(p)===g).length)+'</i></button>').join('')+'</div>';
-
-  main.innerHTML =
-    WK.chips([{id:'resumen',label:'Resumen'},{id:'tarifas',label:'Tarifas por hora / día',n:INDIVIDUAL_SERVICES.length},{id:'paquetes',label:'Paquetes',n:PACKAGES.length},{id:'comparativo',label:'Comparativo'}]) +
-    '<div id="resumen">'+kpis+aviso+'</div>'+
-    WK.band('tarifas','Servicios individuales','Tarifas de referencia por rol y nivel') +
-    WK.card({ titulo:'Tarifario por rol', sub:'Haz clic en un encabezado para ordenar', count:INDIVIDUAL_SERVICES.length+' roles', body:filtroT+'<div id="tTarifas">'+tablaTarifas()+'</div>' }) +
-    WK.band('paquetes','Paquetes','AMS, Time & Material e implementación SAP Cloud ERP') +
-    filtroP + '<div class="pk-grid" id="pkGrid">'+PACKAGES.filter(p=>gPkg==='Todos'||grupoPkg(p)===gPkg).map(pkgCard).join('')+'</div>' +
-    WK.band('comparativo','Comparativo de paquetes','Ordenable por columna') +
-    WK.card({ titulo:'Paquetes lado a lado', body:tablaComparativa() }) +
-    '<div class="wk-foot">Material interno de SEIDOR para el equipo comercial. No compartir con clientes ni terceros sin aprobación de Presales. Última actualización de precios: '+WK.esc(LAST_UPDATED)+'.</div>';
-  WK.observarSecciones();
-}
-
-document.addEventListener('click', e => {
-  const c = e.target.closest('[data-cat]'); if(c){ cat = c.getAttribute('data-cat'); render(); return; }
-  const g = e.target.closest('[data-g]'); if(g){ gPkg = g.getAttribute('data-g'); render(); return; }
-  const t = e.target.closest('[data-tg]'); if(t){
-    const d = document.getElementById('det-'+t.getAttribute('data-tg')); const abierto = d.classList.toggle('open');
-    t.textContent = abierto ? 'Ocultar alcance detallado ▴' : 'Ver alcance detallado ▾';
-  }
-});
-document.addEventListener('input', e => {
-  if(e.target.id !== 'prBuscar') return;
-  q = e.target.value; document.getElementById('tTarifas').innerHTML = tablaTarifas();
-});
-render();
-</script>
 <script>
 (function(){
   var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
@@ -365,6 +273,8 @@ render();
   });
 })();
 </script>
+<script src="data.js"></script>
+<script src="script.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){

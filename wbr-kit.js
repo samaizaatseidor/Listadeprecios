@@ -818,16 +818,16 @@ WK.escalar = function(){
   main.style.zoom = z > 1.02 ? z.toFixed(3) : '';
 };
 WK.fx = function(root){
-  if(!document.body.hasAttribute('data-wk-light')) document.body.classList.add('wk-dark');
+  document.body.classList.add('wk-dark');
   inyectarOwner(); WK.escalar();
-  document.querySelectorAll('.topnav-logo img').forEach(function(im){ if(!document.body.hasAttribute('data-wk-light') && im.src.indexOf('logo_light') >= 0) im.src = im.src.replace('logo_light','logo_dark'); });
+  document.querySelectorAll('.topnav-logo img').forEach(function(im){ if(im.src.indexOf('logo_light') >= 0) im.src = im.src.replace('logo_light','logo_dark'); });
   observar(root);
   (root||document).querySelectorAll('[data-wi-root]').forEach(function(r){ var id = r.getAttribute('data-wi-root'); if(r._wkWi) return; r._wkWi = true; wiRender(id, r); });
   if(WK.sortable) WK.sortable(root||document);
 };
 var fxTimer = null;
 function iniciarFx(){
-  if(!document.body.hasAttribute('data-wk-light')) document.body.classList.add('wk-dark');
+  document.body.classList.add('wk-dark');
   if('IntersectionObserver' in window) io = new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ revelar(e.target); io.unobserve(e.target); } }); }, { threshold:.12 });
   document.addEventListener('mouseover', mostrarTip); document.addEventListener('mousemove', function(e){ mostrarTip(e); inclinar(e); }, { passive:true });
   document.addEventListener('mouseleave', function(){ if(tipEl) tipEl.classList.remove('on'); });
