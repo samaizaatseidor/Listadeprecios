@@ -502,6 +502,13 @@ function render(){
     WK.band('metas', 'Metas y avance', 'Montos en miles de USD · la marca vertical indica el forecast') +
     '<div class="wk-grid2">' + WK.card({ ico:'📆', titulo:'Trimestre actual', body:bulletsCQ }) + WK.card({ ico:'🗓️', titulo:'Acumulado del año', body:bulletsYTD }) + '</div>' +
     WK.card({ ico:'🧱', titulo:'Pipeline vs. meta', body:bulletsPipe }) +
+    WK.card({ ico:'🧪', titulo:'Simulador: ¿y si cerramos…?', sub:'Mueve los controles y mira cómo cambia el cierre del trimestre. Es una simulación, no se guarda.', body: WK.whatif({ id:'vtas', sliders:[
+      { k:'close', label:'% del pipeline CQ que se cierra', min:0, max:60, step:1, val:20, fmt:x => x + '%' },
+      { k:'extra', label:'Ventas adicionales ya firmadas (USD miles)', min:0, max:2000, step:50, val:0, fmt:x => '$' + x.toLocaleString('es-MX') + 'K' } ],
+      calc: vals => { const proy = (v.resultadoCQ||0) + (p.resultadoCQ||0) * vals.close/100 + vals.extra, meta = v.targetCQ || 1, gap = meta - proy;
+        return { gauge:{ valor:proy, max:meta, tono:TONO_AV(proy/meta), texto:WK.pct(proy/meta), label:'de la meta CQ', tip:'Cierre proyectado\n' + WK.usdK(proy) + ' de ' + WK.usdK(meta) },
+          stats:[ { valor:WK.usdK(proy), label:'Cierre proyectado CQ' }, { valor:gap > 0 ? WK.usdK(gap) : '✔ cumplida', label: gap > 0 ? 'Falta para la meta' : 'Meta del trimestre' }, { valor:WK.usdK(v.resultadoYTD + proy - (v.resultadoCQ||0)), label:'YTD proyectado' } ],
+          nota: gap > 0 ? 'Con ese ritmo de cierre todavía faltarían ' + WK.usdK(gap) + ' para la meta.' : 'Con ese ritmo se supera la meta del trimestre por ' + WK.usdK(-gap) + '.' }; } }) }) +
     WK.card({ ico:'📋', titulo:'Detalle de metas', sub:'Haz clic en un encabezado para ordenar.', body:tablaMetas }) +
     WK.band('ops', 'Oportunidades', 'Detalle del pipeline') +
     (mov ? '<div class="wk-kpis">' + mov + '</div>' : '') +
