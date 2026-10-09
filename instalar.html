@@ -8,6 +8,7 @@
 <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<meta name="robots" content="noindex, nofollow">
 <title>Cómo instalar la app · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,26 +17,60 @@
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
     --cyan:#33B4DD; --cyan-l:#6FD3F0;
     --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
-    --line:#D8E2EE; --card:#F4F8FC;
+    --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C;
     --shadow: 0 3px 9px rgba(159,179,204,0.35);
   }
   *{box-sizing:border-box;}
   body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
   .topnav{background:#fff; border-bottom:1px solid var(--line);}
-  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-wrap{padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
   .topnav-logo img{height:26px; display:block;}
   .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
-  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:28px 24px;}
-  header h1{margin:0 0 4px; font-size:22px; font-weight:600;}
-  header p{margin:0; color:var(--cyan-l); font-size:13.5px;}
-  main{max-width:760px; margin:0 auto; padding:24px 16px 60px;}
-  .section{background:#fff; border-radius:12px; padding:20px 22px; margin-bottom:16px; box-shadow:var(--shadow);}
-  .section h2{font-size:16px; color:var(--navy2); margin:0 0 4px; display:flex; align-items:center; gap:8px;}
-  .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
-  ol{margin:0; padding-left:20px;}
-  ol li{margin-bottom:10px; font-size:14px; line-height:1.5;}
-  .nota{background:#FBF1DE; color:#8A6414; border-radius:8px; padding:10px 12px; font-size:12.5px; margin-top:12px;}
-  .badge{display:inline-block; background:var(--card); color:var(--navy2); font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; margin-left:6px;}
+  .nav-link:hover{color:var(--blue);}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:32px 40px 36px;}
+  header h1{margin:0 0 6px; font-size:28px; font-weight:600; letter-spacing:-.5px;}
+  header p{margin:0; color:var(--cyan-l); font-size:14px; max-width:760px; line-height:1.55;}
+  main{padding:32px 40px 80px;}
+
+  .detect{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:#fff;border-radius:16px;padding:20px 24px;box-shadow:var(--shadow);margin-bottom:28px;border-left:5px solid var(--cyan);}
+  .detect b{color:var(--navy2);} .detect .t{font-size:14px;color:var(--grey);line-height:1.5;} .detect .t strong{display:block;font-size:17px;color:var(--navy2);margin-bottom:2px;}
+  .btn{font:600 14px Poppins,sans-serif;color:#fff;background:linear-gradient(135deg,var(--blue),var(--cyan));border:none;border-radius:12px;padding:12px 24px;cursor:pointer;box-shadow:0 6px 18px rgba(51,180,221,.35);}
+  .btn:hover{filter:brightness(1.07);}
+  .ok{border-left-color:var(--green);} .ok strong{color:var(--green)!important;}
+
+  .seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px;margin-bottom:22px;}
+  .seg button{font:500 14px Poppins,sans-serif;color:var(--grey);background:none;border:none;border-radius:999px;padding:9px 22px;cursor:pointer;transition:all .15s;}
+  .seg button:hover{color:var(--navy2);}
+  .seg button.on{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;font-weight:600;box-shadow:0 4px 14px rgba(51,180,221,.4);}
+
+  .methods{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;margin-bottom:28px;align-items:start;}
+  .m{background:#fff;border-radius:16px;padding:24px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .m:before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,var(--blue),var(--cyan));}
+  .m.mine{outline:2px solid var(--cyan);}
+  .m h3{margin:6px 0 4px;font-size:18px;color:var(--navy2);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .pill{font-size:11px;font-weight:600;letter-spacing:.4px;padding:3px 10px;border-radius:99px;background:#DDF3FB;color:#13789E;}
+  .pill.warn{background:#FBF1DE;color:#8A6414;}
+  .m .sub{font-size:13px;color:var(--greyl);margin:0 0 16px;}
+  ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;}
+  ol.steps li{counter-increment:s;position:relative;padding:0 0 16px 44px;font-size:14px;line-height:1.55;}
+  ol.steps li:before{content:counter(s);position:absolute;left:0;top:0;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;}
+  ol.steps li:not(:last-child):after{content:"";position:absolute;left:14px;top:34px;bottom:4px;width:2px;background:#E3EAF3;}
+  kbd,.k{display:inline-block;background:#EEF3FA;border:1px solid #D8E2EE;border-bottom-width:2px;border-radius:6px;padding:1px 8px;font:600 12.5px Poppins,sans-serif;color:var(--navy2);}
+  .nota{background:#FBF1DE;color:#8A6414;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.5;margin-top:6px;}
+  .good{background:#E1F4E9;color:#17703E;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.5;margin-top:6px;}
+
+  .box{background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:6px 24px;margin-bottom:20px;}
+  .box h2{font-size:18px;color:var(--navy2);margin:20px 0 4px;display:flex;align-items:center;gap:10px;}
+  .box h2:before{content:"";width:6px;height:20px;border-radius:3px;background:linear-gradient(180deg,var(--cyan),var(--blue));}
+  .box .lead{font-size:13px;color:var(--greyl);margin:0 0 12px 16px;}
+  details{border-top:1px solid #EDF1F7;padding:14px 0;} details:first-of-type{border-top:none;}
+  summary{cursor:pointer;font-weight:600;font-size:14.5px;color:var(--navy2);list-style:none;display:flex;justify-content:space-between;gap:12px;}
+  summary::-webkit-details-marker{display:none;} summary:after{content:"＋";color:var(--blue);font-weight:700;} details[open] summary:after{content:"–";}
+  details .a{font-size:14px;line-height:1.6;color:var(--ink);padding:10px 0 2px;} details .a ul{margin:6px 0 0;padding-left:20px;} details .a li{margin-bottom:6px;}
+  .urlbox{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;}
+  .urlbox code{background:#EEF3FA;border-radius:8px;padding:8px 12px;font-size:13px;color:var(--navy2);}
+  .btn.s{padding:8px 16px;font-size:13px;box-shadow:none;}
+  @media (max-width:700px){main{padding:22px 16px 60px;} header{padding:24px 16px;} .methods{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -48,60 +83,148 @@
 </nav>
 
 <header>
-  <h1>📲 Cómo instalar la app en tu celular o compu</h1>
-  <p>El Portal SEIDOR México se puede instalar como una app — ícono propio, se abre en su propia ventana, sin pestañas del navegador.</p>
+  <h1>📲 Instala el Portal como app</h1>
+  <p>Tendrás un ícono propio y se abrirá en su propia ventana, sin pestañas del navegador. Elige tu equipo y sigue los pasos — son menos de un minuto.</p>
 </header>
 
 <main>
-  <div class="section">
-    <h2>🤖 Android (Chrome)</h2>
-    <p class="sub">El método más directo — Chrome te lo va a ofrecer solo.</p>
-    <ol>
-      <li>Abre el portal en Chrome.</li>
-      <li>Toca el menú (⋮, arriba a la derecha) y busca <b>"Instalar app"</b> o <b>"Agregar a pantalla de inicio"</b>. A veces Chrome muestra un banner automático abajo — solo toca "Instalar".</li>
-      <li>Confirma. Va a aparecer el ícono en tu pantalla de inicio, como cualquier otra app.</li>
-    </ol>
+  <div class="detect" id="detect"></div>
+
+  <div class="seg" id="seg"></div>
+  <div class="methods" id="methods"></div>
+
+  <div class="box">
+    <h2>¿No te aparece la opción de instalar?</h2>
+    <p class="lead">Casi siempre es una de estas causas. Revísalas en orden.</p>
+    <details open><summary>Abre el portal directo en Chrome, Edge o Safari</summary><div class="a">Si entraste desde un correo, Teams, Outlook o WhatsApp, el enlace se abre en un navegador interno que <b>no permite instalar</b>. Copia esta dirección y pégala en la barra de Chrome (o Edge / Safari):
+      <div class="urlbox"><code id="url"></code><button class="btn s" type="button" id="copiar">Copiar dirección</button></div></div></details>
+    <details><summary>No uses ventana de incógnito / privada</summary><div class="a">En incógnito el navegador no ofrece instalar. Abre una ventana normal.</div></details>
+    <details><summary>Entra por la dirección oficial, con https</summary><div class="a">Debe empezar con <code>https://</code> y ser la dirección del portal. Si abriste un enlace de pruebas o una dirección distinta, instala desde la oficial.</div></details>
+    <details><summary>Actualiza tu navegador y recarga la página</summary><div class="a">Chrome o Edge desactualizados pueden no mostrar la opción. Actualiza (menú ⋮ → Ayuda → Acerca de) y recarga con <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> en Windows o <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> en Mac. Espera unos segundos con la página abierta y vuelve a buscar el ícono.</div></details>
+    <details><summary>Firefox en computadora no puede instalar apps</summary><div class="a">Usa Chrome o Edge (en Mac también sirve Safari 17 o más nuevo).</div></details>
+    <details><summary>Ya la instalé y la quiero abrir otra vez</summary><div class="a"><ul>
+      <li><b>Windows:</b> menú Inicio → busca <b>SEIDOR</b>. Para fijarla: clic derecho en su ícono de la barra → <b>Anclar a la barra de tareas</b>.</li>
+      <li><b>Mac:</b> Launchpad o carpeta Aplicaciones → <b>Aplicaciones de Chrome</b> → SEIDOR. Para dejarla en el Dock: clic derecho en el ícono → Opciones → <b>Mantener en el Dock</b>.</li>
+      <li><b>Celular:</b> busca el ícono en tu pantalla de inicio.</li></ul></div></details>
+    <details><summary>Algo quedó mal y quiero empezar de cero</summary><div class="a"><ul>
+      <li><b>Chrome (Windows o Mac):</b> escribe <code>chrome://apps</code> en la barra, clic derecho en SEIDOR → <b>Quitar de Chrome</b>. Vuelve a instalar con los pasos de arriba.</li>
+      <li><b>Edge:</b> escribe <code>edge://apps</code> → ⋯ junto a SEIDOR → <b>Desinstalar</b>.</li>
+      <li><b>Android o iPhone:</b> mantén presionado el ícono → Desinstalar / Eliminar app.</li></ul></div></details>
+    <details><summary>La app me pide iniciar sesión muy seguido</summary><div class="a">En iPhone y iPad la app instalada no comparte la sesión con Safari, por lo que puede pedir el código de acceso más seguido. Es una limitación de iOS. En computadora y Android la sesión se conserva.</div></details>
   </div>
 
-  <div class="section">
-    <h2>🍎 iPhone / iPad (Safari) <span class="badge">requiere Safari</span></h2>
-    <p class="sub">En iOS solo funciona desde Safari — Chrome o cualquier otro navegador en iPhone no puede instalar apps.</p>
-    <ol>
-      <li>Abre el portal en <b>Safari</b> (no en Chrome).</li>
-      <li>Toca el botón de compartir <b>⬆️</b> (el cuadrado con la flecha hacia arriba, abajo al centro).</li>
-      <li>Busca y toca <b>"Agregar a pantalla de inicio"</b>.</li>
-      <li>Confirma el nombre y toca "Agregar".</li>
-    </ol>
-    <div class="nota">⚠️ <b>Nota real de iOS:</b> a veces la app instalada no comparte la sesión con Safari, así que puede pedirte iniciar sesión (el código de un solo uso) más seguido que si la usaras desde el navegador normal. No es un error del portal — es una limitación conocida de cómo iOS maneja estas apps. Si te pasa muy seguido, avísame y lo revisamos.</div>
-  </div>
-
-  <div class="section">
-    <h2>💻 Computadora (Chrome / Edge)</h2>
-    <ol>
-      <li>Abre el portal en Chrome o Edge.</li>
-      <li>Busca el ícono de instalar en la barra de direcciones (⊕ o una pantallita con una flecha, a la derecha, junto a donde escribes la URL).</li>
-      <li>Haz clic y confirma "Instalar".</li>
-      <li>Se abre en su propia ventana y queda anclada como cualquier otro programa (puedes fijarla a la barra de tareas o al dock).</li>
-    </ol>
-  </div>
-
-  <div class="section">
-    <h2>ℹ️ Qué cambia (y qué no) al instalarla</h2>
-    <ol>
-      <li><b>Se ve igual y funciona igual</b> — es el mismo sitio, nomás sin la barra del navegador alrededor.</li>
-      <li><b>Carga más rápido</b> — el logo, fondos e íconos quedan guardados en tu dispositivo.</li>
-      <li><b>Tus datos siempre están al día</b> — el CRM, los proyectos, todo lo que ves siempre se trae en vivo del servidor. Nunca se guarda información del negocio en tu dispositivo, solo la imagen del sitio.</li>
-      <li><b>Necesitas internet</b> para todo lo que implica ver o guardar información — la app no funciona "sin conexión" para trabajar, solo carga más rápido la próxima vez.</li>
-    </ol>
+  <div class="box">
+    <h2>Qué cambia (y qué no) al instalarla</h2>
+    <p class="lead">Es el mismo portal, solo sin la barra del navegador.</p>
+    <details open><summary>Tus datos siempre están al día</summary><div class="a">El CRM, los proyectos y todo lo que ves se trae en vivo del servidor. Nunca se guarda información del negocio en tu dispositivo, solo la imagen del sitio.</div></details>
+    <details><summary>Necesitas internet para trabajar</summary><div class="a">La app no funciona sin conexión; solo carga más rápido porque guarda logos, fondos e íconos.</div></details>
   </div>
 </main>
 
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('/sw.js').catch(function(){});
-  });
-}
+(function(){
+  var ua = navigator.userAgent, $ = function(id){ return document.getElementById(id); };
+  var esIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var so = esIOS ? 'ios' : /Android/.test(ua) ? 'android' : /Windows/.test(ua) ? 'windows' : /Macintosh/.test(ua) ? 'mac' : 'windows';
+  var nav = /Edg\//.test(ua) ? 'Edge' : /Firefox|FxiOS/.test(ua) ? 'Firefox' : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'otro';
+  var NOMBRE = { windows:'Windows', mac:'Mac', android:'Android', ios:'iPhone / iPad' };
+  var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+
+  var G = {
+    windows: [
+      { n:'Chrome', sub:'Lo más directo', pasos:[
+        'Abre el portal en <b>Google Chrome</b>.',
+        'A la derecha de la barra de direcciones busca el ícono de instalar <span class="k">⊕</span> (una pantallita con una flecha hacia abajo). Haz clic en él.',
+        'Si no lo ves: menú <span class="k">⋮</span> (arriba a la derecha) → <b>Transmitir, guardar y compartir</b> → <b>Instalar SEIDOR México…</b> (en algunas versiones dice <i>Instalar página como aplicación</i>).',
+        'Confirma con <b>Instalar</b>. Se abre en su propia ventana.',
+        'Para tenerla a la mano: clic derecho en su ícono de la barra de tareas → <b>Anclar a la barra de tareas</b>.'
+      ]},
+      { n:'Edge', sub:'También muy sencillo', pasos:[
+        'Abre el portal en <b>Microsoft Edge</b>.',
+        'Haz clic en el ícono de instalar <span class="k">⊕</span> a la derecha de la barra de direcciones. Si no aparece: menú <span class="k">⋯</span> → <b>Aplicaciones</b> → <b>Instalar este sitio como una aplicación</b>.',
+        'Confirma con <b>Instalar</b>. Edge te ofrecerá anclarla a la barra de tareas y al menú Inicio: acepta.'
+      ]}
+    ],
+    mac: [
+      { n:'Chrome', sub:'Lo más directo', pasos:[
+        'Abre el portal en <b>Google Chrome</b>.',
+        'A la derecha de la barra de direcciones haz clic en el ícono de instalar <span class="k">⊕</span>. Si no lo ves: menú <span class="k">⋮</span> → <b>Transmitir, guardar y compartir</b> → <b>Instalar SEIDOR México…</b>.',
+        'Confirma con <b>Instalar</b>. Se abre en su propia ventana y se guarda en <b>Launchpad</b> (carpeta <i>Aplicaciones de Chrome</i>).',
+        'Para dejarla en el Dock: con la app abierta, clic derecho (o <kbd>Control</kbd>+clic) en su ícono del Dock → <b>Opciones</b> → <b>Mantener en el Dock</b>.'
+      ]},
+      { n:'Safari', sub:'Requiere macOS Sonoma (14) o más nuevo', pasos:[
+        'Abre el portal en <b>Safari</b>.',
+        'En la barra de menú de arriba elige <b>Archivo</b> → <b>Agregar al Dock…</b>',
+        'Confirma el nombre y haz clic en <b>Agregar</b>. Queda en el Dock como una app.'
+      ], nota:'Si no ves “Agregar al Dock…”, tu macOS es anterior a Sonoma: instala con Chrome.' },
+      { n:'Edge', sub:'Si usas Edge en Mac', pasos:[
+        'Abre el portal en <b>Microsoft Edge</b>.',
+        'Menú <span class="k">⋯</span> → <b>Aplicaciones</b> → <b>Instalar este sitio como una aplicación</b>.',
+        'Confirma con <b>Instalar</b>.'
+      ]}
+    ],
+    android: [
+      { n:'Chrome', sub:'El método más directo', pasos:[
+        'Abre el portal en <b>Chrome</b> (no dentro de WhatsApp, Teams o Outlook).',
+        'Toca el menú <span class="k">⋮</span> (arriba a la derecha) → <b>Instalar app</b> o <b>Agregar a la pantalla de inicio</b>. A veces Chrome muestra un aviso abajo: toca <b>Instalar</b>.',
+        'Confirma. El ícono aparece en tu pantalla de inicio.'
+      ]}
+    ],
+    ios: [
+      { n:'Safari', sub:'El más confiable en iPhone y iPad', pasos:[
+        'Abre el portal en <b>Safari</b>.',
+        'Toca el botón de compartir <span class="k">⬆︎</span> (el cuadro con una flecha hacia arriba; en iPhone está abajo al centro, en iPad arriba a la derecha).',
+        'Desliza el menú y toca <b>Agregar a pantalla de inicio</b>.',
+        'Confirma el nombre y toca <b>Agregar</b>.'
+      ], nota:'En iPhone/iPad la app instalada no comparte la sesión con Safari, así que puede pedirte el código de acceso más seguido. Es una limitación de iOS.' },
+      { n:'Chrome', sub:'Solo iOS 16.4 o más nuevo', pasos:[
+        'Abre el portal en <b>Chrome</b>.',
+        'Toca el botón de compartir <span class="k">⬆︎</span> → <b>Agregar a pantalla de inicio</b>.',
+        'Confirma con <b>Agregar</b>.'
+      ], nota:'Si no ves esa opción, usa Safari.' }
+    ]
+  };
+
+  var actual = so, prompt = null;
+
+  function detect(){
+    var d = $('detect');
+    if(standalone){
+      d.className = 'detect ok';
+      d.innerHTML = '<div class="t"><strong>✅ Ya estás usando la app instalada</strong>Esta ventana ya es la app. No necesitas hacer nada más.</div>';
+      return;
+    }
+    var texto = '<strong>Detectamos: ' + NOMBRE[so] + ' · ' + nav + '</strong>';
+    if(nav === 'Firefox' && (so === 'windows' || so === 'mac')) texto += 'Firefox en computadora no puede instalar apps: abre este mismo enlace en <b>Chrome</b> o <b>Edge</b>.';
+    else if(so === 'ios' && nav !== 'Safari') texto += 'En iPhone/iPad lo más seguro es instalar desde <b>Safari</b>.';
+    else texto += prompt ? 'Tu navegador permite instalar con un clic.' : 'Sigue los pasos de abajo para tu equipo.';
+    d.className = 'detect';
+    d.innerHTML = '<div class="t">' + texto + '</div>' + (prompt ? '<button class="btn" type="button" id="inst">⬇ Instalar ahora</button>' : '');
+    var b = $('inst'); if(b) b.onclick = function(){ prompt.prompt(); prompt.userChoice.then(function(){ prompt = null; detect(); }); };
+  }
+
+  function render(){
+    $('seg').innerHTML = Object.keys(NOMBRE).map(function(k){ return '<button type="button" data-k="'+k+'" class="'+(k===actual?'on':'')+'">'+NOMBRE[k]+'</button>'; }).join('');
+    $('methods').innerHTML = G[actual].map(function(m){
+      var mio = (actual === so && m.n === nav);
+      return '<div class="m'+(mio?' mine':'')+'"><h3>'+m.n+(mio?' <span class="pill">Tu navegador</span>':'')+'</h3><p class="sub">'+m.sub+'</p><ol class="steps">'+m.pasos.map(function(p){ return '<li>'+p+'</li>'; }).join('')+'</ol>'+(m.nota?'<div class="nota">⚠️ '+m.nota+'</div>':'')+'</div>';
+    }).join('');
+  }
+
+  $('seg').onclick = function(e){ var b = e.target.closest('button'); if(b){ actual = b.getAttribute('data-k'); render(); } };
+  $('url').textContent = location.origin + '/index.html';
+  $('copiar').onclick = function(){
+    var t = $('url').textContent, b = $('copiar');
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){ b.textContent = '¡Copiada!'; }, function(){ b.textContent = 'Selecciónala y copia'; });
+    setTimeout(function(){ b.textContent = 'Copiar dirección'; }, 2000);
+  };
+
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); prompt = e; detect(); });
+  window.addEventListener('appinstalled', function(){ prompt = null; standalone = true; detect(); });
+  detect(); render();
+
+  if ('serviceWorker' in navigator) window.addEventListener('load', function(){ navigator.serviceWorker.register('/sw.js').catch(function(){}); });
+})();
 </script>
 </body>
 </html>
