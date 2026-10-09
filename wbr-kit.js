@@ -133,7 +133,7 @@ var CSS = [
 'body.wk-dark{--wk-navy:#050A18;--wk-navy2:#F2F7FF;--wk-blue:#5BC8FF;--wk-cyan:#3DD6FF;--wk-cyan-l:#8FE6FF;--wk-ink:#E3ECFA;--wk-grey:#A5B4CE;--wk-greyl:#7D8FAE;--wk-line:rgba(255,255,255,.10);--wk-bg:#060C1B;--wk-green:#2FE29B;--wk-amber:#FFC857;--wk-red:#FF5C7A;--wk-violet:#8B7CFF;--wk-shadow:0 18px 50px rgba(0,0,0,.45);}',
 'body.wk-dark{background:radial-gradient(900px 520px at 8% -8%,rgba(61,214,255,.14),transparent 60%),radial-gradient(800px 520px at 100% 4%,rgba(139,124,255,.15),transparent 60%),radial-gradient(900px 600px at 50% 120%,rgba(47,226,155,.07),transparent 60%),#060C1B!important;background-attachment:fixed!important;color:var(--wk-ink);}',
 'body.wk-dark .topnav{background:rgba(6,12,27,.92)!important;border-bottom:1px solid rgba(255,255,255,.08)!important;} body.wk-dark .topnav .nav-link,body.wk-dark .topnav .nav-dropdown-btn{color:#C8D8F2!important;} body.wk-dark .topnav .nav-link:hover,body.wk-dark .topnav .nav-dropdown-btn:hover{color:#5BC8FF!important;}',
-'body.wk-dark .topnav-logo img{filter:brightness(0) invert(1);}',
+'',
 'body.wk-dark header{background:linear-gradient(120deg,rgba(30,91,184,.55),rgba(14,30,63,.2) 55%,transparent),#070E20!important;border-bottom:1px solid rgba(255,255,255,.08);}',
 'body.wk-dark .wk-nav{background:rgba(6,12,27,.78);border-bottom:1px solid var(--wk-line);}',
 'body.wk-dark .wk-chip{background:rgba(255,255,255,.05);border-color:var(--wk-line);color:#CFE0FA;}',
@@ -200,6 +200,7 @@ var CSS = [
 '.wk-wi-out{display:grid;gap:16px;justify-items:center;} .wk-wi-note{font-size:14px;color:var(--wk-grey);text-align:center;max-width:420px;line-height:1.5;} .wk-wi-reset{background:rgba(255,255,255,.08);border:1px solid var(--wk-line);color:#CFE0FA;border-radius:99px;padding:7px 16px;font:600 12.5px Poppins,sans-serif;cursor:pointer;} .wk-wi-reset:hover{border-color:var(--wk-cyan);color:#fff;}',
 '@media(max-width:800px){.wk-wi{grid-template-columns:1fr;}}',
 /* dueño del tablero */
+'body.wk-dark .topnav-logo img{height:34px!important;}',
 'body.wk-dark header{flex-wrap:nowrap!important;align-items:center!important;gap:24px;} body.wk-dark header>div:first-child{flex:1 1 auto;min-width:0;} body.wk-dark header .upload-label{flex:none;white-space:nowrap;} body.wk-dark header h1{font-size:clamp(20px,2vw,30px)!important;}',
 '@media(max-width:1500px){body.wk-dark header{flex-wrap:wrap!important;}}',
 '.wk-owner-row{display:flex;align-items:center;gap:26px;} .wk-owner-txt{min-width:0;} .wk-owner-txt>div{margin-top:6px;}',
@@ -701,8 +702,8 @@ function wiRender(id, root){
 
 /* Dueño del tablero (foto) — se agrega solo en el encabezado de cada WBR */
 WK.OWNERS = {
-  finanzas:{ nombre:'Mauricio Reyes', cargo:'CFO', rol:'Finanzas' }, ventas:{ rol:'Ventas & Pipeline' }, operaciones:{ rol:'Operaciones' },
-  productos:{ rol:'Target clientes' }, ccflex:{ rol:'CC Flex' }, bx:{ rol:'Business Experience' },
+  finanzas:{ nombre:'Mauricio Reyes', cargo:'CFO', rol:'Finanzas' }, ventas:{ nombre:'Omar Dávila', cargo:'Director Comercial', rol:'Ventas & Pipeline', foto:'/assets/owners/omar.png' }, operaciones:{ rol:'Operaciones' },
+  productos:{ nombre:'Omar Dávila', cargo:'Director Comercial', rol:'Target clientes', foto:'/assets/owners/omar.png' }, ccflex:{ rol:'CC Flex' }, bx:{ rol:'Business Experience' },
   anuncios:{ rol:'Anuncios' }, cta:{ rol:'Call to Action' }, vop:{ rol:'VOP' }, baseinstalada:{ rol:'Base Instalada' }
 };
 function iniciales(t){ return String(t||'').split(/\s+/).filter(Boolean).slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase(); }
@@ -794,6 +795,7 @@ WK.escalar = function(){
 WK.fx = function(root){
   document.body.classList.add('wk-dark');
   inyectarOwner(); WK.escalar();
+  document.querySelectorAll('.topnav-logo img').forEach(function(im){ if(im.src.indexOf('logo_light') >= 0) im.src = im.src.replace('logo_light','logo_dark'); });
   observar(root);
   (root||document).querySelectorAll('[data-wi-root]').forEach(function(r){ var id = r.getAttribute('data-wi-root'); if(r._wkWi) return; r._wkWi = true; wiRender(id, r); });
   if(WK.sortable) WK.sortable(root||document);
