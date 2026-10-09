@@ -101,6 +101,36 @@
   .dl{display:inline-flex;margin-top:28px;align-items:center;gap:8px;background:var(--navy2);color:#fff;text-decoration:none;font-size:13.5px;font-weight:500;border-radius:12px;padding:12px 20px;}
   .dl:hover{background:var(--blue);}
   @media (max-width:700px){main{padding:28px 18px 60px;}h1{font-size:30px;}.find{width:100%;}}
+
+  /* ===== color: mismo lenguaje visual del resto del sitio ===== */
+  body{background:var(--card);}
+  .hd{background:radial-gradient(circle at 85% -10%,var(--blue) 0%,var(--navy2) 45%,var(--navy) 100%);color:#fff;padding:34px 48px 38px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;}
+  .hd .kick{color:var(--cyan-l);} .hd h1{color:#fff;font-size:34px;} .hd .lede{color:#C8D8F2;} 
+  .hd .upd{background:rgba(111,211,240,.14);border:1px solid rgba(111,211,240,.35);color:#8FE6FF;border-radius:20px;padding:4px 14px;font-weight:600;}
+  main{padding-top:40px;}
+  h2{display:flex;align-items:center;gap:10px;} h2:before{content:"";width:6px;height:22px;border-radius:3px;background:linear-gradient(180deg,var(--cyan),var(--blue));}
+  .sec-sub{padding-left:16px;}
+  .seg{background:#fff;border:1px solid var(--line);} .seg button.on{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;box-shadow:0 4px 14px rgba(51,180,221,.4);}
+  .find{background:#fff;border:1px solid var(--line);border-radius:999px;padding:9px 16px;} 
+  .card{position:relative;overflow:hidden;border:none;box-shadow:0 3px 9px rgba(159,179,204,.35);}
+  .card:before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--c);}
+  .card:hover{box-shadow:0 16px 36px rgba(30,91,184,.18);}
+  .tag{color:var(--c);} .card .price{background:linear-gradient(135deg,var(--navy2),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .card .price small{-webkit-text-fill-color:var(--greyl);}
+  .more{color:var(--c);border-top-color:#EDF1F7;} .c-impl .more,.c-impl .tag{--c:#1F8A4C;} .c-ams .more,.c-ams .tag{--c:#1E8FBF;}
+  .card .tag i{background:var(--c);}
+  .c-ams{--c:#33B4DD;} 
+  .tablewrap{background:#fff;border-radius:14px;box-shadow:0 3px 9px rgba(159,179,204,.35);overflow:hidden;}
+  th{background:#14295C;color:#fff;border-bottom:none;padding:14px 16px;}
+  td{padding:16px;} td.cat span{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:#E4EEFB;color:#1B4F9E;}
+  td.cat .k-AMS{background:#DDF3FB;color:#13789E;} td.cat .k-TM{background:#EAE6FF;color:#5B4BD1;} td.cat .k-Implementación{background:#DFF5E9;color:#17703E;} td.cat .k-Especializado{background:#FBF1DE;color:#8A6414;}
+  td.rate{color:var(--blue);} tr:hover td{background:#F4F9FF;}
+  .drawer .tag{color:var(--c);} .drawer .price{background:linear-gradient(135deg,var(--navy2),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .drawer .price small{-webkit-text-fill-color:var(--greyl);}
+  .drawer:before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:linear-gradient(90deg,var(--blue),var(--cyan));}
+  .dl{background:linear-gradient(135deg,var(--blue),var(--cyan));box-shadow:0 6px 18px rgba(51,180,221,.35);}
+  .foot{border-top-color:var(--line);}
+  @media (max-width:700px){.hd{padding:24px 18px;}}
 </style>
 </head>
 <body>
@@ -225,16 +255,16 @@
     </div>
   </div></nav>
 
-<main>
-  <div class="top">
-    <div>
-      <div class="kick">Tarifario interno · Uso comercial</div>
-      <h1>Lista de Precios</h1>
-      <p class="lede">Paquetes y tarifas baseline en USD para armar propuestas. Son un punto de partida: el valor final depende del alcance.</p>
-    </div>
-    <div class="upd" id="upd"></div>
+<header class="hd">
+  <div>
+    <div class="kick">Tarifario interno · Uso comercial</div>
+    <h1>💲 Lista de Precios</h1>
+    <p class="lede">Paquetes y tarifas baseline en USD para armar propuestas. Son un punto de partida: el valor final depende del alcance.</p>
   </div>
+  <div class="upd" id="upd"></div>
+</header>
 
+<main>
   <section id="paquetes">
     <div class="bar">
       <div><h2>Paquetes</h2><p class="sec-sub" style="margin:0">Haz clic en un paquete para ver su alcance.</p></div>
@@ -282,8 +312,8 @@ function cards(){
 function tabla(){
   seg($('segCat'), ['Todos',...new Set(INDIVIDUAL_SERVICES.map(s=>s.category))], cat, v=>{cat=v;tabla();});
   const f = INDIVIDUAL_SERVICES.filter(s=>(cat==='Todos'||s.category===cat) && (!q || norm(s.role+' '+s.level+' '+s.category+' '+s.notes).includes(norm(q))));
-  $('tabla').innerHTML = f.length ? '<table><thead><tr><th>Categoría</th><th>Rol</th><th>Nivel</th><th class="r">Tarifa</th></tr></thead><tbody>'+
-    f.map(s=>'<tr><td class="cat">'+esc(s.category)+'</td><td class="role">'+esc(s.role)+'<span class="n">'+esc(s.notes)+'</span></td><td>'+esc(s.level)+'</td><td class="r rate">'+USD(s.rate)+' <small>/ '+(s.unit==='hora'?'h':'día')+'</small></td></tr>').join('')+'</tbody></table>'
+  $('tabla').innerHTML = f.length ? '<div class="tablewrap"><table><thead><tr><th>Categoría</th><th>Rol</th><th>Nivel</th><th class="r">Tarifa</th></tr></thead><tbody>'+
+    f.map(s=>'<tr><td class="cat"><span class="k-'+esc(s.category.replace(/&/g,''))+'">'+esc(s.category)+'</span></td><td class="role">'+esc(s.role)+'<span class="n">'+esc(s.notes)+'</span></td><td>'+esc(s.level)+'</td><td class="r rate">'+USD(s.rate)+' <small>/ '+(s.unit==='hora'?'h':'día')+'</small></td></tr>').join('')+'</tbody></table></div>'
     : '<div class="empty">No se encontraron servicios con ese filtro.</div>';
 }
 function abrir(id){
