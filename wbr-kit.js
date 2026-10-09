@@ -439,7 +439,7 @@ WK.gauge = function(o){
   var max = o.max || 1, p = Math.max(0, Math.min(1, (o.valor||0)/max));
   var cx = 130, cy = 120, r = 90, sw = 20;
   function pt(f, rad){ var a = Math.PI*(1-f); return [cx + rad*Math.cos(a), cy - rad*Math.sin(a)]; }
-  function arco(f0, f1){ var a = pt(f0, r), b = pt(f1, r); return 'M'+a[0].toFixed(1)+' '+a[1].toFixed(1)+' A'+r+' '+r+' 0 '+((f1-f0)>0.5?1:0)+' 1 '+b[0].toFixed(1)+' '+b[1].toFixed(1); }
+  function arco(f0, f1){ var a = pt(f0, r), b = pt(f1, r); return 'M'+a[0].toFixed(1)+' '+a[1].toFixed(1)+' A'+r+' '+r+' 0 '+0+' 1 '+b[0].toFixed(1)+' '+b[1].toFixed(1); }
   var col = TONO_COL[o.tono] || TONO_COL.cyan;
   var fondo = o.dark ? '#26385F' : '#E6EDF6';
   var svg = '<svg class="wk-gauge" viewBox="0 0 260 150" role="img" aria-label="'+WK.esc(o.label||'Medidor')+'">' +

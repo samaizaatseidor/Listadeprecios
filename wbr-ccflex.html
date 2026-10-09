@@ -12,9 +12,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="/wbr-kit.js?v=20261008"></script>
 <style>
-  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC;
+    --green:#1F8A4C; --amber:#8A6414; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
   *{box-sizing:border-box;}
   body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
   .topnav{background:#fff; border-bottom:1px solid var(--line);}
@@ -22,42 +26,69 @@
   .topnav-logo img{height:26px; display:block;}
   .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
   .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
   .nav-dropdown{position:relative;}
   .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
   .nav-dropdown-btn.active{color:var(--blue);}
-  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px;}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
   .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
   .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
   .nav-dropdown.open .nav-dropdown-menu{display:block;}
   .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
   .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
   .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+
   header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
   header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
   .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
   input[type=file]{display:none;}
   .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
-  main{max-width:1400px; margin:0 auto; padding:24px 24px 60px;}
+
+  main{max-width:1600px; margin:0 auto; padding:24px 24px 60px;}
   .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
-  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px; display:flex; align-items:center; gap:8px;}
   .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
   .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
-  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:14px; margin-bottom:18px;}
+  .empty h2{color:var(--navy2); font-size:18px; margin-bottom:8px;}
+
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-bottom:18px;}
   .kpi-card{background:#fff; border-radius:14px; padding:18px 20px; box-shadow:var(--shadow);}
   .kpi-card .label{font-size:11px; color:var(--greyl); text-transform:uppercase; letter-spacing:0.5px; font-weight:700;}
-  .kpi-card .value{font-size:24px; font-weight:800; color:var(--navy2); margin-top:6px;}
+  .kpi-card .value{font-size:26px; font-weight:800; color:var(--navy2); margin-top:6px;}
+  .kpi-card .sub-value{font-size:12px; color:var(--grey); margin-top:2px;}
+  .kpi-bar{height:6px; border-radius:4px; background:var(--card); margin-top:12px; overflow:hidden;}
+  .kpi-bar-fill{height:100%; border-radius:4px;}
+  .kpi-card.verde .value{color:var(--green);} .kpi-bar-fill.verde{background:var(--green);}
+  .kpi-card.ambar .value{color:var(--amber);} .kpi-bar-fill.ambar{background:#D8A63A;}
+  .kpi-card.rojo .value{color:var(--red);} .kpi-bar-fill.rojo{background:var(--red);}
+
   .charts-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
   .chart-wrap{position:relative; height:260px;}
   @media (max-width:900px){ .charts-grid{grid-template-columns:1fr;} }
+
   .insight-box{background:linear-gradient(135deg, #F4F8FC 0%, #EAF3FB 100%); border:1px solid var(--line); border-radius:12px; padding:18px 20px; display:flex; gap:14px; align-items:flex-start;}
   .insight-icon{font-size:26px; flex-shrink:0;}
   .insight-text{font-size:13.5px; line-height:1.6; color:var(--ink); white-space:pre-wrap;}
-  table{width:100%; border-collapse:collapse; font-size:12px;}
-  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:6px; font-weight:700; font-size:10px; text-transform:uppercase;}
-  td{padding:8px 6px; border-bottom:1px solid var(--line);}
-  .num{text-align:right; font-variant-numeric:tabular-nums;}
-  .bloque-titulo{font-size:13px; font-weight:700; color:var(--navy2); margin:0 0 8px;}
+
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:0.3px;}
+  td{padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tr:hover td{background:var(--card);}
+  .num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .etapa-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:var(--card); color:var(--navy2);}
+  .estatus-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px;}
+  .estatus-commited{background:#E7F7EE; color:var(--green);}
+  .estatus-probable{background:#FBF1DE; color:var(--amber);}
+  .estatus-upside{background:var(--card); color:var(--grey);}
+  .comentario-cell{max-width:240px; font-size:11.5px; color:var(--grey);}
+
+  .tabbar{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
+  .tabbar button{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:7px 14px; font-family:inherit; font-size:12.5px; font-weight:600; color:var(--grey); cursor:pointer;}
+  .tabbar button.active{background:var(--navy2); color:#fff; border-color:var(--navy2);}
+
+  .wk-donut .v{font-size:16px!important;} .wk-donut .l{font-size:9.5px!important;}
   .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
   .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
   @keyframes spin{ to { transform:rotate(360deg); } }
@@ -72,6 +103,7 @@
     const r = await fetch('/api/mi-permiso?page=' + m[1]);
     const d = await r.json();
     if(!d.ok) return;
+    window.ES_ADMIN = !!d.esAdmin;
     if(d.permiso === 'ninguno'){
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
@@ -79,6 +111,7 @@
       document.body.appendChild(overlay);
       document.body.style.overflow = 'hidden';
     }else if(d.permiso === 'lectura'){
+      window.SOLO_LECTURA = true;
       const banner = document.createElement('div');
       banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
       banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
@@ -178,7 +211,7 @@
   <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
 </header>
 
-<main>
+<main class="wk-main">
   <div id="statusBox"></div>
   <div id="content"></div>
 </main>
@@ -188,10 +221,20 @@ let historial = [];
 let actual = null;
 let snapshotVisto = null;
 let mostrando = null;
-let chartCS, chartAO;
 
-function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
-function fmtMoneda(n){ return n==null ? '—' : '$'+Math.round(n).toLocaleString('es-MX'); }
+const esc = WK.esc;
+const C_CS = '#1E5BB8', C_AO = '#33B4DD';
+
+/* Compacto en USD: $4.50M · $853K · $1.2K */
+function fmtC(n){
+  n = Number(n)||0; const a = Math.abs(n), s = n < 0 ? '-' : '';
+  if(a >= 1e6) return s + '$' + (a/1e6).toFixed(2) + 'M';
+  if(a >= 1e4) return s + '$' + Math.round(a/1e3) + 'K';
+  if(a >= 1e3) return s + '$' + (a/1e3).toFixed(1) + 'K';
+  return s + '$' + Math.round(a);
+}
+
+/* ---------- Parseo (sin cambios) ---------- */
 function encontrarFila(m, ancla){ for(let i=0;i<m.length;i++){ if(m[i].some(c=>typeof c==='string' && c.trim().toUpperCase()===ancla.toUpperCase())) return i; } return -1; }
 
 function parsearCCFlex(wb){
@@ -211,6 +254,7 @@ function parsearCCFlex(wb){
   return { fechaRevision: new Date().toISOString(), cs: leerBloque(0), ao: leerBloque(8) };
 }
 
+/* ---------- Carga y guardado ---------- */
 async function handleFile(file){
   if(!file) return;
   const statusBox = document.getElementById('statusBox');
@@ -221,7 +265,7 @@ async function handleFile(file){
     const wb = XLSX.read(buf, { type:'array', cellDates:true });
     actual = parsearCCFlex(wb);
     snapshotVisto = null;
-    // Usamos la fecha del nombre del archivo o la de hoy, ya que esta pestaña no trae "Semana de revisión" propia
+    // Usamos la fecha de hoy, ya que esta pestaña no trae "Semana de revisión" propia
     statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando…</div>';
     const anterior = historial.length ? historial[historial.length-1] : null;
     const rGuardar = await fetch('/api/wbr-ccflex', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
@@ -239,38 +283,25 @@ async function cargarHistorial(){
   try{
     const r = await fetch('/api/wbr-ccflex');
     const d = await r.json();
-    historial = d.historial || [];
+    historial = (d.historial || []).filter(h => h && Array.isArray(h.cs) && Array.isArray(h.ao));
     if(historial.length) actual = historial[historial.length-1];
   }catch(e){ historial = []; }
 }
 async function pedirInsight(anterior){
-  const box = document.getElementById('insightBox');
+  const box = document.getElementById('insightText');
   if(!box) return;
-  box.innerHTML = '<div class="loading"><span class="spinner"></span>Delfos está analizando el corte…</div>';
+  box.textContent = 'Delfos está analizando el corte…';
   try{
     const r = await fetch('/api/wbr-ccflex-insight', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ actual, anterior }) });
     const d = await r.json();
-    box.innerHTML = d.ok
-      ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(d.resumen)}</div></div>`
-      : `<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">${esc(d.error||'No se pudo generar el insight.')}</div></div>`;
-    if(d.ok){
-      actual.insightGuardado = d.resumen;
-      fetch('/api/wbr-ccflex', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
-    }
-  }catch(e){
-    box.innerHTML = '<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">No se pudo conectar con Delfos.</div></div>';
-  }
+    if(!d.ok){ box.textContent = d.error || 'No se pudo generar el insight.'; return; }
+    box.textContent = d.resumen;
+    actual.insightGuardado = d.resumen;
+    fetch('/api/wbr-ccflex', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
+  }catch(e){ box.textContent = 'No se pudo conectar con Delfos.'; }
 }
 
-function etiquetaCarga(h){
-  if(!h || !h.guardadoEn) return '';
-  const cuando = new Date(h.guardadoEn).toLocaleString('es-MX', { timeZone:'America/Mexico_City', dateStyle:'medium', timeStyle:'short' });
-  return 'cargado por ' + esc(h.guardadoPor || 'desconocido') + ' el ' + cuando;
-}
-function celdasCarga(h){
-  const cuando = h.guardadoEn ? new Date(h.guardadoEn).toLocaleString('es-MX', { timeZone:'America/Mexico_City', dateStyle:'medium', timeStyle:'short' }) : '—';
-  return '<td>' + esc(h.guardadoPor || '—') + '</td><td>' + cuando + '</td>';
-}
+function etiquetaCarga(h){ return h && h.guardadoEn ? 'cargado por ' + (h.guardadoPor || 'desconocido') + ' el ' + WK.hora(h.guardadoEn) : ''; }
 
 function verSnapshotHistorico(idCarga){
   const encontrado = historial.find(h => h.guardadoEn === idCarga);
@@ -286,10 +317,62 @@ function volverActual(){
   pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
 }
 
-function tablaBloque(filas){
-  return `<table><tr><th>Concepto</th><th class="num">AA</th><th class="num">Q1</th><th class="num">Q2</th><th class="num">Q3</th><th class="num">Q4</th><th class="num">Total</th></tr>
-    ${filas.map(f=>`<tr><td>${esc(f.concepto)}</td><td class="num">${fmtMoneda(f.aa)}</td><td class="num">${fmtMoneda(f.q1)}</td><td class="num">${fmtMoneda(f.q2)}</td><td class="num">${fmtMoneda(f.q3)}</td><td class="num">${fmtMoneda(f.q4)}</td><td class="num"><b>${fmtMoneda(f.total)}</b></td></tr>`).join('')}
-  </table>`;
+/* ---------- Cálculos ---------- */
+const QS = ['q1','q2','q3','q4'];
+function fila(bloque, clave){
+  clave = WK.norm(clave);
+  return (bloque||[]).find(f => WK.norm(String(f.concepto||'')).includes(clave)) || { concepto:'', aa:0, q1:0, q2:0, q3:0, q4:0, total:0 };
+}
+/* Total de la fila; si el Excel lo trae vacío pero hay trimestres, se calcula sumando (aa + Q1..Q4) */
+function totalFila(f){
+  const suma = (f.aa||0) + QS.reduce((a,q) => a + (f[q]||0), 0);
+  return f.total ? f.total : suma;
+}
+function totalDerivado(f){ return !f.total && ((f.aa||0) + QS.reduce((a,q) => a + (f[q]||0), 0)) > 0; }
+function resumen(h){
+  const o = {};
+  [['cs', h.cs], ['ao', h.ao]].forEach(([k, b]) => {
+    const v = fila(b,'Vendido'), c = fila(b,'Comision'), p = fila(b,'Pagado'), d = fila(b,'Pend');
+    o[k] = { vendido:totalFila(v), v:v, comision:totalFila(c), pagado:totalFila(p), pendiente:totalFila(d), pendDeriv:totalDerivado(d) };
+  });
+  return o;
+}
+
+/* Barras agrupadas C&S vs A&O por trimestre (SVG local) */
+function barrasTrimestre(vcs, vao){
+  const W = 640, H = 270, mL = 12, mR = 12, mT = 30, mB = 34;
+  const max = Math.max(1, ...QS.map(q => vcs[q]||0), ...QS.map(q => vao[q]||0));
+  const plotH = H - mT - mB, paso = (W - mL - mR) / 4, bw = Math.min(54, paso * 0.34);
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Monto vendido por trimestre" style="width:100%;height:auto;display:block">';
+  s += '<line x1="' + mL + '" x2="' + (W-mR) + '" y1="' + (H-mB) + '" y2="' + (H-mB) + '" stroke="#CBD7E6"/>';
+  QS.forEach((q, i) => {
+    const cx = mL + i*paso + paso/2;
+    [[vcs[q]||0, C_CS, cx - bw - 2], [vao[q]||0, C_AO, cx + 2]].forEach(([val, col, x]) => {
+      const h = val > 0 ? Math.max(3, val/max*plotH) : 0, y = H - mB - h;
+      if(h) s += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="6" fill="' + col + '"/>';
+      s += '<text x="' + (x + bw/2).toFixed(1) + '" y="' + (y - 7).toFixed(1) + '" text-anchor="middle" font-size="12" font-weight="700" fill="#0E1E3F">' + WK.esc(fmtC(val)) + '</text>';
+    });
+    s += '<text x="' + cx.toFixed(1) + '" y="' + (H - 10) + '" text-anchor="middle" font-size="12.5" font-weight="600" fill="#5E6B82">' + q.toUpperCase() + '</text>';
+  });
+  s += '</svg>';
+  s += '<div class="wk-legend" style="margin-top:8px;display:flex;gap:18px;flex:none"><div><i style="background:' + C_CS + '"></i><span>C&amp;S</span></div><div><i style="background:' + C_AO + '"></i><span>A&amp;O</span></div></div>';
+  return s;
+}
+
+/* ---------- Render ---------- */
+const COLS_TABLA = [
+  { k:'concepto', label:'Concepto', tipo:'strong' }, { k:'aa', label:'AA', tipo:'usd' }, { k:'q1', label:'Q1', tipo:'usd' }, { k:'q2', label:'Q2', tipo:'usd' },
+  { k:'q3', label:'Q3', tipo:'usd' }, { k:'q4', label:'Q4', tipo:'usd' }, { k:'total', label:'Total (USD)', tipo:'usd' }
+];
+function tablaBloque(bloque){
+  const filas = (bloque||[]).map(f => {
+    const vacia = ['aa','q1','q2','q3','q4','total'].every(k => !f[k]);
+    const o = { concepto:f.concepto };
+    ['aa','q1','q2','q3','q4'].forEach(k => o[k] = (vacia || (!f[k] && !/vendido/i.test(String(f.concepto)))) ? '—' : f[k]);
+    o.total = vacia ? '—' : totalFila(f);
+    return o;
+  });
+  return WK.table(COLS_TABLA, filas, { vacio:'Sin datos en este bloque.' });
 }
 
 function render(){
@@ -298,91 +381,96 @@ function render(){
   mostrando = snapshotVisto || actual;
   if(!mostrando){
     badge.innerHTML = '';
-    content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con la pestaña "CCFLEX") para generar el primer dashboard.</p></div></div>`;
+    content.innerHTML = '<div class="wk-card">' + WK.empty('Todavía no hay ningún corte cargado. Sube el Excel semanal (pestaña “CCFLEX”) para generar el primer dashboard.') + '</div>';
     return;
   }
-  badge.innerHTML = `<span class="fecha-revision">Última carga: ${new Date(mostrando.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
+  const fechaCorte = WK.fecha(new Date(mostrando.fechaRevision));
+  badge.innerHTML = '<span class="fecha-revision">Última carga: ' + WK.esc(fechaCorte || '—') + '</span>';
+  const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte del <b>' + WK.esc(fechaCorte) + '</b> (' + WK.esc(etiquetaCarga(snapshotVisto)) + ') — no es el más reciente.</span><button class="wk-btn" onclick="volverActual()">Volver al corte más reciente</button></div>' : '';
 
-  const bannerHistorico = snapshotVisto ? `
-    <div class="section" style="background:#FBF1DE; border:1px solid #E9D9AE; display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
-      <span style="font-size:13px; color:#8A6414;">📅 Estás viendo el corte del <b>${new Date(snapshotVisto.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</b> (${etiquetaCarga(snapshotVisto)}) — no es el más reciente.</span>
-      <button class="btn btn-primary" style="background:#8A6414; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; cursor:pointer;" onclick="volverActual()">Volver al corte más reciente</button>
-    </div>
-  ` : '';
+  const R = resumen(mostrando);
+  const idx = historial.findIndex(h => h.guardadoEn === mostrando.guardadoEn);
+  const prev = idx > 0 ? historial[idx-1] : null;
+  const RP = prev ? resumen(prev) : null;
+  const hasta = idx < 0 ? historial.length : idx + 1;
+  const corte = historial.slice(Math.max(0, hasta - 8), hasta);
+  const lbl = corte.map(h => (WK.fecha(new Date(h.fechaRevision)) || '').slice(0,5));
+  const serie = fn => corte.map(h => fn(resumen(h)));
+  const dlt = (a, b, bueno) => (RP ? WK.delta(a, b, { bueno:bueno || 'up', fmt: x => fmtC(x) }) : '');
+  const tendencia = (fn, color) => WK.area(serie(fn), { labels:lbl, color:color }) || '<div class="wk-hero-sub">La tendencia aparece desde el segundo corte.</div>';
 
-  const ventaCS = (mostrando.cs.find(f=>f.concepto==='Monto Vendido')||{}).total || 0;
-  const ventaAO = (mostrando.ao.find(f=>f.concepto==='Monto Vendido')||{}).total || 0;
-  const pendCS = (mostrando.cs.find(f=>f.concepto.includes('Pend.'))||{}).total || 0;
-  const pendAO = (mostrando.ao.find(f=>f.concepto.includes('Pend.'))||{}).total || 0;
+  const vendidoTot = R.cs.vendido + R.ao.vendido;
+  const pagadoTot = R.cs.pagado + R.ao.pagado;
+  const pendTot = R.cs.pendiente + R.ao.pendiente;
+  const pctCobro = R.cs.comision ? R.cs.pagado / R.cs.comision : 0;
+  const tonoCobro = pctCobro >= 0.7 ? 'green' : (pctCobro >= 0.4 ? 'amber' : 'red');
 
-  content.innerHTML = `
-    ${bannerHistorico}
-    <div class="kpi-grid">
-      <div class="kpi-card"><div class="label">Monto vendido C&S (TCV)</div><div class="value">${fmtMoneda(ventaCS)}</div></div>
-      <div class="kpi-card"><div class="label">Monto vendido A&O (TCV)</div><div class="value">${fmtMoneda(ventaAO)}</div></div>
-      <div class="kpi-card"><div class="label">Pendiente de SAP a SEIDOR (C&S)</div><div class="value">${fmtMoneda(pendCS)}</div></div>
-      <div class="kpi-card"><div class="label">Pendiente de SAP a SEIDOR (A&O)</div><div class="value">${fmtMoneda(pendAO)}</div></div>
-    </div>
+  const kpis = WK.heroGrid([
+    WK.hero({ label:'Vendido C&S (TCV)', ico:'🧾', value:fmtC(R.cs.vendido), unit:'USD', tono:'cyan', sub:'Total 2026', delta:dlt(R.cs.vendido, RP && RP.cs.vendido),
+      chart:tendencia(r => r.cs.vendido, C_AO) }),
+    WK.hero({ label:'Vendido A&O (TCV)', ico:'🧾', value:fmtC(R.ao.vendido), unit:'USD', tono:'cyan', sub:'Total 2026', delta:dlt(R.ao.vendido, RP && RP.ao.vendido),
+      chart:tendencia(r => r.ao.vendido, C_AO) }),
+    WK.hero({ label:'Cobrado C&S vs. comisión', ico:'💰', value:WK.pct(pctCobro), tono:R.cs.comision ? tonoCobro : null, sub:'Pagado ' + fmtC(R.cs.pagado) + ' de ' + fmtC(R.cs.comision), delta:dlt(R.cs.pagado, RP && RP.cs.pagado),
+      chart:WK.gauge({ valor:R.cs.pagado, max:R.cs.comision || 1, tono:R.cs.comision ? tonoCobro : 'cyan', texto:fmtC(R.cs.pagado), label:'pagado por SAP (USD)', dark:true }) }),
+    WK.hero({ label:'Pendiente SAP → SEIDOR', ico:'⏳', value:fmtC(pendTot), unit:'USD', tono:'amber', sub:'C&S ' + fmtC(R.cs.pendiente) + ' · A&O ' + fmtC(R.ao.pendiente), delta:dlt(pendTot, RP && (RP.cs.pendiente + RP.ao.pendiente), 'down'),
+      chart:tendencia(r => r.cs.pendiente + r.ao.pendiente, '#EBC260') })
+  ]);
 
-    <div class="section">
-      <h2>🤖 Insight de Delfos</h2>
-      ${snapshotVisto
-        ? (mostrando.insightGuardado
-            ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(mostrando.insightGuardado)}</div></div>`
-            : `<div class="insight-box"><div class="insight-icon">🗂️</div><div class="insight-text">Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible.</div></div>`)
-        : `<div id="insightBox"><div class="loading">Generando…</div></div>`}
-    </div>
+  const insight = snapshotVisto
+    ? (mostrando.insightGuardado ? WK.esc(mostrando.insightGuardado) : 'Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para este corte.')
+    : 'Generando…';
 
-    <div class="section">
-      <h2>Ventas por trimestre</h2>
-      <div class="charts-grid">
-        <div class="chart-wrap"><canvas id="chartCS"></canvas></div>
-        <div class="chart-wrap"><canvas id="chartAO"></canvas></div>
-      </div>
-    </div>
+  const stats = WK.stats([
+    { valor:fmtC(vendidoTot), label:'Vendido total (USD)' },
+    { valor:fmtC(pagadoTot), label:'Pagado por SAP (USD)' },
+    { valor:vendidoTot ? Math.round(R.cs.vendido / vendidoTot * 100) + '%' : '—', label:'Peso de C&S en el TCV' },
+    { valor:fmtC(R.cs.comision), label:'Comisión C&S a pagar (USD)' }
+  ]);
 
-    <div class="section">
-      <p class="bloque-titulo">C&S</p>
-      ${tablaBloque(mostrando.cs)}
-    </div>
-    <div class="section">
-      <p class="bloque-titulo">A&O</p>
-      ${tablaBloque(mostrando.ao)}
-    </div>
+  const donutVenta = WK.donut([{ label:'C&S', value:R.cs.vendido, color:C_CS }, { label:'A&O', value:R.ao.vendido, color:C_AO }], { centro:fmtC(vendidoTot), sub:'TCV total', fmt:fmtC });
+  const donutCobro = k => {
+    const nombre = k === 'cs' ? 'C&S' : 'A&O';
+    return WK.card({ ico:k === 'cs' ? '🔷' : '🔹', titulo:'Cobranza ' + nombre, sub:'Pagado por SAP vs. pendiente (USD)',
+      body: WK.donut([{ label:'Pagado por SAP', value:R[k].pagado, color:'#2FCB73' }, { label:'Pendiente SAP → SEIDOR', value:R[k].pendiente, color:'#EBC260' }], { centro:fmtC(R[k].pagado + R[k].pendiente), sub:'total', fmt:fmtC }) +
+        (R[k].pendDeriv ? '<p class="wk-hint" style="margin:12px 0 0">El Excel trae vacío el total de “Pend.” de ' + nombre + '; se calculó sumando los trimestres.</p>' : '') });
+  };
 
-    <div class="section">
-      <h2>📅 Bitácora de cortes</h2>
-      <p class="sub">Haz clic en un corte para verlo completo tal como se veía entonces.</p>
-      <table>
-        <tr><th>Fecha del corte</th><th>Cargó</th><th>Cargado el</th><th class="num">Vendido C&S</th><th class="num">Vendido A&O</th></tr>
-        ${historial.slice().reverse().map(h => {
-          const vcs = (h.cs.find(f=>f.concepto==='Monto Vendido')||{}).total || 0;
-          const vao = (h.ao.find(f=>f.concepto==='Monto Vendido')||{}).total || 0;
-          const esEsta = mostrando.guardadoEn === h.guardadoEn;
-          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.guardadoEn}')" title="Ver este corte completo"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td>${celdasCarga(h)}<td class="num">${fmtMoneda(vcs)}</td><td class="num">${fmtMoneda(vao)}</td></tr>`;
-        }).join('')}
-      </table>
-    </div>
-  `;
-  renderCharts();
-}
+  const rankQ = [];
+  QS.forEach(q => { if(R.cs.v[q]) rankQ.push({ label:'C&S ' + q.toUpperCase(), value:R.cs.v[q] }); if(R.ao.v[q]) rankQ.push({ label:'A&O ' + q.toUpperCase(), value:R.ao.v[q], tono:'amber' }); });
 
-function renderCharts(){
-  if(chartCS) chartCS.destroy();
-  if(chartAO) chartAO.destroy();
-  const venta = (bloque,concepto) => (bloque.find(f=>f.concepto===concepto)||{});
-  const vCS = venta(mostrando.cs, 'Monto Vendido');
-  const vAO = venta(mostrando.ao, 'Monto Vendido');
-  chartCS = new Chart(document.getElementById('chartCS'), {
-    type:'bar',
-    data:{ labels:['Q1','Q2','Q3','Q4'], datasets:[{ label:'C&S — Monto Vendido', data:[vCS.q1,vCS.q2,vCS.q3,vCS.q4], backgroundColor:'#1E5BB8' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{display:true, text:'C&S por trimestre'} } }
-  });
-  chartAO = new Chart(document.getElementById('chartAO'), {
-    type:'bar',
-    data:{ labels:['Q1','Q2','Q3','Q4'], datasets:[{ label:'A&O — Monto Vendido', data:[vAO.q1,vAO.q2,vAO.q3,vAO.q4], backgroundColor:'#33B4DD' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{display:true, text:'A&O por trimestre'} } }
-  });
+  const evol = corte.length >= 2
+    ? WK.card({ ico:'📈', titulo:'Evolución entre cortes', sub:'Últimos ' + corte.length + ' cortes guardados (USD)', body:
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px">' +
+        [['Vendido C&S', r => r.cs.vendido, C_CS], ['Vendido A&O', r => r.ao.vendido, C_AO], ['Pagado por SAP', r => r.cs.pagado + r.ao.pagado, '#2FCB73'], ['Pendiente SAP → SEIDOR', r => r.cs.pendiente + r.ao.pendiente, '#D8A63A']]
+          .map(([t, fn, col]) => '<div><div class="wk-hint" style="font-weight:700;margin-bottom:4px">' + t + ' · ' + fmtC(fn(R)) + '</div>' + WK.area(serie(fn), { labels:lbl, color:col, h:100 }) + '</div>').join('') +
+        '</div>' })
+    : '';
+
+  const bitacora = WK.table([
+    { k:'corte', label:'Fecha del corte', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' },
+    { k:'vcs', label:'Vendido C&S (USD)', tipo:'usd' }, { k:'vao', label:'Vendido A&O (USD)', tipo:'usd' }, { k:'pend', label:'Pendiente SAP (USD)', tipo:'usd' }
+  ], historial.slice().reverse().map(h => { const r = resumen(h); return { corte:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:WK.hora(h.guardadoEn).split(' ')[0], vcs:r.cs.vendido, vao:r.ao.vendido, pend:r.cs.pendiente + r.ao.pendiente, _id:h.guardadoEn }; }),
+    { rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver el dashboard completo de este corte"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
+
+  content.innerHTML = banner +
+    WK.chips([{ id:'resumen', label:'Resumen' }, { id:'ventas', label:'Ventas' }, { id:'cobranza', label:'Cobranza' }, { id:'detalle', label:'Detalle' }, { id:'bitacora', label:'Bitácora', n:historial.length }]) +
+    '<div id="resumen" style="scroll-margin-top:70px">' + kpis + WK.callout('Insight de Delfos', insight, 'insightText') + '</div>' +
+    WK.band('ventas', 'Ventas', 'Monto vendido (TCV) · USD') +
+    '<div class="wk-grid2" style="margin-bottom:18px">' +
+      WK.card({ ico:'📊', titulo:'Ventas por trimestre', sub:'C&S vs. A&O', body:barrasTrimestre(R.cs.v, R.ao.v) }) +
+      WK.card({ ico:'🥧', titulo:'Mezcla del TCV', sub:'Peso de cada línea en el año', body:donutVenta + '<div style="margin-top:18px">' + stats + '</div>' }) +
+    '</div>' +
+    (rankQ.length ? WK.card({ ico:'🏁', titulo:'Ranking de trimestres', sub:'Dónde se concentró la venta (USD)', body:WK.ranked(rankQ.sort((a,b) => b.value - a.value), { fmt:fmtC }) }) : '') +
+    WK.band('cobranza', 'Cobranza', 'Pagado por SAP y pendiente hacia SEIDOR · USD') +
+    '<div class="wk-grid2" style="margin-bottom:18px">' + donutCobro('cs') + donutCobro('ao') + '</div>' +
+    WK.band('detalle', 'Detalle', 'Conceptos por trimestre · haz clic en un encabezado para ordenar') +
+    '<div class="wk-grid2" style="margin-bottom:18px">' + WK.card({ ico:'🔷', titulo:'C&S', count:(mostrando.cs||[]).length, body:tablaBloque(mostrando.cs) }) + WK.card({ ico:'🔹', titulo:'A&O', count:(mostrando.ao||[]).length, body:tablaBloque(mostrando.ao) }) + '</div>' +
+    evol +
+    WK.band('bitacora', 'Bitácora de cortes', 'Haz clic en un corte para ver el dashboard completo tal como se veía entonces') +
+    WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora }) +
+    '<div class="wk-foot">Montos en USD · el monto vendido es el TCV y el resto representa la comisión · Fechas en DD/MM/AA.</div>';
+  WK.sortable(content);
+  WK.observarSecciones();
 }
 
 async function init(){

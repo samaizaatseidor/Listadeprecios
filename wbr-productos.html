@@ -12,9 +12,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="/wbr-kit.js?v=20261008"></script>
 <style>
-  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC;
+    --green:#1F8A4C; --amber:#8A6414; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
   *{box-sizing:border-box;}
   body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
   .topnav{background:#fff; border-bottom:1px solid var(--line);}
@@ -22,42 +26,70 @@
   .topnav-logo img{height:26px; display:block;}
   .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
   .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
   .nav-dropdown{position:relative;}
   .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
   .nav-dropdown-btn.active{color:var(--blue);}
-  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px;}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
   .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
   .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
   .nav-dropdown.open .nav-dropdown-menu{display:block;}
   .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
   .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
   .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+
   header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
   header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
   .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
   input[type=file]{display:none;}
   .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
-  main{max-width:1300px; margin:0 auto; padding:24px 24px 60px;}
+
+  main{max-width:1600px; margin:0 auto; padding:24px 24px 60px;}
   .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
-  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px; display:flex; align-items:center; gap:8px;}
+  .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
   .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
-  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:14px; margin-bottom:18px;}
+  .empty h2{color:var(--navy2); font-size:18px; margin-bottom:8px;}
+
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-bottom:18px;}
   .kpi-card{background:#fff; border-radius:14px; padding:18px 20px; box-shadow:var(--shadow);}
   .kpi-card .label{font-size:11px; color:var(--greyl); text-transform:uppercase; letter-spacing:0.5px; font-weight:700;}
   .kpi-card .value{font-size:26px; font-weight:800; color:var(--navy2); margin-top:6px;}
-  .kpi-card.rojo .value{color:var(--red);} .kpi-card.ambar .value{color:var(--amber);} .kpi-card.verde .value{color:var(--green);}
+  .kpi-card .sub-value{font-size:12px; color:var(--grey); margin-top:2px;}
   .kpi-bar{height:6px; border-radius:4px; background:var(--card); margin-top:12px; overflow:hidden;}
   .kpi-bar-fill{height:100%; border-radius:4px;}
-  .chart-wrap{position:relative; height:280px;}
+  .kpi-card.verde .value{color:var(--green);} .kpi-bar-fill.verde{background:var(--green);}
+  .kpi-card.ambar .value{color:var(--amber);} .kpi-bar-fill.ambar{background:#D8A63A;}
+  .kpi-card.rojo .value{color:var(--red);} .kpi-bar-fill.rojo{background:var(--red);}
+
+  .charts-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .chart-wrap{position:relative; height:260px;}
+  @media (max-width:900px){ .charts-grid{grid-template-columns:1fr;} }
+
   .insight-box{background:linear-gradient(135deg, #F4F8FC 0%, #EAF3FB 100%); border:1px solid var(--line); border-radius:12px; padding:18px 20px; display:flex; gap:14px; align-items:flex-start;}
   .insight-icon{font-size:26px; flex-shrink:0;}
   .insight-text{font-size:13.5px; line-height:1.6; color:var(--ink); white-space:pre-wrap;}
+
   table{width:100%; border-collapse:collapse; font-size:12.5px;}
-  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10.5px; text-transform:uppercase;}
-  td{padding:9px 6px; border-bottom:1px solid var(--line);}
-  .num{text-align:right; font-variant-numeric:tabular-nums;}
+  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:0.3px;}
+  td{padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tr:hover td{background:var(--card);}
+  .num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .etapa-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:var(--card); color:var(--navy2);}
+  .estatus-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px;}
+  .estatus-commited{background:#E7F7EE; color:var(--green);}
+  .estatus-probable{background:#FBF1DE; color:var(--amber);}
+  .estatus-upside{background:var(--card); color:var(--grey);}
+  .comentario-cell{max-width:240px; font-size:11.5px; color:var(--grey);}
+
+  .tabbar{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
+  .tabbar button{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:7px 14px; font-family:inherit; font-size:12.5px; font-weight:600; color:var(--grey); cursor:pointer;}
+  .tabbar button.active{background:var(--navy2); color:#fff; border-color:var(--navy2);}
+
   .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .av-cell .wk-bar{margin-top:0;}
   .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
   @keyframes spin{ to { transform:rotate(360deg); } }
 </style>
@@ -71,6 +103,7 @@
     const r = await fetch('/api/mi-permiso?page=' + m[1]);
     const d = await r.json();
     if(!d.ok) return;
+    window.ES_ADMIN = !!d.esAdmin;
     if(d.permiso === 'ninguno'){
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
@@ -78,6 +111,7 @@
       document.body.appendChild(overlay);
       document.body.style.overflow = 'hidden';
     }else if(d.permiso === 'lectura'){
+      window.SOLO_LECTURA = true;
       const banner = document.createElement('div');
       banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
       banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
@@ -177,7 +211,12 @@
   <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
 </header>
 
-<main>
+<main class="wk-main">
+  <div id="statusBox"></div>
+  <div id="content"></div>
+</main>
+
+<main class="wk-main">
   <div id="statusBox"></div>
   <div id="content"></div>
 </main>
@@ -187,12 +226,10 @@ let historial = [];
 let actual = null;
 let snapshotVisto = null;
 let mostrando = null;
-let chartTarget;
 
-function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
-function fmtPct(n){ return n==null||isNaN(n) ? '—' : Math.round(n*100)+'%'; }
-function claseAvance(pct){ if(pct==null) return ''; return pct >= 0.85 ? 'verde' : (pct >= 0.5 ? 'ambar' : 'rojo'); }
+const esc = WK.esc;
 
+/* ---------- Parseo (sin cambios de lógica; solo se agrega la nota de movimientos) ---------- */
 function encontrarFila(m, ancla){ for(let i=0;i<m.length;i++){ if(m[i].some(c=>typeof c==='string' && c.trim().toUpperCase()===ancla.toUpperCase())) return i; } return -1; }
 
 function parsearProductos(wb){
@@ -208,16 +245,29 @@ function parsearProductos(wb){
     else { const txt = fila.find(c => typeof c==='string' && /\d{1,2}\/+\d{1,2}\/+\d{2,4}/.test(c)); if(txt){ const p = txt.match(/(\d{1,2})\/+(\d{1,2})\/+(\d{2,4})/); if(p) fechaRevision = new Date(+p[3], +p[2]-1, +p[1]); } }
   }
   const idxHeader = encontrarFila(m, 'LOB');
+  if(idxHeader < 0) throw new Error('No se encontró la tabla con encabezado "LOB" en la pestaña Productos.');
   const porLob = [];
+  let idxTotal = -1;
   for(let i=idxHeader+1; i<m.length; i++){
     const f = m[i];
     if(!f || !f[0]) continue;
-    if(String(f[0]).toUpperCase()==='TOTAL') break;
+    if(String(f[0]).toUpperCase()==='TOTAL'){ idxTotal = i; break; }
     porLob.push({ lob:f[0], targetAnual:f[1]||0, resultadoYTD:f[2]||0, comentarios:f[6]||'' });
   }
-  return { fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(), porLob };
+  if(!porLob.length) throw new Error('La tabla de LOB viene vacía; revisa el formato de la pestaña Productos.');
+  const snap = { fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(), porLob };
+  // Texto libre debajo del TOTAL (p. ej. "NO HUBO MOVIMIENTOS")
+  if(idxTotal >= 0){
+    for(let i=idxTotal+1; i<m.length; i++){
+      const f = m[i]; if(!f) continue;
+      const t = f.find(c => typeof c==='string' && c.trim());
+      if(t){ snap.notaMovimientos = t.replace(/\s+/g,' ').trim(); break; }
+    }
+  }
+  return snap;
 }
 
+/* ---------- Carga y guardado ---------- */
 async function handleFile(file){
   if(!file) return;
   const statusBox = document.getElementById('statusBox');
@@ -235,7 +285,7 @@ async function handleFile(file){
     await cargarHistorial();
     render();
     pedirInsight(anterior);
-    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte del ' + new Date(actual.fechaRevision).toLocaleDateString('es-MX') + ' guardado.</div>';
+    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte del ' + WK.fecha(new Date(actual.fechaRevision)) + ' guardado.</div>';
   }catch(e){
     console.error(e);
     statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo cargar el archivo: ${esc(e.message||String(e))}</div>`;
@@ -245,38 +295,25 @@ async function cargarHistorial(){
   try{
     const r = await fetch('/api/wbr-productos');
     const d = await r.json();
-    historial = d.historial || [];
+    historial = (d.historial || []).filter(h => h && Array.isArray(h.porLob) && h.porLob.length);
     if(historial.length) actual = historial[historial.length-1];
   }catch(e){ historial = []; }
 }
 async function pedirInsight(anterior){
-  const box = document.getElementById('insightBox');
+  const box = document.getElementById('insightText');
   if(!box) return;
-  box.innerHTML = '<div class="loading"><span class="spinner"></span>Delfos está analizando el corte…</div>';
+  box.textContent = 'Delfos está analizando el corte…';
   try{
     const r = await fetch('/api/wbr-productos-insight', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ actual, anterior }) });
     const d = await r.json();
-    box.innerHTML = d.ok
-      ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(d.resumen)}</div></div>`
-      : `<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">${esc(d.error||'No se pudo generar el insight.')}</div></div>`;
-    if(d.ok){
-      actual.insightGuardado = d.resumen;
-      fetch('/api/wbr-productos', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
-    }
-  }catch(e){
-    box.innerHTML = '<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">No se pudo conectar con Delfos.</div></div>';
-  }
+    if(!d.ok){ box.textContent = d.error || 'No se pudo generar el insight.'; return; }
+    box.textContent = d.resumen;
+    actual.insightGuardado = d.resumen;
+    fetch('/api/wbr-productos', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
+  }catch(e){ box.textContent = 'No se pudo conectar con Delfos.'; }
 }
 
-function etiquetaCarga(h){
-  if(!h || !h.guardadoEn) return '';
-  const cuando = new Date(h.guardadoEn).toLocaleString('es-MX', { timeZone:'America/Mexico_City', dateStyle:'medium', timeStyle:'short' });
-  return 'cargado por ' + esc(h.guardadoPor || 'desconocido') + ' el ' + cuando;
-}
-function celdasCarga(h){
-  const cuando = h.guardadoEn ? new Date(h.guardadoEn).toLocaleString('es-MX', { timeZone:'America/Mexico_City', dateStyle:'medium', timeStyle:'short' }) : '—';
-  return '<td>' + esc(h.guardadoPor || '—') + '</td><td>' + cuando + '</td>';
-}
+function etiquetaCarga(h){ return h && h.guardadoEn ? 'cargado por ' + (h.guardadoPor || 'desconocido') + ' el ' + WK.hora(h.guardadoEn) : ''; }
 
 function verSnapshotHistorico(idCarga){
   const encontrado = historial.find(h => h.guardadoEn === idCarga);
@@ -292,91 +329,141 @@ function volverActual(){
   pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
 }
 
+/* ---------- Render ---------- */
+const TONO_AV = p => p == null ? 'cyan' : (p >= 0.85 ? 'green' : (p >= 0.5 ? 'amber' : 'red'));
+const COL_TONO = { green:'#2FCB73', amber:'#EBC260', red:'#FF6B6B', cyan:'#33B4DD' };
+const PAL = ['#1E5BB8','#33B4DD','#2FCB73','#EBC260','#FF6B6B','#8E7CF0','#6B7F9E','#F59E4B'];
+const sumaDe = (h, k) => h.porLob.reduce((s,l) => s + (Number(l[k])||0), 0);
+const resumenDe = h => { const t = sumaDe(h,'targetAnual'), y = sumaDe(h,'resultadoYTD'); return { target:t, ytd:y, pct: t ? y/t : null, togo: t - y }; };
+// Fracción del año transcurrida a la fecha de revisión (referencia de ritmo lineal)
+function fraccionAnio(iso){
+  const d = new Date(iso); if(isNaN(d)) return null;
+  const ini = Date.UTC(d.getFullYear(),0,1), fin = Date.UTC(d.getFullYear()+1,0,1);
+  return Math.max(0, Math.min(1, (Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - ini + 86400000) / (fin - ini)));
+}
+// Las celdas html con <span data-sv="n"> ordenan por ese valor numérico
+function marcarOrden(root){
+  root.querySelectorAll('td span[data-sv], td div[data-sv]').forEach(s => { const td = s.closest('td'); if(td && !td.hasAttribute('data-v')) td.setAttribute('data-v', s.getAttribute('data-sv')); });
+}
+function pastillasLob(items){
+  return '<div style="display:flex;flex-wrap:wrap;gap:8px">' + items.map(i =>
+    '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.08);font-size:12px;font-weight:700;color:#fff"><i style="width:8px;height:8px;border-radius:50%;background:' + COL_TONO[i.tono] + '"></i>' + esc(i.lob) + ' <span style="color:#9DB4D6;font-weight:600">' + i.txt + '</span></span>').join('') + '</div>';
+}
+
 function render(){
   const content = document.getElementById('content');
   const badge = document.getElementById('fechaRevisionBadge');
   mostrando = snapshotVisto || actual;
   if(!mostrando){
     badge.innerHTML = '';
-    content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con la pestaña "Productos") para generar el primer dashboard.</p></div></div>`;
+    content.innerHTML = '<div class="wk-card">' + WK.empty('Todavía no hay ningún corte cargado. Sube el Excel semanal (pestaña “Productos”) para generar el primer dashboard.') + '</div>';
     return;
   }
-  badge.innerHTML = `<span class="fecha-revision">Semana de revisión: ${new Date(mostrando.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
+  const semana = WK.fecha(new Date(mostrando.fechaRevision));
+  badge.innerHTML = '<span class="fecha-revision">Semana de revisión: ' + esc(semana || '—') + '</span>';
+  const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte del <b>' + esc(semana) + '</b> (' + esc(etiquetaCarga(snapshotVisto)) + ') — no es la semana actual.</span><button class="wk-btn" onclick="volverActual()">Volver a la semana actual</button></div>' : '';
 
-  const bannerHistorico = snapshotVisto ? `
-    <div class="section" style="background:#FBF1DE; border:1px solid #E9D9AE; display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
-      <span style="font-size:13px; color:#8A6414;">📅 Estás viendo el corte del <b>${new Date(snapshotVisto.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</b> (${etiquetaCarga(snapshotVisto)}) — no es la semana actual.</span>
-      <button class="btn btn-primary" style="background:#8A6414; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; cursor:pointer;" onclick="volverActual()">Volver a la semana actual</button>
-    </div>
-  ` : '';
-
-  const totalTarget = mostrando.porLob.reduce((s,l)=>s+l.targetAnual,0);
-  const totalYTD = mostrando.porLob.reduce((s,l)=>s+l.resultadoYTD,0);
-  const pctLogro = totalTarget ? totalYTD/totalTarget : null;
-  const totalToGo = totalTarget - totalYTD;
-
-  content.innerHTML = `
-    ${bannerHistorico}
-    <div class="kpi-grid">
-      <div class="kpi-card"><div class="label">Target anual (clientes)</div><div class="value">${totalTarget}</div></div>
-      <div class="kpi-card ${claseAvance(pctLogro)}"><div class="label">Resultado YTD</div><div class="value">${totalYTD}</div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(100,(pctLogro||0)*100)}%; background:${pctLogro>=0.85?'#1F8A4C':(pctLogro>=0.5?'#D8A63A':'#B23A3A')};"></div></div>
-      </div>
-      <div class="kpi-card ${claseAvance(pctLogro)}"><div class="label">% de logro</div><div class="value">${fmtPct(pctLogro)}</div></div>
-      <div class="kpi-card"><div class="label">Faltan (to go)</div><div class="value">${totalToGo}</div></div>
-    </div>
-
-    <div class="section">
-      <h2>🤖 Insight de Delfos</h2>
-      ${snapshotVisto
-        ? (mostrando.insightGuardado
-            ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(mostrando.insightGuardado)}</div></div>`
-            : `<div class="insight-box"><div class="insight-icon">🗂️</div><div class="insight-text">Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para esta semana.</div></div>`)
-        : `<div id="insightBox"><div class="loading">Generando…</div></div>`}
-    </div>
-
-    <div class="section">
-      <h2>Target vs. resultado por LOB</h2>
-      <div class="chart-wrap"><canvas id="chartTarget"></canvas></div>
-    </div>
-
-    <div class="section">
-      <h2>Detalle por LOB</h2>
-      <table>
-        <tr><th>LOB</th><th class="num">Target anual</th><th class="num">Resultado YTD</th><th class="num">% Logro</th><th class="num">To go</th><th>Comentarios</th></tr>
-        ${mostrando.porLob.map(l=>{
-          const pct = l.targetAnual ? l.resultadoYTD/l.targetAnual : null;
-          return `<tr><td><b>${esc(l.lob)}</b></td><td class="num">${l.targetAnual}</td><td class="num">${l.resultadoYTD}</td><td class="num">${fmtPct(pct)}</td><td class="num">${l.targetAnual-l.resultadoYTD}</td><td style="font-size:11.5px; color:var(--grey);">${esc(l.comentarios)}</td></tr>`;
-        }).join('')}
-      </table>
-    </div>
-
-    <div class="section">
-      <h2>📅 Bitácora semanal</h2>
-      <p class="sub">Haz clic en una semana para ver el dashboard completo tal como se veía entonces.</p>
-      <table>
-        <tr><th>Semana</th><th>Cargó</th><th>Cargado el</th><th class="num">Target</th><th class="num">YTD</th><th class="num">% Logro</th></tr>
-        ${historial.slice().reverse().map(h => {
-          const tt = h.porLob.reduce((s,l)=>s+l.targetAnual,0), ty = h.porLob.reduce((s,l)=>s+l.resultadoYTD,0);
-          const esEsta = mostrando.guardadoEn === h.guardadoEn;
-          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.guardadoEn}')" title="Ver el dashboard completo de esta semana"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td>${celdasCarga(h)}<td class="num">${tt}</td><td class="num">${ty}</td><td class="num">${fmtPct(tt?ty/tt:null)}</td></tr>`;
-        }).join('')}
-      </table>
-    </div>
-  `;
-  renderCharts();
-}
-
-function renderCharts(){
-  if(chartTarget) chartTarget.destroy();
-  chartTarget = new Chart(document.getElementById('chartTarget'), {
-    type:'bar',
-    data:{ labels: mostrando.porLob.map(l=>l.lob), datasets:[
-      { label:'Target Anual', data: mostrando.porLob.map(l=>l.targetAnual), backgroundColor:'#D8E2EE' },
-      { label:'Resultado YTD', data: mostrando.porLob.map(l=>l.resultadoYTD), backgroundColor:'#1E5BB8' },
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false }
+  const idx = historial.findIndex(h => h.guardadoEn === mostrando.guardadoEn);
+  const prev = idx > 0 ? historial[idx-1] : null;
+  const hasta = idx < 0 ? historial.length : idx + 1;
+  const cortes = historial.slice(Math.max(0, hasta - 8), hasta);
+  const lbl = cortes.map(h => (WK.fecha(new Date(h.fechaRevision)) || '').slice(0,5));
+  const R = resumenDe(mostrando), RP = prev ? resumenDe(prev) : null;
+  const frac = fraccionAnio(mostrando.fechaRevision);
+  const esperado = frac != null ? R.target * frac : null;
+  const lobs = mostrando.porLob.map((l,i) => {
+    const t = Number(l.targetAnual)||0, y = Number(l.resultadoYTD)||0;
+    const p = prev ? prev.porLob.find(x => String(x.lob).trim().toLowerCase() === String(l.lob).trim().toLowerCase()) : null;
+    const serie = cortes.map(h => { const q = h.porLob.find(x => String(x.lob).trim().toLowerCase() === String(l.lob).trim().toLowerCase()); return q ? Number(q.resultadoYTD)||0 : null; });
+    return { lob:l.lob, target:t, ytd:y, pct:t ? y/t : null, togo:t - y, com:l.comentarios||'', color:PAL[i % PAL.length], previo:p ? Number(p.resultadoYTD)||0 : null, serie };
   });
+  const rojos = lobs.filter(l => TONO_AV(l.pct) === 'red'), sinCierres = lobs.filter(l => l.ytd === 0);
+
+  /* ---- Tiles oscuros ---- */
+  const serTog = cortes.map(h => resumenDe(h).togo);
+  const kpis = WK.heroGrid([
+    WK.hero({ label:'% de logro anual', ico:'🎯', value:WK.pct(R.pct), tono:TONO_AV(R.pct), sub:R.ytd + ' de ' + R.target + ' clientes',
+      delta: RP ? WK.delta(R.pct, RP.pct, { tipo:'pts', bueno:'up' }) : '',
+      chart: WK.gauge({ valor:R.ytd, max:R.target || 1, meta: esperado, tono:TONO_AV(R.pct), texto:R.ytd + ' de ' + R.target, label:'clientes YTD', dark:true }) }),
+    WK.hero({ label:'Clientes ganados YTD', ico:'🏁', value:R.ytd, unit:'clientes', tono:TONO_AV(R.pct), sub:'Meta anual ' + R.target,
+      delta: RP ? WK.delta(R.ytd, RP.ytd, { bueno:'up' }) : '',
+      chart: WK.area(cortes.map(h => resumenDe(h).ytd), { labels:lbl, color:'#33B4DD', cero:true }) || '<div class="wk-hero-sub">La tendencia aparece desde el segundo corte.</div>' }),
+    WK.hero({ label:'Faltan para la meta', ico:'🧭', value:R.togo, unit:'clientes', tono: R.togo <= 0 ? 'green' : 'amber',
+      sub: esperado != null ? 'Ritmo lineal a hoy: ' + (Math.round(esperado*10)/10) + ' clientes' : '',
+      delta: RP ? WK.delta(R.togo, RP.togo, { bueno:'down' }) : '',
+      chart: WK.area(serTog, { labels:lbl, color:'#EBC260' }) || '<div class="wk-hero-sub">La tendencia aparece desde el segundo corte.</div>' }),
+    WK.hero({ label:'LOB bajo 50% de logro', ico:'🚦', value:rojos.length, unit:'de ' + lobs.length, tono: rojos.length ? 'red' : 'green',
+      sub: sinCierres.length ? sinCierres.length + ' sin cierres: ' + sinCierres.map(l => l.lob).join(', ') : 'Todas las LOB con al menos un cierre',
+      chart: pastillasLob(lobs.map(l => ({ lob:l.lob, tono:TONO_AV(l.pct), txt:l.ytd + '/' + l.target }))) })
+  ]);
+
+  const insight = snapshotVisto
+    ? (mostrando.insightGuardado ? esc(mostrando.insightGuardado) : 'Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para esta semana.')
+    : 'Generando…';
+
+  /* ---- Avance por LOB ---- */
+  const bullets = lobs.map(l => WK.bullet({ label:l.lob, valor:l.ytd, meta:l.target, marca: esperado != null && l.target ? l.target * frac : null, marcaLabel:'Ritmo', fmt:WK.num, tono:TONO_AV(l.pct), nota:'Faltan ' + l.togo + (l.previo != null && l.ytd !== l.previo ? ' · ' + (l.ytd > l.previo ? '+' : '') + (l.ytd - l.previo) + ' vs. corte ant.' : '') })).join('');
+  const rankLogro = WK.ranked(lobs.slice().sort((a,b) => (b.pct||0) - (a.pct||0)).map(l => ({ label:l.lob, value:l.pct || 0, tono:TONO_AV(l.pct) })), { fmt:WK.pct, max:1 });
+  const rankTogo = WK.ranked(lobs.slice().sort((a,b) => b.togo - a.togo).map(l => ({ label:l.lob, value:Math.max(0, l.togo), tono: l.togo > 0 ? 'amber' : 'green' })), { fmt:WK.num });
+  const dTarget = WK.donut(lobs.map(l => ({ label:l.lob, value:l.target, color:l.color })), { centro:String(R.target), sub:'clientes meta', fmt:WK.num });
+  const dGanados = R.ytd > 0 ? WK.donut(lobs.map(l => ({ label:l.lob, value:l.ytd, color:l.color })), { centro:String(R.ytd), sub:'ganados', fmt:WK.num }) : WK.empty('Aún no hay clientes ganados.');
+  const stats = WK.stats([
+    { valor:lobs.filter(l => TONO_AV(l.pct) === 'green').length, label:'LOB en verde (≥85%)' },
+    { valor:lobs.filter(l => TONO_AV(l.pct) === 'amber').length, label:'LOB en ámbar (50–84%)' },
+    { valor:rojos.length, label:'LOB en rojo (<50%)' },
+    { valor:sinCierres.length, label:'LOB sin cierres' },
+    { valor: esperado != null ? Math.round(esperado*10)/10 : '—', label:'Ritmo lineal a hoy' }
+  ]);
+
+  /* ---- Evolución ---- */
+  const hayEvol = cortes.length >= 2;
+  const evol = hayEvol ? '<div class="wk-grid2">' +
+    WK.card({ ico:'📈', titulo:'Clientes ganados por corte', sub:'Acumulado YTD, últimos ' + cortes.length + ' cortes', body:'<div style="max-width:440px;margin:0 auto">' + WK.area(cortes.map(h => resumenDe(h).ytd), { labels:lbl, color:'#1E5BB8', h:110, cero:true }) + '</div>' }) +
+    WK.card({ ico:'📉', titulo:'% de logro por corte', sub:'Avance contra la meta anual', body:'<div style="max-width:440px;margin:0 auto">' + WK.area(cortes.map(h => (resumenDe(h).pct||0)*100), { labels:lbl, color:'#2FCB73', h:110, cero:true }) + '</div>' }) +
+    '</div>' : '';
+
+  /* ---- Detalle ---- */
+  const filasLob = lobs.map(l => ({
+    lob:l.lob, target:l.target, ytd:l.ytd,
+    avance:'<div class="av-cell" data-sv="' + (l.pct||0) + '" style="display:flex;align-items:center;gap:10px;min-width:150px"><div style="flex:1">' + WK.bar(l.pct||0, TONO_AV(l.pct)) + '</div><b style="min-width:38px;text-align:right">' + WK.pct(l.pct) + '</b></div>',
+    togo:l.togo,
+    delta: l.previo != null ? '<span data-sv="' + (l.ytd - l.previo) + '">' + WK.delta(l.ytd, l.previo, { bueno:'up' }) + '</span>' : '<span data-sv="">—</span>',
+    tend: l.serie.filter(v => v != null).length >= 2 ? '<span data-sv="' + l.ytd + '">' + WK.spark(l.serie, { color:'#1E5BB8' }) + '</span>' : '<span data-sv="">—</span>',
+    com:l.com
+  }));
+  const tablaLob = WK.table([
+    { k:'lob', label:'LOB', tipo:'strong' }, { k:'target', label:'Target anual', tipo:'num' }, { k:'ytd', label:'Resultado YTD', tipo:'num' },
+    { k:'avance', label:'% logro', tipo:'html' }, { k:'togo', label:'To go', tipo:'num' },
+    { k:'delta', label:'Cambio vs. corte ant.', tipo:'html' }, { k:'tend', label:'Tendencia', tipo:'html' }, { k:'com', label:'Comentarios', tipo:'note' }
+  ], filasLob, { id:'tablaLob', vacio:'Sin datos.',
+    footer:'<tr><td class="wk-strong">Total</td><td class="wk-num">' + WK.num(R.target) + '</td><td class="wk-num">' + WK.num(R.ytd) + '</td><td class="wk-num">' + WK.pct(R.pct) + '</td><td class="wk-num">' + WK.num(R.togo) + '</td><td colspan="3"></td></tr>' });
+  const nota = mostrando.notaMovimientos ? WK.card({ ico:'📝', titulo:'Movimientos de la semana', body:'<div style="font-size:14px;color:var(--ink)">' + esc(mostrando.notaMovimientos) + '</div>' }) : '';
+
+  /* ---- Bitácora ---- */
+  const hRev = historial.slice().reverse();
+  const bitTabla = WK.table([
+    { k:'semana', label:'Semana', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'html' },
+    { k:'target', label:'Target', tipo:'num' }, { k:'ytd', label:'YTD', tipo:'num' }, { k:'pct', label:'% logro', tipo:'pct' }
+  ], hRev.map(h => { const r = resumenDe(h); return { semana:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:'<span data-sv="' + (h.guardadoEn ? new Date(h.guardadoEn).getTime() : '') + '">' + esc(WK.hora(h.guardadoEn)) + '</span>', target:r.target, ytd:r.ytd, pct:r.pct, _id:h.guardadoEn }; }),
+    { id:'tablaBit', rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + esc(f._id) + '\')" title="Ver el dashboard completo de esta semana"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
+  const bitacora = (hRev.length > 8 ? '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar semana o persona…" oninput="WK.filtrar(document.getElementById(\'tablaBit\'), this.value)"></div>' : '') + bitTabla;
+
+  content.innerHTML = banner +
+    WK.chips([{ id:'resumen', label:'Resumen' }, { id:'lob', label:'Avance por LOB', n:lobs.length }].concat(hayEvol ? [{ id:'evol', label:'Evolución' }] : []).concat([{ id:'detalle', label:'Detalle' }, { id:'bitacora', label:'Bitácora', n:historial.length }])) +
+    '<div id="resumen" style="scroll-margin-top:70px">' + kpis + WK.callout('Insight de Delfos', insight, 'insightText') + '</div>' +
+    WK.band('lob', 'Avance por LOB', 'Clientes · la marca vertical es el ritmo lineal del año a la fecha del corte') +
+    '<div class="wk-grid2">' + WK.card({ ico:'📊', titulo:'Meta vs. resultado por LOB', sub:'Clientes ganados contra el target anual', body:bullets }) +
+      '<div style="display:grid;gap:18px;align-content:start">' + WK.card({ ico:'🏅', titulo:'% de logro por LOB', body:rankLogro }) + WK.card({ ico:'🧩', titulo:'Semáforo', body:stats }) + '</div></div>' +
+    '<div class="wk-grid2" style="margin-top:18px">' + WK.card({ ico:'🎯', titulo:'Distribución del target', sub:'Clientes meta por LOB', body:dTarget }) + WK.card({ ico:'🏆', titulo:'Distribución de lo ganado', sub:'Clientes YTD por LOB', body:dGanados }) + WK.card({ ico:'🧭', titulo:'Lo que falta (to go)', sub:'Clientes pendientes por LOB', body:rankTogo }) + '</div>' +
+    (hayEvol ? WK.band('evol', 'Evolución', 'Contra los cortes anteriores') + evol : '') +
+    WK.band('detalle', 'Detalle por LOB', 'Haz clic en un encabezado para ordenar') +
+    nota + WK.card({ ico:'📋', titulo:'Target vs. resultado', body:tablaLob }) +
+    WK.band('bitacora', 'Bitácora semanal', 'Haz clic en una semana para ver el dashboard completo tal como se veía entonces') +
+    WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora }) +
+    '<div class="wk-foot">Conteo de clientes (target por LOB) · Fechas en DD/MM/AA.</div>';
+  marcarOrden(content);
+  WK.sortable(content);
+  WK.observarSecciones();
 }
 
 async function init(){
