@@ -702,7 +702,7 @@ function wiRender(id, root){
 
 /* Dueño del tablero (foto) — se agrega solo en el encabezado de cada WBR */
 WK.OWNERS = {
-  finanzas:{ nombre:'Mauricio Reyes', cargo:'CFO', rol:'Finanzas' }, ventas:{ nombre:'Omar Dávila', cargo:'Director Comercial', rol:'Ventas & Pipeline', foto:'/assets/owners/omar.png' }, operaciones:{ rol:'Operaciones' },
+  finanzas:{ nombre:'Mauricio Reyes', cargo:'CFO', rol:'Finanzas' }, ventas:{ nombre:'Omar Dávila', cargo:'Director Comercial', rol:'Ventas & Pipeline', foto:'/assets/owners/omar.png' }, operaciones:{ nombre:'Yurima Choco', cargo:'Directora de Operaciones', rol:'Operaciones', foto:'/assets/owners/yurima.png' },
   productos:{ nombre:'Omar Dávila', cargo:'Director Comercial', rol:'Target clientes', foto:'/assets/owners/omar.png' }, ccflex:{ rol:'CC Flex' }, bx:{ nombre:'María Flores', cargo:'Gerente de BX', rol:'Business Experience', foto:'/assets/owners/maria.png' },
   anuncios:{ nombre:'Paul Sirrs', cargo:'CEO', rol:'Anuncios', foto:'/assets/owners/paul.png' }, cta:{ nombre:'Angel Aiza', cargo:'Director de Estrategia y Procesos', rol:'Call to Action', foto:'/assets/owners/angel.png' }, vop:{ rol:'VOP' }, baseinstalada:{ nombre:'María Flores', cargo:'Gerente de BX', rol:'Base Instalada', foto:'/assets/owners/maria.png' }
 };
