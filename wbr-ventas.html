@@ -401,7 +401,7 @@ function filasOps(lista){
 const COLS_OPS = [
   { k:'cliente', label:'Cliente', tipo:'strong' }, { k:'linea', label:'Línea', tipo:'text' }, { k:'total', label:'Total (USD)', tipo:'usdK' },
   { k:'etapa', label:'Etapa', tipo:'tag' }, { k:'estatus', label:'Estatus', tipo:'html' }, { k:'cierre', label:'Cierre est.', tipo:'date' },
-  { k:'vendedor', label:'SE', tipo:'text' }, { k:'comentario', label:'Comentario', tipo:'note' }
+  { k:'vendedor', label:'KAM', tipo:'text' }, { k:'comentario', label:'Comentario', tipo:'note' }
 ];
 function sumaTotal(lista){ return (lista||[]).reduce((a,o) => a + (Number(o.total)||0), 0); }
 function tablaOportunidades(lista){
@@ -436,13 +436,18 @@ function render(){
   const dpp = (a, b) => (pv ? WK.delta((a||0)*100, (b||0)*100, { bueno:'up', fmt: x => Math.round(x*10)/10 + ' pp' }) : '');
   const mult = p.targetCQ ? p.resultadoCQ / p.targetCQ : 0;
 
-  const kpis = [
-    WK.kpi({ label:'Ventas YTD', ico:'💼', value:WK.pct(v.pctYTD), tono:TONO_AV(v.pctYTD), pct:v.pctYTD, sub:WK.usdK(v.resultadoYTD) + ' de ' + WK.usdK(v.targetAnual) + ' anual (USD)', delta:dpp(v.pctYTD, pv && pv.pctYTD), spark:WK.spark(serie(h => kpiVentas(h).pctYTD), { color:'#1E5BB8' }) }),
-    WK.kpi({ label:'Ventas — trimestre actual', ico:'🎯', value:WK.pct(v.pctCQ), tono:TONO_AV(v.pctCQ), pct:v.pctCQ, sub:WK.usdK(v.resultadoCQ) + ' de ' + WK.usdK(v.targetCQ) + ' meta CQ', delta:dpp(v.pctCQ, pv && pv.pctCQ), spark:WK.spark(serie(h => kpiVentas(h).pctCQ), { color:'#1E5BB8' }) }),
-    WK.kpi({ label:'Forecast vs. meta CQ', ico:'🔭', value:WK.pct(v.pctFCST), tono:TONO_AV(v.pctFCST), pct:v.pctFCST, sub:'To go: ' + WK.usdK(v.togo), delta:dpp(v.pctFCST, pv && pv.pctFCST), spark:WK.spark(serie(h => kpiVentas(h).pctFCST), { color:'#33B4DD' }) }),
-    WK.kpi({ label:'Pipeline total (CQ)', ico:'🧱', value:WK.usdK(p.resultadoCQ), tono: mult >= 3 ? 'green' : (mult >= 2 ? 'amber' : 'red'), sub:'de ' + WK.usdK(p.targetCQ) + ' meta · ' + (Math.round(mult*10)/10) + 'x',
-      delta: pp ? WK.delta(p.resultadoCQ, pp.resultadoCQ, { bueno:'up', fmt:x => WK.usdK(x) }) : '', spark:WK.spark(serie(h => kpiPipe(h).resultadoCQ), { color:'#33B4DD' }) })
-  ].join('');
+  const histLbl = historial.slice(Math.max(0, hasta - 8), hasta).map(h => (WK.fecha(new Date(h.fechaRevision)) || '').slice(0,5));
+  const kpis = WK.heroGrid([
+    WK.hero({ label:'Ventas YTD', ico:'💼', value:WK.pct(v.pctYTD), tono:TONO_AV(v.pctYTD), sub:'Meta anual ' + WK.usdK(v.targetAnual), delta:dpp(v.pctYTD, pv && pv.pctYTD),
+      chart:WK.gauge({ valor:v.resultadoYTD, max:v.targetAnual || 1, tono:TONO_AV(v.pctYTD), texto:WK.usdK(v.resultadoYTD), label:'acumulado (USD)', dark:true }) }),
+    WK.hero({ label:'Ventas — trimestre actual', ico:'🎯', value:WK.pct(v.pctCQ), tono:TONO_AV(v.pctCQ), sub:'Meta CQ ' + WK.usdK(v.targetCQ), delta:dpp(v.pctCQ, pv && pv.pctCQ),
+      chart:WK.gauge({ valor:v.resultadoCQ, max:v.targetCQ || 1, meta:v.targetFCST && v.targetCQ ? Math.min(v.targetFCST, v.targetCQ) : null, tono:TONO_AV(v.pctCQ), texto:WK.usdK(v.resultadoCQ), label:'en el trimestre (USD)', dark:true }) }),
+    WK.hero({ label:'Forecast vs. meta CQ', ico:'🔭', value:WK.pct(v.pctFCST), tono:TONO_AV(v.pctFCST), sub:'To go ' + WK.usdK(v.togo), delta:dpp(v.pctFCST, pv && pv.pctFCST),
+      chart:WK.gauge({ valor:Math.min(v.targetFCST, v.targetCQ || v.targetFCST), max:v.targetCQ || v.targetFCST || 1, tono:TONO_AV(v.pctFCST), texto:WK.usdK(v.targetFCST), label:'forecast (USD)', dark:true }) }),
+    WK.hero({ label:'Pipeline total (CQ)', ico:'🧱', value:WK.usdK(p.resultadoCQ), tono: TONO_AV(mult), sub:(Math.round(mult*10)/10) + 'x la meta de ' + WK.usdK(p.targetCQ),
+      delta: pp ? WK.delta(p.resultadoCQ, pp.resultadoCQ, { bueno:'up', fmt:x => WK.usdK(x) }) : '',
+      chart: WK.area(serie(h => kpiPipe(h).resultadoCQ), { labels:histLbl, color:'#33B4DD' }) || '<div class="wk-hero-sub">La tendencia aparece desde el segundo corte.</div>' })
+  ]);
 
   const insight = snapshotVisto
     ? (mostrando.insightGuardado ? WK.esc(mostrando.insightGuardado) : 'Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para esta semana.')
@@ -450,7 +455,7 @@ function render(){
 
   const bulletsCQ = mostrando.ventas.map(x => WK.bullet({ label:x.nombre + ' — trimestre', valor:x.resultadoCQ, meta:x.targetCQ, marca:x.targetFCST || null, marcaLabel:'FCST', tono:TONO_AV(x.pctCQ), nota:'To go ' + WK.usdK(x.togo) })).join('');
   const bulletsYTD = mostrando.ventas.map(x => WK.bullet({ label:x.nombre + ' — año', valor:x.resultadoYTD, meta:x.targetAnual, tono:TONO_AV(x.pctYTD) })).join('');
-  const bulletsPipe = mostrando.pipeline.map(x => { const m = x.targetCQ ? x.resultadoCQ / x.targetCQ : 0; return WK.bullet({ label:x.nombre + ' — pipeline CQ', valor:x.resultadoCQ, meta:x.targetCQ, tono: m >= 3 ? 'green' : (m >= 2 ? 'amber' : 'red'), nota:(Math.round(m*10)/10) + 'x la meta' }); }).join('');
+  const bulletsPipe = mostrando.pipeline.map(x => { const m = x.targetCQ ? x.resultadoCQ / x.targetCQ : 0; return WK.bullet({ label:x.nombre + ' — pipeline CQ', valor:x.resultadoCQ, meta:x.targetCQ, tono: TONO_AV(m), nota:(Math.round(m*10)/10) + 'x la meta' }); }).join('');
 
   const tablaMetas = WK.table([
     { k:'nombre', label:'Línea', tipo:'strong' }, { k:'targetAnual', label:'Meta anual', tipo:'usdK' }, { k:'resultadoYTD', label:'Resultado YTD', tipo:'usdK' }, { k:'pctYTD', label:'% YTD', tipo:'pct' },
@@ -463,7 +468,7 @@ function render(){
     { t:'Entraron (movidas de Q)', l:mostrando.movidas, ico:'↔️', tono:'amber' }, { t:'Nuevas', l:mostrando.nuevas, ico:'✨', tono:'cyan' }
   ].filter(x => (x.l||[]).length).map(x => WK.kpi({ label:x.t, ico:x.ico, value:x.l.length, tono:x.tono, sub:WK.usdK(sumaTotal(x.l)) + ' en total' })).join('');
 
-  // Por Solution Engineer (columna SE del Excel) — nombres unificados sin importar acentos/mayúsculas
+  // Por Key Account Manager (columna SE del Excel) — nombres unificados sin importar acentos/mayúsculas
   const canon = {};
   [mostrando.oportunidadesActivas, mostrando.ganadas, mostrando.bajaron, mostrando.movidas, mostrando.nuevas, mostrando.bigDeals].forEach(l => (l||[]).forEach(o => {
     const n = String(o.vendedor||'').replace(/\s+/g,' ').trim(); if(!n) return;
@@ -477,9 +482,9 @@ function render(){
     if(!se && esAgrupada(o)){ agrupado = o; return; }
     const k = se || 'Sin asignar'; (porV[k] = porV[k] || { vendedor:k, n:0, total:0 }); porV[k].n++; porV[k].total += Number(o.total)||0;
   });
-  const tablaV = WK.table([{ k:'vendedor', label:'Solution Engineer', tipo:'strong' }, { k:'n', label:'Oportunidades', tipo:'num' }, { k:'total', label:'Total (USD)', tipo:'usdKbar' }],
+  const tablaV = WK.table([{ k:'vendedor', label:'Key Account Manager', tipo:'strong' }, { k:'n', label:'Oportunidades', tipo:'num' }, { k:'total', label:'Total (USD)', tipo:'usdKbar' }],
     Object.values(porV).sort((a,b) => b.total - a.total), { vacio:'Sin oportunidades activas.' }) +
-    (agrupado ? '<p class="wk-note" style="margin:12px 2px 0;font-size:12.5px">Además, el Excel trae una línea agrupada “' + WK.esc(agrupado.cliente) + '” por ' + WK.usdK(agrupado.total) + ' sin detalle por SE; no se incluye en esta tabla.</p>' : '');
+    (agrupado ? '<p class="wk-note" style="margin:12px 2px 0;font-size:12.5px">Además, el Excel trae una línea agrupada “' + WK.esc(agrupado.cliente) + '” por ' + WK.usdK(agrupado.total) + ' sin detalle por KAM; no se incluye en esta tabla.</p>' : '');
 
   const tabs = [['activas','Activas',mostrando.oportunidadesActivas], ['ganadas','Ganadas',mostrando.ganadas], ['bajaron','Bajaron del FCST',mostrando.bajaron], ['movidas','Movidas de Q',mostrando.movidas], ['nuevas','Nuevas',mostrando.nuevas], ['bigDeals','Big Deals',mostrando.bigDeals]]
     .filter(t => t[0] === 'activas' || t[0] === 'bajaron' || t[0] === 'movidas' || (t[2]||[]).length);
@@ -493,7 +498,7 @@ function render(){
 
   content.innerHTML = banner +
     WK.chips([{ id:'resumen', label:'Resumen' }, { id:'metas', label:'Metas y avance' }, { id:'ops', label:'Oportunidades', n:(mostrando.oportunidadesActivas||[]).length }, { id:'bitacora', label:'Bitácora', n:historial.length }]) +
-    '<div id="resumen" style="scroll-margin-top:70px"><div class="wk-kpis">' + kpis + '</div>' + WK.callout('Insight de Delfos', insight, 'insightText') + '</div>' +
+    '<div id="resumen" style="scroll-margin-top:70px">' + kpis + WK.callout('Insight de Delfos', insight, 'insightText') + '</div>' +
     WK.band('metas', 'Metas y avance', 'Montos en miles de USD · la marca vertical indica el forecast') +
     '<div class="wk-grid2">' + WK.card({ ico:'📆', titulo:'Trimestre actual', body:bulletsCQ }) + WK.card({ ico:'🗓️', titulo:'Acumulado del año', body:bulletsYTD }) + '</div>' +
     WK.card({ ico:'🧱', titulo:'Pipeline vs. meta', body:bulletsPipe }) +
@@ -501,7 +506,7 @@ function render(){
     WK.band('ops', 'Oportunidades', 'Detalle del pipeline') +
     (mov ? '<div class="wk-kpis">' + mov + '</div>' : '') +
     WK.card({ ico:'🔎', titulo:'Detalle de oportunidades', sub:'Ordena por cualquier columna y filtra por texto.', body: barraTabs + '<div id="opsContent"></div>' }) +
-    WK.card({ ico:'👤', titulo:'Pipeline activo por Solution Engineer', body:tablaV }) +
+    WK.card({ ico:'👤', titulo:'Pipeline activo por Key Account Manager', body:tablaV }) +
     WK.band('bitacora', 'Bitácora semanal', 'Haz clic en una semana para ver el dashboard completo tal como se veía entonces') +
     WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora }) +
     '<div class="wk-foot">Montos en USD (miles) · Fechas en DD/MM/AA.</div>';
