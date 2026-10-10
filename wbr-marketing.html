@@ -407,6 +407,7 @@
 <div class="pe-main">
 <!-- VIEW 1 -->
 <section class="view" id="v-resumen" role="tabpanel" aria-labelledby="t-resumen">
+  <div id="peInsight"></div>
   <div class="top">
     <div class="verdict" id="verdict"><div class="glow"></div></div>
     <div class="card">
@@ -759,7 +760,7 @@ function render(){
   document.querySelectorAll('#pe .pe-tools .seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.p === S.period));
   $('#foot').textContent = `Fuente: HubSpot · export MX_PIPE (${S.rows.length.toLocaleString('es-MX')} registros). Montos en USD. Tendencias semanales reconstruidas con fechas de creación y cierre hasta contar con snapshots semanales. `;
   const v = S.view;
-  if(v === 'resumen') renderResumen(R);
+  if(v === 'resumen'){ renderResumen(R); peInsightRender(); }
   if(v === 'apuestas') renderApuestas(R);
   if(v === 'motores') renderMotores(R);
   if(v === 'cambios') renderCambios(R);
@@ -1156,7 +1157,7 @@ async function peRefreshHist(){ const d = await peApi('/api/wbr-marketing'); PE.
 async function PE_SAVE_CORTE(rows, asOf, archivo){
   try{
     const d = await peApi('/api/wbr-marketing', { method:'POST', body: JSON.stringify({ tipo:'corte', fechaCorte: iso(asOf), archivo, rows: rows.map(r => COLS.map(c => r[c] === undefined ? null : r[c])), resumen: (() => { const o = S.rows.filter(r => r.open); return { abiertas: o.length, pipeline: Math.round(sum(o)) }; })() }) });
-    PE.viewing = d.meta; await peRefreshHist(); peBanner(); toast('Corte guardado en la bitácora'); if(S.view === 'cambios') render();
+    PE.viewing = d.meta; await peRefreshHist(); peBanner(); toast('Corte guardado en la bitácora'); if(S.view === 'cambios') render(); else peInsightRender(); peInsightGenerate();
   }catch(e){ toast('No se pudo guardar el corte: ' + e.message); }
 }
 async function PE_SAVE_TGT(archivo){
@@ -1273,6 +1274,42 @@ function renderCambios(R){
     sub.textContent = `${dLbl(pd(cur.fechaCorte))} vs ${dLbl(pd(pv.meta.fechaCorte))}`;
     box.innerHTML = peDiffHtml(peDiff(R, pv.rows.filter(r => pass(r))), pv.meta);
   }).catch(e => { if(tok === PE.tok) box.innerHTML = '<p class="sub">No se pudo leer el corte anterior: ' + esc(e.message) + '</p>'; });
+}
+
+/* ---- Lectura ejecutiva (Delfos), guardada junto con el corte ---- */
+function peInsightRender(){
+  const el = document.getElementById('peInsight'); if(!el) return;
+  const cur = PE.viewing; if(!cur){ el.innerHTML = ''; return; }
+  const body = PE.insightBusy ? 'Delfos está analizando el corte…' : cur.insight ? esc(cur.insight) : 'Este corte todavía no tiene lectura ejecutiva.';
+  el.innerHTML = `<div class="card"><div class="ch"><h2>🧠 Lectura ejecutiva · Delfos</h2><span class="sub">Corte del ${esc(dLbl(pd(cur.fechaCorte)))}-${pd(cur.fechaCorte).getFullYear()} · ${esc(S.R && S.f && Object.values(S.f).some(Boolean) ? 'considera los filtros activos' : 'sin filtros')}</span></div><p class="gp" style="white-space:pre-wrap;max-width:none;margin:0 0 8px">${body}</p>${PE.insightBusy ? '' : `<button type="button" class="link" id="peInsBtn">${cur.insight ? 'Regenerar lectura' : 'Generar lectura con Delfos'}</button>`}</div>`;
+  const b = document.getElementById('peInsBtn'); if(b) b.onclick = peInsightGenerate;
+}
+async function peFacts(){
+  const P = periods(), R = S.R || S.rows, open = R.filter(r => r.open), cur = PE.viewing;
+  const txt = s => (document.querySelector(s) ? document.querySelector(s).innerText.replace(/\s+/g, ' ').trim() : '');
+  const f = { corte: iso(S.asOf), periodo: P.lbl, filtros: Object.entries(S.f).filter(([k, v]) => v).map(([k, v]) => k + ': ' + v),
+    veredicto: txt('#verdict'), kpis: [...document.querySelectorAll('#kpis .kpi')].map(k => k.innerText.replace(/\s+/g, ' ').trim()),
+    alertas: (S.ins || []).slice(0, 4).map(i => i.t + ' ' + i.d.replace(/<[^>]+>/g, '')),
+    salud: [...document.querySelectorAll('#health .h')].map(h => h.innerText.replace(/\s+/g, ' ').trim()),
+    engines: TENG.map(e => ({ engine: e, target_deals: +TGT[e] || 0, opps_abiertas: open.filter(r => r.eng === e).length, pipeline_usd: Math.round(sum(open.filter(r => r.eng === e))) })),
+    top_oportunidades_abiertas: open.slice().sort((a, b) => b.v - a.v).slice(0, 5).map(r => ({ nombre: r.name, owner: r.owner, etapa: ST_SHORT[r.st], valor_usd: Math.round(r.v), cierre: r.cl ? iso(r.cl) : null })) };
+  try{ const pv = cur ? await peGetPrev(cur) : null;
+    if(pv){ const df = peDiff(R, pv.rows.filter(r => pass(r))), top = a => a.slice().sort((x, y) => y.r.v - x.r.v).slice(0, 3).map(x => x.r.name + ' (' + fm(x.r.v) + ')');
+      f.cambios_vs_corte_anterior = { corte_anterior: pv.meta.fechaCorte };
+      ['entraron','ganados','perdidos','avanzaron','retrocedieron','fecha','valor','salieron'].forEach(k => { f.cambios_vs_corte_anterior[k] = { cantidad: df[k].length, valor_usd: Math.round(sum(df[k], x => x.r.v)), principales: top(df[k]) }; }); }
+  }catch(e){}
+  return f;
+}
+async function peInsightGenerate(){
+  const cur = PE.viewing; if(!cur || PE.insightBusy) return;
+  PE.insightBusy = true; peInsightRender();
+  try{
+    const hechos = await peFacts();
+    const d = await peApi('/api/wbr-marketing-insight', { method:'POST', body: JSON.stringify({ hechos }) });
+    cur.insight = d.resumen; const h = PE.hist.find(x => x.id === cur.id); if(h) h.insight = d.resumen;
+    peApi('/api/wbr-marketing', { method:'POST', body: JSON.stringify({ tipo:'insight', id: cur.id, texto: d.resumen }) }).catch(() => {});
+  }catch(e){ toast('No se pudo generar la lectura: ' + e.message); }
+  PE.insightBusy = false; peInsightRender();
 }
 
 </script>

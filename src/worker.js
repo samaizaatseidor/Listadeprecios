@@ -464,6 +464,7 @@ const RUTAS_PERMISO = {
   '/api/wbr-anuncios': { modo:'datos', paginas:['wbr-anuncios'] },
   '/api/wbr-cta': { modo:'datos', paginas:['wbr-cta'] },
   '/api/wbr-marketing': { modo:'datos', paginas:['wbr-marketing'] },
+  '/api/wbr-marketing-insight': { modo:'ia', paginas:['wbr-marketing'] },
   '/api/wbr-finanzas-insight': { modo:'ia', paginas:['wbr-finanzas'] },
   '/api/wbr-ventas-insight': { modo:'ia', paginas:['wbr-ventas'] },
   '/api/wbr-operaciones-insight': { modo:'ia', paginas:['wbr-operaciones'] },
@@ -1679,6 +1680,24 @@ ${JSON.stringify(checklist || [])}`;
       }
     }
 
+    if (url.pathname === '/api/wbr-marketing-insight' && request.method === 'POST') {
+      const token = await getDelfosToken(env);
+      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const hechos = JSON.stringify(body.hechos || {}, null, 2);
+      if (hechos.length > 30000) return new Response(JSON.stringify({ ok: false, error: 'Los datos del corte son demasiado grandes.' }), { status: 413, headers: { 'Content-Type': 'application/json' } });
+      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
+      const sessionId = crypto.randomUUID();
+      const prompt = `Eres un analista senior de Revenue Growth presentando el Weekly Business Review de Marketing (Pipeline Evolution: ¿estamos creciendo o consumiendo pipeline?; datos de HubSpot, montos en USD, win rate con las canceladas contadas como perdidas, targets en número de deals por LOB) de SEIDOR México a la dirección.\n\nHechos del corte:\n\n${hechos}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres de oportunidades, no genérico. Si hay cambios contra el corte anterior, menciónalos. Termina con una acción recomendada.`;
+      try {
+        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
+        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
     // WBR Marketing (Pipeline Evolution): cada carga del export de HubSpot es un corte guardado (quién, cuándo); los targets por LOB se comparten con todos.
     if (url.pathname === '/api/wbr-marketing') {
       const JH = { 'Content-Type': 'application/json' };
@@ -1711,6 +1730,15 @@ ${JSON.stringify(checklist || [])}`;
           const nuevo = { ...reg, historial: [...(prev.historial || []), reg].slice(-20) };
           await env.PM_KV.put(KT, JSON.stringify(nuevo));
           return new Response(JSON.stringify({ ok: true, targets: nuevo }), { headers: JH });
+        }
+        if (body.tipo === 'insight') {
+          const rawH = await env.PM_KV.get(KH);
+          const historial = rawH ? JSON.parse(rawH) : [];
+          const h = historial.find(x => x.id === body.id);
+          if (!h || typeof body.texto !== 'string' || !body.texto.trim()) return new Response(JSON.stringify({ ok:false, error:'No se encontró el corte.' }), { status: 400, headers: JH });
+          h.insight = body.texto.slice(0, 4000);
+          await env.PM_KV.put(KH, JSON.stringify(historial));
+          return new Response(JSON.stringify({ ok: true }), { headers: JH });
         }
         if (body.tipo === 'corte') {
           const rows = body.rows;
