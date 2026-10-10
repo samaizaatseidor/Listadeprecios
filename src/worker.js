@@ -388,7 +388,6 @@ const PAGINAS_REGISTRO = {
   'wbr-finanzas': 'WBR — Finanzas',
   'wbr-ventas': 'WBR — Ventas & Pipeline',
   'wbr-operaciones': 'WBR — Operaciones',
-  'wbr-productos': 'WBR — Target de Clientes',
   'wbr-bx': 'WBR — Business Experience',
   'wbr-ccflex': 'WBR — CCFlex',
   'wbr-cta': 'WBR — Call to Action',
@@ -442,7 +441,7 @@ const NIVEL_RANGO = { 'ninguno': 0, 'lectura': 1, 'completo': 2 };
 // modo 'accion': exige 'completo' (p. ej. enviar correos).
 // modo 'admin':  solo administradores.  modo 'audit': leer = Auditoría; escribir = cualquier usuario autenticado.
 // Una ruta /api/* sin regla aquí queda denegada (acceso por defecto = ninguno).
-const RUTAS_PROPIAS = ['/api/mi-permiso', '/api/whoami', '/api/roles-config']; // validan por su cuenta
+const RUTAS_PROPIAS = ['/api/mi-permiso', '/api/whoami', '/api/roles-config', '/api/wbr-enviar']; // validan por su cuenta
 const PAGINAS_PROYECTO = ['proyecto', 'vista-general', 'checklist', 'handover', 'iniciar-proyecto', 'reporte-cuenta'];
 const RUTAS_PERMISO = {
   '/api/projects': { modo:'datos', paginas:['pipeline','ficha','kpis'], escritura:['pipeline','ficha'] },
@@ -458,7 +457,6 @@ const RUTAS_PERMISO = {
   '/api/wbr-finanzas': { modo:'datos', paginas:['wbr-finanzas'] },
   '/api/wbr-ventas': { modo:'datos', paginas:['wbr-ventas'] },
   '/api/wbr-operaciones': { modo:'datos', paginas:['wbr-operaciones'] },
-  '/api/wbr-productos': { modo:'datos', paginas:['wbr-productos'] },
   '/api/wbr-ccflex': { modo:'datos', paginas:['wbr-ccflex'] },
   '/api/wbr-bx': { modo:'datos', paginas:['wbr-bx'] },
   '/api/wbr-anuncios': { modo:'datos', paginas:['wbr-anuncios'] },
@@ -468,7 +466,6 @@ const RUTAS_PERMISO = {
   '/api/wbr-finanzas-insight': { modo:'ia', paginas:['wbr-finanzas'] },
   '/api/wbr-ventas-insight': { modo:'ia', paginas:['wbr-ventas'] },
   '/api/wbr-operaciones-insight': { modo:'ia', paginas:['wbr-operaciones'] },
-  '/api/wbr-productos-insight': { modo:'ia', paginas:['wbr-productos'] },
   '/api/wbr-ccflex-insight': { modo:'ia', paginas:['wbr-ccflex'] },
   '/api/wbr-bx-insight': { modo:'ia', paginas:['wbr-bx'] },
   '/api/sow-review': { modo:'ia', paginas:['sow-review'] },
@@ -1517,60 +1514,6 @@ ${JSON.stringify(checklist || [])}`;
       }
     }
 
-    if (url.pathname === '/api/wbr-productos' && request.method === 'GET') {
-      const raw = await env.PM_KV.get('wbr_productos_historial');
-      const historial = raw ? JSON.parse(raw) : [];
-      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
-    }
-
-    if (url.pathname === '/api/wbr-productos' && request.method === 'POST') {
-      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
-      let body;
-      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
-      const snapshot = body.snapshot;
-      if (!snapshot) return new Response(JSON.stringify({ ok:false, error:'Falta el snapshot' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-
-      const raw = await env.PM_KV.get('wbr_productos_historial');
-      let historial = raw ? JSON.parse(raw) : [];
-      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
-      // Cada carga es un registro nuevo (quién y cuándo). Si el snapshot trae el guardadoEn de un registro existente
-      // (p. ej. al agregarle el insight), se actualiza ese mismo registro conservando autor y hora de carga.
-      const idx = snapshot.guardadoEn ? historial.findIndex(h => h.guardadoEn === snapshot.guardadoEn) : -1;
-      if (idx >= 0) {
-        snapshot.guardadoPor = historial[idx].guardadoPor;
-        snapshot.guardadoEn = historial[idx].guardadoEn;
-        historial[idx] = snapshot;
-      } else {
-        snapshot.guardadoPor = email;
-        snapshot.guardadoEn = new Date().toISOString();
-        historial.push(snapshot);
-      }
-      historial.sort((a,b) => (new Date(a.fechaRevision) - new Date(b.fechaRevision)) || String(a.guardadoEn||'').localeCompare(String(b.guardadoEn||'')));
-      if (historial.length > 52) historial = historial.slice(historial.length - 52);
-
-      await env.PM_KV.put('wbr_productos_historial', JSON.stringify(historial));
-      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
-    }
-
-    if (url.pathname === '/api/wbr-productos-insight' && request.method === 'POST') {
-      const token = await getDelfosToken(env);
-      if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-      let body;
-      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
-      const { actual, anterior } = body;
-      const username = request.headers.get('Cf-Access-Authenticated-User-Email') || 'usuario-crm';
-      const sessionId = crypto.randomUUID();
-
-      const prompt = `Eres un analista comercial senior presentando el Weekly Business Review de Target de Clientes por LOB de SEIDOR México a la dirección.\n\nCorte de esta semana (${actual.fechaRevision}):\n\n${JSON.stringify(actual, null, 2)}\n\n${anterior ? `Corte de la semana anterior (${anterior.fechaRevision}) para comparar:\n\n${JSON.stringify(anterior, null, 2)}` : 'No hay un corte anterior todavía para comparar — es el primer registro.'}\n\nEscribe un resumen ejecutivo en español (máximo 180 palabras, tono directo, sin markdown ni encabezados), específico con números y nombres, no genérico.`;
-
-      try {
-        const resumen = await delfosGetCompletion(token, { sessionId, username, text: prompt, fileRefs: [], useOnlineSearch: false });
-        return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
-      } catch (e) {
-        return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
-      }
-    }
-
     if (url.pathname === '/api/wbr-ccflex' && request.method === 'GET') {
       const raw = await env.PM_KV.get('wbr_ccflex_historial');
       const historial = raw ? JSON.parse(raw) : [];
@@ -1696,6 +1639,58 @@ ${JSON.stringify(checklist || [])}`;
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
       }
+    }
+
+    // Enviar una vista (PDF) de un tablero WBR por correo. Solo a direcciones de dominios SEIDOR; queda bitácora (quién, a quién, cuándo).
+    if (url.pathname === '/api/wbr-enviar') {
+      const JH = { 'Content-Type': 'application/json' };
+      const KL = 'wbr_envios_log', KCFG = 'wbr_envio_config';
+      const j = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: JH });
+      const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
+      if (!email) return j({ ok: false, error: 'No se pudo identificar al usuario.' }, 403);
+      const cfgRoles = await getRolesConfig(env);
+      let cfg = {}; try { const r = await env.PM_KV.get(KCFG); if (r) cfg = JSON.parse(r) || {}; } catch (e) {}
+      const dominios = (Array.isArray(cfg.dominios) && cfg.dominios.length ? cfg.dominios : ['seidor.com']).map(d => String(d).toLowerCase().replace(/^@/, ''));
+      if (request.method === 'GET') {
+        // Dominios permitidos para cualquiera; la bitácora completa solo para administradores.
+        const raw = await env.PM_KV.get(KL); const log = raw ? JSON.parse(raw) : [];
+        return j({ ok: true, dominios, envios: esAdmin(email, cfgRoles) ? log.slice(-50).reverse() : log.filter(x => x.de === email).slice(-10).reverse() });
+      }
+      if (request.method !== 'POST') return j({ ok: false, error: 'Método no permitido' }, 405);
+      let body; try { body = await request.json(); } catch (e) { return j({ ok: false, error: 'Solicitud inválida' }, 400); }
+      const pagina = String(body.pagina || '');
+      if (!/^wbr-[a-z0-9-]+$/.test(pagina) || !PAGINAS_REGISTRO[pagina]) return j({ ok: false, error: 'Tablero no válido.' }, 400);
+      const nivel = await getPermiso(env, email, pagina);
+      if ((NIVEL_RANGO[nivel] || 0) < NIVEL_RANGO['lectura']) return j({ ok: false, error: 'No tienes acceso a este tablero.' }, 403);
+      const norm = a => [...new Set((Array.isArray(a) ? a : []).map(x => String(x || '').trim().toLowerCase()).filter(Boolean))];
+      const para = norm(body.para), cc = norm(body.cc);
+      const todos = [...para, ...cc];
+      if (!para.length) return j({ ok: false, error: 'Agrega al menos un destinatario.' }, 400);
+      if (todos.length > 10) return j({ ok: false, error: 'Máximo 10 destinatarios por envío.' }, 400);
+      const malos = todos.filter(x => !/^[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+$/.test(x) || !dominios.some(d => x.endsWith('@' + d)));
+      if (malos.length) return j({ ok: false, error: 'Solo se puede enviar a correos de ' + dominios.map(d => '@' + d).join(', ') + '. No permitido: ' + malos.join(', ') }, 400);
+      const b64 = String(body.pdf || '').replace(/^data:application\/pdf[^,]*,/, '');
+      if (b64.length < 1000 || !/^[A-Za-z0-9+/=\s]+$/.test(b64.slice(0, 2000))) return j({ ok: false, error: 'El PDF no llegó completo. Intenta de nuevo.' }, 400);
+      if (b64.length > 9 * 1024 * 1024) return j({ ok: false, error: 'El PDF es demasiado grande (máx. ~6 MB).' }, 413);
+      const raw = await env.PM_KV.get(KL); const log = raw ? JSON.parse(raw) : [];
+      const hace1h = Date.now() - 3600 * 1000;
+      if (log.filter(x => x.de === email && x.ok && Date.parse(x.en) > hace1h).length >= 10 && !esAdmin(email, cfgRoles)) return j({ ok: false, error: 'Llegaste al límite de 10 envíos por hora.' }, 429);
+      const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const tablero = PAGINAS_REGISTRO[pagina];
+      const asunto = String(body.asunto || ('Vista del tablero · ' + tablero)).replace(/[\r\n]+/g, ' ').slice(0, 160);
+      const mensaje = String(body.mensaje || '').slice(0, 2000);
+      const nombrePdf = (String(body.archivo || '').replace(/[^A-Za-z0-9._ -]/g, '').slice(0, 80) || pagina) .replace(/\.pdf$/i, '') + '.pdf';
+      const html = `<div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;color:#16223A"><div style="background:#07153A;color:#fff;padding:16px 20px;border-radius:10px 10px 0 0"><div style="font-size:11px;letter-spacing:.18em;color:#66B6FF;font-weight:600">SEIDOR MÉXICO · PORTAL DE PREVENTAS</div><div style="font-size:18px;font-weight:600;margin-top:4px">${esc(tablero)}</div></div><div style="border:1px solid #D9DFEC;border-top:0;border-radius:0 0 10px 10px;padding:18px 20px;font-size:14px;line-height:1.55">${mensaje ? `<p style="white-space:pre-wrap;margin:0 0 14px">${esc(mensaje)}</p>` : ''}<p style="margin:0 0 6px">Te comparto una vista del tablero en el PDF adjunto.</p><p style="margin:0;color:#5E6B82;font-size:12px">Enviado por ${esc(email)} el ${esc(new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City', dateStyle: 'long', timeStyle: 'short' }))}. Es una foto del momento: no se actualiza.</p></div></div>`;
+      let ok = false, err = '';
+      try {
+        const key = await getResendKey(env);
+        if (!key) throw new Error('Falta configurar RESEND_API_KEY');
+        const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: 'CRM PresalesMX <notificaciones@crmpresalesmx.com>', to: para, cc, reply_to: email, subject: asunto, html, attachments: [{ filename: nombrePdf, content: b64.replace(/\s+/g, '') }] }) });
+        ok = r.ok; if (!ok) err = ('Resend ' + r.status + ' ' + (await r.text())).slice(0, 300);
+      } catch (e) { err = String(e.message || e).slice(0, 300); }
+      log.push({ en: new Date().toISOString(), de: email, para, cc, pagina, asunto, bytes: Math.round(b64.length * 0.75), ok, error: ok ? undefined : err });
+      await env.PM_KV.put(KL, JSON.stringify(log.slice(-300)));
+      return ok ? j({ ok: true, enviados: todos.length }) : j({ ok: false, error: 'No se pudo enviar el correo. ' + err }, 502);
     }
 
     // WBR Marketing (Pipeline Evolution): cada carga del export de HubSpot es un corte guardado (quién, cuándo); los targets por LOB se comparten con todos.

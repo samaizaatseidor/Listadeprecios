@@ -319,7 +319,6 @@
           <a href="/wbr-finanzas.html">Finanzas</a>
           <a href="/wbr-ventas.html">Ventas & Pipeline</a>
           <a href="/wbr-operaciones.html">Operaciones</a>
-          <a href="/wbr-productos.html">Target de Clientes</a>
           <a href="/wbr-bx.html">Business Experience</a>
           <a href="/wbr-ccflex.html">CCFlex</a>
           <a href="/wbr-cta.html">Call to Action</a>
@@ -587,7 +586,7 @@
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
-<script src="/wbr-kit.js?v=20261010"></script>
+<script src="/wbr-kit.js?v=20261010e"></script>
 <script>
 const RAW=[];
 const RAW_FILE = 'hubspot-crm-exports-mx_pipe-2027-2026-10-06.xls';
@@ -1454,6 +1453,10 @@ function peBindDrill(){
     k.onclick = go; k.onkeydown = e => { if((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.info')){ e.preventDefault(); peDrill(k.dataset.kpi); } }; });
   document.querySelectorAll('#health .h[data-h]').forEach(h => { h.onclick = () => peDrill('h' + h.dataset.h); h.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); peDrill('h' + h.dataset.h); } }; });
 }
+
+// Envío por correo (kit): la vista que se manda es el reporte congelado, no una captura de pantalla
+window.WK_SEND_READY = () => !!(S.R || (S.rows && S.rows.length));
+window.WK_REPORT_HTML = () => peReportHtml({});
 
 </script>
 <script>
