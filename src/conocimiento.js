@@ -55,6 +55,7 @@ Business Experience:
 Administración:
 - Auditoría (/auditoria.html): quién hizo qué (creación, edición y borrado), últimas 1,000 acciones.
 - Roles y Permisos (/roles.html): controla quién puede ver o editar cada página. Lo administra Sam; toda página nueva queda sin acceso hasta que él la otorga.
+- Saludos de Bienvenida (/saludos.html, solo administradores): Sam configura el mensaje animado que una persona ve una vez al día al abrir una página WBR (correo, página, nombre y mensaje; "*" = todos). Tiene vista previa y "Volver a mostrar hoy" para probar.
 Asistente Delfos: el botón "Pregúntale a Delfos" (abajo a la izquierda en todas las páginas) abre este chat; responde con la información del portal y, si está activada la casilla, con lo que se ve en la pantalla actual. Hay un límite de 40 preguntas por hora por persona.
 Otras: Cómo instalar la app (/instalar.html) explica cómo instalar el portal como app en el equipo.
 

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>Saludos de Bienvenida · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+
+  main{max-width:1300px; margin:0 auto; padding:24px 24px 60px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:14px; color:var(--navy2); margin:0 0 4px;}
+  .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
+
+  .btn{border:none; border-radius:8px; padding:9px 14px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-ghost{border:1px solid var(--line); background:#fff; color:var(--grey);}
+  .btn-danger{border:1px solid #E8C7C7; background:#fff; color:#B23A3A;}
+
+  .roles-tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+  .roles-tabs button{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:7px 14px; font-family:inherit; font-size:12.5px; font-weight:600; color:var(--grey); cursor:pointer;}
+  .roles-tabs button.active{background:var(--navy2); color:#fff; border-color:var(--navy2);}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:600; font-size:11.5px;}
+  td{padding:7px 6px; border-bottom:1px solid var(--line);}
+  select{font-family:inherit; font-size:12.5px; padding:5px 8px; border:1px solid var(--line); border-radius:6px;}
+  .nivel-completo{color:#1F8A4C;}
+  .nivel-lectura{color:#8A6414;}
+  .nivel-ninguno{color:#B23A3A;}
+
+  .asig-row{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
+  .asig-row input, .asig-row select{padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px;}
+  .asig-row input{flex:1;}
+  .del-row{background:none; border:none; color:var(--greyl); font-size:16px; cursor:pointer; line-height:1;}
+
+  .loading{color:var(--grey); font-size:13px;}
+  .locked{text-align:center; padding:80px 20px; color:var(--greyl);}
+  .locked h2{color:var(--navy2); font-size:18px;}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+  .seg button{border:none; background:#fff; padding:6px 12px; font-family:inherit; font-size:12px; font-weight:600; color:var(--grey); cursor:pointer; border-right:1px solid var(--line);}
+  .seg button:last-child{border-right:none;}
+  .seg button:hover{background:var(--card);}
+  .seg button.on-ninguno{background:#FBEAEA; color:#B23A3A;}
+  .seg button.on-lectura{background:#FBF1DE; color:#8A6414;}
+  .seg button.on-completo{background:#E7F7EE; color:#1F8A4C;}
+  .seg button:focus-visible, .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:2px solid var(--blue); outline-offset:1px;}
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+  .toolbar input[type=search], .toolbar input[type=text]{padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px; min-width:220px;}
+  .bulkbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#EDF3FA; border:1px solid var(--line); border-radius:10px; padding:8px 12px; margin-bottom:10px; font-size:12.5px; color:var(--navy2);}
+  .resumen{font-size:12px; color:var(--grey); margin:0 0 10px;}
+  textarea{width:100%; min-height:80px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px;}
+  .statusbar{position:fixed; left:50%; bottom:14px; transform:translateX(-50%); background:#fff; border:1px solid var(--line); box-shadow:var(--shadow); border-radius:20px; padding:6px 16px; font-size:12.5px; z-index:80; display:none;}
+  .chip{display:inline-block; font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px; margin:2px 4px 2px 0; border:1px solid transparent;}
+  .chip.completo{background:#E7F7EE; color:#1F8A4C; border-color:#B9E1C9;} .chip.lectura{background:#FBF1DE; color:#8A6414; border-color:#E9D9AE;}
+
+  .sg-note{background:#EDF3FA; border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-size:12.5px; color:var(--grey); margin:0 0 14px; line-height:1.55;}
+  .sg-bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  .sg-btn{border:1px solid var(--line); background:#fff; color:var(--navy2); border-radius:9px; padding:8px 14px; font:600 13px Poppins,sans-serif; cursor:pointer;}
+  .sg-btn:hover{border-color:var(--blue); color:var(--blue);} .sg-btn.pr{background:var(--blue); border-color:var(--blue); color:#fff;} .sg-btn.pr:hover{background:#2F6FD6; color:#fff;} .sg-btn:disabled{opacity:.55; cursor:wait;}
+  .sg-btn.dg{color:#C2362B;} .sg-btn.dg:hover{border-color:#C2362B;}
+  .sg-st{font-size:12.5px; font-weight:600; min-height:18px;} .sg-st.ok{color:#18794E;} .sg-st.err{color:#C2362B;} .sg-st.pend{color:#8A6414;}
+  .sg-row{display:grid; grid-template-columns:auto minmax(190px,1fr) minmax(190px,1fr) minmax(130px,.6fr) minmax(260px,2fr) auto; gap:10px 12px; align-items:start; padding:14px; border:1px solid var(--line); border-radius:12px; margin-bottom:10px; background:#fff;}
+  .sg-row.off{opacity:.6; background:#F8FAFD;}
+  .sg-row label{display:block; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--greyl); margin-bottom:4px;}
+  .sg-row input[type=text], .sg-row input[type=email], .sg-row select, .sg-row textarea{width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font:400 13px Poppins,sans-serif; color:var(--ink); background:#fff; min-height:38px;}
+  .sg-row textarea{min-height:60px; resize:vertical;} .sg-row input:focus, .sg-row select:focus, .sg-row textarea:focus{outline:2px solid var(--blue); border-color:transparent;}
+  .sg-cnt{font-size:11px; color:var(--greyl); text-align:right; margin-top:2px;} .sg-cnt.mal{color:#C2362B; font-weight:700;}
+  .sg-sw{display:flex; flex-direction:column; align-items:center; gap:4px; padding-top:2px;} .sg-sw input{width:20px; height:20px; accent-color:var(--blue); cursor:pointer;}
+  .sg-acc{display:flex; flex-direction:column; gap:6px;} .sg-acc .sg-btn{padding:7px 12px; font-size:12px; white-space:nowrap;}
+  .sg-empty{text-align:center; padding:34px 16px; color:var(--greyl);} .sg-empty .big{font-size:36px; margin-bottom:8px;}
+  @media(max-width:1100px){ .sg-row{grid-template-columns:1fr 1fr;} .sg-row .span2{grid-column:1/-1;} }
+</style>
+</head>
+<body>
+
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-mkt-test.html">MKT Test</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html" class="active">Saludos de Bienvenida</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<header>
+  <h1>Saludos de Bienvenida</h1>
+  <p>Mensaje animado que ve cada persona una vez al día al abrir un tablero WBR · solo para administradores</p>
+</header>
+
+<main id="mainContent">
+  <div class="section">
+    <h2>Saludos configurados</h2>
+    <p class="sub">Cada fila es un saludo para una persona en una página. Se muestra una vez al día (día de Ciudad de México), antes de ver el tablero.</p>
+    <div class="sg-note">💡 Escribe el correo de la persona (o <b>*</b> para que lo vea todo el que abra esa página). Si una persona tiene un saludo propio y también hay uno con <b>*</b>, gana el suyo. La animación dura unos segundos y se cierra con un clic. Usa <b>Vista previa</b> para verla ahora y <b>Volver a mostrar hoy</b> para probarla de nuevo en la página real.</div>
+    <div class="sg-bar"><button class="sg-btn" id="sgNuevo" type="button">+ Nuevo saludo</button><button class="sg-btn pr" id="sgGuardar" type="button">Guardar cambios</button><span class="sg-st" id="sgSt"></span></div>
+    <div id="sgLista"></div>
+  </div>
+</main>
+
+<script>window.DL_SALUDO_MANUAL = true;</script>
+<script src="/saludo.js?v=1"></script>
+<script>
+(function(){
+  var lista = [], paginas = {}, miCorreo = '', sucio = false;
+  var L = document.getElementById('sgLista'), ST = document.getElementById('sgSt'), BG = document.getElementById('sgGuardar');
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); }
+  function estado(t, c){ ST.textContent = t || ''; ST.className = 'sg-st ' + (c || ''); }
+  function marcar(){ sucio = true; estado('Hay cambios sin guardar', 'pend'); }
+  function nuevoId(){ return 'n' + Math.random().toString(36).slice(2, 12); }
+  function opcionesPagina(sel){ return Object.keys(paginas).map(function(k){ return '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + esc(paginas[k]) + '</option>'; }).join(''); }
+  function fila(x){
+    return '<div class="sg-row' + (x.activo === false ? ' off' : '') + '" data-id="' + esc(x.id) + '">' +
+      '<div class="sg-sw"><label>Activo</label><input type="checkbox" data-k="activo"' + (x.activo === false ? '' : ' checked') + ' aria-label="Activo"></div>' +
+      '<div><label>Correo (o * para todos)</label><input type="email" data-k="email" value="' + esc(x.email) + '" placeholder="nombre@seidor.com"></div>' +
+      '<div><label>Página donde se muestra</label><select data-k="pagina">' + opcionesPagina(x.pagina) + '</select></div>' +
+      '<div><label>Nombre a mostrar</label><input type="text" data-k="nombre" maxlength="40" value="' + esc(x.nombre) + '" placeholder="Paul"></div>' +
+      '<div class="span2"><label>Mensaje</label><textarea data-k="mensaje" maxlength="220" placeholder="Que tengas un día Épico 🚀">' + esc(x.mensaje) + '</textarea><div class="sg-cnt" data-c></div></div>' +
+      '<div class="sg-acc"><button class="sg-btn" type="button" data-a="prev">▶ Vista previa</button><button class="sg-btn" type="button" data-a="reset">↺ Volver a mostrar hoy</button><button class="sg-btn dg" type="button" data-a="del">Eliminar</button></div>' +
+    '</div>';
+  }
+  function pinta(){
+    if(!lista.length){ L.innerHTML = '<div class="sg-empty"><div class="big">👋</div>Aún no hay saludos.<br><br><button class="sg-btn pr" type="button" id="sgEjemplo">Crear un saludo de prueba para mí</button></div>'; var b = document.getElementById('sgEjemplo'); if(b) b.onclick = function(){ lista.push(plantilla()); pinta(); marcar(); }; return; }
+    L.innerHTML = lista.map(fila).join(''); L.querySelectorAll('.sg-row').forEach(contar);
+  }
+  function plantilla(){ return { id:nuevoId(), email:miCorreo, pagina:'wbr-ejecutivo', nombre:'Paul', mensaje:'Que tengas un día Épico, bro 🚀', activo:true }; }
+  function contar(row){ var t = row.querySelector('textarea'), c = row.querySelector('[data-c]'); c.textContent = t.value.length + ' / 220'; c.className = 'sg-cnt' + (t.value.length > 200 ? ' mal' : ''); }
+  function leerFila(row){
+    var o = { id: row.getAttribute('data-id') };
+    row.querySelectorAll('[data-k]').forEach(function(el){ o[el.getAttribute('data-k')] = el.type === 'checkbox' ? el.checked : el.value; });
+    return o;
+  }
+  function sincroniza(){ lista = Array.prototype.map.call(L.querySelectorAll('.sg-row'), leerFila); }
+  L.addEventListener('input', function(e){ var row = e.target.closest('.sg-row'); if(!row) return; if(e.target.tagName === 'TEXTAREA') contar(row); if(e.target.getAttribute('data-k') === 'activo') row.classList.toggle('off', !e.target.checked); marcar(); });
+  L.addEventListener('change', function(e){ if(e.target.getAttribute('data-k') === 'activo') marcar(); });
+  L.addEventListener('click', async function(e){
+    var b = e.target.closest('[data-a]'); if(!b) return; var row = b.closest('.sg-row'), id = row.getAttribute('data-id'), a = b.getAttribute('data-a');
+    if(a === 'prev'){ var o = leerFila(row); if(!o.mensaje.trim()){ estado('Escribe el mensaje para ver la vista previa.', 'err'); return; } window.DL_SALUDO.mostrar({ nombre:o.nombre, mensaje:o.mensaje }); }
+    else if(a === 'del'){ if(!confirm('¿Eliminar este saludo?')) return; sincroniza(); lista = lista.filter(function(x){ return x.id !== id; }); pinta(); marcar(); }
+    else if(a === 'reset'){
+      if(sucio){ estado('Guarda los cambios antes de reiniciar el saludo.', 'err'); return; }
+      b.disabled = true;
+      try{ var r = await fetch('/api/saludos-config', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ accion:'reset', id:id }) }); var d = await r.json(); if(!d.ok) throw new Error(d.error || 'No se pudo reiniciar.'); estado('Listo: el saludo volverá a salir hoy la próxima vez que se abra la página.', 'ok'); }
+      catch(err){ estado(err.message, 'err'); } b.disabled = false;
+    }
+  });
+  document.getElementById('sgNuevo').onclick = function(){ sincroniza(); lista.push(plantilla()); pinta(); marcar(); var f = L.lastElementChild; if(f) f.scrollIntoView({ behavior:'smooth', block:'center' }); };
+  BG.onclick = async function(){
+    sincroniza(); BG.disabled = true; estado('Guardando…', 'pend');
+    try{
+      var r = await fetch('/api/saludos-config', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ saludos:lista }) }); var d = await r.json();
+      if(!d.ok) throw new Error(d.error || 'No se pudo guardar.');
+      lista = d.saludos; sucio = false; pinta(); estado('Guardado ✓', 'ok');
+    }catch(err){ estado(err.message, 'err'); }
+    BG.disabled = false;
+  };
+  window.addEventListener('beforeunload', function(e){ if(sucio){ e.preventDefault(); e.returnValue = ''; } });
+  (async function(){
+    try{
+      var r = await fetch('/api/saludos-config', { cache:'no-store' }); var d = await r.json();
+      if(!d.ok){ document.getElementById('mainContent').innerHTML = '<div class="section"><div class="sg-empty"><div class="big">🔒</div>' + esc(d.error || 'No tienes acceso a esta página.') + '</div></div>'; return; }
+      lista = d.saludos || []; paginas = d.paginas || {}; miCorreo = d.miCorreo || ''; pinta();
+    }catch(e){ document.getElementById('mainContent').innerHTML = '<div class="section"><div class="sg-empty"><div class="big">⚠️</div>No se pudo cargar la configuración.</div></div>'; }
+  })();
+})();
+</script>
+
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+<script src="/asistente.js?v=1" defer></script>
+</body>
+</html>

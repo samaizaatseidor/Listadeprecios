@@ -445,7 +445,7 @@ const NIVEL_RANGO = { 'ninguno': 0, 'lectura': 1, 'completo': 2 };
 // modo 'accion': exige 'completo' (p. ej. enviar correos).
 // modo 'admin':  solo administradores.  modo 'audit': leer = Auditoría; escribir = cualquier usuario autenticado.
 // Una ruta /api/* sin regla aquí queda denegada (acceso por defecto = ninguno).
-const RUTAS_PROPIAS = ['/api/mi-permiso', '/api/whoami', '/api/roles-config', '/api/wbr-enviar', '/api/asistente']; // validan por su cuenta
+const RUTAS_PROPIAS = ['/api/mi-permiso', '/api/whoami', '/api/roles-config', '/api/wbr-enviar', '/api/asistente', '/api/saludo']; // validan por su cuenta
 const PAGINAS_PROYECTO = ['proyecto', 'vista-general', 'checklist', 'handover', 'iniciar-proyecto', 'reporte-cuenta'];
 const RUTAS_PERMISO = {
   '/api/projects': { modo:'datos', paginas:['pipeline','ficha','kpis'], escritura:['pipeline','ficha'] },
@@ -493,6 +493,7 @@ const RUTAS_PERMISO = {
   '/api/notify': { modo:'accion', paginas:['ficha'] },
   '/api/audit': { modo:'audit', paginas:['auditoria'] },
   '/api/backup-completo': { modo:'admin' },
+  '/api/saludos-config': { modo:'admin' },
 };
 
 function respuestaDenegada(msg){
@@ -1647,6 +1648,84 @@ ${JSON.stringify(checklist || [])}`;
     }
 
     // Enviar una vista (PDF) de un tablero WBR por correo. Solo a direcciones de dominios SEIDOR; queda bitácora (quién, a quién, cuándo).
+    // Saludos de bienvenida: animación que ve cada persona UNA vez al día al abrir una página WBR (la configura un administrador).
+    if (url.pathname === '/api/saludo') {
+      const JH = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
+      const j = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: JH });
+      const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
+      const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+      const leerCfg = async () => { try { const r = await env.PM_KV.get('saludos_config'); const c = r ? JSON.parse(r) : {}; return Array.isArray(c.saludos) ? c.saludos : []; } catch (e) { return []; } };
+      const coincide = (sa, pagina) => sa && sa.activo !== false && sa.pagina === pagina && (sa.email === email || sa.email === '*');
+      if (request.method === 'GET') {
+        const pagina = String(url.searchParams.get('pagina') || '').toLowerCase().replace(/\.html$/, '').replace(/[^a-z0-9-]/g, '').slice(0, 60);
+        if (!email || !pagina) return j({ ok: true, saludo: null });
+        const lista = (await leerCfg()).filter(sa => coincide(sa, pagina)).sort((x, y) => (y.email === email ? 1 : 0) - (x.email === email ? 1 : 0));
+        const sa = lista[0];
+        if (!sa) return j({ ok: true, saludo: null });
+        if (PAGINAS_REGISTRO[pagina]) { const nivel = await getPermiso(env, email, pagina); if ((NIVEL_RANGO[nivel] || 0) < NIVEL_RANGO['lectura']) return j({ ok: true, saludo: null }); }
+        const visto = await env.PM_KV.get('saludo_visto_' + email + '_' + sa.id);
+        if (visto === hoy) return j({ ok: true, saludo: null });
+        return j({ ok: true, saludo: { id: sa.id, nombre: sa.nombre || '', mensaje: sa.mensaje } });
+      }
+      if (request.method === 'POST') {
+        if (!email) return j({ ok: false, error: 'Sin usuario' }, 403);
+        let body; try { body = await request.json(); } catch (e) { return j({ ok: false, error: 'Solicitud inválida' }, 400); }
+        const id = String(body.id || '');
+        const sa = (await leerCfg()).find(x => x.id === id);
+        if (!sa || !(sa.email === email || sa.email === '*')) return j({ ok: false, error: 'Saludo no encontrado' }, 404);
+        await env.PM_KV.put('saludo_visto_' + email + '_' + id, hoy, { expirationTtl: 3 * 86400 });
+        return j({ ok: true });
+      }
+      return j({ ok: false, error: 'Método no permitido' }, 405);
+    }
+
+    // Administración de saludos (solo administradores)
+    if (url.pathname === '/api/saludos-config') {
+      const JH = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
+      const j = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: JH });
+      const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
+      const cfgRoles = await getRolesConfig(env);
+      if (!esAdmin(email, cfgRoles)) return j({ ok: false, error: 'Solo un Administrador puede ver o cambiar los saludos.' }, 403);
+      const paginas = { wbr: 'WBR — Resumen (todas las áreas)' };
+      Object.keys(PAGINAS_REGISTRO).filter(k => k.startsWith('wbr-')).forEach(k => { paginas[k] = PAGINAS_REGISTRO[k]; });
+      const leer = async () => { try { const r = await env.PM_KV.get('saludos_config'); return r ? JSON.parse(r) : {}; } catch (e) { return {}; } };
+      if (request.method === 'GET') {
+        const c = await leer();
+        return j({ ok: true, saludos: Array.isArray(c.saludos) ? c.saludos : [], paginas, miCorreo: email, actualizado: c.actualizado || null });
+      }
+      if (request.method !== 'POST') return j({ ok: false, error: 'Método no permitido' }, 405);
+      let body; try { body = await request.json(); } catch (e) { return j({ ok: false, error: 'Solicitud inválida' }, 400); }
+      if (body.accion === 'reset') {
+        // Vuelve a mostrar hoy el saludo (para probarlo): borra la marca de "ya visto" de esa persona y la del propio administrador
+        const c = await leer(); const sa = (c.saludos || []).find(x => x.id === body.id);
+        if (!sa) return j({ ok: false, error: 'Guarda el saludo antes de reiniciarlo.' }, 404);
+        const correos = new Set([email]); if (sa.email && sa.email !== '*') correos.add(sa.email);
+        for (const e of correos) await env.PM_KV.delete('saludo_visto_' + e + '_' + sa.id);
+        return j({ ok: true });
+      }
+      const lista = Array.isArray(body.saludos) ? body.saludos : null;
+      if (!lista) return j({ ok: false, error: 'Falta la lista de saludos.' }, 400);
+      if (lista.length > 200) return j({ ok: false, error: 'Máximo 200 saludos.' }, 400);
+      const limpios = [];
+      for (let i = 0; i < lista.length; i++) {
+        const x = lista[i] || {};
+        const correo = String(x.email || '').trim().toLowerCase();
+        const pagina = String(x.pagina || '').trim().toLowerCase();
+        const mensaje = String(x.mensaje || '').trim();
+        const nombre = String(x.nombre || '').trim();
+        const fila = 'Fila ' + (i + 1) + ': ';
+        if (correo !== '*' && !/^[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+$/.test(correo)) return j({ ok: false, error: fila + 'el correo no es válido (usa * para todos).' }, 400);
+        if (!paginas[pagina]) return j({ ok: false, error: fila + 'elige una página válida.' }, 400);
+        if (!mensaje) return j({ ok: false, error: fila + 'escribe el mensaje.' }, 400);
+        if (mensaje.length > 220) return j({ ok: false, error: fila + 'el mensaje pasa de 220 caracteres.' }, 400);
+        if (nombre.length > 40) return j({ ok: false, error: fila + 'el nombre pasa de 40 caracteres.' }, 400);
+        const id = /^[a-z0-9-]{8,40}$/.test(String(x.id || '')) ? String(x.id) : crypto.randomUUID();
+        limpios.push({ id, email: correo, pagina, nombre, mensaje, activo: x.activo !== false });
+      }
+      await env.PM_KV.put('saludos_config', JSON.stringify({ saludos: limpios, actualizado: { por: email, en: new Date().toISOString() } }));
+      return j({ ok: true, saludos: limpios });
+    }
+
     // Asistente Delfos del portal: responde solo con el conocimiento del sitio y lo que el usuario ve en su pantalla.
     if (url.pathname === '/api/asistente' && request.method === 'POST') {
       const JH = { 'Content-Type': 'application/json' };
