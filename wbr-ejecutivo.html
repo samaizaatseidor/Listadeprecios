@@ -668,10 +668,11 @@ async function resumen(forzar){
 }
 
 function pinta(){
-  evaluar(); renderTop(); renderCov(); renderComp();
-  document.getElementById('cmGrid').innerHTML = BOARDS.map(renderPanel).join('');
-  ownersLinea(); countUp(document.body);
-  if(DATA && !DATA.__sinAcceso) resumen(false); else pintaBrief();
+  const seguro = f => { try { f(); } catch(e) { console.error(e); } };
+  seguro(evaluar); seguro(renderTop); seguro(renderCov); seguro(renderComp);
+  seguro(() => { document.getElementById('cmGrid').innerHTML = BOARDS.map((b, i) => { try { return renderPanel(b, i); } catch(e) { console.error(b.id, e); return ''; } }).join(''); });
+  seguro(ownersLinea); seguro(() => countUp(document.body));
+  seguro(() => { if(DATA && !DATA.__sinAcceso) resumen(false); else pintaBrief(); });
   const gen = DATA && DATA.generado ? new Date(DATA.generado) : new Date();
   document.getElementById('cmFoot').innerHTML = 'Datos al ' + WK.hora(gen.toISOString()) + ' · Se actualiza solo cada 5 minutos · El <a href="/wbr-vop.html">Tablero VOP</a> es por oportunidad y se consulta directamente en su página.';
 }
