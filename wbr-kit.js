@@ -842,10 +842,10 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
 
 /* ---- Enviar vista por correo (PDF) — todos los tableros WBR ---- */
 (function(){
-  var m = (location.pathname||'').match(/\/(wbr-[a-z0-9-]+)\.html$/i);
+  var m = (location.pathname||'').match(/\/(wbr-[a-z0-9-]+)(?:\.html)?\/?$/i);
   if(!m) return;
   var PAGINA = m[1].toLowerCase(), LIBS = ['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'];
-  var CSS = '.wk-send{position:fixed;right:20px;bottom:20px;z-index:90;display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:11px 18px;background:#1E5BB8;color:#fff;font:600 13px Poppins,"Segoe UI",sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(10,18,38,.35);transition:transform .12s,background .12s}.wk-send:hover{background:#2F6FD6;transform:translateY(-2px)}'+
+  var CSS = '.wk-sendbar{position:fixed;right:20px;bottom:20px;z-index:90;display:flex;gap:8px}.wk-send{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:11px 18px;background:#1E5BB8;color:#fff;font:600 13px Poppins,"Segoe UI",sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(10,18,38,.35);transition:transform .12s,background .12s}.wk-send:hover{background:#2F6FD6;transform:translateY(-2px)}'+
   '.wk-sm{position:fixed;inset:0;z-index:300;background:rgba(3,8,22,.7);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Poppins,"Segoe UI",sans-serif}.wk-sm *{box-sizing:border-box}'+
   '.wk-sm-box{background:#fff;color:#16223A;border-radius:14px;width:100%;max-width:520px;box-shadow:0 30px 80px rgba(0,0,0,.5);overflow:hidden}.wk-sm-h{background:#07153A;color:#fff;padding:16px 20px}.wk-sm-h small{display:block;font-size:10.5px;letter-spacing:.18em;color:#66B6FF;font-weight:600}.wk-sm-h b{font-size:16px;font-weight:600}'+
   '.wk-sm-b{padding:16px 20px;display:grid;gap:12px}.wk-sm-b label{display:grid;gap:4px;font-size:11.5px;font-weight:600;color:#5E6B82}.wk-sm-b input,.wk-sm-b textarea{border:1px solid #D8E2EE;border-radius:8px;padding:9px 11px;font:400 13px Poppins,"Segoe UI",sans-serif;color:#16223A;width:100%}.wk-sm-b textarea{min-height:76px;resize:vertical}.wk-sm-b input:focus,.wk-sm-b textarea:focus{outline:2px solid #1E5BB8;border-color:transparent}'+
@@ -897,7 +897,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
     var el = document.querySelector('main.wk-main') || document.querySelector('main') || document.body;
     var bg = getComputedStyle(document.body).backgroundColor, m = bg && bg.match(/\d+/g), fondo = (m && m.length >= 3 && !/rgba\(.*,\s*0\)/.test(bg)) ? [+m[0], +m[1], +m[2]] : [10,18,38];
     var h2 = el.scrollHeight, w = Math.max(el.scrollWidth, 1200), sc = Math.max(.6, Math.min(1.5, 14000 / h2));
-    var cv2 = await html2canvas(el, { scale:sc, backgroundColor:'rgb(' + fondo.join(',') + ')', useCORS:true, windowWidth:w, scrollX:0, scrollY:-window.scrollY, ignoreElements:function(n){ return n.classList && (n.classList.contains('wk-send') || n.classList.contains('wk-sm') || n.classList.contains('wk-nosend')); } });
+    var cv2 = await html2canvas(el, { scale:sc, backgroundColor:'rgb(' + fondo.join(',') + ')', useCORS:true, windowWidth:w, scrollX:0, scrollY:-window.scrollY, ignoreElements:function(n){ return n.classList && (n.classList.contains('wk-send') || n.classList.contains('wk-sendbar') || n.classList.contains('wk-sm') || n.classList.contains('wk-nosend')); } });
     return aPdf(cv2, { orient:'landscape', margen:5, fondo:fondo, cortes:offs(el, el, '.wk-kpi,.wk-card,.card,article,section,.wk-band', sc) });
   }
   function descargar(uri, nombre){ var a = document.createElement('a'); a.href = uri; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); }
@@ -940,9 +940,17 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
       busy(false);
     };
   }
+  async function descargaDirecta(btn){
+    var t = btn.innerHTML; btn.disabled = true; btn.innerHTML = 'Generando…';
+    try{ var u = await generarPdf(); descargar(u, archivo()); }catch(e){ alert(e.message || 'No se pudo generar el PDF.'); }
+    btn.disabled = false; btn.innerHTML = t;
+  }
   function boton(){
-    if(document.querySelector('.wk-send')) return;
-    var b = document.createElement('button'); b.type = 'button'; b.className = 'wk-send wk-nosend'; b.innerHTML = '<span aria-hidden="true">✉</span> Enviar vista'; b.onclick = abrir; document.body.appendChild(b);
+    if(document.querySelector('.wk-sendbar')) return;
+    var bar = document.createElement('div'); bar.className = 'wk-sendbar wk-nosend';
+    var d = document.createElement('button'); d.type = 'button'; d.className = 'wk-send wk-nosend'; d.style.background = '#0E1E3F'; d.innerHTML = '<span aria-hidden="true">⬇</span> Descargar PDF'; d.onclick = function(){ descargaDirecta(d); };
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'wk-send wk-nosend'; b.innerHTML = '<span aria-hidden="true">✉</span> Enviar vista'; b.onclick = abrir;
+    bar.appendChild(d); bar.appendChild(b); document.body.appendChild(bar);
     try{ fetch('/api/wbr-enviar').then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ if(j && j.dominios && j.dominios.length) dominios = j.dominios; }).catch(function(){}); }catch(e){}
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boton); else boton();
