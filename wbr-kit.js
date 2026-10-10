@@ -868,7 +868,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
       var cortes = (P.cortes||[]).slice().sort(function(a,b){ return a-b; }), y = 0, H = P.alto || trozos[0].canvas.height;
       while(y < H - 3){
         var fin = Math.min(H, y + hPx);
-        if(fin < H){ var c = cortes.filter(function(c){ return c > y + hPx*0.4 && c <= fin; }).pop(); if(c != null) fin = c; }
+        if(fin < H){ var c = cortes.filter(function(c){ return c > y + hPx*0.2 && c <= fin; }).pop(); if(c != null) fin = c; }
         var s = document.createElement('canvas'); s.width = W; s.height = fin - y;
         var cx = s.getContext('2d'); cx.fillStyle = 'rgb(' + rgb.join(',') + ')'; cx.fillRect(0, 0, s.width, s.height);
         trozos.forEach(function(t){ if(!t.canvas.width || !t.canvas.height) return; var a0 = Math.max(y, t.y0), a1 = Math.min(fin, t.y0 + t.canvas.height); if(a1 > a0) cx.drawImage(t.canvas, 0, a0 - t.y0, W, a1 - a0, 0, a0 - y, W, a1 - a0); });
@@ -889,6 +889,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
     try{ await document.fonts.ready; }catch(e){}
     document.querySelectorAll('.wk-rv:not(.wk-vis)').forEach(function(n){ n.classList.add('wk-vis'); });
     await esperar(o.espera || 900);
+    for(var w = 0; w < 50 && /analizando el corte|está analizando/i.test(document.body.innerText || ''); w++) await esperar(500);
     var fondo = fondoDe(el), altoVivo = el.scrollHeight, sc = altoVivo <= 7000 ? 2 : 1, cortes = [], alto = 0, trozos = [], CH = 6000;
     el.setAttribute('data-wk-cap', '1');
     var opts = { scale:sc, backgroundColor:'rgb(' + fondo.join(',') + ')', useCORS:true, logging:false, windowWidth:1400, scrollX:0, scrollY:-window.scrollY,
@@ -900,8 +901,17 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
         doc.querySelectorAll('.wk-card,.wk-band,.wk-callout').forEach(function(n){ var t = (n.textContent || '').slice(0, 90); if(/simulador|simular/i.test(t) || (n.matches('.wk-card') && n.querySelector('[data-wi],[data-wi-root],input[type=range]'))) n.style.display = 'none'; });
         doc.querySelectorAll('details:not([open])').forEach(function(d){ Array.prototype.forEach.call(d.children, function(c){ if(c.tagName !== 'SUMMARY') c.style.display = 'none'; }); });
         var c = doc.querySelector('[data-wk-cap]'); if(!c) return; var r0 = c.getBoundingClientRect(), t0 = r0.top; alto = Math.ceil(c.scrollHeight * sc); cortes.length = 0;
-        var bandas = []; c.querySelectorAll('.wk-band').forEach(function(n){ if(n.offsetHeight) bandas.push(n.getBoundingClientRect().top - t0); });
-        c.querySelectorAll(o.bloques || SEL_BLOQUES).forEach(function(n){ var r = n.getBoundingClientRect(), y = r.top - t0; if(r.height <= 8) return; if(!n.matches('.wk-band') && bandas.some(function(b){ return y > b && y - b < 150; })) return; cortes.push(Math.round(y * sc)); });
+        var SEL = o.bloques || SEL_BLOQUES, nodos = [].slice.call(c.querySelectorAll(SEL)).filter(function(n){ return n.getBoundingClientRect().height > 8; });
+        var rec = nodos.map(function(n){ var r = n.getBoundingClientRect(); return { n:n, t:r.top - t0, b:r.bottom - t0 }; });
+        // hojas = bloques sin otro bloque adentro; un corte es válido solo si ninguna hoja lo atraviesa
+        var hojas = rec.filter(function(x){ return !x.n.querySelector(SEL); });
+        var bandas = rec.filter(function(x){ return x.n.matches('.wk-band'); }).map(function(x){ return x.t; });
+        rec.forEach(function(x){
+          var y = x.t; if(y < 4) return;
+          if(!x.n.matches('.wk-band') && bandas.some(function(b){ return y > b && y - b < 150; })) return;
+          if(hojas.some(function(h){ return h.t < y - 3 && h.b > y + 3; })) return;
+          cortes.push(Math.round(y * sc));
+        });
       } };
     try{
       // trozos de a lo más CH px (CSS) para no rebasar el límite de lienzo del navegador en tableros muy largos
