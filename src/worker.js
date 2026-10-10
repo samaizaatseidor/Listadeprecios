@@ -393,6 +393,7 @@ const PAGINAS_REGISTRO = {
   'wbr-ccflex': 'WBR — CCFlex',
   'wbr-cta': 'WBR — Call to Action',
   'wbr-anuncios': 'WBR — Anuncios',
+  'wbr-marketing': 'WBR — Marketing',
   'wbr-vop': 'WBR — Tablero VOP',
   'bx-base-instalada': 'Business Experience — Base Instalada',
   'auditoria': 'Auditoría',
@@ -462,6 +463,7 @@ const RUTAS_PERMISO = {
   '/api/wbr-bx': { modo:'datos', paginas:['wbr-bx'] },
   '/api/wbr-anuncios': { modo:'datos', paginas:['wbr-anuncios'] },
   '/api/wbr-cta': { modo:'datos', paginas:['wbr-cta'] },
+  '/api/wbr-marketing': { modo:'datos', paginas:['wbr-marketing'] },
   '/api/wbr-finanzas-insight': { modo:'ia', paginas:['wbr-finanzas'] },
   '/api/wbr-ventas-insight': { modo:'ia', paginas:['wbr-ventas'] },
   '/api/wbr-operaciones-insight': { modo:'ia', paginas:['wbr-operaciones'] },
@@ -1674,6 +1676,62 @@ ${JSON.stringify(checklist || [])}`;
         return new Response(JSON.stringify({ ok: true, resumen: resumen.trim() }), { headers: { 'Content-Type': 'application/json' } });
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    // WBR Marketing (Pipeline Evolution): cada carga del export de HubSpot es un corte guardado (quién, cuándo); los targets por LOB se comparten con todos.
+    if (url.pathname === '/api/wbr-marketing') {
+      const JH = { 'Content-Type': 'application/json' };
+      const KH = 'wbr_marketing_historial', KT = 'wbr_marketing_targets', KC = id => 'wbr_marketing_corte_' + id;
+      if (request.method === 'GET') {
+        const rawH = await env.PM_KV.get(KH);
+        const historial = rawH ? JSON.parse(rawH) : [];
+        const corte = url.searchParams.get('corte');
+        if (corte) {
+          const meta = corte === 'ultimo' ? historial[historial.length - 1] : historial.find(h => h.id === corte);
+          if (!meta) return new Response(JSON.stringify({ ok: true, meta: null, rows: [] }), { headers: JH });
+          const rawC = await env.PM_KV.get(KC(meta.id));
+          return new Response(JSON.stringify({ ok: true, meta, rows: rawC ? JSON.parse(rawC).rows : [] }), { headers: JH });
+        }
+        const rawT = await env.PM_KV.get(KT);
+        return new Response(JSON.stringify({ ok: true, historial, targets: rawT ? JSON.parse(rawT) : null }), { headers: JH });
+      }
+      if (request.method === 'POST') {
+        { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+        let body;
+        try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+        const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+        const ahora = new Date().toISOString();
+        if (body.tipo === 'targets') {
+          const t = body.targets;
+          if (!t || typeof t !== 'object' || !Object.keys(t).length || Object.values(t).some(v => typeof v !== 'number' || !isFinite(v) || v < 0 || v > 100000)) return new Response(JSON.stringify({ ok:false, error:'Los targets no tienen el formato esperado.' }), { status: 400, headers: JH });
+          const rawT = await env.PM_KV.get(KT);
+          const prev = rawT ? JSON.parse(rawT) : { historial: [] };
+          const reg = { targets: t, archivo: String(body.archivo || 'manual').slice(0, 200), guardadoPor: email, guardadoEn: ahora };
+          const nuevo = { ...reg, historial: [...(prev.historial || []), reg].slice(-20) };
+          await env.PM_KV.put(KT, JSON.stringify(nuevo));
+          return new Response(JSON.stringify({ ok: true, targets: nuevo }), { headers: JH });
+        }
+        if (body.tipo === 'corte') {
+          const rows = body.rows;
+          if (!Array.isArray(rows) || !rows.length || !/^\d{4}-\d{2}-\d{2}$/.test(String(body.fechaCorte || ''))) return new Response(JSON.stringify({ ok:false, error:'El corte no tiene el formato esperado.' }), { status: 400, headers: JH });
+          const ser = JSON.stringify({ rows });
+          if (ser.length > 6 * 1024 * 1024) return new Response(JSON.stringify({ ok:false, error:'El corte es demasiado grande.' }), { status: 413, headers: JH });
+          const rawH = await env.PM_KV.get(KH);
+          let historial = rawH ? JSON.parse(rawH) : [];
+          // misma fecha de corte = se reemplaza (se conserva quién lo hizo primero en "versiones")
+          const id = ahora.replace(/[^0-9]/g, '').slice(0, 17);
+          const meta = { id, guardadoEn: ahora, guardadoPor: email, fechaCorte: body.fechaCorte, archivo: String(body.archivo || 'export.xls').slice(0, 200), registros: rows.length, resumen: body.resumen && typeof body.resumen === 'object' ? body.resumen : {} };
+          const mismo = historial.findIndex(h => h.fechaCorte === meta.fechaCorte);
+          if (mismo >= 0) { meta.reemplazo = { guardadoPor: historial[mismo].guardadoPor, guardadoEn: historial[mismo].guardadoEn }; await env.PM_KV.delete(KC(historial[mismo].id)); historial.splice(mismo, 1); }
+          await env.PM_KV.put(KC(id), ser);
+          historial.push(meta);
+          historial.sort((a, b) => String(a.fechaCorte).localeCompare(String(b.fechaCorte)) || String(a.guardadoEn).localeCompare(String(b.guardadoEn)));
+          while (historial.length > 52) { const viejo = historial.shift(); await env.PM_KV.delete(KC(viejo.id)); }
+          await env.PM_KV.put(KH, JSON.stringify(historial));
+          return new Response(JSON.stringify({ ok: true, meta, total: historial.length }), { headers: JH });
+        }
+        return new Response(JSON.stringify({ ok:false, error:'Tipo de guardado no reconocido.' }), { status: 400, headers: JH });
       }
     }
 
