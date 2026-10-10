@@ -883,7 +883,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
   }
   function fondoDe(el){ while(el){ var c = getComputedStyle(el).backgroundColor, m = c && c.match(/[\d.]+/g); if(m && m.length >= 3 && !(m.length >= 4 && +m[3] === 0) && c !== 'rgba(0, 0, 0, 0)') return [+m[0], +m[1], +m[2]]; el = el.parentElement; } return [10,18,38]; }
   var SEL_BLOQUES = '.cm-p,.cm-box,.wk-kpis,.wk-hero-grid,.wk-card,.wk-band,.wk-callout,.card,.kpis,.kpi,.verdict,.ins,.g2,.g3,.top,.health,.srcdist,.funnelwrap,.vstates,header,section,article';
-  var OCULTOS = '.wk-sendbar,.wk-sm,.toast,.wk-tip,.topnav,.wk-nav,#peModal,.pm,nav.topnav,.nav-dropdown-menu';
+  var OCULTOS = '.dl-fab,.dl-panel,.wk-sendbar,.wk-sm,.toast,.wk-tip,.topnav,.wk-nav,#peModal,.pm,nav.topnav,.nav-dropdown-menu';
   // Captura un elemento a lienzo: sin zoom, sin animaciones de entrada, ancho fijo para que todos los PDFs se vean igual.
   async function cap(el, o){
     o = o || {};
