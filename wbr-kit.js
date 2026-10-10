@@ -859,46 +859,65 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
   function titulo(){ return (document.title||'WBR').split('·')[0].trim(); }
   function archivo(){ return titulo().replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'') + '_' + hoy() + '.pdf'; }
   function esperar(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
-  // Parte el lienzo en páginas A4 cortando antes de un bloque (no a la mitad de una tarjeta). cortes/forzados en px del lienzo.
-  function aPdf(canvas, o){
-    var J = window.jspdf.jsPDF, pdf = new J({ unit:'mm', format:'a4', orientation:o.orient, compress:true });
-    var PW = pdf.internal.pageSize.getWidth(), PH = pdf.internal.pageSize.getHeight(), mg = o.margen, cw = PW - 2*mg, k = cw / canvas.width, hPx = Math.floor((PH - 2*mg) / k);
-    var cortes = (o.cortes||[]).slice().sort(function(a,b){ return a-b; }), forz = (o.forzados||[]).slice().sort(function(a,b){ return a-b; });
-    var y = 0, first = true, H = canvas.height, rgb = o.fondo || [255,255,255];
-    while(y < H - 2){
-      var fin = Math.min(H, y + hPx);
-      if(fin < H){
-        var f = forz.filter(function(c){ return c > y + 20 && c <= fin; })[0];
-        if(f != null) fin = f; else { var c = cortes.filter(function(c){ return c > y + hPx*0.35 && c <= fin; }).pop(); if(c != null) fin = c; }
+  // Reparte las capturas en páginas A4 horizontales; cada captura empieza en página nueva y se corta antes de un bloque, no a la mitad.
+  function aPdf(partes){
+    var J = window.jspdf.jsPDF, pdf = new J({ unit:'mm', format:'a4', orientation:'landscape', compress:true }), primera = true;
+    var PW = pdf.internal.pageSize.getWidth(), PH = pdf.internal.pageSize.getHeight(), mg = 6, cw = PW - 2*mg;
+    partes.forEach(function(P){
+      var trozos = P.trozos || [{ canvas:P.canvas, y0:0 }], W = trozos[0].canvas.width, k = cw / W, hPx = Math.floor((PH - 2*mg) / k), rgb = P.fondo || [10,18,38];
+      var cortes = (P.cortes||[]).slice().sort(function(a,b){ return a-b; }), y = 0, H = P.alto || trozos[0].canvas.height;
+      while(y < H - 3){
+        var fin = Math.min(H, y + hPx);
+        if(fin < H){ var c = cortes.filter(function(c){ return c > y + hPx*0.4 && c <= fin; }).pop(); if(c != null) fin = c; }
+        var s = document.createElement('canvas'); s.width = W; s.height = fin - y;
+        var cx = s.getContext('2d'); cx.fillStyle = 'rgb(' + rgb.join(',') + ')'; cx.fillRect(0, 0, s.width, s.height);
+        trozos.forEach(function(t){ var a0 = Math.max(y, t.y0), a1 = Math.min(fin, t.y0 + t.canvas.height); if(a1 > a0) cx.drawImage(t.canvas, 0, a0 - t.y0, W, a1 - a0, 0, a0 - y, W, a1 - a0); });
+        if(!primera) pdf.addPage(); primera = false;
+        pdf.setFillColor(rgb[0], rgb[1], rgb[2]); pdf.rect(0, 0, PW, PH, 'F');
+        pdf.addImage(s.toDataURL('image/jpeg', .93), 'JPEG', mg, mg, cw, (fin - y) * k);
+        y = fin;
       }
-      var s = document.createElement('canvas'); s.width = canvas.width; s.height = fin - y;
-      var cx = s.getContext('2d'); cx.fillStyle = 'rgb(' + rgb.join(',') + ')'; cx.fillRect(0, 0, s.width, s.height); cx.drawImage(canvas, 0, y, canvas.width, fin - y, 0, 0, canvas.width, fin - y);
-      if(!first) pdf.addPage(); first = false;
-      pdf.setFillColor(rgb[0], rgb[1], rgb[2]); pdf.rect(0, 0, PW, PH, 'F');
-      pdf.addImage(s.toDataURL('image/jpeg', .92), 'JPEG', mg, mg, cw, (fin - y) * k);
-      y = fin;
-    }
+    });
     return pdf.output('datauristring');
   }
-  function offs(root, base, sel, sc){ var b0 = base.getBoundingClientRect().top, out = []; root.querySelectorAll(sel).forEach(function(n){ var r = n.getBoundingClientRect(); if(r.height > 6) out.push(Math.round((r.top - b0) * sc)); }); return out; }
+  function fondoDe(el){ while(el){ var c = getComputedStyle(el).backgroundColor, m = c && c.match(/[\d.]+/g); if(m && m.length >= 3 && !(m.length >= 4 && +m[3] === 0) && c !== 'rgba(0, 0, 0, 0)') return [+m[0], +m[1], +m[2]]; el = el.parentElement; } return [10,18,38]; }
+  var SEL_BLOQUES = '.wk-kpis,.wk-hero-grid,.wk-card,.wk-band,.wk-callout,.card,.kpis,.kpi,.verdict,.ins,.g2,.g3,.top,.health,.srcdist,.funnelwrap,.vstates,header,section,article';
+  var OCULTOS = '.wk-sendbar,.wk-sm,.toast,.wk-tip,.topnav,.wk-nav,#peModal,.pm,nav.topnav,.nav-dropdown-menu';
+  // Captura un elemento a lienzo: sin zoom, sin animaciones de entrada, ancho fijo para que todos los PDFs se vean igual.
+  async function cap(el, o){
+    o = o || {};
+    try{ await document.fonts.ready; }catch(e){}
+    document.querySelectorAll('.wk-rv:not(.wk-vis)').forEach(function(n){ n.classList.add('wk-vis'); });
+    await esperar(o.espera || 900);
+    var fondo = fondoDe(el), altoVivo = el.scrollHeight, sc = altoVivo <= 7000 ? 2 : 1, cortes = [], alto = 0, trozos = [], CH = 6000;
+    el.setAttribute('data-wk-cap', '1');
+    var opts = { scale:sc, backgroundColor:'rgb(' + fondo.join(',') + ')', useCORS:true, logging:false, windowWidth:1400, scrollX:0, scrollY:-window.scrollY,
+      ignoreElements:function(n){ return n.matches && n.matches(OCULTOS); },
+      onclone:function(doc){
+        var st = doc.createElement('style'); st.textContent = '*{animation:none!important;transition:none!important}.wk-rv{opacity:1!important;transform:none!important}[data-wk-cap]{width:1400px!important;max-width:1400px!important}'; doc.head.appendChild(st);
+        doc.querySelectorAll('.wk-main').forEach(function(m){ m.style.zoom = ''; });
+        doc.querySelectorAll(OCULTOS).forEach(function(n){ n.style.display = 'none'; });
+        doc.querySelectorAll('details:not([open])').forEach(function(d){ Array.prototype.forEach.call(d.children, function(c){ if(c.tagName !== 'SUMMARY') c.style.display = 'none'; }); });
+        var c = doc.querySelector('[data-wk-cap]'); if(!c) return; var r0 = c.getBoundingClientRect(), t0 = r0.top; alto = Math.ceil(c.scrollHeight * sc); cortes.length = 0;
+        c.querySelectorAll(o.bloques || SEL_BLOQUES).forEach(function(n){ var r = n.getBoundingClientRect(); if(r.height > 8) cortes.push(Math.round((r.top - t0) * sc)); });
+      } };
+    try{
+      // trozos de a lo más CH px (CSS) para no rebasar el límite de lienzo del navegador en tableros muy largos
+      var primero = await html2canvas(el, Object.assign({}, opts, altoVivo > CH ? { y:0, height:CH } : {}));
+      trozos.push({ canvas:primero, y0:0 });
+      var total = Math.max(alto, primero.height);
+      for(var y0 = CH; y0 < total / sc; y0 += CH){
+        var cv2 = await html2canvas(el, Object.assign({}, opts, { y:y0, height:Math.min(CH, total / sc - y0) }));
+        trozos.push({ canvas:cv2, y0:Math.round(y0 * sc) });
+      }
+    } finally { el.removeAttribute('data-wk-cap'); }
+    return { trozos:trozos, alto:Math.max(alto, trozos[trozos.length-1].y0 + trozos[trozos.length-1].canvas.height), cortes:cortes, fondo:fondo };
+  }
   async function generarPdf(){
     await cargarLib();
     if(typeof window.WK_SEND_READY === 'function' && !window.WK_SEND_READY()) throw new Error('Primero carga los datos del tablero.');
-    if(typeof window.WK_REPORT_HTML === 'function'){
-      var html = await window.WK_REPORT_HTML();
-      var f = document.createElement('iframe'); f.style.cssText = 'position:fixed;left:0;top:0;width:794px;height:1123px;border:0;background:#fff;opacity:0;pointer-events:none;z-index:-1'; document.body.appendChild(f);
-      try{
-        f.contentDocument.open(); f.contentDocument.write(html); f.contentDocument.close(); await esperar(700);
-        var body = f.contentDocument.body, h = body.scrollHeight;
-        var cv = await html2canvas(body, { scale:2, backgroundColor:'#ffffff', windowWidth:794, windowHeight:h, scrollX:0, scrollY:0 });
-        return aPdf(cv, { orient:'portrait', margen:0, cortes:offs(body, body, '.sec,.hd', 2), forzados:offs(body, body, '.pb', 2) });
-      } finally { f.remove(); }
-    }
-    var el = document.querySelector('main.wk-main') || document.querySelector('main') || document.body;
-    var bg = getComputedStyle(document.body).backgroundColor, m = bg && bg.match(/\d+/g), fondo = (m && m.length >= 3 && !/rgba\(.*,\s*0\)/.test(bg)) ? [+m[0], +m[1], +m[2]] : [10,18,38];
-    var h2 = el.scrollHeight, w = Math.max(el.scrollWidth, 1200), sc = Math.max(.6, Math.min(1.5, 14000 / h2));
-    var cv2 = await html2canvas(el, { scale:sc, backgroundColor:'rgb(' + fondo.join(',') + ')', useCORS:true, windowWidth:w, scrollX:0, scrollY:-window.scrollY, ignoreElements:function(n){ return n.classList && (n.classList.contains('wk-send') || n.classList.contains('wk-sendbar') || n.classList.contains('wk-sm') || n.classList.contains('wk-nosend')); } });
-    return aPdf(cv2, { orient:'landscape', margen:5, fondo:fondo, cortes:offs(el, el, '.wk-kpi,.wk-card,.card,article,section,.wk-band', sc) });
+    if(typeof window.WK_PDF_PLAN === 'function') return aPdf(await window.WK_PDF_PLAN(cap));
+    return aPdf([await cap(document.body)]);
   }
   function descargar(uri, nombre){ var a = document.createElement('a'); a.href = uri; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); }
   var dominios = ['seidor.com'];
