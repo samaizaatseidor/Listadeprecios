@@ -69,7 +69,8 @@
   a.tile p{margin:0; font-size:13px; line-height:1.55; color:#C4D2EA; flex:1;}
   a.tile .t-foot{display:flex; align-items:center; gap:10px; margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,.12); font-size:12px; color:#A5B4CE; min-height:44px;}
   a.tile .t-foot b{color:#fff; font-weight:700;}
-  a.tile .t-av{width:30px; height:30px; border-radius:50%; flex:none; background:rgba(255,255,255,.14) center/cover no-repeat; display:grid; place-items:center; font-size:11px; font-weight:800; color:#fff; box-shadow:0 0 0 2px rgba(143,230,255,.5);}
+  a.tile .t-av{width:38px; height:38px; border-radius:50%; flex:none; background-color:rgba(61,214,255,.16); background-repeat:no-repeat; display:block; box-shadow:0 0 0 2px rgba(143,230,255,.55);}
+  a.tile .t-avs{display:flex; flex:none;} a.tile .t-avs .t-av{width:34px; height:34px; box-shadow:0 0 0 2px #0A1226,0 0 0 3.5px rgba(143,230,255,.6);} a.tile .t-avs .t-av+.t-av{margin-left:-11px;}
   a.tile .t-go{margin-left:auto; font-size:18px; color:#8FE6FF; transition:transform .2s ease;}
   a.tile:hover .t-go{transform:translateX(4px);}
   a.tile .t-badge{position:absolute; top:18px; right:18px; font-size:10px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; padding:4px 10px; border-radius:20px; background:rgba(5,10,24,.6); color:#2FE29B; box-shadow:inset 0 0 0 1px rgba(47,226,155,.4);}
@@ -189,13 +190,19 @@
 <script src="/wbr-kit.js?v=20261010o"></script>
 <script>
 (function(){
+  /* Encuadre del rostro dentro del círculo (los retratos son recortes con proporciones distintas) */
+  var AJUSTE = { 'nasarid.png':['190% auto','50% 4%'] }, DEF = ['140% auto','50% 6%'];
+  function av(p, slug){
+    var url = p.foto || ('/assets/owners/' + slug + '.png'), arch = url.split('/').pop(), aj = AJUSTE[arch] || DEF;
+    return '<span class="t-av" title="' + p.nombre + '" style="background-image:url(' + url + ');background-size:' + aj[0] + ';background-position:' + aj[1] + '"></span>';
+  }
   function pinta(){
     document.querySelectorAll(".t-foot[data-owner]").forEach(function(f){
-      var cfg = window.WK && WK.OWNERS && WK.OWNERS[f.getAttribute("data-owner")]; if(!cfg){ return; }
-      var eq = cfg.equipo, a = eq ? eq[0] : cfg, nom = eq ? eq.map(function(p){ return p.nombre.split(" ")[0]; }).join(" · ") : cfg.nombre, sub = eq ? (cfg.rol||"") : (cfg.cargo||"");
+      var slug = f.getAttribute("data-owner"), cfg = window.WK && WK.OWNERS && WK.OWNERS[slug]; if(!cfg){ return; }
+      var eq = cfg.equipo, nom = eq ? eq.map(function(p){ return p.nombre.split(" ")[0]; }).join(" · ") : cfg.nombre, sub = eq ? (cfg.rol||"") : (cfg.cargo||"");
       if(!nom){ f.innerHTML = "<span>Dueño por asignar</span><span class=\"t-go\">→</span>"; return; }
-      var foto = a.foto ? "style=\"background-image:url("+a.foto+")\"" : "";
-      f.innerHTML = "<span class=\"t-av\" "+foto+">"+(a.foto?"":nom.split(" ").map(function(w){return w[0];}).slice(0,2).join(""))+"</span><span><b>"+nom+"</b>"+(sub?"<br>"+sub:"")+"</span><span class=\"t-go\">→</span>";
+      var fotos = eq ? "<span class=\"t-avs\">" + eq.map(function(p){ return av(p, slug); }).join("") + "</span>" : av(cfg, slug);
+      f.innerHTML = fotos + "<span><b>" + nom + "</b>" + (sub ? "<br>" + sub : "") + "</span><span class=\"t-go\">→</span>";
     });
   }
   pinta(); document.addEventListener("DOMContentLoaded", pinta);
