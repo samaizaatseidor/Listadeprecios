@@ -466,6 +466,7 @@ const RUTAS_PERMISO = {
   '/api/wbr-anuncios': { modo:'datos', paginas:['wbr-anuncios'] },
   '/api/wbr-cta': { modo:'datos', paginas:['wbr-cta'] },
   '/api/wbr-marketing': { modo:'datos', paginas:['wbr-marketing','wbr-mkt-test'], escritura:['wbr-marketing'] },
+  '/api/wbr-resumen': { modo:'ia', paginas:['wbr-ejecutivo'] }, // resumen ejecutivo de Delfos para el Centro de Mando
   '/api/wbr-ejecutivo': { modo:'datos', paginas:['wbr-ejecutivo'] }, // vista de solo lectura; el permiso de esta página cubre el resumen de todos los tableros
   '/api/wbr-marketing-insight': { modo:'ia', paginas:['wbr-marketing'] },
   '/api/wbr-finanzas-insight': { modo:'ia', paginas:['wbr-finanzas'] },
@@ -1727,6 +1728,40 @@ ${JSON.stringify(checklist || [])}`;
       return j({ ok: true, saludos: limpios });
     }
 
+    // Resumen ejecutivo del Centro de Mando: Delfos redacta un párrafo corto con los datos que manda la pantalla.
+    if (url.pathname === '/api/wbr-resumen' && request.method === 'POST') {
+      const JH = { 'Content-Type': 'application/json' };
+      const j = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: JH });
+      const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
+      if (!email) return j({ ok: false, error: 'No se pudo identificar al usuario.' }, 403);
+      const token = await getDelfosToken(env);
+      if (!token) return j({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }, 500);
+      let body; try { body = await request.json(); } catch (e) { return j({ ok: false, error: 'Solicitud inválida' }, 400); }
+      const contexto = String(body.contexto || '').replace(/\s+\n/g, '\n').slice(0, 9000);
+      if (contexto.length < 40) return j({ ok: false, error: 'No hay datos para resumir.' }, 400);
+      const cfgRoles = await getRolesConfig(env);
+      if (!esAdmin(email, cfgRoles)) {
+        const kRl = 'resumen_rl_' + email + '_' + new Date().toISOString().slice(0, 13);
+        const usados = parseInt(await env.PM_KV.get(kRl) || '0', 10) || 0;
+        if (usados >= 12) return j({ ok: false, error: 'Llegaste al límite de resúmenes por hora. Intenta más tarde.' }, 429);
+        await env.PM_KV.put(kRl, String(usados + 1), { expirationTtl: 3700 });
+      }
+      const prompt = [
+        'Eres Delfos. Redacta el RESUMEN EJECUTIVO semanal del Centro de Mando de SEIDOR México para la dirección, usando SOLO los datos de abajo. No inventes cifras, nombres ni causas; si algo no está en los datos, no lo menciones.',
+        'FORMATO (español, directo, máximo 150 palabras en total, sin saludo ni cierre):',
+        '**Qué cambió:** 2 viñetas con los movimientos más relevantes contra el corte anterior (con cifras).',
+        '**Lo más urgente:** 2 o 3 viñetas ordenadas por gravedad, indicando el tablero.',
+        '**Decisión o seguimiento:** 1 o 2 viñetas con la acción concreta que conviene pedir, y a quién (responsable) cuando los datos lo digan.',
+        'Si algún tablero está desactualizado o sin datos, dilo en una viñeta corta al final.',
+        '=== DATOS DEL CENTRO DE MANDO ===', contexto
+      ].join('\n\n');
+      const stream = ndjsonStream();
+      ctx.waitUntil(delfosStreamToClient(token, { sessionId: crypto.randomUUID(), username: email, text: prompt, useOnlineSearch: false }, stream).catch(async e => {
+        await stream.write({ type: 'error', text: String(e.message || e) });
+      }).finally(() => stream.close()));
+      return new Response(stream.readable, { headers: { 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-store' } });
+    }
+
     // Asistente Delfos del portal: responde solo con el conocimiento del sitio y lo que el usuario ve en su pantalla.
     if (url.pathname === '/api/asistente' && request.method === 'POST') {
       const JH = { 'Content-Type': 'application/json' };
@@ -1786,6 +1821,18 @@ ${JSON.stringify(checklist || [])}`;
         bx: ult(bx, 8).map(h => ({ ...base(h), semanaDel: h.semanaDel, kpis: h.kpis || null })),
         cta: ult(cta, 4).map(h => ({ ...base(h), acciones: (h.acciones || []).slice(0, 200).map(a => ({ accion: String(a.accion || '').slice(0, 160), estatus: a.estatus, fecha: a.fecha, responsable: a.responsable })) })),
         anuncios: ult(anu, 1).map(h => ({ ...base(h), anuncios: (h.anuncios || []).slice(0, 30).map(t => String(t).slice(0, 300)) })),
+        detalle: (() => {
+          const cut = (v, n) => String(v == null ? '' : v).slice(0, n || 90);
+          const d = {};
+          const f = ult(fin, 1)[0];
+          if (f && f.aging && Array.isArray(f.aging.filas)) d.finanzas = f.aging.filas.slice(0, 60).map(x => ({ cliente: cut(x.cliente, 60), crit: (x.valores || [])[0] || 0, total: (x.valores || [])[7] || 0, venc: (x.valores || []).slice(0, 6).reduce((s, v) => s + (v > 0 ? v : 0), 0) }));
+          const b = ult(bx, 1)[0];
+          if (b && b.secciones) {
+            const sec = k => { const s = b.secciones[k]; if (!s || !Array.isArray(s.filas)) return null; const cols = (s.columnas || []).slice(0, 4); return { titulo: cut(s.titulo, 80), cols: cols.map(c => cut(c.label, 40)), filas: s.filas.slice(0, 12).map(r => cols.map(c => cut(r[c.k], 90))) }; };
+            d.bx = { churn: sec('2.2'), escalaciones: sec('1.5') };
+          }
+          return d;
+        })(),
         marketing: ult(mkt, 12).map(h => ({ id: h.id, fechaCorte: h.fechaCorte, guardadoEn: h.guardadoEn, guardadoPor: h.guardadoPor, registros: h.registros, resumen: h.resumen || null }))
       };
       return new Response(JSON.stringify(out), { headers: { ...JH, 'Cache-Control': 'no-store' } });

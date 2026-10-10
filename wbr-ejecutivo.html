@@ -121,6 +121,57 @@
   .cm-empty{padding:26px 8px; text-align:center; color:#A5B4CE; font-size:13px;} .cm-empty .big{font-size:30px; margin-bottom:6px;}
   .cm-foot{margin-top:26px; text-align:center; font-size:12px; color:#7D8FAE;} .cm-foot a{color:#8FE6FF;}
   @media(prefers-reduced-motion:reduce){ a.cm-p,.cm-a{animation:none; opacity:1;} .cm-ring .orb,.cm-ring .orb2,.cm-clock b{animation:none;} }
+
+  /* resumen ejecutivo */
+  .cm-brief{margin-bottom:22px;}
+  .cm-brief .hd{display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap;}
+  .cm-brief .hd .cm-lbl{margin:0;} .cm-brief .hd .by{font-size:11.5px; color:#7D8FAE;}
+  .cm-brief .hd button{margin-left:auto;}
+  .cm-bt{font-size:14.5px; line-height:1.6; color:#E3ECFA; max-width:1100px;}
+  .cm-bt p{margin:0 0 6px;} .cm-bt strong{color:#8FE6FF;} .cm-bt ul{margin:2px 0 10px; padding-left:20px;} .cm-bt li{margin:3px 0;}
+  .cm-bt .cur{display:inline-block; width:8px; height:15px; background:#8FE6FF; margin-left:2px; vertical-align:-2px; animation:cmBl 1s steps(2) infinite;} @keyframes cmBl{50%{opacity:0}}
+  .cm-bt.err{color:#FFB3C0;} .cm-bt.mut{color:#A5B4CE;}
+  /* movimiento */
+  .cm-mov{display:flex; gap:8px; width:100%; margin-top:10px; font-size:11.5px; font-weight:700;}
+  .cm-mov span{flex:1; border-radius:10px; padding:6px 4px; background:rgba(255,255,255,.05); box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); color:#A5B4CE;}
+  .cm-mov .u{color:var(--cm-gr)} .cm-mov .d{color:var(--cm-rd)}
+  .cm-mvl{font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:#7D8FAE; margin-top:12px; align-self:flex-start;}
+  /* delta en tarjeta */
+  .cm-kt .v{display:flex; align-items:baseline; justify-content:space-between; gap:6px;}
+  .cm-kt .v .vv{min-width:0;} .cm-kt .dd .wk-delta{font-size:10.5px; padding:2px 8px; margin:0;}
+  /* atención */
+  .cm-lbl .n{color:#fff} .cm-lbl .r{color:var(--cm-rd)} .cm-lbl .a{color:var(--cm-am)}
+  /* compromisos */
+  .cm-sec{margin:26px 0 12px; display:flex; align-items:center; gap:12px;} .cm-sec .cm-lbl{margin:0;} .cm-sec small{color:#7D8FAE; font-size:12px;}
+  .cm-cp{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-bottom:26px;}
+  .cm-pc{display:block; text-align:left; font:inherit; color:#fff; cursor:pointer; border:0; border-radius:18px; padding:14px 16px; background:linear-gradient(165deg,rgba(14,30,63,.78),rgba(5,10,24,.9)); box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);}
+  .cm-pc:hover{box-shadow:inset 0 0 0 1px rgba(61,214,255,.5);}
+  .cm-pc b{display:block; font-size:14px; font-weight:800;} .cm-pc .c{display:flex; gap:8px; margin:6px 0 8px; font-size:11.5px; color:#A5B4CE;}
+  .cm-pc .c .v{color:var(--cm-rd); font-weight:700;} .cm-pc .nx{font-size:12px; color:#C4D2EA; line-height:1.4;} .cm-pc .nx em{font-style:normal; color:#8FE6FF; font-weight:700;}
+  /* cobertura */
+  .cm-cov{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px;}
+  .cm-cv{display:inline-flex; align-items:center; gap:7px; padding:6px 12px; border-radius:20px; font-size:11.5px; color:#C4D2EA; background:rgba(255,255,255,.05); box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);}
+  .cm-cv i{width:8px; height:8px; border-radius:50%; background:currentColor;} .cm-cv.g i{color:var(--cm-gr)} .cm-cv.a i{color:var(--cm-am)} .cm-cv.r i{color:var(--cm-rd)} .cm-cv.n i{color:#7D8FAE}
+  .cm-cv em{font-style:normal; color:#7D8FAE;}
+  /* detalle (panel lateral) */
+  .cm-dov{position:fixed; inset:0; z-index:9000; background:rgba(2,6,16,.62); backdrop-filter:blur(3px); opacity:0; pointer-events:none; transition:opacity .25s;}
+  .cm-dov.on{opacity:1; pointer-events:auto;}
+  .cm-dr{position:fixed; top:0; right:0; bottom:0; width:min(640px,100vw); z-index:9001; transform:translateX(102%); transition:transform .3s cubic-bezier(.2,.8,.2,1); background:linear-gradient(165deg,#0E1E3F,#050A18 70%); box-shadow:-20px 0 60px rgba(0,0,0,.55),inset 1px 0 0 rgba(255,255,255,.12); display:flex; flex-direction:column; color:#fff;}
+  .cm-dr.on{transform:none;}
+  .cm-dh{display:flex; align-items:center; gap:12px; padding:20px 22px 14px; border-bottom:1px solid rgba(255,255,255,.1);}
+  .cm-dh h2{margin:0; font-size:19px; font-weight:800;} .cm-dh small{display:block; color:#A5B4CE; font-size:12px; margin-top:2px;}
+  .cm-dh .x{margin-left:auto; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); color:#fff; border-radius:10px; width:36px; height:36px; font-size:18px; cursor:pointer;}
+  .cm-db{flex:1; overflow:auto; padding:16px 22px 26px;}
+  .cm-db h4{margin:18px 0 8px; font:800 11px Poppins,sans-serif; letter-spacing:1.6px; text-transform:uppercase; color:#8FE6FF;} .cm-db h4:first-child{margin-top:0;}
+  .cm-t{width:100%; border-collapse:collapse; font-size:12.5px;}
+  .cm-t th{text-align:left; font:700 10px Poppins,sans-serif; letter-spacing:1px; text-transform:uppercase; color:#7D8FAE; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,.12);}
+  .cm-t td{padding:8px; border-bottom:1px solid rgba(255,255,255,.06); color:#E3ECFA; vertical-align:top;} .cm-t td.n,.cm-t th.n{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .cm-t .red{color:var(--cm-rd); font-weight:700} .cm-t .amber{color:var(--cm-am); font-weight:700} .cm-t .green{color:var(--cm-gr); font-weight:700}
+  .cm-t .wk-delta{font-size:10.5px; padding:2px 8px;}
+  .cm-nodat{color:#7D8FAE; font-size:12.5px; padding:6px 0;}
+  .cm-df{display:flex; gap:10px; padding:14px 22px; border-top:1px solid rgba(255,255,255,.1);}
+  .cm-df a{flex:1; text-align:center; text-decoration:none; font:700 13px Poppins,sans-serif; padding:11px; border-radius:12px; color:#fff; background:linear-gradient(135deg,#2F6FD6,#3DD6FF);}
+  @media(prefers-reduced-motion:reduce){ .cm-dr,.cm-dov{transition:none;} .cm-bt .cur{animation:none;} }
 </style>
 </head>
 <body>
@@ -243,12 +294,17 @@
 </header>
 
 <main class="wk-main">
+  <div id="cmBrief"></div>
   <div id="cmTop"></div>
+  <div id="cmCov"></div>
+  <div id="cmComp"></div>
   <div id="cmGrid" class="cm-grid"></div>
   <div class="cm-foot" id="cmFoot"></div>
 </main>
+<div class="cm-dov" id="cmDov"></div>
+<aside class="cm-dr" id="cmDr" role="dialog" aria-modal="true" aria-label="Detalle del tablero" aria-hidden="true"></aside>
 
-<script src="/wbr-kit.js?v=20261010r"></script>
+<script src="/wbr-kit.js?v=20261010s"></script>
 <script>
 /* ---------- utilidades ---------- */
 const esc = WK.esc, ABR = { green:'g', amber:'a', red:'r' };
@@ -362,7 +418,7 @@ const BOARDS = [
     const prox = A.filter(a => a.ab && a.ts != null && a.ts >= hoyReal).sort((x, y) => x.ts - y.ts)[0];
     const al = []; if(venc.length) al.push({ tono:'red', texto: pl(venc.length, 'acción vencida', 'acciones vencidas') + (venc[0].responsable ? ' · ' + venc.slice(0,3).map(a => a.responsable || 'Sin responsable').filter((x,i,s) => s.indexOf(x) === i).join(', ') : '') });
     const ant = H.length > 1 ? prev(H) : null, pc = ant && (ant.acciones||[]).length ? ant.acciones.filter(a => cat(a.estatus) === 'comp').length / ant.acciones.length : null;
-    return { fecha:last(H).fechaRevision, alertas:al, serie:H.map(h => (h.acciones||[]).length ? h.acciones.filter(a => cat(a.estatus) === 'comp').length / h.acciones.length * 100 : null), serieTxt:'% cumplimiento · últimos ' + H.length + ' cortes', kpis:[
+    return { fecha:last(H).fechaRevision, acciones:A, alertas:al, serie:H.map(h => (h.acciones||[]).length ? h.acciones.filter(a => cat(a.estatus) === 'comp').length / h.acciones.length * 100 : null), serieTxt:'% cumplimiento · últimos ' + H.length + ' cortes', kpis:[
       K('Cumplimiento', Math.round(pct*100) + '%', { tono: pct >= .75 ? 'green' : (pct >= .4 ? 'amber' : 'red'), sub: comp + ' de ' + N + ' completadas' + (pc != null ? dpp(pct, pc, 'up') : '') }),
       K('Acciones', WK.num(N), { tono:'cyan', sub: comp + ' comp · ' + proc + ' proceso · ' + pend + ' pend' }),
       K('Vencidas', WK.num(venc.length), { tono: venc.length ? 'red' : 'green', sub: venc.length ? 'Abiertas con fecha pasada' : 'Todo al corriente' }),
@@ -386,7 +442,7 @@ function evaluar(){
     const H = DATA && DATA[b.data];
     if(DATA && DATA.__sinAcceso) { ESTADO[b.id] = { sin:'acceso' }; return; }
     if(!H || !H.length) { ESTADO[b.id] = { sin:'datos' }; return; }
-    try { ESTADO[b.id] = b.fn(H); } catch(e) { console.error(b.id, e); ESTADO[b.id] = { sin:'error' }; }
+    try { ESTADO[b.id] = b.fn(H); if(ESTADO[b.id]) ESTADO[b.id].fechas = H.map(h => h.fechaRevision || h.fechaCorte || null); } catch(e) { console.error(b.id, e); ESTADO[b.id] = { sin:'error' }; }
   });
 }
 
@@ -412,7 +468,9 @@ function renderTop(){
   const alertas = BOARDS.flatMap(b => ((ESTADO[b.id] && ESTADO[b.id].alertas) || []).map(x => Object.assign({ b }, x))).sort((x, y) => (x.tono === 'red' ? 0 : 1) - (y.tono === 'red' ? 0 : 1));
   BOARDS.forEach(b => { const e = ESTADO[b.id]; if(e && e.fecha !== undefined){ const d = dias(e.fecha); if(d != null && d > 16) alertas.push({ b, tono:'amber', texto:'El tablero lleva ' + d + ' días sin actualizarse' }); } });
   const ordenadas = alertas.sort((x, y) => (x.tono === 'red' ? 0 : 1) - (y.tono === 'red' ? 0 : 1));
-  const lst = ordenadas.length ? ordenadas.slice(0, 10).map((x, i) => '<a class="cm-a ' + x.tono + '" href="' + x.b.href + '" style="animation-delay:' + (i*70) + 'ms"><i></i><span>' + esc(x.texto) + '</span><em>' + x.b.ico + ' ' + esc(x.b.nombre) + '</em></a>').join('') : '<div class="cm-ok"><div class="big">🟢</div>Sin alertas: todos los indicadores están dentro de rango.</div>';
+  const nRojas = ordenadas.filter(x => x.tono === 'red').length;
+  const mov = movimiento();
+  const lst = ordenadas.length ? ordenadas.map((x, i) => '<a class="cm-a ' + x.tono + '" href="' + x.b.href + '" style="animation-delay:' + (i*70) + 'ms"><i></i><span>' + esc(x.texto) + '</span><em>' + x.b.ico + ' ' + esc(x.b.nombre) + '</em></a>').join('') : '<div class="cm-ok"><div class="big">🟢</div>Sin alertas: todos los indicadores están dentro de rango.</div>';
   document.getElementById('cmTop').innerHTML = '<div class="cm-top">' +
     '<div class="cm-box cm-pulse"><p class="cm-lbl" style="align-self:flex-start">Pulso de la empresa</p>' +
       '<div class="cm-ring"><svg viewBox="0 0 200 200"><g class="orb"><circle cx="100" cy="100" r="96" fill="none" stroke="rgba(143,230,255,.35)" stroke-width="1" stroke-dasharray="2 9"/></g><g class="orb2"><circle cx="100" cy="100" r="88" fill="none" stroke="rgba(143,230,255,.22)" stroke-width="1" stroke-dasharray="26 14 4 14"/></g>' +
@@ -420,8 +478,9 @@ function renderTop(){
       '<circle class="arc" id="cmArc" cx="100" cy="100" r="78" fill="none" stroke="' + col + '" style="color:' + col + '" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + C.toFixed(1) + '" transform="rotate(-90 100 100)" data-to="' + (C*(1 - sal)).toFixed(1) + '"/></svg>' +
       '<div class="mid"><b data-n="' + Math.round(sal*100) + '" data-s="<small>%</small>">0<small>%</small></b><span style="color:' + col + '">' + etiqueta + '</span></div></div>' +
       '<div class="cm-cnts"><div class="cm-cnt g"><b>' + g + '</b><small>En meta</small></div><div class="cm-cnt a"><b>' + a + '</b><small>Atención</small></div><div class="cm-cnt r"><b>' + r + '</b><small>Alerta</small></div></div>' +
-      '<div class="cm-fresh"><b>' + alDia + ' de ' + ests.length + '</b> tableros con corte de la última semana</div></div>' +
-    '<div class="cm-box"><p class="cm-lbl">Requiere atención · ' + (ordenadas.length ? ordenadas.length + (ordenadas.length === 1 ? ' señal' : ' señales') : 'todo en orden') + '</p><div class="cm-al">' + lst + '</div></div></div>';
+      '<div class="cm-fresh"><b>' + alDia + ' de ' + ests.length + '</b> tableros con corte de la última semana</div>' +
+      (mov.n ? '<div class="cm-mvl">Indicadores vs. corte anterior</div><div class="cm-mov"><span class="u">▲ ' + mov.up + ' mejoran</span><span class="d">▼ ' + mov.down + ' empeoran</span><span>■ ' + mov.flat + ' igual</span></div>' : '') + '</div>' +
+    '<div class="cm-box"><p class="cm-lbl">Qué requiere atención hoy · ' + (ordenadas.length ? '<span class="n">' + ordenadas.length + (ordenadas.length === 1 ? ' señal' : ' señales') + '</span>' + (nRojas ? ' · <span class="r">' + nRojas + ' en rojo</span>' : '') + (ordenadas.length - nRojas ? ' · <span class="a">' + (ordenadas.length - nRojas) + ' en ámbar</span>' : '') : 'todo en orden') + '</p><div class="cm-al">' + lst + '</div></div></div>';
   requestAnimationFrame(() => { const arc = document.getElementById('cmArc'); if(arc) setTimeout(() => arc.setAttribute('stroke-dashoffset', arc.getAttribute('data-to')), 60); });
 }
 
@@ -435,11 +494,11 @@ function renderPanel(b, i){
   } else {
     const fr = frescura(dias(e.fecha)); chip = '<span class="cm-chip ' + fr.c + '" data-tip="Fecha del último corte: ' + esc(WK.fecha(String(e.fecha).length === 10 ? e.fecha : new Date(e.fecha)) || '—') + '">' + fr.t + '</span>';
     if(e.vacio) cuerpo = '<div class="cm-empty">' + esc(e.vacio) + '</div>';
-    else if(e.lista) cuerpo = e.lista.length ? '<ul class="cm-lst">' + e.lista.slice(0, 4).map(t => '<li>' + esc(t.length > 150 ? t.slice(0, 149) + '…' : t) + '</li>').join('') + '</ul>' + (e.lista.length > 4 ? '<div class="cm-sp"><span>+ ' + (e.lista.length - 4) + ' anuncio(s) más</span><span class="go">Ver todos →</span></div>' : '<div class="cm-sp"><span class="go">Abrir tablero →</span></div>') : '<div class="cm-empty">Sin anuncios en el último corte.</div>';
+    else if(e.lista) cuerpo = e.lista.length ? '<ul class="cm-lst">' + e.lista.slice(0, 4).map(t => '<li>' + esc(t.length > 150 ? t.slice(0, 149) + '…' : t) + '</li>').join('') + '</ul>' + (e.lista.length > 4 ? '<div class="cm-sp"><span>+ ' + (e.lista.length - 4) + ' anuncio(s) más</span><span class="go">Ver detalle →</span></div>' : '<div class="cm-sp"><span class="go">Abrir tablero →</span></div>') : '<div class="cm-empty">Sin anuncios en el último corte.</div>';
     else {
       const sp = (e.serie || []).filter(v => v != null);
-      cuerpo = '<div class="cm-k">' + e.kpis.map(k => '<div class="cm-kt ' + (k.tono || '') + '"><span class="l">' + esc(k.label) + '</span><span class="v">' + k.value + (k.unit ? '<small>' + esc(k.unit) + '</small>' : '') + '</span><span class="s">' + (k.sub || '') + '</span></div>').join('') + '</div>' +
-        '<div class="cm-sp">' + (sp.length > 1 ? WK.spark(sp, { w:120, h:34, color:COLOR_SP[tono] }) + '<span>' + esc(e.serieTxt || '') + '</span>' : '<span>La tendencia aparece desde el segundo corte.</span>') + '<span class="go">Abrir tablero →</span></div>';
+      cuerpo = '<div class="cm-k">' + e.kpis.map(k => { const q = splitSub(k.sub); return '<div class="cm-kt ' + (k.tono || '') + '"><span class="l">' + esc(k.label) + '</span><span class="v"><span class="vv">' + k.value + (k.unit ? '<small>' + esc(k.unit) + '</small>' : '') + '</span><span class="dd">' + q.delta + '</span></span><span class="s">' + q.txt + '</span></div>'; }).join('') + '</div>' +
+        '<div class="cm-sp">' + (sp.length > 1 ? WK.spark(sp, { w:120, h:34, color:COLOR_SP[tono] }) + '<span>' + esc(e.serieTxt || '') + '</span>' : '<span>La tendencia aparece desde el segundo corte.</span>') + '<span class="go">Ver detalle →</span></div>';
     }
   }
   return '<a class="cm-p" href="' + b.href + '" style="--pc:' + COL[tono] + ';animation-delay:' + (i*80) + 'ms">' + head(chip) + cuerpo + '</a>';
@@ -449,10 +508,170 @@ function ownersLinea(){
   BOARDS.forEach(b => { const el = document.getElementById('o-' + b.id), cfg = WK.OWNERS && WK.OWNERS[b.owner]; if(!el || !cfg) return; const eq = cfg.equipo; el.textContent = eq ? eq.map(p => p.nombre).join(' · ') : (cfg.nombre ? cfg.nombre + ' · ' + cfg.cargo : 'Dueño por asignar'); });
 }
 
+
+/* ---------- utilidades de contexto ---------- */
+const stripTags = h => String(h == null ? '' : h).replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
+function splitSub(sub){ const m = String(sub || '').match(/<span class="wk-delta[^>]*>[\s\S]*?<\/span>/); return m ? { txt: String(sub).replace(m[0], '').trim(), delta: m[0] } : { txt: sub || '', delta: '' }; }
+function movimiento(){ let up = 0, down = 0, flat = 0; BOARDS.forEach(b => { const e = ESTADO[b.id]; (e && e.kpis || []).forEach(k => { const d = splitSub(k.sub).delta; if(!d) return; if(/wk-delta up/.test(d)) up++; else if(/wk-delta down/.test(d)) down++; else flat++; }); }); return { up, down, flat, n: up + down + flat }; }
+
+/* ---------- compromisos por responsable ---------- */
+function renderComp(){
+  const e = ESTADO.cta, box = document.getElementById('cmComp');
+  const ab = e && e.acciones ? e.acciones.filter(a => a.ab) : [];
+  if(!ab.length){ box.innerHTML = ''; return; }
+  const g = {}; ab.forEach(a => { const k = String(a.responsable || '').trim() || 'Sin responsable'; (g[k] = g[k] || []).push(a); });
+  const lista = Object.keys(g).map(k => ({ k, a: g[k].slice().sort((x, y) => (x.ts == null) - (y.ts == null) || x.ts - y.ts), v: g[k].filter(a => a.venc).length })).sort((x, y) => y.v - x.v || y.a.length - x.a.length);
+  box.innerHTML = '<div class="cm-sec"><p class="cm-lbl">Compromisos abiertos · por responsable</p><small>' + ab.length + ' acciones abiertas' + (ab.filter(a => a.venc).length ? ' · ' + ab.filter(a => a.venc).length + ' vencidas' : '') + '</small></div><div class="cm-cp">' +
+    lista.slice(0, 8).map(r => { const n = r.a[0]; return '<button type="button" class="cm-pc" data-b="cta"><b>' + esc(r.k) + '</b><div class="c"><span>' + pl(r.a.length, 'abierta', 'abiertas') + '</span>' + (r.v ? '<span class="v">' + pl(r.v, 'vencida', 'vencidas') + '</span>' : '') + '</div><div class="nx">' + esc(String(n.accion || '').slice(0, 90)) + (String(n.accion || '').length > 90 ? '…' : '') + (n.fecha ? ' · <em>' + esc(WK.fecha(n.fecha) || n.fecha) + '</em>' : '') + '</div></button>'; }).join('') + '</div>' + (lista.length > 8 ? '<div class="cm-foot" style="margin:-14px 0 20px">+ ' + (lista.length - 8) + ' responsable(s) más en el detalle de Call to Action</div>' : '');
+}
+
+/* ---------- cobertura de datos ---------- */
+function renderCov(){
+  const items = BOARDS.map(b => {
+    const e = ESTADO[b.id] || {}; let c = 'n', t = 'sin datos', nota = '';
+    if(e.sin === 'datos') { c = 'n'; t = 'sin cortes'; }
+    else if(e.sin) { c = 'n'; t = e.sin === 'acceso' ? 'sin acceso' : 'error'; }
+    else { const d = dias(e.fecha); if(d == null){ c = 'n'; t = 'sin fecha'; } else if(d <= 9){ c = 'g'; t = d <= 0 ? 'hoy' : 'hace ' + d + ' d'; } else if(d <= 16){ c = 'a'; t = 'hace ' + d + ' d'; } else { c = 'r'; t = 'hace ' + d + ' d'; } }
+    const cfg = WK.OWNERS && WK.OWNERS[b.owner];
+    if(cfg && !cfg.equipo && !cfg.nombre) nota = 'sin dueño asignado';
+    if(b.id === 'marketing' && !e.sin) nota = nota || 'solo pipeline y abiertas';
+    return '<span class="cm-cv ' + c + '"><i></i>' + esc(b.nombre) + ' · ' + t + (nota ? ' <em>· ' + nota + '</em>' : '') + '</span>';
+  });
+  items.push('<span class="cm-cv n"><i></i>VOP <em>· no incluido, se consulta en su página</em></span>');
+  document.getElementById('cmCov').innerHTML = '<div class="cm-sec" style="margin-top:6px"><p class="cm-lbl">Cobertura de datos</p><small>Qué tan reciente está cada tablero y qué falta</small></div><div class="cm-cov">' + items.join('') + '</div>';
+}
+
+/* ---------- panel de detalle ---------- */
+const T = (cols, rows) => rows.length ? '<table class="cm-t"><thead><tr>' + cols.map(c => '<th' + (c.n ? ' class="n"' : '') + '>' + esc(c.t) + '</th>').join('') + '</tr></thead><tbody>' + rows.map(r => '<tr>' + r.map((v, i) => '<td' + (cols[i] && cols[i].n ? ' class="n"' : '') + '>' + v + '</td>').join('') + '</tr>').join('') + '</tbody></table>' : '<div class="cm-nodat">Sin datos en el último corte.</div>';
+const tonoSpan = (txt, tono) => '<span class="' + (tono || '') + '">' + txt + '</span>';
+const DETALLE = {
+  finanzas(H, D){
+    const F = D && D.detalle && D.detalle.finanzas || [];
+    if(!F.length) return '<div class="cm-nodat">El detalle por cliente no viene en el último corte.</div>';
+    const tot = F.slice().sort((a, b) => b.total - a.total).slice(0, 6), cr = F.filter(x => x.crit > 0).sort((a, b) => b.crit - a.crit).slice(0, 6);
+    return '<h4>Mayor cartera total</h4>' + T([{ t:'Cliente' }, { t:'Cartera', n:1 }, { t:'Vencido', n:1 }], tot.map(x => [esc(x.cliente), fK(x.total, '€'), fK(x.venc, '€')])) +
+      '<h4>Zona crítica (+6 meses)</h4>' + T([{ t:'Cliente' }, { t:'+6 meses', n:1 }, { t:'Cartera', n:1 }], cr.map(x => [esc(x.cliente), tonoSpan(fK(x.crit, '€'), 'red'), fK(x.total, '€')]));
+  },
+  ventas(H){
+    const h = last(H), V = h.ventas || [], P = h.pipeline || [], pc = x => x == null ? '—' : tonoSpan(WK.pct(x), TONO_AV(x));
+    return '<h4>Ventas contra meta</h4>' + T([{ t:'Equipo' }, { t:'YTD', n:1 }, { t:'Trim.', n:1 }, { t:'Forecast', n:1 }], V.map(v => [esc(v.nombre), pc(v.pctYTD), pc(v.pctCQ), pc(v.pctFCST)])) +
+      '<h4>Pipeline del trimestre</h4>' + T([{ t:'Equipo' }, { t:'Meta', n:1 }, { t:'Pipeline', n:1 }, { t:'Cobertura', n:1 }], P.map(v => { const m = v.targetCQ ? v.resultadoCQ / v.targetCQ : null; return [esc(v.nombre), fK(v.targetCQ, '$'), fK(v.resultadoCQ, '$'), m == null ? '—' : tonoSpan((Math.round(m*10)/10) + 'x', TONO_AV(m))]; }));
+  },
+  operaciones(H){
+    const L = last(H).porLob || [], top = [];
+    L.forEach(l => String(l.topProyectos || '').split('|').map(x => x.trim()).filter(Boolean).forEach(x => top.push([esc(x), esc(l.lob)])));
+    return '<h4>Por línea de negocio</h4>' + T([{ t:'LOB' }, { t:'Proy.', n:1 }, { t:'Desvío', n:1 }, { t:'Riesgo', n:1 }, { t:'Go-Live Q', n:1 }], L.map(l => [esc(l.lob), l.proyectos || 0, l.conDesvio ? tonoSpan(l.conDesvio, TONO_RIESGO(pctDe(l.conDesvio, l.proyectos))) : 0, l.conRiesgo ? tonoSpan(l.conRiesgo, TONO_RIESGO(pctDe(l.conRiesgo, l.proyectos))) : 0, l.goLiveQ || 0])) +
+      (top.length ? '<h4>Proyectos a vigilar</h4>' + T([{ t:'Proyecto' }, { t:'LOB' }], top.slice(0, 12)) : '');
+  },
+  bx(H, D){
+    const B = D && D.detalle && D.detalle.bx || {}, blk = (t, s) => s && s.filas.length ? '<h4>' + esc(t) + '</h4>' + T(s.cols.map((c, i) => ({ t:c })), s.filas.map(r => r.map(esc))) : '';
+    return (blk('Riesgos de churn', B.churn) + blk('Escalaciones', B.escalaciones)) || '<div class="cm-nodat">El último corte no trae churn ni escalaciones.</div>';
+  },
+  ccflex(H){
+    const QS = ['q1','q2','q3','q4'], norm = WK.norm, h = last(H);
+    const fila = (b, c) => (b || []).find(f => norm(String(f.concepto || '')).includes(c)) || {};
+    const tot = f => f.total ? f.total : (f.aa || 0) + QS.reduce((a, q) => a + (f[q] || 0), 0);
+    const r = [['C&S', h.cs], ['A&O', h.ao]].map(([n, b]) => [n, fU(tot(fila(b, 'vendido'))), fU(tot(fila(b, 'comision'))), fU(tot(fila(b, 'pagado'))), fU(tot(fila(b, 'pend')))]);
+    return '<h4>Resumen 2026</h4>' + T([{ t:'Línea' }, { t:'Vendido', n:1 }, { t:'Comisión', n:1 }, { t:'Pagado', n:1 }, { t:'Pendiente', n:1 }], r);
+  },
+  marketing(H){
+    const rows = H.slice(-8).reverse().map(h => [esc(WK.fecha(h.fechaCorte) || h.fechaCorte || '—'), h.resumen ? fU(h.resumen.pipeline) : '—', h.resumen ? WK.num(h.resumen.abiertas) : '—']);
+    return '<h4>Cortes recientes</h4>' + T([{ t:'Corte' }, { t:'Pipeline', n:1 }, { t:'Abiertas', n:1 }], rows) + '<div class="cm-nodat" style="margin-top:10px">El detalle por etapa y fuente está en el tablero de Marketing.</div>';
+  },
+  cta(H){
+    const e = ESTADO.cta, A = (e && e.acciones || []).slice().sort((x, y) => (y.venc - x.venc) || ((x.ab === y.ab) ? ((x.ts == null) - (y.ts == null) || x.ts - y.ts) : (y.ab - x.ab)));
+    const est = a => a.c === 'comp' ? tonoSpan('Completada', 'green') : (a.venc ? tonoSpan('Vencida', 'red') : (a.c === 'proc' ? tonoSpan('En proceso', 'amber') : 'Pendiente'));
+    return '<h4>Acciones</h4>' + T([{ t:'Acción' }, { t:'Responsable' }, { t:'Fecha', n:1 }, { t:'Estado' }], A.slice(0, 30).map(a => [esc(String(a.accion || '').slice(0, 120)), esc(a.responsable || '—'), a.fecha ? esc(WK.fecha(a.fecha) || a.fecha) : '—', est(a)])) + (A.length > 30 ? '<div class="cm-nodat">+ ' + (A.length - 30) + ' acciones más en el tablero.</div>' : '');
+  },
+  anuncios(H){ const l = last(H).anuncios || []; return '<h4>Anuncios vigentes</h4>' + (l.length ? '<ul class="cm-lst">' + l.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>' : '<div class="cm-nodat">Sin anuncios.</div>'); }
+};
+function abrirDetalle(id){
+  const b = BOARDS.find(x => x.id === id), e = ESTADO[id] || {}; if(!b) return;
+  const H = DATA && DATA[b.data] || [];
+  let kp = '', det = '';
+  if(e.kpis && e.kpis.length){
+    kp = '<h4>Indicadores · contra el corte anterior</h4>' + T([{ t:'Indicador' }, { t:'Actual', n:1 }, { t:'Cambio', n:1 }, { t:'Contexto' }], e.kpis.map(k => { const q = splitSub(k.sub); return [esc(k.label), tonoSpan(k.value + (k.unit ? ' ' + esc(k.unit) : ''), k.tono), q.delta || '<span style="color:#7D8FAE">—</span>', q.txt]; }));
+  }
+  if(e.alertas && e.alertas.length) kp += '<h4>Alertas</h4><ul class="cm-lst">' + e.alertas.map(a => '<li class="' + a.tono + '" style="color:' + (a.tono === 'red' ? 'var(--cm-rd)' : 'var(--cm-am)') + '">' + esc(a.texto) + '</li>').join('') + '</ul>';
+  try { det = e.sin ? '' : DETALLE[id](H, DATA); } catch(err) { console.error(err); det = '<div class="cm-nodat">No se pudo armar el detalle.</div>'; }
+  const hist = (e.serie || []).map((v, i) => [esc(WK.fecha(e.fechas && e.fechas[i]) || '—'), v == null ? '—' : (e.serieTxt && /%/.test(e.serieTxt) ? Math.round(v) + '%' : WK.num(Math.round(v)))]).reverse();
+  const hh = hist.filter(r => r[1] !== '—').length > 1 ? '<h4>' + esc(e.serieTxt || 'Histórico') + '</h4>' + T([{ t:'Corte' }, { t:'Valor', n:1 }], hist.slice(0, 8)) : '';
+  const fr = e.sin ? null : frescura(dias(e.fecha));
+  document.getElementById('cmDr').innerHTML = '<div class="cm-dh"><div class="ic" style="font-size:26px">' + b.ico + '</div><div><h2>' + esc(b.nombre) + '</h2><small>' + (fr ? 'Último corte: ' + esc(fr.t) : 'Sin datos') + '</small></div><button class="x" type="button" aria-label="Cerrar" id="cmDx">✕</button></div>' +
+    '<div class="cm-db">' + (e.sin ? '<div class="cm-nodat">' + ({ acceso:'No tienes acceso a los datos.', datos:'Todavía no hay cortes cargados.', error:'No se pudo leer el último corte.' }[e.sin]) + '</div>' : kp + det + hh) + '</div>' +
+    '<div class="cm-df"><a href="' + b.href + '">Abrir tablero completo →</a></div>';
+  const dr = document.getElementById('cmDr'), ov = document.getElementById('cmDov');
+  dr.classList.add('on'); ov.classList.add('on'); dr.setAttribute('aria-hidden', 'false'); dr.querySelector('.cm-db').scrollTop = 0; dr.querySelector('#cmDx').focus();
+}
+function cerrarDetalle(){ document.getElementById('cmDr').classList.remove('on'); document.getElementById('cmDov').classList.remove('on'); document.getElementById('cmDr').setAttribute('aria-hidden', 'true'); }
+document.addEventListener('click', ev => {
+  if(ev.target.closest('#cmDx') || ev.target.id === 'cmDov') return cerrarDetalle();
+  const pc = ev.target.closest('.cm-pc'); if(pc) return abrirDetalle(pc.getAttribute('data-b'));
+  const p = ev.target.closest('a.cm-p'); if(p && !(ev.ctrlKey || ev.metaKey || ev.shiftKey)){ ev.preventDefault(); const b = BOARDS.find(x => x.href === p.getAttribute('href')); if(b) abrirDetalle(b.id); }
+});
+document.addEventListener('keydown', ev => { if(ev.key === 'Escape') cerrarDetalle(); });
+
+/* ---------- resumen ejecutivo (Delfos) ---------- */
+let BR = { h:'', texto:'', est:'idle', cuando:null };
+const hash = str => { let h = 5381; for(let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return String(h); };
+function contextoResumen(){
+  const L = [];
+  BOARDS.forEach(b => {
+    const e = ESTADO[b.id]; if(!e) return;
+    if(e.sin){ L.push(b.nombre + ': sin datos (' + e.sin + ')'); return; }
+    const d = dias(e.fecha); L.push('## ' + b.nombre + ' (último corte hace ' + (d == null ? '?' : d) + ' días)');
+    if(e.vacio) L.push('- ' + e.vacio);
+    (e.kpis || []).forEach(k => { const q = splitSub(k.sub); L.push('- ' + k.label + ': ' + stripTags(k.value + (k.unit ? ' ' + k.unit : '')) + ' [' + (k.tono === 'red' ? 'rojo' : k.tono === 'amber' ? 'ámbar' : k.tono === 'green' ? 'verde' : 'neutro') + '] ' + stripTags(q.txt) + (q.delta ? ' | vs. corte anterior: ' + stripTags(q.delta) + (/wk-delta up/.test(q.delta) ? ' (mejora)' : /wk-delta down/.test(q.delta) ? ' (empeora)' : '') : '')); });
+    (e.alertas || []).forEach(a => L.push('- ALERTA ' + (a.tono === 'red' ? 'roja' : 'ámbar') + ': ' + a.texto));
+    (e.lista || []).slice(0, 4).forEach(t => L.push('- Anuncio: ' + String(t).slice(0, 160)));
+  });
+  const ab = ESTADO.cta && ESTADO.cta.acciones ? ESTADO.cta.acciones.filter(a => a.venc) : [];
+  if(ab.length){ L.push('## Acciones vencidas (Call to Action)'); ab.slice(0, 8).forEach(a => L.push('- ' + String(a.accion || '').slice(0, 120) + ' · responsable: ' + (a.responsable || 'sin responsable') + ' · fecha: ' + (a.fecha || '?'))); }
+  return L.length > 3 ? L.join('\n') : '';
+}
+function mdBreve(t){
+  const inl = x => esc(x).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  let out = '', ul = false;
+  String(t).split('\n').forEach(l => { const m = l.match(/^\s*[-•*]\s+(.*)$/); if(m){ if(!ul){ out += '<ul>'; ul = true; } out += '<li>' + inl(m[1]) + '</li>'; } else { if(ul){ out += '</ul>'; ul = false; } if(l.trim()) out += '<p>' + inl(l) + '</p>'; } });
+  return out + (ul ? '</ul>' : '');
+}
+function pintaBrief(){
+  const box = document.getElementById('cmBrief'); if(!box) return;
+  const cuerpo = BR.est === 'err' ? '<div class="cm-bt err">' + esc(BR.texto) + '</div>' : (BR.est === 'load' && !BR.texto ? '<div class="cm-bt mut">Delfos está leyendo los tableros<span class="cur"></span></div>' : (BR.texto ? '<div class="cm-bt">' + mdBreve(BR.texto) + (BR.est === 'load' ? '<span class="cur"></span>' : '') + '</div>' : '<div class="cm-bt mut">Aún no hay datos para resumir.</div>'));
+  box.innerHTML = '<div class="cm-box cm-brief"><div class="hd"><p class="cm-lbl">Resumen ejecutivo · Delfos</p><span class="by">' + (BR.cuando ? 'Generado ' + esc(WK.hora(BR.cuando)) : '') + ' · basado solo en los datos de esta pantalla</span><button class="cm-btn" id="cmReg" type="button"' + (BR.est === 'load' ? ' disabled' : '') + '>↻ Regenerar</button></div>' + cuerpo + '</div>';
+  const b = document.getElementById('cmReg'); if(b) b.onclick = () => resumen(true);
+}
+async function resumen(forzar){
+  const ctx = contextoResumen(); if(!ctx){ pintaBrief(); return; }
+  const h = hash(ctx);
+  if(!forzar){
+    if(BR.h === h && BR.texto && BR.est !== 'err') return;
+    try { const c = JSON.parse(localStorage.getItem('cm_resumen') || 'null'); if(c && c.h === h && c.t){ BR = { h, texto:c.t, est:'ok', cuando:c.c }; pintaBrief(); return; } } catch(e) {}
+  }
+  if(BR.est === 'load') return;
+  BR = { h, texto:'', est:'load', cuando:null }; pintaBrief();
+  try{
+    const r = await fetch('/api/wbr-resumen', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ contexto: ctx }) });
+    if(!r.ok || !r.body){ const d = await r.json().catch(() => ({})); throw new Error(d.error || 'No se pudo generar el resumen.'); }
+    const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', fallo = '', ult = 0;
+    for(;;){
+      const { done, value } = await rd.read(); if(done) break;
+      buf += dec.decode(value, { stream:true }); const ls = buf.split('\n'); buf = ls.pop();
+      ls.forEach(l => { if(!l.trim()) return; let o; try { o = JSON.parse(l); } catch(e) { return; } if(o.type === 'delta') BR.texto += o.text; else if(o.type === 'error') fallo = o.text; });
+      if(Date.now() - ult > 120){ pintaBrief(); ult = Date.now(); }
+    }
+    if(fallo && !BR.texto) throw new Error(fallo);
+    if(!BR.texto.trim()) throw new Error('Delfos no devolvió respuesta. Intenta de nuevo.');
+    BR.est = 'ok'; BR.cuando = new Date().toISOString(); pintaBrief();
+    try { localStorage.setItem('cm_resumen', JSON.stringify({ h, t:BR.texto, c:BR.cuando })); } catch(e) {}
+  }catch(err){ BR = { h:'', texto: err.message || 'No se pudo generar el resumen.', est:'err', cuando:null }; pintaBrief(); }
+}
+
 function pinta(){
-  evaluar(); renderTop();
+  evaluar(); renderTop(); renderCov(); renderComp();
   document.getElementById('cmGrid').innerHTML = BOARDS.map(renderPanel).join('');
   ownersLinea(); countUp(document.body);
+  if(DATA && !DATA.__sinAcceso) resumen(false); else pintaBrief();
   const gen = DATA && DATA.generado ? new Date(DATA.generado) : new Date();
   document.getElementById('cmFoot').innerHTML = 'Datos al ' + WK.hora(gen.toISOString()) + ' · Se actualiza solo cada 5 minutos · El <a href="/wbr-vop.html">Tablero VOP</a> es por oportunidad y se consulta directamente en su página.';
 }
@@ -472,7 +691,7 @@ function reloj(){
   document.getElementById('cmReloj').textContent = dias[d.getDay()] + ' ' + d.getDate() + ' ' + mes[d.getMonth()] + ' · ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 document.getElementById('cmRef').addEventListener('click', function(){ cargar(this); });
-window.WK_SEND_READY = () => !!DATA && !DATA.__sinAcceso;
+window.WK_SEND_READY = () => !!DATA && !DATA.__sinAcceso && BR.est !== 'load';
 reloj(); setInterval(reloj, 30000); cargar(); setInterval(cargar, 300000);
 </script>
 <script>
