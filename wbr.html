@@ -53,6 +53,32 @@
   .card.pendiente{opacity:0.55; filter:grayscale(0.4);}
   .badge-pendiente{position:absolute; top:14px; right:14px; background:var(--card); color:var(--greyl); font-size:9.5px; font-weight:700; padding:3px 9px; border-radius:20px; text-transform:uppercase;}
   .badge-listo{position:absolute; top:14px; right:14px; background:#E7F7EE; color:#1F8A4C; font-size:9.5px; font-weight:700; padding:3px 9px; border-radius:20px; text-transform:uppercase;}
+
+  /* ===== Hub WBR: mismo lenguaje que los tableros (kit oscuro) ===== */
+  .hub-hdr{display:flex; align-items:center; gap:22px;}
+  .hub-hdr .big{font-size:44px; line-height:1; filter:drop-shadow(0 6px 18px rgba(61,214,255,.45));}
+  .hub-hdr h1{margin:0 0 6px;}
+  .hub-sec{display:flex; align-items:baseline; gap:14px; margin:30px 4px 16px;}
+  .hub-sec h2{margin:0; font-size:13px; letter-spacing:1.6px; text-transform:uppercase; color:#8FE6FF; font-weight:800;}
+  .hub-sec span{font-size:12.5px; color:#7D8FAE;}
+  .hub-sec:after{content:""; flex:1; height:1px; background:linear-gradient(90deg,rgba(143,230,255,.35),transparent);}
+  .hub-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:22px;}
+  a.tile{text-decoration:none; color:#fff; min-height:210px!important; cursor:pointer;}
+  a.tile .t-ico{width:52px; height:52px; border-radius:16px; display:grid; place-items:center; font-size:26px; background:rgba(255,255,255,.10); box-shadow:inset 0 0 0 1px rgba(255,255,255,.16); margin-bottom:14px;}
+  a.tile h3{margin:0 0 6px; font-size:19px; font-weight:800; color:#fff;}
+  a.tile p{margin:0; font-size:13px; line-height:1.55; color:#C4D2EA; flex:1;}
+  a.tile .t-foot{display:flex; align-items:center; gap:10px; margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,.12); font-size:12px; color:#A5B4CE; min-height:44px;}
+  a.tile .t-foot b{color:#fff; font-weight:700;}
+  a.tile .t-av{width:30px; height:30px; border-radius:50%; flex:none; background:rgba(255,255,255,.14) center/cover no-repeat; display:grid; place-items:center; font-size:11px; font-weight:800; color:#fff; box-shadow:0 0 0 2px rgba(143,230,255,.5);}
+  a.tile .t-go{margin-left:auto; font-size:18px; color:#8FE6FF; transition:transform .2s ease;}
+  a.tile:hover .t-go{transform:translateX(4px);}
+  a.tile .t-badge{position:absolute; top:18px; right:18px; font-size:10px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; padding:4px 10px; border-radius:20px; background:rgba(5,10,24,.6); color:#2FE29B; box-shadow:inset 0 0 0 1px rgba(47,226,155,.4);}
+  a.tile .t-badge.new{background:rgba(5,10,24,.6); color:#FFC857; box-shadow:inset 0 0 0 1px rgba(255,200,87,.45);}
+  a.tile.feat{grid-column:1/-1; min-height:170px!important; flex-direction:row!important; align-items:center; gap:28px;}
+  a.tile.feat .t-ico{width:78px; height:78px; font-size:40px; margin:0;}
+  a.tile.feat .t-body{flex:1;} a.tile.feat h3{font-size:26px;} a.tile.feat p{flex:none; font-size:14px; max-width:760px;}
+  a.tile.feat .t-foot{border:0; margin-top:10px; padding:0;}
+  @media(max-width:700px){ a.tile.feat{flex-direction:column!important; align-items:flex-start;} .hub-hdr .big{font-size:34px;} }
 </style>
 </head>
 <body>
@@ -139,71 +165,42 @@
 </nav>
 
 <header>
-  <h1>📋 Weekly Business Review</h1>
-  <p>Todas las áreas de la sesión semanal de Management, en un solo lugar — sin navegar por el resto del sitio.</p>
+  <div class="hub-hdr"><div class="big">📋</div><div><h1>Weekly Business Review</h1><p>Todas las áreas de la sesión semanal de Management, en un solo lugar — sin navegar por el resto del sitio.</p></div></div>
 </header>
 
-<main>
-  <div class="grupo">
-    <p class="grupo-titulo">Listas para usar</p>
-    <div class="grid">
-      <a href="/wbr-finanzas.html" class="card">
-        <span class="badge-listo">Lista</span>
-        <div class="icon">📊</div>
-        <h3>Finanzas</h3>
-        <p>Facturación, cobranza y cartera vencida — con insights de Delfos y bitácora semanal.</p>
-      </a>
-      <a href="/wbr-ventas.html" class="card">
-        <span class="badge-listo">Lista</span>
-        <div class="icon">💼</div>
-        <h3>Ventas & Pipeline</h3>
-        <p>Metas de venta, pipeline y detalle de oportunidades por etapa.</p>
-      </a>
-      <a href="/wbr-operaciones.html" class="card">
-        <span class="badge-listo">Lista</span>
-        <div class="icon">⚙️</div>
-        <h3>Operaciones</h3>
-        <p>Proyectos por LOB, desviaciones, riesgos y go-lives.</p>
-      </a>
-      <a href="/wbr-bx.html" class="card">
-        <span class="badge-listo">Lista</span>
-        <div class="icon">✨</div>
-        <h3>Business Experience (BX)</h3>
-        <p>Renovaciones, cumplimiento de CCFlex, oportunidades y riesgo de abandono.</p>
-      </a>
-      <a href="/wbr-ccflex.html" class="card">
-        <span class="badge-listo">Lista</span>
-        <div class="icon">💳</div>
-        <h3>CCFlex</h3>
-        <p>Ventas y cobranza del programa CCFlex — C&S vs. A&O.</p>
-      </a>
-      <a href="/wbr-cta.html" class="card">
-        <span class="badge-listo">Lista</span>
-        <div class="icon">✅</div>
-        <h3>Call to Action</h3>
-        <p>Acciones semanales — responsable, fecha y estatus.</p>
-      </a>
-      <a href="/wbr-anuncios.html" class="card">
-        <span class="badge-listo">Lista</span>
-        <div class="icon">📣</div>
-        <h3>Anuncios</h3>
-        <p>Comunicados y anuncios internos de la sesión.</p>
-      </a>
-      <a href="/wbr-marketing.html" class="card">
-        <span class="badge-listo">Nueva</span>
-        <div class="icon">📈</div>
-        <h3>Marketing</h3>
-        <p>Pipeline Evolution — cortes semanales, cambios y calidad de datos.</p>
-      </a>
-      <a href="/wbr-vop.html" class="card">
-        <span class="badge-listo">Nueva</span>
-        <div class="icon">📊</div>
-        <h3>Tablero VOP</h3>
-        <p>Economía del deal: márgenes, aprobación Deal Desk, flujo de caja y riesgo.</p>
-      </a>
-    </div>
-  </div>
+<main class="wk-main">
+<div class="hub-sec"><h2>Vista ejecutiva</h2><span>Lo más importante de todos los tableros, en una sola pantalla</span></div><div class="hub-grid">
+<a href="/wbr-ejecutivo.html" class="wk-hero tile feat" style="--hc1:#3DD6FF;--hc2:#0B1F4D"><span class="t-badge new">Nueva</span><div class="t-ico">🛰️</div><div class="t-body"><h3>Centro de Mando</h3><p>Los indicadores clave de Finanzas, Ventas, Operaciones, BX, CCFlex, Marketing y VOP en una sola vista — para ver el pulso de la empresa sin abrir tablero por tablero.</p><div class="t-foot" data-owner="ejecutivo"></div></div></a>
+</div><div class="hub-sec"><h2>Dinero y ventas</h2><span>Facturación, cobranza, pipeline y economía del deal</span></div><div class="hub-grid">
+<a href="/wbr-finanzas.html" class="wk-hero tile " style="--hc1:#2FE29B;--hc2:#0B2A33"><span class="t-badge">Lista</span><div class="t-ico">📊</div><h3>Finanzas</h3><p>Facturación, cobranza y cartera vencida — con insights de Delfos y bitácora semanal.</p><div class="t-foot" data-owner="finanzas"></div></a>
+<a href="/wbr-ventas.html" class="wk-hero tile " style="--hc1:#3D5BFF;--hc2:#101A52"><span class="t-badge">Lista</span><div class="t-ico">💼</div><h3>Ventas &amp; Pipeline</h3><p>Metas de venta, pipeline y detalle de oportunidades por etapa.</p><div class="t-foot" data-owner="ventas"></div></a>
+<a href="/wbr-ccflex.html" class="wk-hero tile " style="--hc1:#8B7CFF;--hc2:#1A1650"><span class="t-badge">Lista</span><div class="t-ico">💳</div><h3>CCFlex</h3><p>Ventas y cobranza del programa CCFlex — C&amp;S vs. A&amp;O.</p><div class="t-foot" data-owner="ccflex"></div></a>
+<a href="/wbr-vop.html" class="wk-hero tile " style="--hc1:#FFC857;--hc2:#3A2A0B"><span class="t-badge new">Nueva</span><div class="t-ico">🧮</div><h3>Tablero VOP</h3><p>Economía del deal: márgenes, aprobación Deal Desk, flujo de caja y riesgo.</p><div class="t-foot" data-owner="vop"></div></a>
+</div><div class="hub-sec"><h2>Operación y clientes</h2><span>Entrega de proyectos, experiencia del cliente y generación de demanda</span></div><div class="hub-grid">
+<a href="/wbr-operaciones.html" class="wk-hero tile " style="--hc1:#3DD6FF;--hc2:#0B2A4D"><span class="t-badge">Lista</span><div class="t-ico">⚙️</div><h3>Operaciones</h3><p>Proyectos por LOB, desviaciones, riesgos y go-lives.</p><div class="t-foot" data-owner="operaciones"></div></a>
+<a href="/wbr-bx.html" class="wk-hero tile " style="--hc1:#FF7AC6;--hc2:#3A1240"><span class="t-badge">Lista</span><div class="t-ico">✨</div><h3>Business Experience (BX)</h3><p>Renovaciones, cumplimiento de CCFlex, oportunidades y riesgo de abandono.</p><div class="t-foot" data-owner="bx"></div></a>
+<a href="/wbr-marketing.html" class="wk-hero tile " style="--hc1:#5B8CFF;--hc2:#101F5A"><span class="t-badge new">Nueva</span><div class="t-ico">📈</div><h3>Marketing</h3><p>Pipeline Evolution — cortes semanales, cambios y calidad de datos.</p><div class="t-foot" data-owner="marketing"></div></a>
+</div><div class="hub-sec"><h2>Gestión de la sesión</h2><span>Acuerdos, responsables y comunicados</span></div><div class="hub-grid">
+<a href="/wbr-cta.html" class="wk-hero tile " style="--hc1:#2FE29B;--hc2:#0B2A2A"><span class="t-badge">Lista</span><div class="t-ico">✅</div><h3>Call to Action</h3><p>Acciones semanales — responsable, fecha y estatus.</p><div class="t-foot" data-owner="cta"></div></a>
+<a href="/wbr-anuncios.html" class="wk-hero tile " style="--hc1:#FF9D5C;--hc2:#3A1A0B"><span class="t-badge">Lista</span><div class="t-ico">📣</div><h3>Anuncios</h3><p>Comunicados y anuncios internos de la sesión.</p><div class="t-foot" data-owner="anuncios"></div></a>
+</div>
 </main>
+
+<script src="/wbr-kit.js?v=20261010o"></script>
+<script>
+(function(){
+  function pinta(){
+    document.querySelectorAll(".t-foot[data-owner]").forEach(function(f){
+      var cfg = window.WK && WK.OWNERS && WK.OWNERS[f.getAttribute("data-owner")]; if(!cfg){ return; }
+      var eq = cfg.equipo, a = eq ? eq[0] : cfg, nom = eq ? eq.map(function(p){ return p.nombre.split(" ")[0]; }).join(" · ") : cfg.nombre, sub = eq ? (cfg.rol||"") : (cfg.cargo||"");
+      if(!nom){ f.innerHTML = "<span>Dueño por asignar</span><span class=\"t-go\">→</span>"; return; }
+      var foto = a.foto ? "style=\"background-image:url("+a.foto+")\"" : "";
+      f.innerHTML = "<span class=\"t-av\" "+foto+">"+(a.foto?"":nom.split(" ").map(function(w){return w[0];}).slice(0,2).join(""))+"</span><span><b>"+nom+"</b>"+(sub?"<br>"+sub:"")+"</span><span class=\"t-go\">→</span>";
+    });
+  }
+  pinta(); document.addEventListener("DOMContentLoaded", pinta);
+})();
+</script>
 
 <script>
 if ('serviceWorker' in navigator) {

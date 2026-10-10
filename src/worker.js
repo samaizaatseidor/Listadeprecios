@@ -394,6 +394,7 @@ const PAGINAS_REGISTRO = {
   'wbr-anuncios': 'WBR — Anuncios',
   'wbr-marketing': 'WBR — Marketing',
   'wbr-mkt-test': 'WBR — MKT Test (diseño)',
+  'wbr-ejecutivo': 'WBR — Centro de Mando',
   'wbr-vop': 'WBR — Tablero VOP',
   'bx-base-instalada': 'Business Experience — Base Instalada',
   'auditoria': 'Auditoría',
@@ -463,6 +464,7 @@ const RUTAS_PERMISO = {
   '/api/wbr-anuncios': { modo:'datos', paginas:['wbr-anuncios'] },
   '/api/wbr-cta': { modo:'datos', paginas:['wbr-cta'] },
   '/api/wbr-marketing': { modo:'datos', paginas:['wbr-marketing','wbr-mkt-test'], escritura:['wbr-marketing'] },
+  '/api/wbr-ejecutivo': { modo:'datos', paginas:['wbr-ejecutivo'] }, // vista de solo lectura; el permiso de esta página cubre el resumen de todos los tableros
   '/api/wbr-marketing-insight': { modo:'ia', paginas:['wbr-marketing'] },
   '/api/wbr-finanzas-insight': { modo:'ia', paginas:['wbr-finanzas'] },
   '/api/wbr-ventas-insight': { modo:'ia', paginas:['wbr-ventas'] },
@@ -1643,6 +1645,28 @@ ${JSON.stringify(checklist || [])}`;
     }
 
     // Enviar una vista (PDF) de un tablero WBR por correo. Solo a direcciones de dominios SEIDOR; queda bitácora (quién, a quién, cuándo).
+    // Centro de Mando (vista ejecutiva): resumen de solo lectura de los demás WBR. Solo manda los campos necesarios para los indicadores.
+    if (url.pathname === '/api/wbr-ejecutivo' && request.method === 'GET') {
+      const JH = { 'Content-Type': 'application/json' };
+      const leer = async (clave) => { try { const r = await env.PM_KV.get(clave); const v = r ? JSON.parse(r) : []; return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+      const ult = (arr, n) => arr.filter(x => x && typeof x === 'object').slice(-n);
+      const base = h => ({ fechaRevision: h.fechaRevision, guardadoEn: h.guardadoEn, guardadoPor: h.guardadoPor });
+      const [fin, ven, ope, ccf, bx, cta, anu, mkt] = await Promise.all(['wbr_finanzas_historial','wbr_ventas_historial','wbr_operaciones_historial','wbr_ccflex_historial','wbr_bx_historial','wbr_cta_historial','wbr_anuncios_historial','wbr_marketing_historial'].map(leer));
+      const out = {
+        ok: true,
+        generado: new Date().toISOString(),
+        finanzas: ult(fin, 8).map(h => ({ ...base(h), facturacion: h.facturacion, cobranza: h.cobranza, aging: h.aging ? { totalGeneral: h.aging.totalGeneral, filas: (h.aging.filas || []).map(f => ({ valores: (f.valores || []).slice(0, 1) })) } : null })),
+        ventas: ult(ven, 8).map(h => ({ ...base(h), ventas: h.ventas, pipeline: h.pipeline })),
+        operaciones: ult(ope, 8).map(h => ({ ...base(h), porLob: h.porLob })),
+        ccflex: ult(ccf, 8).map(h => ({ ...base(h), cs: h.cs, ao: h.ao })),
+        bx: ult(bx, 8).map(h => ({ ...base(h), semanaDel: h.semanaDel, kpis: h.kpis || null })),
+        cta: ult(cta, 4).map(h => ({ ...base(h), acciones: (h.acciones || []).slice(0, 200).map(a => ({ accion: String(a.accion || '').slice(0, 160), estatus: a.estatus, fecha: a.fecha, responsable: a.responsable })) })),
+        anuncios: ult(anu, 1).map(h => ({ ...base(h), anuncios: (h.anuncios || []).slice(0, 30).map(t => String(t).slice(0, 300)) })),
+        marketing: ult(mkt, 12).map(h => ({ id: h.id, fechaCorte: h.fechaCorte, guardadoEn: h.guardadoEn, guardadoPor: h.guardadoPor, registros: h.registros, resumen: h.resumen || null }))
+      };
+      return new Response(JSON.stringify(out), { headers: { ...JH, 'Cache-Control': 'no-store' } });
+    }
+
     if (url.pathname === '/api/wbr-enviar') {
       const JH = { 'Content-Type': 'application/json' };
       const KL = 'wbr_envios_log', KCFG = 'wbr_envio_config';

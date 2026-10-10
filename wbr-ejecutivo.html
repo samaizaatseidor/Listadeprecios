@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>WBR — Centro de Mando · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
+  header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+  input[type=file]{display:none;}
+  .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
+  .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .st-ok{color:#2FE29B; font-size:14px; font-weight:600; padding:2px 0 10px;}
+  .st-err{color:#FF8CA2; font-size:14px; font-weight:600; padding:2px 0 10px;}
+  .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
+  /* Call to Action — complementos locales (tema oscuro del kit) */
+  .cta-vacio{text-align:center; padding:56px 20px; color:var(--wk-grey,#A5B4CE);} .cta-vacio .big{font-size:64px; margin-bottom:8px; filter:drop-shadow(0 0 24px rgba(47,226,155,.6));} .cta-vacio h2{margin:0 0 8px; font-size:24px; color:#fff;} .cta-vacio p{margin:0; font-size:15px;}
+  .cta-prox{display:block; font-size:clamp(18px,1.4vw,24px); font-weight:700; line-height:1.25; color:#fff; overflow-wrap:anywhere;}
+  .wk-table tbody tr.cta-venc td:first-child{box-shadow:inset 4px 0 0 #FF5C7A;} .wk-table tbody tr.cta-venc td{background:rgba(255,92,122,.07);}
+  .wk-table td.cta-dias{font-weight:700;}
+  .wk-tools{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  /* ranking dentro de tiles: la pista de la barra nunca se colapsa a 0 */
+  body.wk-dark .wk-hero .wk-rank-row{grid-template-columns:minmax(80px,max-content) minmax(60px,1fr) auto; gap:12px;} body.wk-dark .wk-hero .wk-rank-row .n{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px;}
+  .cta-split{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:34px; align-items:center;} .cta-prox-t{font-size:12.5px; letter-spacing:1.4px; text-transform:uppercase; color:#8FE6FF; font-weight:700; margin-bottom:14px;}
+  @media(max-width:1000px){ .cta-split{grid-template-columns:1fr;} }
+
+  /* ===== Centro de Mando (HUD) ===== */
+  body.wk-dark{--cm-cy:#3DD6FF; --cm-gr:#2FE29B; --cm-am:#FFC857; --cm-rd:#FF5C7A; --cm-vi:#8B7CFF;}
+  body.wk-dark::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; background-image:linear-gradient(rgba(61,214,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(61,214,255,.045) 1px,transparent 1px); background-size:46px 46px; mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 75%); -webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 75%);}
+  .wk-main{position:relative; z-index:1;}
+  .cm-hdr-r{display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex:none;}
+  .cm-clock{font:700 13px/1 Poppins,sans-serif; letter-spacing:2px; text-transform:uppercase; color:#8FE6FF;}
+  .cm-clock b{display:inline-block; width:8px; height:8px; border-radius:50%; background:#2FE29B; margin-right:8px; box-shadow:0 0 0 0 rgba(47,226,155,.7); animation:cmPing 2s infinite;}
+  @keyframes cmPing{70%{box-shadow:0 0 0 10px rgba(47,226,155,0)}100%{box-shadow:0 0 0 0 rgba(47,226,155,0)}}
+  .cm-btn{background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.22); border-radius:10px; padding:8px 14px; font:600 12.5px Poppins,sans-serif; cursor:pointer;}
+  .cm-btn:hover{background:rgba(61,214,255,.18); border-color:#3DD6FF;}
+
+  .cm-top{display:grid; grid-template-columns:minmax(300px,380px) 1fr; gap:22px; margin-bottom:26px;}
+  @media(max-width:1100px){ .cm-top{grid-template-columns:1fr;} }
+  .cm-box{position:relative; border-radius:22px; padding:22px 24px; background:linear-gradient(165deg,rgba(14,30,63,.78),rgba(5,10,24,.9)); box-shadow:inset 0 0 0 1px rgba(255,255,255,.10),0 20px 50px rgba(0,0,0,.45); overflow:hidden;}
+  .cm-box:before,.cm-box:after{content:""; position:absolute; width:18px; height:18px; border:2px solid rgba(61,214,255,.7); pointer-events:none;}
+  .cm-box:before{top:10px; left:10px; border-right:0; border-bottom:0; border-top-left-radius:6px;}
+  .cm-box:after{bottom:10px; right:10px; border-left:0; border-top:0; border-bottom-right-radius:6px;}
+  .cm-lbl{font:800 11px Poppins,sans-serif; letter-spacing:2px; text-transform:uppercase; color:#8FE6FF; margin:0 0 14px;}
+  .cm-pulse{display:flex; flex-direction:column; align-items:center; text-align:center;}
+  .cm-ring{position:relative; width:210px; height:210px; margin:2px 0 8px;}
+  .cm-ring svg{width:100%; height:100%; overflow:visible;}
+  .cm-ring .orb{transform-origin:50% 50%; animation:cmSpin 24s linear infinite;}
+  .cm-ring .orb2{transform-origin:50% 50%; animation:cmSpin 14s linear infinite reverse;}
+  @keyframes cmSpin{to{transform:rotate(360deg)}}
+  .cm-ring .arc{transition:stroke-dashoffset 1.6s cubic-bezier(.2,.8,.2,1); filter:drop-shadow(0 0 8px currentColor);}
+  .cm-ring .mid{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .cm-ring .mid b{font:800 46px/1 Poppins,sans-serif; color:#fff; font-variant-numeric:tabular-nums;} .cm-ring .mid b small{font-size:20px; margin-left:2px;}
+  .cm-ring .mid span{font:700 11px Poppins,sans-serif; letter-spacing:1.6px; text-transform:uppercase; margin-top:6px;}
+  .cm-cnts{display:flex; gap:10px; width:100%; margin-top:6px;}
+  .cm-cnt{flex:1; border-radius:14px; padding:10px 6px; background:rgba(255,255,255,.05); box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);}
+  .cm-cnt b{display:block; font:800 24px/1 Poppins,sans-serif;} .cm-cnt small{display:block; font-size:10.5px; letter-spacing:.8px; text-transform:uppercase; color:#A5B4CE; margin-top:4px;}
+  .cm-cnt.g b{color:var(--cm-gr)} .cm-cnt.a b{color:var(--cm-am)} .cm-cnt.r b{color:var(--cm-rd)}
+  .cm-fresh{margin-top:14px; font-size:12px; color:#A5B4CE;} .cm-fresh b{color:#fff}
+
+  .cm-al{display:flex; flex-direction:column; gap:8px; max-height:380px; overflow:auto; padding-right:4px;}
+  .cm-a{display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:14px; text-decoration:none; color:#E3ECFA; background:rgba(255,255,255,.04); box-shadow:inset 0 0 0 1px rgba(255,255,255,.07); transition:transform .15s ease,background .15s ease; font-size:13.5px; line-height:1.4; opacity:0; animation:cmUp .5s ease forwards;}
+  .cm-a:hover{background:rgba(61,214,255,.10); transform:translateX(3px);}
+  .cm-a i{width:10px; height:10px; border-radius:50%; flex:none; background:currentColor; box-shadow:0 0 10px currentColor;}
+  .cm-a.red{color:var(--cm-rd)} .cm-a.amber{color:var(--cm-am)} .cm-a.green{color:var(--cm-gr)}
+  .cm-a span{color:#E3ECFA; flex:1;} .cm-a em{font:700 10.5px Poppins,sans-serif; font-style:normal; letter-spacing:1px; text-transform:uppercase; padding:3px 9px; border-radius:20px; background:rgba(255,255,255,.08); color:#A5B4CE; flex:none;}
+  .cm-ok{padding:26px; text-align:center; color:#A5B4CE;} .cm-ok .big{font-size:38px; margin-bottom:6px;}
+
+  .cm-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(440px,1fr)); gap:22px;}
+  @media(max-width:520px){ .cm-grid{grid-template-columns:1fr;} }
+  a.cm-p{position:relative; display:flex; flex-direction:column; text-decoration:none; color:#fff; border-radius:22px; padding:18px 20px 16px; background:radial-gradient(120% 90% at 100% -10%,var(--pc) 0%,transparent 55%),linear-gradient(165deg,#0E1E3F,#050A18 96%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.10),0 22px 50px rgba(0,0,0,.45); overflow:hidden; transition:transform .25s ease,box-shadow .25s ease; opacity:0; animation:cmUp .6s cubic-bezier(.2,.8,.2,1) forwards;}
+  a.cm-p:hover{transform:translateY(-4px); box-shadow:inset 0 0 0 1px rgba(61,214,255,.55),0 26px 60px rgba(0,0,0,.55),0 0 28px rgba(61,214,255,.18);}
+  a.cm-p:before,a.cm-p:after{content:""; position:absolute; width:16px; height:16px; border:2px solid rgba(61,214,255,.55); pointer-events:none;}
+  a.cm-p:before{top:9px; left:9px; border-right:0; border-bottom:0; border-top-left-radius:6px;}
+  a.cm-p:after{bottom:9px; right:9px; border-left:0; border-top:0; border-bottom-right-radius:6px;}
+  @keyframes cmUp{from{opacity:0; transform:translateY(16px)}to{opacity:1; transform:none}}
+  .cm-ph{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+  .cm-ph .ic{width:42px; height:42px; border-radius:13px; display:grid; place-items:center; font-size:22px; background:rgba(255,255,255,.10); box-shadow:inset 0 0 0 1px rgba(255,255,255,.16); flex:none;}
+  .cm-ph h3{margin:0; font-size:17px; font-weight:800; color:#fff;} .cm-ph small{display:block; font-size:11.5px; color:#A5B4CE; margin-top:2px;}
+  .cm-chip{margin-left:auto; flex:none; font:700 10.5px Poppins,sans-serif; letter-spacing:.8px; text-transform:uppercase; padding:5px 11px; border-radius:20px; background:rgba(5,10,24,.55); box-shadow:inset 0 0 0 1px currentColor; white-space:nowrap;}
+  .cm-chip.g{color:var(--cm-gr)} .cm-chip.a{color:var(--cm-am)} .cm-chip.r{color:var(--cm-rd)} .cm-chip.n{color:#A5B4CE}
+  .cm-k{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+  .cm-kt{position:relative; border-radius:14px; padding:11px 13px 10px; background:rgba(5,10,24,.5); box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); overflow:hidden;}
+  .cm-kt:after{content:""; position:absolute; left:0; right:0; bottom:0; height:3px; background:var(--tc,rgba(255,255,255,.15)); box-shadow:0 0 12px var(--tc,transparent);}
+  .cm-kt.green{--tc:var(--cm-gr)} .cm-kt.amber{--tc:var(--cm-am)} .cm-kt.red{--tc:var(--cm-rd)} .cm-kt.cyan{--tc:var(--cm-cy)} .cm-kt.violet{--tc:var(--cm-vi)}
+  .cm-kt .l{font:700 10.5px Poppins,sans-serif; letter-spacing:1.1px; text-transform:uppercase; color:#A5B4CE; display:block; margin-bottom:5px;}
+  .cm-kt .v{font:800 26px/1.05 Poppins,sans-serif; color:#fff; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .cm-kt .v small{font-size:13px; font-weight:600; color:#A5B4CE; margin-left:3px;}
+  .cm-kt .s{display:block; margin-top:4px; font-size:11.5px; color:#C4D2EA; line-height:1.35; min-height:15px;}
+  .cm-kt .s .wk-delta{margin-left:4px; font-size:10.5px;}
+  .cm-sp{display:flex; align-items:center; gap:12px; margin-top:12px; padding-top:11px; border-top:1px solid rgba(255,255,255,.09); font-size:11.5px; color:#A5B4CE;}
+  .cm-sp svg{flex:none;} .cm-sp .go{margin-left:auto; color:#8FE6FF; font-weight:700; white-space:nowrap;}
+  .cm-lst{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px;} .cm-lst li{padding:9px 12px; border-radius:12px; background:rgba(5,10,24,.5); box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); font-size:13px; color:#E3ECFA; line-height:1.4;}
+  .cm-empty{padding:26px 8px; text-align:center; color:#A5B4CE; font-size:13px;} .cm-empty .big{font-size:30px; margin-bottom:6px;}
+  .cm-foot{margin-top:26px; text-align:center; font-size:12px; color:#7D8FAE;} .cm-foot a{color:#8FE6FF;}
+  @media(prefers-reduced-motion:reduce){ a.cm-p,.cm-a{animation:none; opacity:1;} .cm-ring .orb,.cm-ring .orb2,.cm-clock b{animation:none;} }
+</style>
+</head>
+<body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){}
+})();
+</script>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html" class="active">🛰️ Centro de Mando</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-mkt-test.html">MKT Test</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos SAP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div>
+    <h1>🛰️ Weekly Business Review — Centro de Mando</h1>
+    <p>El pulso de todos los tableros en una sola pantalla · solo lectura · haz clic en cualquier panel para abrir el tablero completo</p>
+  </div>
+  <div class="cm-hdr-r">
+    <div class="cm-clock"><b></b><span id="cmReloj">—</span></div>
+    <button class="cm-btn" id="cmRef" type="button">⟳ Actualizar</button>
+  </div>
+</header>
+
+<main class="wk-main">
+  <div id="cmTop"></div>
+  <div id="cmGrid" class="cm-grid"></div>
+  <div class="cm-foot" id="cmFoot"></div>
+</main>
+
+<script src="/wbr-kit.js?v=20261010o"></script>
+<script>
+/* ---------- utilidades ---------- */
+const esc = WK.esc, ABR = { green:'g', amber:'a', red:'r' };
+const TONO_AV = p => p >= 0.85 ? 'green' : (p >= 0.6 ? 'amber' : 'red');
+const TONO_RIESGO = p => p == null ? 'cyan' : (p > 0.3 ? 'red' : (p > 0.15 ? 'amber' : 'green'));
+const pctDe = (a, b) => b ? a / b : null;
+const pl = (n, s, p) => n + ' ' + (n === 1 ? s : p);
+const fK = (n, sym) => { n = Number(n)||0; const a = Math.abs(n), s = n < 0 ? '-' : ''; return a >= 1000 ? s + sym + (+(a/1000).toFixed(2)) + 'M' : s + sym + Math.round(a) + 'K'; };   // valores en miles
+const fU = n => { n = Number(n)||0; const a = Math.abs(n), s = n < 0 ? '-' : ''; if(a >= 1e6) return s + '$' + (a/1e6).toFixed(2) + 'M'; if(a >= 1e4) return s + '$' + Math.round(a/1e3) + 'K'; if(a >= 1e3) return s + '$' + (a/1e3).toFixed(1) + 'K'; return s + '$' + Math.round(a); };  // USD completos
+const dl = (a, b, bueno, fmt) => (b == null || a == null) ? '' : WK.delta(a, b, { bueno: bueno || 'up', fmt: fmt || (x => Math.round(x*10)/10) });
+const dpp = (a, b, bueno) => (b == null || a == null) ? '' : WK.delta((a||0)*100, (b||0)*100, { bueno: bueno || 'up', fmt: x => Math.round(x*10)/10 + ' pp' });
+const K = (label, value, o) => Object.assign({ label, value }, o || {});
+const last = a => a[a.length-1], prev = a => a.length > 1 ? a[a.length-2] : null;
+
+/* ---------- extractores: cada uno devuelve { fecha, kpis[], alertas[], serie[], serieTxt } ---------- */
+const BOARDS = [
+ { id:'finanzas', ico:'📊', nombre:'Finanzas', href:'/wbr-finanzas.html', owner:'finanzas', color:'#2FE29B', data:'finanzas', fn(H){
+    const YTD = l => (l||[]).find(p => String(p.periodo).toUpperCase().includes('YTD')) || (l||[])[(l||[]).length-1] || { objetivo:0, real:0, avance:0 };
+    const R = h => { const tg = (h.aging && h.aging.totalGeneral) || []; const venc = tg.slice(0,6).reduce((s,v) => s + (v||0), 0), crit = tg[0]||0; return { f:YTD(h.facturacion), c:YTD(h.cobranza), venc, cart:tg[7]||0, crit, pc: venc ? crit/venc : 0 }; };
+    const r = R(last(H)), p = H.length > 1 ? R(prev(H)) : null;
+    const tV = r.cart && r.venc > r.cart*.5 ? 'red' : 'amber', tC = r.pc > .3 ? 'red' : (r.pc > .15 ? 'amber' : 'green');
+    const al = [];
+    if(r.f.avance < .7) al.push({ tono:'red', texto:'Facturación YTD al ' + WK.pct(r.f.avance) + ' del objetivo' }); else if(r.f.avance < .85) al.push({ tono:'amber', texto:'Facturación YTD al ' + WK.pct(r.f.avance) + ' del objetivo' });
+    if(r.c.avance < .7) al.push({ tono:'red', texto:'Cobranza YTD al ' + WK.pct(r.c.avance) + ' del objetivo' }); else if(r.c.avance < .85) al.push({ tono:'amber', texto:'Cobranza YTD al ' + WK.pct(r.c.avance) });
+    if(r.pc > .3) al.push({ tono:'red', texto:WK.pct(r.pc) + ' de la cartera vencida está en zona crítica (+6 meses)' });
+    return { fecha:last(H).fechaRevision, alertas:al, serie:H.map(h => R(h).venc), serieTxt:'Cartera vencida · últimos ' + H.length + ' cortes', kpis:[
+      K('Facturación YTD', WK.pct(r.f.avance), { tono:TONO_AV(r.f.avance), sub:'Objetivo ' + fK(r.f.objetivo,'€') + (p ? dpp(r.f.avance, p.f.avance) : '') }),
+      K('Cobranza YTD', WK.pct(r.c.avance), { tono:TONO_AV(r.c.avance), sub:'Objetivo ' + fK(r.c.objetivo,'€') + (p ? dpp(r.c.avance, p.c.avance) : '') }),
+      K('Cartera vencida', fK(r.venc,'€'), { tono:tV, sub:'de ' + fK(r.cart,'€') + ' en cartera' + (p ? dl(r.venc, p.venc, 'down', x => fK(x,'€')) : '') }),
+      K('Zona crítica +6m', WK.pct(r.pc), { tono:tC, sub:'del vencido' + (p ? dpp(r.pc, p.pc, 'down') : '') })
+    ] };
+ }},
+ { id:'ventas', ico:'💼', nombre:'Ventas & Pipeline', href:'/wbr-ventas.html', owner:'ventas', color:'#3D5BFF', data:'ventas', fn(H){
+    const V = h => (h.ventas||[]).find(v => String(v.nombre).toLowerCase().includes('totales')) || (h.ventas||[])[0] || {}, P = h => (h.pipeline||[]).find(v => String(v.nombre).toLowerCase().includes('total')) || (h.pipeline||[])[0] || {};
+    const v = V(last(H)), pp = P(last(H)), pv = H.length > 1 ? V(prev(H)) : null, ppp = H.length > 1 ? P(prev(H)) : null;
+    const mult = pp.targetCQ ? pp.resultadoCQ / pp.targetCQ : 0, al = [];
+    [['Ventas YTD', v.pctYTD], ['Ventas del trimestre', v.pctCQ], ['Forecast vs. meta del trimestre', v.pctFCST]].forEach(([t, x]) => { if(x != null && x < .6) al.push({ tono:'red', texto:t + ' al ' + WK.pct(x) + ' de la meta' }); else if(x != null && x < .85) al.push({ tono:'amber', texto:t + ' al ' + WK.pct(x) + ' de la meta' }); });
+    if(pp.targetCQ && mult < 2) al.push({ tono: mult < 1 ? 'red' : 'amber', texto:'Pipeline del trimestre en ' + (Math.round(mult*10)/10) + 'x la meta' });
+    return { fecha:last(H).fechaRevision, alertas:al, serie:H.map(h => P(h).resultadoCQ), serieTxt:'Pipeline del trimestre · últimos ' + H.length + ' cortes', kpis:[
+      K('Ventas YTD', WK.pct(v.pctYTD), { tono:TONO_AV(v.pctYTD), sub:'Meta anual ' + fK(v.targetAnual,'$') + (pv ? dpp(v.pctYTD, pv.pctYTD) : '') }),
+      K('Trimestre actual', WK.pct(v.pctCQ), { tono:TONO_AV(v.pctCQ), sub:'Meta ' + fK(v.targetCQ,'$') + (pv ? dpp(v.pctCQ, pv.pctCQ) : '') }),
+      K('Forecast vs. meta', WK.pct(v.pctFCST), { tono:TONO_AV(v.pctFCST), sub:'To go ' + fK(v.togo,'$') + (pv ? dpp(v.pctFCST, pv.pctFCST) : '') }),
+      K('Pipeline (CQ)', fK(pp.resultadoCQ,'$'), { tono:TONO_AV(mult), sub:(Math.round(mult*10)/10) + 'x la meta' + (ppp ? dl(pp.resultadoCQ, ppp.resultadoCQ, 'up', x => fK(x,'$')) : '') })
+    ] };
+ }},
+ { id:'operaciones', ico:'⚙️', nombre:'Operaciones', href:'/wbr-operaciones.html', owner:'operaciones', color:'#3DD6FF', data:'operaciones', fn(H){
+    const S = (h, k) => (h.porLob||[]).reduce((s,l) => s + (Number(l[k])||0), 0);
+    const tP = S(last(H),'proyectos'), tD = S(last(H),'conDesvio'), tR = S(last(H),'conRiesgo'), tGA = S(last(H),'goLiveAnual'), tGQ = S(last(H),'goLiveQ');
+    const pD = pctDe(tD, tP), pR = pctDe(tR, tP), pr = H.length > 1 ? prev(H) : null;
+    const pP = pr ? S(pr,'proyectos') : null, pDp = pr ? pctDe(S(pr,'conDesvio'), pP) : null, pRp = pr ? pctDe(S(pr,'conRiesgo'), pP) : null;
+    const al = [];
+    if(pD != null && pD > .15) al.push({ tono: pD > .3 ? 'red' : 'amber', texto: pl(tD, 'proyecto', 'proyectos') + ' con desvío (' + WK.pct(pD) + ' del total)' });
+    if(pR != null && pR > .15) al.push({ tono: pR > .3 ? 'red' : 'amber', texto: pl(tR, 'proyecto', 'proyectos') + ' con riesgo (' + WK.pct(pR) + ' del total)' });
+    return { fecha:last(H).fechaRevision, alertas:al, serie:H.map(h => S(h,'proyectos')), serieTxt:'Proyectos activos · últimos ' + H.length + ' cortes', kpis:[
+      K('Proyectos activos', WK.num(tP), { tono:'cyan', sub:(last(H).porLob||[]).length + ' LOB' + (pr ? dl(tP, pP, null) : '') }),
+      K('Con desvío', WK.num(tD), { tono:TONO_RIESGO(pD), sub:WK.pct(pD) + ' del total' + (pr ? dpp(pD, pDp, 'down') : '') }),
+      K('Con riesgo', WK.num(tR), { tono:TONO_RIESGO(pR), sub:WK.pct(pR) + ' del total' + (pr ? dpp(pR, pRp, 'down') : '') }),
+      K('Go-Live trimestre', WK.num(tGQ), { tono:'green', sub:'de ' + WK.num(tGA) + ' en el año' + (pr ? dl(tGQ, S(pr,'goLiveQ'), 'up') : '') })
+    ] };
+ }},
+ { id:'bx', ico:'✨', nombre:'Business Experience', href:'/wbr-bx.html', owner:'bx', color:'#FF7AC6', data:'bx', fn(H){
+    const k = last(H).kpis; if(!k) return { vacio:'El último corte no trae indicadores calculados. Ábrelo y vuelve a guardarlo.' };
+    const pk = H.length > 1 ? prev(H).kpis : null, semT = k.verdes + k.amarillos + k.rojos;
+    const tonoSem = !k.clientes ? 'cyan' : (k.rojos ? 'red' : ((semT && k.verdes/semT >= .75) ? 'green' : (k.amarillos ? 'amber' : 'green')));
+    const al = [];
+    if(k.altas) al.push({ tono:'red', texto: pl(k.altas, 'escalación', 'escalaciones') + ' de riesgo alto' });
+    if(k.churn) al.push({ tono:'red', texto: pl(k.churn, 'cliente', 'clientes') + ' en riesgo de abandono' + (k.montoChurn ? ' · ' + WK.usd(k.montoChurn) + ' USD' : '') });
+    if(k.rojos) al.push({ tono:'amber', texto: pl(k.rojos, 'cliente', 'clientes') + ' en rojo en el semáforo de relación' });
+    return { fecha:last(H).fechaRevision, alertas:al, serie:H.map(h => h.kpis ? h.kpis.seguimiento : null), serieTxt:'Oportunidades en seguimiento · últimos ' + H.length + ' cortes', kpis:[
+      K('Clientes tocados', WK.num(k.clientes), { tono:tonoSem, sub:[k.verdes ? k.verdes + ' verde' : '', k.amarillos ? k.amarillos + ' amarillo' : '', k.rojos ? k.rojos + ' rojo' : ''].filter(Boolean).join(' · ') || 'Sin interacciones' }),
+      K('Riesgos de churn', k.montoChurn ? fU(k.montoChurn) : WK.num(k.churn), { tono:k.churn ? 'red' : 'green', sub: k.churn ? pl(k.churn, 'cliente en riesgo', 'clientes en riesgo') : 'Sin riesgos reportados' }),
+      K('Escalaciones', WK.num(k.escalaciones), { tono: k.altas ? 'red' : (k.escalaciones ? 'amber' : 'green'), sub: k.altas ? k.altas + ' de riesgo alto' : 'Ninguna de riesgo alto', }),
+      K('En seguimiento', WK.num(k.seguimiento), { tono:'cyan', sub:'Oportunidades' + (pk ? dl(k.seguimiento, pk.seguimiento, 'up') : '') })
+    ] };
+ }},
+ { id:'ccflex', ico:'💳', nombre:'CCFlex', href:'/wbr-ccflex.html', owner:'ccflex', color:'#8B7CFF', data:'ccflex', fn(H){
+    const QS = ['q1','q2','q3','q4'], norm = WK.norm;
+    const fila = (b, c) => (b||[]).find(f => norm(String(f.concepto||'')).includes(c)) || { aa:0, q1:0, q2:0, q3:0, q4:0, total:0 };
+    const tot = f => f.total ? f.total : (f.aa||0) + QS.reduce((a,q) => a + (f[q]||0), 0);
+    const R = h => { const o = {}; [['cs', h.cs], ['ao', h.ao]].forEach(([k, b]) => { o[k] = { vendido:tot(fila(b,'vendido')), comision:tot(fila(b,'comision')), pagado:tot(fila(b,'pagado')), pendiente:tot(fila(b,'pend')) }; }); return o; };
+    const r = R(last(H)), p = H.length > 1 ? R(prev(H)) : null, pend = r.cs.pendiente + r.ao.pendiente, pc = r.cs.comision ? r.cs.pagado / r.cs.comision : 0;
+    const tCob = pc >= .7 ? 'green' : (pc >= .4 ? 'amber' : 'red'), al = [];
+    if(r.cs.comision && pc < .7) al.push({ tono: pc < .4 ? 'red' : 'amber', texto:'Cobranza C&S al ' + WK.pct(pc) + ' de la comisión · pendiente ' + fU(pend) });
+    return { fecha:last(H).fechaRevision, alertas:al, serie:H.map(h => { const x = R(h); return x.cs.vendido + x.ao.vendido; }), serieTxt:'Vendido total (TCV) · últimos ' + H.length + ' cortes', kpis:[
+      K('Vendido C&S', fU(r.cs.vendido), { tono:'violet', sub:'TCV 2026' + (p ? dl(r.cs.vendido, p.cs.vendido, 'up', fU) : '') }),
+      K('Vendido A&O', fU(r.ao.vendido), { tono:'cyan', sub:'TCV 2026' + (p ? dl(r.ao.vendido, p.ao.vendido, 'up', fU) : '') }),
+      K('Cobrado C&S', WK.pct(pc), { tono:r.cs.comision ? tCob : 'cyan', sub:'Pagado ' + fU(r.cs.pagado) + ' de ' + fU(r.cs.comision) }),
+      K('Pendiente SAP', fU(pend), { tono:'amber', sub:'C&S ' + fU(r.cs.pendiente) + ' · A&O ' + fU(r.ao.pendiente) })
+    ] };
+ }},
+ { id:'marketing', ico:'📈', nombre:'Marketing', href:'/wbr-marketing.html', owner:'marketing', color:'#5B8CFF', data:'marketing', fn(H){
+    const m = last(H), p = H.length > 1 ? prev(H) : null, r = m.resumen;
+    if(!r) return { fecha:m.fechaCorte, vacio:'El corte no trae resumen. Ábrelo en el tablero.' };
+    const al = [];
+    if(p && p.resumen && p.resumen.pipeline) { const ch = r.pipeline / p.resumen.pipeline - 1; if(ch <= -.1) al.push({ tono:'red', texto:'El pipeline abierto cayó ' + Math.abs(Math.round(ch*100)) + '% contra el corte anterior (' + fU(p.resumen.pipeline) + ' → ' + fU(r.pipeline) + ')' }); else if(ch <= -.04) al.push({ tono:'amber', texto:'El pipeline abierto bajó ' + Math.abs(Math.round(ch*100)) + '% contra el corte anterior' }); }
+    const ch = p && p.resumen && p.resumen.pipeline ? r.pipeline / p.resumen.pipeline - 1 : null;
+    return { fecha:m.fechaCorte, alertas:al, serie:H.map(h => h.resumen ? h.resumen.pipeline : null), serieTxt:'Pipeline abierto · últimos ' + H.length + ' cortes', kpis:[
+      K('Pipeline abierto', fU(r.pipeline), { tono: ch == null ? 'cyan' : (ch <= -.1 ? 'red' : (ch < 0 ? 'amber' : 'green')), sub:'USD' + (p && p.resumen ? dl(r.pipeline, p.resumen.pipeline, 'up', fU) : '') }),
+      K('Oportunidades abiertas', WK.num(r.abiertas), { tono:'cyan', sub:'En HubSpot' + (p && p.resumen ? dl(r.abiertas, p.resumen.abiertas, 'up') : '') }),
+      K('Registros del corte', WK.num(m.registros), { tono:'violet', sub:'Export HubSpot' }),
+      K('Cortes guardados', WK.num(H.length), { tono:'cyan', sub:'Últimos 12 en historial' })
+    ] };
+ }},
+ { id:'cta', ico:'✅', nombre:'Call to Action', href:'/wbr-cta.html', owner:'cta', color:'#2FE29B', data:'cta', fn(H){
+    const cat = e => { const s = String(e||'').toLowerCase(); return (s.includes('complet')||s.includes('cerrad')||s.includes('listo')) ? 'comp' : ((s.includes('proceso')||s.includes('curso')||s.includes('avance')) ? 'proc' : 'pend'); };
+    const f = new Date(last(H).fechaRevision), hoy = Date.UTC(f.getFullYear(), f.getMonth(), f.getDate());
+    const hoyReal = (d => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))(new Date());
+    const A = (last(H).acciones||[]).map(a => { const c = cat(a.estatus), ts = WK.fechaTs(a.fecha), ab = c !== 'comp'; return Object.assign({}, a, { c, ts, ab, venc: ab && ts != null && ts < hoyReal }); });
+    const N = A.length; if(!N) return { fecha:last(H).fechaRevision, vacio:'Sin acciones capturadas en el último corte.' };
+    const comp = A.filter(a => a.c === 'comp').length, proc = A.filter(a => a.c === 'proc').length, pend = N - comp - proc, venc = A.filter(a => a.venc), pct = comp / N;
+    const prox = A.filter(a => a.ab && a.ts != null && a.ts >= hoyReal).sort((x, y) => x.ts - y.ts)[0];
+    const al = []; if(venc.length) al.push({ tono:'red', texto: pl(venc.length, 'acción vencida', 'acciones vencidas') + (venc[0].responsable ? ' · ' + venc.slice(0,3).map(a => a.responsable || 'Sin responsable').filter((x,i,s) => s.indexOf(x) === i).join(', ') : '') });
+    const ant = H.length > 1 ? prev(H) : null, pc = ant && (ant.acciones||[]).length ? ant.acciones.filter(a => cat(a.estatus) === 'comp').length / ant.acciones.length : null;
+    return { fecha:last(H).fechaRevision, alertas:al, serie:H.map(h => (h.acciones||[]).length ? h.acciones.filter(a => cat(a.estatus) === 'comp').length / h.acciones.length * 100 : null), serieTxt:'% cumplimiento · últimos ' + H.length + ' cortes', kpis:[
+      K('Cumplimiento', Math.round(pct*100) + '%', { tono: pct >= .75 ? 'green' : (pct >= .4 ? 'amber' : 'red'), sub: comp + ' de ' + N + ' completadas' + (pc != null ? dpp(pct, pc, 'up') : '') }),
+      K('Acciones', WK.num(N), { tono:'cyan', sub: comp + ' comp · ' + proc + ' proceso · ' + pend + ' pend' }),
+      K('Vencidas', WK.num(venc.length), { tono: venc.length ? 'red' : 'green', sub: venc.length ? 'Abiertas con fecha pasada' : 'Todo al corriente' }),
+      K('Próx. vencimiento', prox ? Math.round((prox.ts - hoyReal)/864e5) : '—', { tono:'violet', unit: prox ? 'días' : '', sub: prox ? esc(String(prox.accion).slice(0, 38)) + (String(prox.accion).length > 38 ? '…' : '') : 'Sin fechas por venir' })
+    ] };
+ }},
+ { id:'anuncios', ico:'📣', nombre:'Anuncios', href:'/wbr-anuncios.html', owner:'anuncios', color:'#FF9D5C', data:'anuncios', fn(H){
+    const a = last(H), l = a.anuncios || [];
+    return { fecha:a.fechaRevision, alertas:[], lista:l, kpis:[] };
+ }}
+];
+
+/* ---------- estado y render ---------- */
+let DATA = null, ESTADO = {};
+const dias = iso => { if(!iso) return null; const d = new Date(String(iso).length === 10 ? iso + 'T12:00:00' : iso); return isNaN(d) ? null : Math.floor((Date.now() - d.getTime()) / 864e5); };
+function frescura(d){ if(d == null) return { c:'n', t:'Sin fecha' }; if(d <= 9) return { c:'g', t: d <= 0 ? 'Al día · hoy' : 'Al día · hace ' + d + ' d' }; if(d <= 16) return { c:'a', t:'Hace ' + d + ' días' }; return { c:'r', t:'Desactualizado · ' + d + ' d' }; }
+
+function evaluar(){
+  ESTADO = {};
+  BOARDS.forEach(b => {
+    const H = DATA && DATA[b.data];
+    if(DATA && DATA.__sinAcceso) { ESTADO[b.id] = { sin:'acceso' }; return; }
+    if(!H || !H.length) { ESTADO[b.id] = { sin:'datos' }; return; }
+    try { ESTADO[b.id] = b.fn(H); } catch(e) { console.error(b.id, e); ESTADO[b.id] = { sin:'error' }; }
+  });
+}
+
+function tonoPanel(e){ const t = (e.kpis||[]).map(k => k.tono); return t.includes('red') ? 'red' : (t.includes('amber') ? 'amber' : (t.includes('green') ? 'green' : 'cyan')); }
+const COL = { red:'rgba(255,92,122,.40)', amber:'rgba(255,200,87,.34)', green:'rgba(47,226,155,.34)', cyan:'rgba(61,214,255,.34)' };
+const COLOR_SP = { red:'#FF5C7A', amber:'#FFC857', green:'#2FE29B', cyan:'#3DD6FF' };
+
+function countUp(root){
+  root.querySelectorAll('[data-n]').forEach(el => {
+    const fin = +el.getAttribute('data-n'), suf = el.getAttribute('data-s') || '', t0 = performance.now(), dur = 1300;
+    (function paso(t){ const p = Math.min(1, (t - t0)/dur), e = 1 - Math.pow(1 - p, 3); el.innerHTML = Math.round(fin*e) + suf; if(p < 1) requestAnimationFrame(paso); })(t0);
+  });
+}
+
+function renderTop(){
+  const todos = BOARDS.filter(b => ESTADO[b.id] && ESTADO[b.id].kpis).flatMap(b => ESTADO[b.id].kpis);
+  const g = todos.filter(k => k.tono === 'green').length, a = todos.filter(k => k.tono === 'amber').length, r = todos.filter(k => k.tono === 'red').length;
+  const tot = g + a + r, sal = tot ? g / tot : 0, tono = sal >= .7 ? 'green' : (sal >= .45 ? 'amber' : 'red');
+  const etiqueta = !tot ? 'Sin datos' : (sal >= .7 ? 'Saludable' : (sal >= .45 ? 'En atención' : 'En alerta'));
+  const col = COLOR_SP[tono], C = 2*Math.PI*78;
+  const ests = BOARDS.map(b => ESTADO[b.id]).filter(e => e && e.fecha !== undefined);
+  const alDia = ests.filter(e => { const d = dias(e.fecha); return d != null && d <= 9; }).length;
+  const alertas = BOARDS.flatMap(b => ((ESTADO[b.id] && ESTADO[b.id].alertas) || []).map(x => Object.assign({ b }, x))).sort((x, y) => (x.tono === 'red' ? 0 : 1) - (y.tono === 'red' ? 0 : 1));
+  BOARDS.forEach(b => { const e = ESTADO[b.id]; if(e && e.fecha !== undefined){ const d = dias(e.fecha); if(d != null && d > 16) alertas.push({ b, tono:'amber', texto:'El tablero lleva ' + d + ' días sin actualizarse' }); } });
+  const ordenadas = alertas.sort((x, y) => (x.tono === 'red' ? 0 : 1) - (y.tono === 'red' ? 0 : 1));
+  const lst = ordenadas.length ? ordenadas.slice(0, 10).map((x, i) => '<a class="cm-a ' + x.tono + '" href="' + x.b.href + '" style="animation-delay:' + (i*70) + 'ms"><i></i><span>' + esc(x.texto) + '</span><em>' + x.b.ico + ' ' + esc(x.b.nombre) + '</em></a>').join('') : '<div class="cm-ok"><div class="big">🟢</div>Sin alertas: todos los indicadores están dentro de rango.</div>';
+  document.getElementById('cmTop').innerHTML = '<div class="cm-top">' +
+    '<div class="cm-box cm-pulse"><p class="cm-lbl" style="align-self:flex-start">Pulso de la empresa</p>' +
+      '<div class="cm-ring"><svg viewBox="0 0 200 200"><g class="orb"><circle cx="100" cy="100" r="96" fill="none" stroke="rgba(143,230,255,.35)" stroke-width="1" stroke-dasharray="2 9"/></g><g class="orb2"><circle cx="100" cy="100" r="88" fill="none" stroke="rgba(143,230,255,.22)" stroke-width="1" stroke-dasharray="26 14 4 14"/></g>' +
+      '<circle cx="100" cy="100" r="78" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/>' +
+      '<circle class="arc" id="cmArc" cx="100" cy="100" r="78" fill="none" stroke="' + col + '" style="color:' + col + '" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + C.toFixed(1) + '" transform="rotate(-90 100 100)" data-to="' + (C*(1 - sal)).toFixed(1) + '"/></svg>' +
+      '<div class="mid"><b data-n="' + Math.round(sal*100) + '" data-s="<small>%</small>">0<small>%</small></b><span style="color:' + col + '">' + etiqueta + '</span></div></div>' +
+      '<div class="cm-cnts"><div class="cm-cnt g"><b>' + g + '</b><small>En meta</small></div><div class="cm-cnt a"><b>' + a + '</b><small>Atención</small></div><div class="cm-cnt r"><b>' + r + '</b><small>Alerta</small></div></div>' +
+      '<div class="cm-fresh"><b>' + alDia + ' de ' + ests.length + '</b> tableros con corte de la última semana</div></div>' +
+    '<div class="cm-box"><p class="cm-lbl">Requiere atención · ' + (ordenadas.length ? ordenadas.length + (ordenadas.length === 1 ? ' señal' : ' señales') : 'todo en orden') + '</p><div class="cm-al">' + lst + '</div></div></div>';
+  requestAnimationFrame(() => { const arc = document.getElementById('cmArc'); if(arc) setTimeout(() => arc.setAttribute('stroke-dashoffset', arc.getAttribute('data-to')), 60); });
+}
+
+function renderPanel(b, i){
+  const e = ESTADO[b.id] || {}, tono = tonoPanel(e);
+  const head = (chip) => '<div class="cm-ph"><div class="ic">' + b.ico + '</div><div><h3>' + esc(b.nombre) + '</h3><small id="o-' + b.id + '"></small></div>' + chip + '</div>';
+  let cuerpo, chip = '';
+  if(e.sin){
+    const msg = { acceso:'No tienes acceso a los datos de los tableros.', datos:'Todavía no hay cortes cargados en este tablero.', error:'No se pudo leer el último corte.' }[e.sin];
+    cuerpo = '<div class="cm-empty"><div class="big">📭</div>' + msg + '</div>'; chip = '<span class="cm-chip n">Sin datos</span>';
+  } else {
+    const fr = frescura(dias(e.fecha)); chip = '<span class="cm-chip ' + fr.c + '" data-tip="Fecha del último corte: ' + esc(WK.fecha(String(e.fecha).length === 10 ? e.fecha : new Date(e.fecha)) || '—') + '">' + fr.t + '</span>';
+    if(e.vacio) cuerpo = '<div class="cm-empty">' + esc(e.vacio) + '</div>';
+    else if(e.lista) cuerpo = e.lista.length ? '<ul class="cm-lst">' + e.lista.slice(0, 4).map(t => '<li>' + esc(t.length > 150 ? t.slice(0, 149) + '…' : t) + '</li>').join('') + '</ul>' + (e.lista.length > 4 ? '<div class="cm-sp"><span>+ ' + (e.lista.length - 4) + ' anuncio(s) más</span><span class="go">Ver todos →</span></div>' : '<div class="cm-sp"><span class="go">Abrir tablero →</span></div>') : '<div class="cm-empty">Sin anuncios en el último corte.</div>';
+    else {
+      const sp = (e.serie || []).filter(v => v != null);
+      cuerpo = '<div class="cm-k">' + e.kpis.map(k => '<div class="cm-kt ' + (k.tono || '') + '"><span class="l">' + esc(k.label) + '</span><span class="v">' + k.value + (k.unit ? '<small>' + esc(k.unit) + '</small>' : '') + '</span><span class="s">' + (k.sub || '') + '</span></div>').join('') + '</div>' +
+        '<div class="cm-sp">' + (sp.length > 1 ? WK.spark(sp, { w:120, h:34, color:COLOR_SP[tono] }) + '<span>' + esc(e.serieTxt || '') + '</span>' : '<span>La tendencia aparece desde el segundo corte.</span>') + '<span class="go">Abrir tablero →</span></div>';
+    }
+  }
+  return '<a class="cm-p" href="' + b.href + '" style="--pc:' + COL[tono] + ';animation-delay:' + (i*80) + 'ms">' + head(chip) + cuerpo + '</a>';
+}
+
+function ownersLinea(){
+  BOARDS.forEach(b => { const el = document.getElementById('o-' + b.id), cfg = WK.OWNERS && WK.OWNERS[b.owner]; if(!el || !cfg) return; const eq = cfg.equipo; el.textContent = eq ? eq.map(p => p.nombre).join(' · ') : (cfg.nombre ? cfg.nombre + ' · ' + cfg.cargo : 'Dueño por asignar'); });
+}
+
+function pinta(){
+  evaluar(); renderTop();
+  document.getElementById('cmGrid').innerHTML = BOARDS.map(renderPanel).join('');
+  ownersLinea(); countUp(document.body);
+  const gen = DATA && DATA.generado ? new Date(DATA.generado) : new Date();
+  document.getElementById('cmFoot').innerHTML = 'Datos al ' + WK.hora(gen.toISOString()) + ' · Se actualiza solo cada 5 minutos · El <a href="/wbr-vop.html">Tablero VOP</a> es por oportunidad y se consulta directamente en su página.';
+}
+
+async function cargar(btn){
+  if(btn) btn.textContent = '⟳ Actualizando…';
+  try{
+    const r = await fetch('/api/wbr-ejecutivo', { cache:'no-store' });
+    if(r.status === 401 || r.status === 403){ DATA = { __sinAcceso:true }; }
+    else { const d = await r.json(); DATA = d && d.ok ? d : { __sinAcceso:true }; }
+  }catch(e){ DATA = DATA || { __sinAcceso:true }; }
+  pinta();
+  if(btn) btn.textContent = '⟳ Actualizar';
+}
+function reloj(){
+  const d = new Date(), dias = ['DOM','LUN','MAR','MIE','JUE','VIE','SAB'], mes = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  document.getElementById('cmReloj').textContent = dias[d.getDay()] + ' ' + d.getDate() + ' ' + mes[d.getMonth()] + ' · ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+document.getElementById('cmRef').addEventListener('click', function(){ cargar(this); });
+window.WK_SEND_READY = () => !!DATA && !DATA.__sinAcceso;
+reloj(); setInterval(reloj, 30000); cargar(); setInterval(cargar, 300000);
+</script>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

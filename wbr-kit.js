@@ -704,6 +704,7 @@ function wiRender(id, root){
 WK.OWNERS = {
   finanzas:{ nombre:'Mauricio Reyes', cargo:'CFO', rol:'Finanzas' }, ventas:{ nombre:'Omar Dávila', cargo:'Director Comercial', rol:'Ventas & Pipeline', foto:'/assets/owners/omar.png' }, operaciones:{ nombre:'Yurima Choco', cargo:'Directora de Operaciones', rol:'Operaciones', foto:'/assets/owners/yurima.png' },
   productos:{ nombre:'Omar Dávila', cargo:'Director Comercial', rol:'Target clientes', foto:'/assets/owners/omar.png' }, ccflex:{ rol:'CC Flex' }, bx:{ nombre:'María Flores', cargo:'Gerente de BX', rol:'Business Experience', foto:'/assets/owners/maria.png' },
+  ejecutivo:{ nombre:'Paul Sirrs', cargo:'CEO', rol:'Centro de Mando', foto:'/assets/owners/paul.png' },
   marketing:{ nombre:'Nasarid Ramirez', cargo:'Gerente de Marketing', rol:'Marketing', foto:'/assets/owners/nasarid.png' },
   anuncios:{ nombre:'Paul Sirrs', cargo:'CEO', rol:'Anuncios', foto:'/assets/owners/paul.png' }, cta:{ nombre:'Angel Aiza', cargo:'Director de Estrategia y Procesos', rol:'Call to Action', foto:'/assets/owners/angel.png' }, vop:{ rol:'VOP', equipo:[ { nombre:'Omar Dávila', cargo:'Director Comercial', foto:'/assets/owners/omar.png' }, { nombre:'Yurima Choco', cargo:'Directora de Operaciones', foto:'/assets/owners/yurima.png' }, { nombre:'Samuel Aiza', cargo:'Presales Manager', foto:'/assets/owners/sam.png' } ] }, presales:{ rol:'Tablero de control', etiqueta:'Solution Engineers', equipo:[ { nombre:'Gustavo Najar', cargo:'Solution Engineer', foto:'/assets/owners/gustavo.png' }, { nombre:'Rocío Anaya', cargo:'Solution Engineer', foto:'/assets/owners/rocio.png' }, { nombre:'Samuel Aiza', cargo:'Presales Manager', foto:'/assets/owners/sam.png' } ] },
   baseinstalada:{ nombre:'Daniela Flores', cargo:'Cultura y Business Experience', rol:'Base Instalada', foto:'/assets/owners/daniela.png' }
@@ -881,7 +882,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
     return pdf.output('datauristring');
   }
   function fondoDe(el){ while(el){ var c = getComputedStyle(el).backgroundColor, m = c && c.match(/[\d.]+/g); if(m && m.length >= 3 && !(m.length >= 4 && +m[3] === 0) && c !== 'rgba(0, 0, 0, 0)') return [+m[0], +m[1], +m[2]]; el = el.parentElement; } return [10,18,38]; }
-  var SEL_BLOQUES = '.wk-kpis,.wk-hero-grid,.wk-card,.wk-band,.wk-callout,.card,.kpis,.kpi,.verdict,.ins,.g2,.g3,.top,.health,.srcdist,.funnelwrap,.vstates,header,section,article';
+  var SEL_BLOQUES = '.cm-p,.cm-box,.wk-kpis,.wk-hero-grid,.wk-card,.wk-band,.wk-callout,.card,.kpis,.kpi,.verdict,.ins,.g2,.g3,.top,.health,.srcdist,.funnelwrap,.vstates,header,section,article';
   var OCULTOS = '.wk-sendbar,.wk-sm,.toast,.wk-tip,.topnav,.wk-nav,#peModal,.pm,nav.topnav,.nav-dropdown-menu';
   // Captura un elemento a lienzo: sin zoom, sin animaciones de entrada, ancho fijo para que todos los PDFs se vean igual.
   async function cap(el, o){
@@ -895,7 +896,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
     var opts = { scale:sc, backgroundColor:'rgb(' + fondo.join(',') + ')', useCORS:true, logging:false, windowWidth:1400, scrollX:0, scrollY:-window.scrollY,
       ignoreElements:function(n){ return n.matches && n.matches(OCULTOS); },
       onclone:function(doc){
-        var st = doc.createElement('style'); st.textContent = '*{animation:none!important;transition:none!important}.wk-rv{opacity:1!important;transform:none!important}[data-wk-cap]{width:1400px!important;max-width:1400px!important}'; doc.head.appendChild(st);
+        var st = doc.createElement('style'); st.textContent = '*{animation:none!important;transition:none!important}.cm-al{max-height:none!important;overflow:visible!important}.wk-rv,.cm-a,a.cm-p{opacity:1!important;transform:none!important}[data-wk-cap]{width:1400px!important;max-width:1400px!important}'; doc.head.appendChild(st);
         doc.querySelectorAll('.wk-main').forEach(function(m){ m.style.zoom = ''; });
         doc.querySelectorAll(OCULTOS).forEach(function(n){ n.style.display = 'none'; });
         doc.querySelectorAll('.wk-card,.wk-band,.wk-callout').forEach(function(n){ var t = (n.textContent || '').slice(0, 90); if(/simulador|simular/i.test(t) || (n.matches('.wk-card') && n.querySelector('[data-wi],[data-wi-root],input[type=range]'))) n.style.display = 'none'; });
