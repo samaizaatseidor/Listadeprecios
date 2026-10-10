@@ -249,6 +249,27 @@
 #pe .pe-empty{text-align:center;padding:60px 20px}
 #pe .pe-empty h2{margin:0 0 8px;font-size:20px}
 #pe .pe-empty p{color:var(--ink2);max-width:520px;margin:0 auto 6px}
+#pe .kpi[data-kpi],#pe .h[data-h]{cursor:pointer;transition:transform .12s,box-shadow .12s}
+#pe .kpi[data-kpi]:hover,#pe .h[data-h]:hover{transform:translateY(-2px);box-shadow:0 0 0 1px var(--accent) inset}
+#pe .lgb{display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;color:var(--ink2);font-size:11.5px;cursor:pointer;padding:3px 7px;border-radius:6px}
+#pe .lgb:hover,#pe .lgb.sel{background:var(--pos-bg);color:var(--ink)}
+#pe .lgb i{width:10px;height:10px;border-radius:2px;display:block}
+#pe .pm{position:fixed;inset:0;background:rgba(3,8,22,.74);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px;overflow:auto}
+#pe .pm-box{background:var(--card);border:1px solid var(--line);border-radius:14px;max-width:1120px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+#pe .pm-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 20px 12px;border-bottom:1px solid var(--line)}
+#pe .pm-h h2{margin:0;font-size:17px} #pe .pm-h p{margin:3px 0 0}
+#pe .pm-x{border:1px solid var(--line);background:transparent;border-radius:8px;width:32px;height:32px;cursor:pointer;color:var(--ink2)}
+#pe .pm-b{padding:14px 20px 18px}
+#pe .pm-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+#pe .pm-tab{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 13px;font-size:12px;cursor:pointer;color:var(--ink2)}
+#pe .pm-tab[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+#pe .pm-by{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+#pe .pm-chip{background:var(--line2);border-radius:999px;padding:3px 10px;font-size:11.5px;color:var(--ink2)} #pe .pm-chip b{color:var(--ink)}
+#pe .pm-s{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0 6px;flex-wrap:wrap}
+#pe .pm-s input{height:32px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:0 10px;min-width:260px;font-size:12px}
+#pe .pm-tw{max-height:52vh;overflow:auto}
+#pe .pm-tw thead th{position:sticky;top:0;background:var(--card);z-index:1}
+#pe .pm a{color:var(--accent);text-decoration:none} #pe .pm a:hover{text-decoration:underline}
 #pe .pe-banner{background:#3A2E10;color:#FFD98A;border:1px solid #6B5416;border-radius:10px;padding:9px 14px;font-size:12.5px;margin-bottom:10px}
 #pe .pe-det{border-bottom:1px solid var(--line2);padding:8px 0}
 #pe .pe-det summary{cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -390,6 +411,7 @@
   <input type="file" id="file" accept=".xlsx,.xls,.csv" hidden>
 </div>
 <div id="peBanner"></div>
+<div id="peModal" hidden></div>
 <div class="card pe-empty" id="peEmpty" hidden><h2>Aún no hay datos de Marketing</h2><p>Carga el export de HubSpot (MX_PIPE) con el botón “Cargar / actualizar datos”. También puedes cargar el Excel “Dashboard Ventas by LOB” para actualizar los targets.</p></div>
 <div class="fbar">
   <div class="frow" id="filters"></div>
@@ -749,7 +771,7 @@ function nextQ(){ const ci = qIdx(S.asOf), endCur = endOf(addD(qStart(ci+1),-1))
 const charts = {};
 function chart(id){ const el = document.getElementById(id); if(!el || el.closest('[hidden]')) return null; let c = charts[id]; if(c && c.getDom() !== el){ c.dispose(); c = null; } if(!c){ c = echarts.init(el, null, { renderer:'svg' }); charts[id] = c; } return c; }
 function baseOpt(){ return { textStyle:{ fontFamily:"Poppins, Arial, sans-serif", color: css('--ink2') }, animationDuration: 350,
-  tooltip:{ backgroundColor: '#07153A', borderWidth:0, textStyle:{ color:'#EAF1FF', fontSize:12 }, confine:true } }; }
+  tooltip:{ backgroundColor: '#07153A', borderWidth:0, textStyle:{ color:'#EAF1FF', fontSize:12 }, confine:false, extraCssText:'pointer-events:none;max-width:380px;white-space:normal;', transitionDuration:0, position: peTipPos } }; }
 const axisStyle = () => ({ axisLine:{ lineStyle:{ color: css('--line') } }, axisTick:{ show:false }, axisLabel:{ color: css('--ink3'), fontSize:11 }, splitLine:{ lineStyle:{ color: css('--line2') } } });
 
 function render(){
@@ -760,7 +782,7 @@ function render(){
   document.querySelectorAll('#pe .pe-tools .seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.p === S.period));
   $('#foot').textContent = `Fuente: HubSpot · export MX_PIPE (${S.rows.length.toLocaleString('es-MX')} registros). Montos en USD. Tendencias semanales reconstruidas con fechas de creación y cierre hasta contar con snapshots semanales. `;
   const v = S.view;
-  if(v === 'resumen'){ renderResumen(R); peInsightRender(); }
+  if(v === 'resumen'){ renderResumen(R); peInsightRender(); peBindDrill(); }
   if(v === 'apuestas') renderApuestas(R);
   if(v === 'motores') renderMotores(R);
   if(v === 'cambios') renderCambios(R);
@@ -875,7 +897,7 @@ function renderResumen(R){
   k.push({ id:'ib', lb:'6 · IB Penetration', val:'Dato pendiente', muted:true, sb:`Proxy: ${openV ? pct(ib/openV) : '—'} del pipeline es IB`, dl: chip('Falta ID de cuenta', 'neu'), sp: spark(serIB, css('--ib')), tip:'Cuentas de Installed Base con pipeline activo ÷ clientes activos. No calculable: el export no trae ID de empresa ni hay maestro de clientes activos. Mientras tanto se muestra la participación de IB en el pipeline abierto.' });
   const wd = (wr.n - pwr.n)*100;
   k.push({ id:'wr', lb:'7 · Win Rate', val: wr.dec ? pct(wr.n) : '—', sb:`${wr.w} ganadas / ${wr.l} perdidas · ${pct(wr.v)} en $`, dl: NB || (chip((wd>0?'+':'')+wd.toFixed(0)+' pp', wd >= 0 ? 'pos' : 'neg') + `vs ${pct(pwr.n)} ${P.plbl}`), sp: spark(serWR, acc), tip:'Ganadas ÷ (Ganadas + Perdidas + Canceladas) por fecha de cierre en el periodo, en número. El valor en $ aparece debajo. La línea muestra el win rate móvil de 4 semanas.' });
-  $('#kpis').innerHTML = k.map(x => `<article class="kpi${x.hero ? ' hero' : ''}" aria-label="${esc(x.lb)}"><div class="lb"><span>${x.lb}</span><button type="button" class="info" aria-label="Definición de ${esc(x.lb)}">i<span class="tip" role="tooltip">${esc(x.tip)}</span></button></div><div class="val num${x.muted ? ' muted' : ''}" style="${x.muted ? 'font-size:19px;padding-block:5px' : ''}${x.neg ? ';color:var(--neg-fg)' : ''}">${x.val}</div><div class="sb">${x.sb}</div><div class="dl">${x.dl}</div>${x.sp}</article>`).join('');
+  $('#kpis').innerHTML = k.map(x => `<article class="kpi${x.hero ? ' hero' : ''}" data-kpi="${x.id}" tabindex="0" role="button" aria-label="${esc(x.lb)} · ver detalle" title="Clic para ver el detalle"><div class="lb"><span>${x.lb}</span><button type="button" class="info" aria-label="Definición de ${esc(x.lb)}">i<span class="tip" role="tooltip">${esc(x.tip)}</span></button></div><div class="val num${x.muted ? ' muted' : ''}" style="${x.muted ? 'font-size:19px;padding-block:5px' : ''}${x.neg ? ';color:var(--neg-fg)' : ''}">${x.val}</div><div class="sb">${x.sb}</div><div class="dl">${x.dl}</div>${x.sp}</article>`).join('');
   $('#kpis').querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
 
   // Bridge
@@ -934,7 +956,8 @@ function renderResumen(R){
   $('#srcBars').innerHTML = dist.map(d => `<button type="button" class="sb-row${S.f.src === d.s ? ' sel' : (S.f.src ? ' dim' : '')}" data-s="${esc(d.s)}" aria-pressed="${S.f.src === d.s}"><span class="nm"><i style="background:var(${SRC_VAR[d.s]})"></i>${esc(d.s)}</span><span class="v num">${fm(d.v)}</span><span class="p num">${tot ? pct(d.v/tot) : '—'}</span><span class="tr"><b style="width:${(d.v/mxv*100).toFixed(1)}%;background:var(${SRC_VAR[d.s]})"></b></span><small>${d.n} opps${d.n ? ' · ticket promedio ' + fm(d.v/d.n) : ''}</small></button>`).join('') +
     `<div class="sb-tot num"><span>Total ${esc(P.lbl)}</span><b>${fm(tot)} · ${fs.newN} opps</b></div>`;
   $('#srcBars').querySelectorAll('[data-s]').forEach(b => b.onclick = () => setF('src', b.dataset.s));
-  $('#srcLeg').innerHTML = SOURCES.map(s => `<span><i style="background:var(${SRC_VAR[s]})"></i>${esc(s)}</span>`).join('');
+  $('#srcLeg').innerHTML = SOURCES.map(s => `<button type="button" class="lgb${S.f.src === s ? ' sel' : ''}" data-s="${esc(s)}" aria-pressed="${S.f.src === s}" title="Clic para filtrar por ${esc(s)}"><i style="background:var(${SRC_VAR[s]})"></i>${esc(s)}</button>`).join('');
+  $('#srcLeg').querySelectorAll('[data-s]').forEach(b => b.onclick = () => setF('src', b.dataset.s));
   const csw = chart('c-srcwk');
   if(csw){ const wf = wks.map(t => flows(Rs, addD(t,-7), t).nwRows);
     csw.off('click'); csw.on('click', p => setF('src', p.seriesName));
@@ -942,7 +965,7 @@ function renderResumen(R){
       tooltip: Object.assign(baseOpt().tooltip, { trigger:'axis', axisPointer:{ type:'shadow' }, formatter: p => { const tt = p.reduce((a,x) => a + x.value, 0); return `Semana al ${p[0].name} · <b>${fm(tt)}</b><br>` + p.filter(x => x.value).slice().reverse().map(x => `${x.marker}${x.seriesName}: <b>${fm(x.value)}</b> (${tt ? pct(x.value/tt) : '—'})`).join('<br>') + tn(wf[p[0].dataIndex], 4); } }),
       xAxis: Object.assign({ type:'category', data: wks.map(dLbl) }, axisStyle(), { axisLabel:{ color: css('--ink3'), fontSize:10.5 } }),
       yAxis: Object.assign({ type:'value', axisLabel:{ color: css('--ink3'), fontSize:11, formatter: v => (v/1e6).toFixed(1) } }, { splitLine:{ lineStyle:{ color: css('--line2') } } }),
-      series: SOURCES.map(s => ({ name:s, type:'bar', stack:'w', barWidth:'58%', data: wf.map(rows => sum(rows.filter(r => r.src === s))),
+      series: SOURCES.map(s => ({ name:s, type:'bar', stack:'w', barWidth:'58%', cursor:'pointer', data: wf.map(rows => sum(rows.filter(r => r.src === s))),
         itemStyle:{ color: css(SRC_VAR[s]), borderColor: css('--card'), borderWidth:1, opacity: S.f.src && S.f.src !== s ? .25 : 1 } })) }), true); }
 }
 
@@ -987,9 +1010,9 @@ function renderApuestas(R){
     const d = OPEN_ST.map(s => { const x = Rs.filter(r => r.st === s); return { s, v: sum(x), n: x.length, x }; });
     cs.off('click'); cs.on('click', p => setF('stage', OPEN_ST[p.dataIndex]));
     cs.setOption(Object.assign(baseOpt(), { grid:{ left:108, right:60, top:6, bottom:6 },
-      tooltip: Object.assign(baseOpt().tooltip, { formatter: p => `${ST_SHORT[d[p.dataIndex].s]}<br><b>${fm(d[p.dataIndex].v)}</b> · ${d[p.dataIndex].n} opps${tn(d[p.dataIndex].x, 4)}` }),
+      tooltip: Object.assign(baseOpt().tooltip, { trigger:'axis', axisPointer:{ type:'shadow' }, formatter: pp => { const p = pp[0]; return `${ST_SHORT[d[p.dataIndex].s]}<br><b>${fm(d[p.dataIndex].v)}</b> · ${d[p.dataIndex].n} opps${tn(d[p.dataIndex].x, 4)}<br><span style="opacity:.7;font-size:11px">Clic para filtrar por etapa</span>`; } }),
       xAxis:{ type:'value', show:false }, yAxis: Object.assign({ type:'category', inverse:true, data: d.map(x => ST_SHORT[x.s]) }, axisStyle(), { axisLabel:{ color: css('--ink2'), fontSize:11.5 } }),
-      series:[{ type:'bar', barWidth:'58%', data: d.map(x => ({ value:x.v, itemStyle:{ color: css('--accent'), opacity: S.f.stage && S.f.stage !== x.s ? .3 : 1, borderRadius:[0,4,4,0] } })),
+      series:[{ type:'bar', barWidth:'58%', cursor:'pointer', data: d.map(x => ({ value:x.v, itemStyle:{ color: css('--accent'), opacity: S.f.stage && S.f.stage !== x.s ? .3 : 1, borderRadius:[0,4,4,0] } })),
         label:{ show:true, position:'right', color: css('--ink'), fontWeight:600, formatter: p => (p.value/1e6).toFixed(1) + 'M' } }] }), true); }
 
   // month
@@ -1001,7 +1024,7 @@ function renderApuestas(R){
     buckets.push({ l:'Después', f: r => r.cl && r.cl >= new Date(S.asOf.getFullYear(), S.asOf.getMonth()+6, 1), c:'--ink3' });
     const d = buckets.map(b => { const x = open.filter(b.f); return { ...b, v: sum(x), n: x.length, x }; });
     cm.setOption(Object.assign(baseOpt(), { grid:{ left:36, right:10, top:22, bottom:28 },
-      tooltip: Object.assign(baseOpt().tooltip, { formatter: p => `${d[p.dataIndex].l}<br><b>${fm(d[p.dataIndex].v)}</b> · ${d[p.dataIndex].n} opps${tn(d[p.dataIndex].x, 4)}` }),
+      tooltip: Object.assign(baseOpt().tooltip, { trigger:'axis', axisPointer:{ type:'shadow' }, formatter: pp => { const p = pp[0]; return `${d[p.dataIndex].l}<br><b>${fm(d[p.dataIndex].v)}</b> · ${d[p.dataIndex].n} opps${tn(d[p.dataIndex].x, 4)}`; } }),
       xAxis: Object.assign({ type:'category', data: d.map(x => x.l) }, axisStyle(), { axisLabel:{ color: css('--ink3'), fontSize:10.5, interval:0 } }),
       yAxis: Object.assign({ type:'value', axisLabel:{ color: css('--ink3'), fontSize:11, formatter: v => (v/1e6).toFixed(0) } }, { splitLine:{ lineStyle:{ color: css('--line2') } } }),
       series:[{ type:'bar', barWidth:'55%', data: d.map(x => ({ value:x.v, itemStyle:{ color: css(x.c), borderRadius:[4,4,0,0] } })), label:{ show:true, position:'top', color: css('--ink'), fontSize:11, fontWeight:600, formatter: p => p.value ? (p.value/1e6).toFixed(1) : '' } }] }), true); }
@@ -1091,7 +1114,7 @@ function renderHealth(R){
     ['Sin actividad registrada', `${noact.length}`, `de ${open.length} abiertas · ${stale.length} más sin actividad en 30 días`, lvl(noact.length/Math.max(1,open.length), .1, .3)],
     ['Sin valor', `${noval.length}`, 'opps en $0 o sin monto', lvl(noval.length/Math.max(1,open.length), .05, .12)],
     ['Owner desactivado', `${deact.length} · ${fm(sum(deact))}`, 'reasignar responsable', deact.length ? 'a' : 'g']];
-  $('#health').innerHTML = H.map(h => `<div class="h ${h[3]}"><span class="lv"><i aria-hidden="true"></i>${lbl[h[3]]} · ${h[0]}</span><b class="num">${h[1]}</b><small>${h[2]}</small></div>`).join('');
+  $('#health').innerHTML = H.map((h, i) => `<div class="h ${h[3]}" data-h="${i}" tabindex="0" role="button" title="Clic para ver el detalle"><span class="lv"><i aria-hidden="true"></i>${lbl[h[3]]} · ${h[0]}</span><b class="num">${h[1]}</b><small>${h[2]}</small></div>`).join('');
 }
 function renderTop(R){
   const open = R.filter(r => r.open), a0 = new Date(S.asOf.getFullYear(), S.asOf.getMonth(), S.asOf.getDate());
@@ -1361,6 +1384,74 @@ async function peReportHtml(opts){
   <div class="sec pb"><h2>Top 10 oportunidades abiertas</h2><table><thead><tr><th>Oportunidad</th><th>Engine</th><th>Etapa</th><th>Cierre</th><th>Owner</th><th>Valor</th></tr></thead><tbody>${top10.map(r => `<tr><td>${esc(r.name.length > 56 ? r.name.slice(0, 55) + '…' : r.name)}</td><td class="r">${esc(r.eng)}</td><td class="r">${ST_SHORT[r.st]}</td><td class="r">${r.cl ? dLbl(r.cl) : '—'}</td><td class="r">${esc(r.owner)}</td><td class="r"><b>${fm(r.v)}</b></td></tr>`).join('')}</tbody></table></div>
   ${qual.length ? `<div class="sec"><h2>Calidad de los datos · lo que conviene saber</h2><ul class="q" style="margin:0;padding-left:16px">${qual.map(q => `<li><span style="color:${lvc[q.lvl]}">●</span> <b>${q.rows.length}</b> de ${q.base} · ${esc(q.t)}</li>`).join('')}</ul></div>` : ''}
   <div class="ft">Vista congelada del corte ${cutTxt}${PE.viewing ? ' · archivo ' + esc(PE.viewing.archivo) + ' · cargado por ' + esc(PE.viewing.guardadoPor || '') : ''}. Cifras en USD, tomadas del export de HubSpot (MX_PIPE). Generado desde el Portal de Preventas SEIDOR México.</div></div></body></html>`;
+}
+
+/* ---- Posición de tooltips: nunca debajo del cursor ---- */
+function peTipPos(pt, params, dom, rect, size){
+  const w = size.contentSize[0], h = size.contentSize[1], cw = size.viewSize[0];
+  let x = pt[0] + 18; if(x + w > cw - 4) x = pt[0] - w - 18; if(x < 4) x = 4;
+  let y = pt[1] - 24;
+  try{ const top = dom.parentElement.getBoundingClientRect().top, vh = window.innerHeight;
+    if(top + y + h > vh - 8) y = vh - 8 - h - top; if(top + y < 8) y = 8 - top; }catch(e){}
+  return [x, y];
+}
+
+/* ---- Drill down de las tarjetas (KPI y salud) ---- */
+const peStLbl = r => r.won ? 'Ganada' : r.lost ? 'Lost' : r.canc ? 'Cancelled' : (ST_SHORT[r.st] || r.st);
+const peD = d => d ? dLbl(d) + '-' + String(d.getFullYear()).slice(2) : '—';
+function peDrillData(kind){
+  const R = S.R || S.rows, P = periods(), fl = flows(R, P.a, P.b), open = R.filter(r => r.open), a0 = new Date(S.asOf.getFullYear(), S.asOf.getMonth(), S.asOf.getDate());
+  const goal = parseFloat(($('#covGoal') && $('#covGoal').value || '3').replace(',', '.')) || 3;
+  const O = { cl: ['Cierre', r => r.cl], cr: ['Creada', r => r.cr] };
+  const tab = (n, rows, d, extra) => Object.assign({ n, rows, d: d || 'cl' }, extra || {});
+  const D = {
+    tot: () => ({ title: 'Total Pipeline', sub: `${open.length} oportunidades abiertas · ${fm(sum(open))}`, by: ['eng', 'st'], tabs: [tab('Abiertas', open)] }),
+    cov: () => { const covEng = S.f.eng ? [S.f.eng] : TENG, eng = TENG.filter(e => covEng.includes(e)).map(e => { const t = +TGT[e] || 0, n = open.filter(r => r.eng === e).length; return { e, t, n, cov: t ? n / t : null, gap: t ? Math.round(n - t * goal) : null, v: sum(open.filter(r => r.eng === e)) }; });
+      return { title: 'Pipeline Coverage', sub: `Oportunidades abiertas ÷ target anual de deals · objetivo ${goal}x`, engines: eng, tabs: [tab('Abiertas con target', open.filter(r => covEng.includes(r.eng) && +TGT[r.eng]))] }; },
+    new: () => ({ title: 'New Pipeline', sub: `${fl.newN} oportunidades creadas · ${P.lbl} · ${fm(fl.new)}`, by: ['src', 'eng'], tabs: [tab('Nuevas', fl.nwRows, 'cr')] }),
+    net: () => ({ title: 'Net Growth', sub: `New ${fm(fl.new)} − Won ${fm(fl.won)} − Lost ${fm(fl.lost)} = ${fmS(fl.net)} · ${P.lbl}`, tabs: [tab('New · ' + fl.newN, fl.nwRows, 'cr'), tab('Won · ' + fl.wonN, fl.wnRows, 'cl'), tab('Lost / Cancelled · ' + fl.lostN, fl.lsRows, 'cl', { motivo: true })] }),
+    nn: () => { const nn = fl.nwRows.filter(r => r.motor === 'New Names'); return { title: 'New Names', sub: `${nn.length} oportunidades nuevas de clientes nuevos · ${P.lbl} · ${fm(sum(nn))}`, by: ['src', 'eng'], tabs: [tab('New Names', nn, 'cr')] }; },
+    ib: () => { const ib = open.filter(r => r.motor === 'Installed Base'); return { title: 'IB Penetration (proxy)', sub: `${ib.length} oportunidades abiertas de Installed Base · ${fm(sum(ib))} · falta el ID de cuenta para calcular penetración real`, by: ['eng', 'src'], tabs: [tab('Installed Base abiertas', ib)] }; },
+    wr: () => { const w = winRate(R, P.a, P.b); return { title: 'Win Rate', sub: `${w.w} ganadas / ${w.l} perdidas o canceladas · ${pct(w.n)} en número · ${pct(w.v)} en $ · ${P.lbl}`, tabs: [tab('Ganadas · ' + fl.wonN, fl.wnRows), tab('Perdidas / Canceladas · ' + fl.lostN, fl.lsRows, 'cl', { motivo: true })] }; },
+    h0: () => { const x = open.filter(r => r.cl && r.cl < a0); return { title: 'Vencidas (slipped)', sub: `${x.length} · ${fm(sum(x))} · fecha de cierre anterior al corte`, by: ['eng'], tabs: [tab('Vencidas', x.sort((a, b) => a.cl - b.cl))] }; },
+    h1: () => { const x = open.filter(r => r.cr && (S.asOf - r.cr) / DAY > 180); return { title: 'Envejecidas > 180 días', sub: `${x.length} · ${fm(sum(x))}`, by: ['eng'], tabs: [tab('Envejecidas', x, 'cr')] }; },
+    h2: () => { const x = open.filter(r => !r.last), y = open.filter(r => r.last && (S.asOf - r.last) / DAY > 30); return { title: 'Sin actividad registrada', sub: `${x.length} nunca tuvieron actividad · ${y.length} más sin actividad en 30 días`, by: ['owner'], tabs: [tab('Nunca con actividad · ' + x.length, x), tab('Sin actividad 30 días · ' + y.length, y)] }; },
+    h3: () => { const x = open.filter(r => !r.v); return { title: 'Sin valor', sub: `${x.length} oportunidades abiertas en $0 o sin monto`, by: ['owner'], tabs: [tab('Sin valor', x)] }; },
+    h4: () => { const x = open.filter(r => /deactivated/i.test(r.owner)); return { title: 'Owner desactivado', sub: `${x.length} · ${fm(sum(x))} · reasignar responsable`, tabs: [tab('Owner desactivado', x)] }; }
+  };
+  return D[kind] ? D[kind]() : null;
+}
+function peDrill(kind){
+  const dd = peDrillData(kind); if(!dd) return;
+  const m = document.getElementById('peModal'); let ti = 0, q = '', sk = 'v', sd = -1;
+  const keyf = { name: r => r.name.toLowerCase(), eng: r => r.eng, st: r => peStLbl(r), d: r => (dd.tabs[ti].d === 'cr' ? r.cr : r.cl) || 0, v: r => r.v, owner: r => r.owner.toLowerCase() };
+  const close = () => { m.hidden = true; m.innerHTML = ''; document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if(e.key === 'Escape') close(); };
+  const paint = () => {
+    const t = dd.tabs[ti], dl = t.d === 'cr' ? 'Creada' : 'Cierre';
+    let rows = t.rows.filter(r => !q || (r.name + ' ' + r.owner + ' ' + r.eng).toLowerCase().includes(q));
+    rows = rows.slice().sort((a, b) => { const x = keyf[sk](a), y = keyf[sk](b); return (x > y ? 1 : x < y ? -1 : 0) * sd; });
+    const LIM = 200, shown = rows.slice(0, LIM);
+    const by = (dd.by || []).map(f => { const g = {}; t.rows.forEach(r => { const k = f === 'st' ? peStLbl(r) : r[f]; (g[k] = g[k] || { n: 0, v: 0 }); g[k].n++; g[k].v += r.v; }); return Object.entries(g).sort((a, b) => b[1].v - a[1].v).slice(0, 8).map(([k, x]) => `<span class="pm-chip">${esc(k)} <b>${x.n}</b> · ${fm(x.v)}</span>`).join(''); }).filter(Boolean).map(h => `<div class="pm-by">${h}</div>`).join('');
+    const eng = dd.engines ? `<div class="tw"><table class="num"><thead><tr><th>Engine</th><th>Target (deals)</th><th>Opps abiertas</th><th>Pipeline</th><th>Cobertura</th><th>Gap vs ${parseFloat(($('#covGoal') && $('#covGoal').value || '3').replace(',', '.')) || 3}x</th></tr></thead><tbody>${dd.engines.map(x => `<tr class="click" data-e="${esc(x.e)}"><td><b>${esc(x.e)}</b></td><td>${x.t || '—'}</td><td>${x.n}</td><td>${fm(x.v)}</td><td>${x.cov == null ? 'sin target' : x.cov.toFixed(1) + 'x'}</td><td class="${x.gap == null ? '' : x.gap < 0 ? 'gapneg' : 'gappos'}">${x.gap == null ? '—' : (x.gap > 0 ? '+' : '') + x.gap + ' deals'}</td></tr>`).join('')}</tbody></table></div><p class="sub" style="margin:4px 0 10px">Clic en un engine para filtrar todo el tablero.</p>` : '';
+    const th = (k, l, r) => `<th data-s="${k}"${sk === k ? ` aria-sort="${sd > 0 ? 'ascending' : 'descending'}"` : ''} style="${r ? '' : 'text-align:left'}">${l}</th>`;
+    m.innerHTML = `<div class="pm" role="dialog" aria-modal="true" aria-label="${esc(dd.title)}"><div class="pm-box"><div class="pm-h"><div><h2>${esc(dd.title)}</h2><p class="sub">${esc(dd.sub)}</p></div><button type="button" class="pm-x" aria-label="Cerrar">✕</button></div>
+      <div class="pm-b">${eng}${dd.tabs.length > 1 ? `<div class="pm-tabs">${dd.tabs.map((x, i) => `<button type="button" class="pm-tab" data-t="${i}" aria-pressed="${i === ti}">${esc(x.n)}</button>`).join('')}</div>` : ''}${by}
+      <div class="pm-s"><input type="search" id="pmQ" placeholder="Buscar por oportunidad, owner o engine" value="${esc(q)}" aria-label="Buscar"><span class="sub">${rows.length} de ${t.rows.length} · ${fm(sum(rows))}</span></div>
+      <div class="tw pm-tw"><table class="num sortable"><thead><tr>${th('name', 'Oportunidad')}${th('eng', 'Engine')}${th('st', 'Etapa')}${th('d', dl, 1)}${th('v', 'Valor', 1)}${th('owner', 'Owner')}${t.motivo ? '<th style="text-align:left">Motivo de pérdida</th>' : ''}</tr></thead><tbody>${shown.map(r => `<tr><td class="nm" style="max-width:420px;white-space:normal;text-align:left"><a href="https://app.hubspot.com/contacts/6740520/record/0-3/${r.id}" target="_blank" rel="noopener">${esc(r.name)}</a></td><td style="text-align:left">${esc(r.eng)}</td><td style="text-align:left">${esc(peStLbl(r))}</td><td>${peD(t.d === 'cr' ? r.cr : r.cl)}</td><td><b>${fm(r.v)}</b></td><td style="text-align:left">${esc(r.owner)}</td>${t.motivo ? `<td style="text-align:left;white-space:normal">${r.motivo ? esc(r.motivo) : '<span class="muted">sin motivo</span>'}</td>` : ''}</tr>`).join('') || `<tr><td colspan="7" class="muted" style="text-align:center;padding:18px">Sin resultados.</td></tr>`}</tbody></table></div>
+      ${rows.length > LIM ? `<p class="sub" style="margin:6px 0 0">Mostrando las primeras ${LIM}; usa el buscador o los filtros del tablero para acotar.</p>` : ''}</div></div></div>`;
+    m.querySelector('.pm-x').onclick = close; m.querySelector('.pm').onclick = e => { if(e.target.classList.contains('pm')) close(); };
+    m.querySelectorAll('.pm-tab').forEach(b => b.onclick = () => { ti = +b.dataset.t; sk = 'v'; sd = -1; paint(); });
+    m.querySelectorAll('th[data-s]').forEach(h => h.onclick = () => { const k = h.dataset.s; sd = sk === k ? -sd : (k === 'v' || k === 'd' ? -1 : 1); sk = k; paint(); });
+    m.querySelectorAll('tr.click[data-e]').forEach(tr => tr.onclick = () => { close(); setF('eng', tr.dataset.e); });
+    const qi = m.querySelector('#pmQ'); qi.oninput = () => { q = qi.value.trim().toLowerCase(); const pos = qi.selectionStart; paint(); const n = m.querySelector('#pmQ'); n.focus(); n.setSelectionRange(pos, pos); };
+  };
+  m.hidden = false; paint(); document.addEventListener('keydown', onKey); const x = m.querySelector('.pm-x'); if(x) x.focus();
+}
+function peBindDrill(){
+  document.querySelectorAll('#kpis .kpi[data-kpi]').forEach(k => { const go = e => { if(e.target.closest('.info,[data-go]')) return; peDrill(k.dataset.kpi); };
+    k.onclick = go; k.onkeydown = e => { if((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.info')){ e.preventDefault(); peDrill(k.dataset.kpi); } }; });
+  document.querySelectorAll('#health .h[data-h]').forEach(h => { h.onclick = () => peDrill('h' + h.dataset.h); h.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); peDrill('h' + h.dataset.h); } }; });
 }
 
 </script>
