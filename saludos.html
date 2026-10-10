@@ -97,7 +97,7 @@
   .sg-btn:hover{border-color:var(--blue); color:var(--blue);} .sg-btn.pr{background:var(--blue); border-color:var(--blue); color:#fff;} .sg-btn.pr:hover{background:#2F6FD6; color:#fff;} .sg-btn:disabled{opacity:.55; cursor:wait;}
   .sg-btn.dg{color:#C2362B;} .sg-btn.dg:hover{border-color:#C2362B;}
   .sg-st{font-size:12.5px; font-weight:600; min-height:18px;} .sg-st.ok{color:#18794E;} .sg-st.err{color:#C2362B;} .sg-st.pend{color:#8A6414;}
-  .sg-row{display:grid; grid-template-columns:auto minmax(190px,1fr) minmax(190px,1fr) minmax(130px,.6fr) minmax(260px,2fr) auto; gap:10px 12px; align-items:start; padding:14px; border:1px solid var(--line); border-radius:12px; margin-bottom:10px; background:#fff;}
+  .sg-row{display:grid; grid-template-columns:auto minmax(190px,1fr) minmax(190px,1fr) minmax(150px,.7fr) minmax(260px,2fr) auto; gap:10px 12px; align-items:start; padding:14px; border:1px solid var(--line); border-radius:12px; margin-bottom:10px; background:#fff;}
   .sg-row.off{opacity:.6; background:#F8FAFD;}
   .sg-row label{display:block; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--greyl); margin-bottom:4px;}
   .sg-row input[type=text], .sg-row input[type=email], .sg-row select, .sg-row textarea{width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font:400 13px Poppins,sans-serif; color:var(--ink); background:#fff; min-height:38px;}
@@ -212,7 +212,7 @@
 </main>
 
 <script>window.DL_SALUDO_MANUAL = true;</script>
-<script src="/saludo.js?v=1"></script>
+<script src="/saludo.js?v=2"></script>
 <script>
 (function(){
   var lista = [], paginas = {}, miCorreo = '', sucio = false;
@@ -227,7 +227,7 @@
       '<div class="sg-sw"><label>Activo</label><input type="checkbox" data-k="activo"' + (x.activo === false ? '' : ' checked') + ' aria-label="Activo"></div>' +
       '<div><label>Correo (o * para todos)</label><input type="email" data-k="email" value="' + esc(x.email) + '" placeholder="nombre@seidor.com"></div>' +
       '<div><label>Página donde se muestra</label><select data-k="pagina">' + opcionesPagina(x.pagina) + '</select></div>' +
-      '<div><label>Nombre a mostrar</label><input type="text" data-k="nombre" maxlength="40" value="' + esc(x.nombre) + '" placeholder="Paul"></div>' +
+      '<div><label>Nombre a mostrar</label><input type="text" data-k="nombre" maxlength="40" value="' + esc(x.nombre) + '" placeholder="Paul"><label style="margin-top:8px">Saludo</label><select data-k="trato"><option value="o"' + (x.trato === 'o' || !x.trato ? ' selected' : '') + '>Bienvenido</option><option value="a"' + (x.trato === 'a' ? ' selected' : '') + '>Bienvenida</option><option value="n"' + (x.trato === 'n' ? ' selected' : '') + '>Hola (neutro)</option></select></div>' +
       '<div class="span2"><label>Mensaje</label><textarea data-k="mensaje" maxlength="220" placeholder="Que tengas un día Épico 🚀">' + esc(x.mensaje) + '</textarea><div class="sg-cnt" data-c></div></div>' +
       '<div class="sg-acc"><button class="sg-btn" type="button" data-a="prev">▶ Vista previa</button><button class="sg-btn" type="button" data-a="reset">↺ Volver a mostrar hoy</button><button class="sg-btn dg" type="button" data-a="del">Eliminar</button></div>' +
     '</div>';
@@ -236,7 +236,7 @@
     if(!lista.length){ L.innerHTML = '<div class="sg-empty"><div class="big">👋</div>Aún no hay saludos.<br><br><button class="sg-btn pr" type="button" id="sgEjemplo">Crear un saludo de prueba para mí</button></div>'; var b = document.getElementById('sgEjemplo'); if(b) b.onclick = function(){ lista.push(plantilla()); pinta(); marcar(); }; return; }
     L.innerHTML = lista.map(fila).join(''); L.querySelectorAll('.sg-row').forEach(contar);
   }
-  function plantilla(){ return { id:nuevoId(), email:miCorreo, pagina:'wbr-ejecutivo', nombre:'Paul', mensaje:'Que tengas un día Épico, bro 🚀', activo:true }; }
+  function plantilla(){ return { id:nuevoId(), email:miCorreo, pagina:'wbr-ejecutivo', nombre:'Paul', trato:'o', mensaje:'Que tengas un día Épico, bro 🚀', activo:true }; }
   function contar(row){ var t = row.querySelector('textarea'), c = row.querySelector('[data-c]'); c.textContent = t.value.length + ' / 220'; c.className = 'sg-cnt' + (t.value.length > 200 ? ' mal' : ''); }
   function leerFila(row){
     var o = { id: row.getAttribute('data-id') };
@@ -248,7 +248,7 @@
   L.addEventListener('change', function(e){ if(e.target.getAttribute('data-k') === 'activo') marcar(); });
   L.addEventListener('click', async function(e){
     var b = e.target.closest('[data-a]'); if(!b) return; var row = b.closest('.sg-row'), id = row.getAttribute('data-id'), a = b.getAttribute('data-a');
-    if(a === 'prev'){ var o = leerFila(row); if(!o.mensaje.trim()){ estado('Escribe el mensaje para ver la vista previa.', 'err'); return; } window.DL_SALUDO.mostrar({ nombre:o.nombre, mensaje:o.mensaje }); }
+    if(a === 'prev'){ var o = leerFila(row); if(!o.mensaje.trim()){ estado('Escribe el mensaje para ver la vista previa.', 'err'); return; } window.DL_SALUDO.mostrar({ nombre:o.nombre, mensaje:o.mensaje, trato:o.trato }); }
     else if(a === 'del'){ if(!confirm('¿Eliminar este saludo?')) return; sincroniza(); lista = lista.filter(function(x){ return x.id !== id; }); pinta(); marcar(); }
     else if(a === 'reset'){
       if(sucio){ estado('Guarda los cambios antes de reiniciar el saludo.', 'err'); return; }

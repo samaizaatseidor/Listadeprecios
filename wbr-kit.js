@@ -990,6 +990,6 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
 })();
 
 /* Saludo de bienvenida (una vez al día, configurable en Administración → Saludos) */
-(function(){ if(/\/wbr(?:-[a-z0-9-]+)?(?:\.html)?\/?$/i.test(location.pathname) && !document.getElementById('dlsJs')){ var s = document.createElement('script'); s.id = 'dlsJs'; s.src = '/saludo.js?v=1'; document.head.appendChild(s); } })();
+(function(){ if(/\/wbr(?:-[a-z0-9-]+)?(?:\.html)?\/?$/i.test(location.pathname) && !document.getElementById('dlsJs')){ var s = document.createElement('script'); s.id = 'dlsJs'; s.src = '/saludo.js?v=2'; document.head.appendChild(s); } })();
 window.WK = WK;
 })();

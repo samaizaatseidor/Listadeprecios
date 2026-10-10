@@ -27,7 +27,7 @@
       var dur = Math.min(7000, Math.max(3600, 2200 + palabras.length * 260));
       var ov = document.createElement('div'); ov.className = 'dls-ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'Saludo de bienvenida'); ov.tabIndex = -1;
       ov.innerHTML = '<div class="dls-grid"></div><div class="dls-ring dls-r1"></div><div class="dls-ring dls-r2"></div><div class="dls-ring dls-r3"></div>' +
-        '<div class="dls-in"><div class="dls-k">' + (s.nombre ? 'Bienvenido, ' + esc(s.nombre) : 'Bienvenido') + '</div>' +
+        '<div class="dls-in"><div class="dls-k">' + (function(){ var t = s.trato === 'a' ? 'Bienvenida' : s.trato === 'n' ? 'Hola' : 'Bienvenido'; return s.nombre ? t + ', ' + esc(s.nombre) : t; })() + '</div>' +
         '<p class="dls-m" aria-live="polite">' + palabras.map(function(w, i){ return '<span style="animation-delay:' + (700 + i * 150) + 'ms">' + esc(w) + '</span>'; }).join(' ') + '</p></div>' +
         '<div class="dls-h">Clic para continuar</div><div class="dls-bar"></div>';
       var prev = document.activeElement; document.body.appendChild(ov); ov.focus();

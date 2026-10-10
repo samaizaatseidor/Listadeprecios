@@ -1665,7 +1665,7 @@ ${JSON.stringify(checklist || [])}`;
         if (PAGINAS_REGISTRO[pagina]) { const nivel = await getPermiso(env, email, pagina); if ((NIVEL_RANGO[nivel] || 0) < NIVEL_RANGO['lectura']) return j({ ok: true, saludo: null }); }
         const visto = await env.PM_KV.get('saludo_visto_' + email + '_' + sa.id);
         if (visto === hoy) return j({ ok: true, saludo: null });
-        return j({ ok: true, saludo: { id: sa.id, nombre: sa.nombre || '', mensaje: sa.mensaje } });
+        return j({ ok: true, saludo: { id: sa.id, nombre: sa.nombre || '', mensaje: sa.mensaje, trato: sa.trato || 'o' } });
       }
       if (request.method === 'POST') {
         if (!email) return j({ ok: false, error: 'Sin usuario' }, 403);
@@ -1720,7 +1720,8 @@ ${JSON.stringify(checklist || [])}`;
         if (mensaje.length > 220) return j({ ok: false, error: fila + 'el mensaje pasa de 220 caracteres.' }, 400);
         if (nombre.length > 40) return j({ ok: false, error: fila + 'el nombre pasa de 40 caracteres.' }, 400);
         const id = /^[a-z0-9-]{8,40}$/.test(String(x.id || '')) ? String(x.id) : crypto.randomUUID();
-        limpios.push({ id, email: correo, pagina, nombre, mensaje, activo: x.activo !== false });
+        const trato = ['o', 'a', 'n'].includes(x.trato) ? x.trato : 'o';
+        limpios.push({ id, email: correo, pagina, nombre, trato, mensaje, activo: x.activo !== false });
       }
       await env.PM_KV.put('saludos_config', JSON.stringify({ saludos: limpios, actualizado: { por: email, en: new Date().toISOString() } }));
       return j({ ok: true, saludos: limpios });
