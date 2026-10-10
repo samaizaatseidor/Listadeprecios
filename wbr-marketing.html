@@ -586,7 +586,7 @@
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
-<script src="/wbr-kit.js?v=20261010k"></script>
+<script src="/wbr-kit.js?v=20261010l"></script>
 <script>
 const RAW=[];
 const RAW_FILE = 'hubspot-crm-exports-mx_pipe-2027-2026-10-06.xls';
@@ -925,7 +925,7 @@ function renderResumen(R){
   const co = chart('c-open');
   if(co){ const mn = Math.min(...serOpen), mx = Math.max(...serOpen);
     co.setOption(Object.assign(baseOpt(), {
-      grid:{ left:40, right:16, top:18, bottom:28 },
+      grid:{ left:40, right:30, top:18, bottom:28 },
       tooltip: Object.assign(baseOpt().tooltip, { trigger:'axis', formatter: p => `Semana al ${p[0].name}<br><b>${fm(p[0].value*1e6)}</b> abiertos<br><span style="opacity:.7;font-size:11px">Las más grandes:</span>${tn(openAt(R, wks[p[0].dataIndex]), 4)}` }),
       xAxis: Object.assign({ type:'category', boundaryGap:false, data: wks.map(dLbl) }, axisStyle()),
       yAxis: Object.assign({ type:'value', min: Math.floor(mn - (mx-mn)*.3 - .01), max: Math.ceil(mx + (mx-mn)*.2 + .01), axisLabel:{ color: css('--ink3'), fontSize:11 } }, { splitLine:{ lineStyle:{ color: css('--line2') } } }),

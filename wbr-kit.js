@@ -814,7 +814,7 @@ function inclinar(e){
   h.classList.add('tilt'); h.style.transform = 'perspective(900px) rotateX('+(-py*7).toFixed(2)+'deg) rotateY('+(px*9).toFixed(2)+'deg) translateY(-3px)';
 }
 WK.escalar = function(){
-  var main = document.querySelector('.wk-main'); if(!main) return;
+  var main = document.querySelector('.wk-main'); if(!main) return; if(document.getElementById('pe')){ main.style.zoom=''; return; } /* ECharts desalinea el cursor con CSS zoom */
   var z = Math.max(1, Math.min(1.55, innerWidth/1500));
   main.style.zoom = z > 1.02 ? z.toFixed(3) : '';
 };
