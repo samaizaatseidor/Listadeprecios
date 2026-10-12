@@ -56,6 +56,17 @@
   .cta-tema{border:1px solid rgba(255,255,255,.10); border-radius:12px; margin-bottom:10px; background:rgba(255,255,255,.03);} .cta-tema summary{cursor:pointer; padding:12px 16px; font-weight:700; font-size:14.5px; color:#fff; list-style:none; display:flex; justify-content:space-between; gap:10px;} .cta-tema summary::-webkit-details-marker{display:none;} .cta-tema summary i{font-style:normal; color:#8FE6FF; font-size:12px; font-weight:600;}
   .cta-tema .it{padding:9px 16px; border-top:1px solid rgba(255,255,255,.07); font-size:13.5px; line-height:1.55; color:#C8D8F2;} .cta-tema .it b{color:#fff;} .cta-tema .gr{display:inline-block; font-size:11px; letter-spacing:.6px; text-transform:uppercase; color:#8FE6FF; font-weight:700; margin-right:8px;}
   .cta-prox-reu{display:grid; grid-template-columns:auto 1fr; gap:6px 18px; font-size:14px; color:#C8D8F2;} .cta-prox-reu b{color:#8FE6FF; font-size:12px; letter-spacing:.7px; text-transform:uppercase;}
+  .cta-chk{width:18px; height:18px; accent-color:#2FE29B; cursor:pointer;} .cta-chk:disabled{cursor:default; opacity:.6;}
+  .cta-com{font:600 12.5px Poppins,sans-serif; color:#8FE6FF; background:rgba(143,230,255,.10); border:1px solid rgba(143,230,255,.30); border-radius:999px; padding:4px 12px; cursor:pointer; white-space:nowrap;} .cta-com:hover{background:rgba(143,230,255,.2);}
+  .cta-ult{display:block; margin-top:5px; font-size:12px; color:#A5B4CE; max-width:260px;}
+  .cta-modal{position:fixed; inset:0; background:rgba(3,7,18,.72); backdrop-filter:blur(4px); z-index:9000; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .cta-box{position:relative; width:min(640px,100%); max-height:88vh; overflow:auto; background:#0E1A33; border:1px solid rgba(255,255,255,.12); border-radius:18px; padding:24px 26px; box-shadow:0 30px 80px rgba(0,0,0,.6); color:#E3ECFA;}
+  .cta-box h3{margin:0 34px 4px 0; font-size:17px; line-height:1.4; color:#fff;} .cta-meta{font-size:12.5px; color:#8FA6C8; margin:4px 0;}
+  .cta-x{position:absolute; top:14px; right:16px; border:none; background:rgba(255,255,255,.08); color:#fff; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer;}
+  .cta-est-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:14px 0 6px;} .cta-est-row span{font-size:12px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:#8FE6FF; margin-right:4px;}
+  .cta-est-row button{font:600 13px Poppins,sans-serif; color:#C8D8F2; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.16); border-radius:999px; padding:6px 14px; cursor:pointer;} .cta-est-row button.on{background:linear-gradient(135deg,#1E5BB8,#3DD6FF); border-color:transparent; color:#fff;}
+  .cta-coms{margin:14px 0;} .cta-com-i{padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.05); margin-bottom:8px;} .cta-com-i b{font-size:13px; color:#fff;} .cta-com-i em{font-style:normal; font-size:11.5px; color:#8FA6C8; margin-left:8px;} .cta-com-i p{margin:4px 0 0; font-size:13.5px; line-height:1.5; color:#D6E2F5; white-space:pre-wrap;}
+  .cta-box textarea{width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.16); border-radius:12px; padding:10px 12px; color:#fff; font:400 13.5px Poppins,sans-serif; resize:vertical;} .cta-box textarea:focus{outline:none; border-color:#3DD6FF;}
   .cta-est{cursor:pointer; border:none; background:none; padding:0; font:inherit;} .cta-est:hover{filter:brightness(1.25);}
 </style>
 </head>
@@ -68,6 +79,7 @@
     const r = await fetch('/api/mi-permiso?page=' + m[1]);
     const d = await r.json();
     if(!d.ok) return;
+    window.MI_EMAIL = d.email || '';
     if(d.permiso === 'ninguno'){
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
@@ -75,6 +87,7 @@
       document.body.appendChild(overlay);
       document.body.style.overflow = 'hidden';
     }else if(d.permiso === 'lectura'){
+      window.SOLO_LECTURA = true;
       const banner = document.createElement('div');
       banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
       banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
@@ -368,7 +381,7 @@ function heredaEstatus(nuevas, previas){
   nuevas.forEach(x => {
     const tx = tokensAccion(x.accion); let mejor = null, mj = 0;
     P.forEach(p => { let inter = 0; tx.forEach(w => { if(p.t.has(w)) inter++; }); const j = inter / ((tx.size + p.t.size - inter) || 1); if(j > mj){ mj = j; mejor = p.a; } });
-    if(mejor && mj >= 0.6){ x.estatus = mejor.estatus || x.estatus; x.previa = true; if(!x.fecha && mejor.fecha) x.fecha = mejor.fecha; n++; }
+    if(mejor && mj >= 0.6){ x.estatus = mejor.estatus || x.estatus; x.previa = true; if(mejor.comentarios && mejor.comentarios.length) x.comentarios = mejor.comentarios.slice(); if(!x.fecha && mejor.fecha) x.fecha = mejor.fecha; n++; }
   });
   return n;
 }
@@ -397,14 +410,59 @@ async function handleWord(file){
   }
 }
 const CICLO = ['Pendiente', 'En proceso', 'Completada'];
-async function ciclarEstatus(i){
+/* ===== Marcar completadas y comentarios ===== */
+const quien = () => window.MI_EMAIL || 'alguien del equipo';
+async function mutarAccion(i, fn){
   if(snapshotVisto || !actual || window.SOLO_LECTURA) return;
-  const a = actual.acciones[i]; if(!a) return;
-  const previo = a.estatus; a.estatus = CICLO[(CICLO.indexOf(CICLO.find(c => catEstatus(c) === catEstatus(previo))) + 1) % 3];
-  render();
-  try{ await guardarSnapshot(actual); await cargarHistorial(); }
-  catch(e){ a.estatus = previo; render(); document.getElementById('statusBox').innerHTML = `<div class="st-err">No se pudo guardar el cambio de estatus: ${WK.esc(e.message||String(e))}</div>`; }
+  const id = actual.guardadoEn, clave = actual.acciones[i].accion, copia = JSON.stringify(actual.acciones[i]);
+  fn(actual.acciones[i]); render(); repintaModal();
+  try{
+    const r = await fetch('/api/wbr-cta'); const d = await r.json();
+    const hist = (d.historial || []).filter(h => h && Array.isArray(h.acciones));
+    const fresco = hist.find(h => h.guardadoEn === id);
+    if(!fresco) throw new Error('Ese corte ya no existe.');
+    const t = fresco.acciones.find(a => a.accion === clave);
+    if(!t) throw new Error('La acción cambió; recarga la página.');
+    fn(t); await guardarSnapshot(fresco);
+    historial = hist; actual = historial[historial.length - 1]; render(); repintaModal();
+  }catch(e){
+    actual.acciones[i] = JSON.parse(copia); render(); repintaModal();
+    document.getElementById('statusBox').innerHTML = `<div class="st-err">No se pudo guardar el cambio: ${WK.esc(e.message||String(e))}</div>`;
+  }
 }
+function poneEstatus(i, nuevo){
+  const por = quien(), en = new Date().toISOString();
+  mutarAccion(i, a => { a.estatus = nuevo; a.estatusPor = por; a.estatusEn = en; });
+}
+function marcar(i, hecha){ poneEstatus(i, hecha ? 'Completada' : 'Pendiente'); }
+function ciclarEstatus(i){
+  const a = actual && actual.acciones[i]; if(!a) return;
+  poneEstatus(i, CICLO[(CICLO.findIndex(c => catEstatus(c) === catEstatus(a.estatus)) + 1) % 3]);
+}
+let modalI = null;
+function abrirComentarios(i){ modalI = i; repintaModal(); }
+function cerrarModal(){ modalI = null; const m = document.getElementById('ctaModal'); if(m) m.remove(); }
+function repintaModal(){
+  let m = document.getElementById('ctaModal');
+  if(modalI == null || !mostrando || !mostrando.acciones[modalI]){ if(m) m.remove(); return; }
+  const a = mostrando.acciones[modalI], editable = !snapshotVisto && !window.SOLO_LECTURA;
+  const prev = m ? (m.querySelector('textarea') || {}).value || '' : '';
+  if(!m){ m = document.createElement('div'); m.id = 'ctaModal'; m.className = 'cta-modal'; m.onclick = e => { if(e.target === m) cerrarModal(); }; document.body.appendChild(m); }
+  const coms = a.comentarios || [];
+  m.innerHTML = '<div class="cta-box"><button class="cta-x" onclick="cerrarModal()" aria-label="Cerrar">×</button>' +
+    '<h3>' + WK.esc(a.accion) + '</h3><div class="cta-meta">' + WK.esc(a.responsable || 'Sin responsable') + (a.fecha ? ' · ' + WK.esc(a.fecha) : '') + '</div>' +
+    (editable ? '<div class="cta-est-row"><span>Estatus</span>' + CICLO.map(c => '<button type="button" class="' + (catEstatus(c) === catEstatus(a.estatus) ? 'on' : '') + '" onclick="poneEstatus(' + modalI + ',\'' + c + '\')">' + c + '</button>').join('') + '</div>' : '') +
+    (a.estatusPor ? '<div class="cta-meta">Último cambio de estatus: ' + WK.esc(a.estatusPor) + ' · ' + WK.esc(WK.hora(a.estatusEn)) + '</div>' : '') +
+    '<div class="cta-coms">' + (coms.length ? coms.map(c => '<div class="cta-com-i"><b>' + WK.esc(c.por || '—') + '</b><em>' + WK.esc(WK.hora(c.en)) + '</em><p>' + WK.esc(c.texto) + '</p></div>').join('') : '<div class="cta-meta">Aún no hay comentarios.</div>') + '</div>' +
+    (editable ? '<textarea id="ctaNuevo" placeholder="Escribe un comentario o avance…" rows="3">' + WK.esc(prev) + '</textarea><div style="text-align:right;margin-top:8px"><button class="wk-btn" style="background:#1E5BB8" onclick="agregarComentario()">Agregar comentario</button></div>' : '') + '</div>';
+}
+function agregarComentario(){
+  const ta = document.getElementById('ctaNuevo'); const texto = ta ? ta.value.trim() : ''; if(!texto || modalI == null) return;
+  const c = { texto:texto.slice(0, 1000), por:quien(), en:new Date().toISOString() };
+  ta.value = '';
+  mutarAccion(modalI, a => { a.comentarios = (a.comentarios || []).concat([c]); });
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') cerrarModal(); });
 function minutaCards(m){
   if(!m) return { top:'', bottom:'', chips:[], nAb:0 };
   const ab = m.abiertos || [], temas = m.temas || [], px = m.proxima || {}, me = m.meta || {};
@@ -485,10 +543,14 @@ function render(){
   // Columnas por responsable
   const resp = {}; A.forEach(a => { const rr = String(a.responsable || 'Sin responsable').split(' / '); rr.forEach(r => { (resp[r] = resp[r] || []).push(a); }); });
   const rs = Object.keys(resp).sort((x, y) => resp[y].length - resp[x].length || x.localeCompare(y, 'es'));
-  const abrev = r => (rs.length > 5 && r.length > 12) ? r.split(/\s+/)[0] + (r.split(/\s+/)[1] ? ' ' + r.split(/\s+/)[1][0] + '.' : '') : r;
-  const porResp = WK.card({ id:'responsables', ico:'👥', titulo:'Carga por responsable', sub:'Acciones por persona y estatus', count:rs.length,
+  const totalPersonas = rs.length;
+  if(rs.length > 8){ const resto = rs.splice(7); resp['Otros (' + resto.length + ')'] = resto.reduce((acc, r) => acc.concat(resp[r]), []); rs.push('Otros (' + resto.length + ')'); }
+  const primero = r => r === 'Sin responsable' ? 'Sin dueño' : r.split(/\s+/)[0];
+  const cuenta = {}; rs.forEach(r => { cuenta[primero(r)] = (cuenta[primero(r)] || 0) + 1; });
+  const abrev = r => { if(rs.length <= 6 && r.length <= 12) return r; const p = primero(r), w = r.split(/\s+/); return cuenta[p] > 1 && w[1] ? p + ' ' + w[1][0] + '.' : p; };
+  const porResp = WK.card({ id:'responsables', ico:'👥', titulo:'Carga por responsable', sub:'Acciones por persona y estatus' + (totalPersonas > rs.length ? ' · las personas con menos acciones van agrupadas en “Otros” (pasa el mouse para ver quiénes)' : ''), count:totalPersonas,
     body: WK.columns(rs.map(abrev), ['comp','proc','pend'].map(c => ({ nombre:CAT[c].nombre, color:CAT[c].color, valores:rs.map(r => resp[r].filter(a => a.cat === c).length),
-      extra:rs.map(r => r + '\n' + (resp[r].filter(a => a.cat === c).length ? lista(resp[r].filter(a => a.cat === c), 4) : '')) })), { fmt:v => String(Math.round(v)), id:'resp', h:300 }) });
+      extra:rs.map(r => r + (/^Otros/.test(r) ? ' — ' + Array.from(new Set(resp[r].map(a => a.responsable))).join(', ') : '') + '\n' + (resp[r].filter(a => a.cat === c).length ? lista(resp[r].filter(a => a.cat === c), 4) : '')) })), { fmt:v => String(Math.round(v)), id:'resp', h:300 }) });
 
   // Vencimientos por fecha
   const fechas = {}; A.filter(a => a.ts != null).forEach(a => { (fechas[a.ts] = fechas[a.ts] || []).push(a); });
@@ -509,13 +571,13 @@ function render(){
     ], { fmt:v => String(Math.round(v)), id:'cal', h:280 }) + '</div>' + rankProx + '</div>' }) : '';
 
   // Tabla completa
-  const filas = A.map(a => ({ i:a.i, accion:a.accion, responsable:a.responsable, fecha:a.fecha, estatus:a.estatus, dias:a.dias, venc:a.venc, cat:a.cat, previa:a.previa, categoria:a.categoria }));
+  const filas = A.map(a => ({ i:a.i, accion:a.accion, responsable:a.responsable, fecha:a.fecha, estatus:a.estatus, dias:a.dias, venc:a.venc, cat:a.cat, previa:a.previa, categoria:a.categoria, coms:a.comentarios || [] }));
   const tabla = WK.card({ id:'tabla', ico:'🗂️', titulo:'Todas las acciones', sub:'Ordena por cualquier columna o busca por acción, responsable o estatus. Marcadas en rojo las vencidas.', count:N,
     body: '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar acción, responsable, estatus…" oninput="WK.filtrar(document.getElementById(\'tablaCta\'), this.value)"></div>' +
       WK.table([
-        { k:'accion', label:'Acción', tipo:'strong' }, { k:'responsable', label:'Responsable', tipo:'tag' }, { k:'fecha', label:'Fecha', tipo:'date' },
-        { k:'estatusH', label:'Estatus', tipo:'html' }, { k:'dias', label:'Días para vencer', tipo:'num', cls:'cta-dias' }
-      ], filas.map(f => Object.assign({}, f, { estatusH: ((snapshotVisto || window.SOLO_LECTURA) ? '' : '<button type="button" class="cta-est" title="Clic para cambiar el estatus" onclick="ciclarEstatus(' + f.i + ')">') + WK.badge(f.estatus, f.cat === 'comp' ? 'green' : (f.cat === 'proc' ? 'amber' : 'blue')) + ((snapshotVisto || window.SOLO_LECTURA) ? '' : '</button>') + (f.venc ? ' ' + WK.badge('Vencida', 'red') : '') + (f.previa ? ' ' + WK.badge('De la sesión anterior', 'blue') : '') })),
+        { k:'hechaH', label:'Hecha', tipo:'html' }, { k:'accion', label:'Acción', tipo:'strong' }, { k:'responsable', label:'Responsable', tipo:'tag' }, { k:'fecha', label:'Fecha', tipo:'date' },
+        { k:'estatusH', label:'Estatus', tipo:'html' }, { k:'dias', label:'Días para vencer', tipo:'num', cls:'cta-dias' }, { k:'comH', label:'Comentarios', tipo:'html' }
+      ], filas.map(f => Object.assign({}, f, { hechaH:'<input type="checkbox" class="cta-chk" ' + (f.cat === 'comp' ? 'checked ' : '') + ((snapshotVisto || window.SOLO_LECTURA) ? 'disabled ' : '') + 'title="Marcar como completada" onchange="marcar(' + f.i + ', this.checked)">', comH:'<button type="button" class="cta-com" onclick="abrirComentarios(' + f.i + ')">💬 ' + (f.coms.length || '+') + '</button>' + (f.coms.length ? '<span class="cta-ult">' + WK.esc(corto(f.coms[f.coms.length - 1].texto, 70)) + '</span>' : ''), estatusH: ((snapshotVisto || window.SOLO_LECTURA) ? '' : '<button type="button" class="cta-est" title="Clic para cambiar el estatus" onclick="ciclarEstatus(' + f.i + ')">') + WK.badge(f.estatus, f.cat === 'comp' ? 'green' : (f.cat === 'proc' ? 'amber' : 'blue')) + ((snapshotVisto || window.SOLO_LECTURA) ? '' : '</button>') + (f.venc ? ' ' + WK.badge('Vencida', 'red') : '') + (f.previa ? ' ' + WK.badge('De la sesión anterior', 'blue') : '') })),
         { id:'tablaCta', rowAttrs:f => f.venc ? 'class="cta-venc"' : '' }) });
 
 
