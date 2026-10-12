@@ -48,7 +48,7 @@
   .ci-scroll{overflow:auto; padding:6px 4px 14px;}
   .ci-wrap{position:relative; width:max-content; min-width:100%;}
   .ci-wrap svg{position:absolute; left:0; top:0; pointer-events:none; overflow:visible;}
-  .ci-tree{display:flex; justify-content:center; gap:30px; position:relative; z-index:1; padding:4px 10px;}
+  .ci-tree{display:flex; justify-content:flex-start; gap:30px; position:relative; z-index:1; padding:4px 10px;}
   .ci-col{display:flex; flex-direction:column; align-items:center;}
   .ci-children{display:flex; gap:18px; margin-top:46px; align-items:flex-start; justify-content:center;}
   .ci-box{position:relative; width:206px; padding:13px 14px 12px; border-radius:16px; cursor:pointer; background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.14); box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 26px rgba(0,0,0,.35); transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease; text-align:left;}
@@ -65,6 +65,26 @@
   .wk-tools{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
   .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
   .st-err{color:#FF8CA2; font-size:14px; font-weight:600; padding:2px 0 10px;}
+
+  /* Barra de herramientas + panel de detalle */
+  .ci-bar{position:sticky; top:0; z-index:20; display:flex; gap:10px 14px; flex-wrap:wrap; align-items:center; padding:12px 14px; margin-bottom:20px; border-radius:16px; background:rgba(12,22,44,.86); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.10); box-shadow:0 10px 30px rgba(0,0,0,.35);}
+  .ci-pills{display:flex; gap:8px; flex-wrap:wrap;}
+  .ci-pill{border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#C8D8F2; border-radius:999px; padding:8px 14px; font:600 13px Poppins,sans-serif; cursor:pointer; white-space:nowrap;} .ci-pill small{opacity:.7; margin-left:4px; font-weight:600;}
+  .ci-pill:hover{background:rgba(255,255,255,.12);} .ci-pill.on{background:linear-gradient(135deg,#1E5BB8,#3DD6FF); border-color:transparent; color:#fff;}
+  .ci-search{flex:1; min-width:190px; max-width:360px; margin-left:auto;} .ci-search input{width:100%; box-sizing:border-box; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.16); border-radius:999px; padding:9px 16px; color:#fff; font:400 13.5px Poppins,sans-serif;} .ci-search input:focus{outline:none; border-color:#3DD6FF;}
+  .ci-seg{display:flex; border:1px solid rgba(255,255,255,.16); border-radius:999px; overflow:hidden;} .ci-seg button{border:none; background:transparent; color:#C8D8F2; padding:8px 14px; font:600 13px Poppins,sans-serif; cursor:pointer;} .ci-seg button.on{background:rgba(61,214,255,.2); color:#fff;}
+  .ci-split{display:grid; grid-template-columns:minmax(0,1fr) 350px; gap:20px; align-items:start;}
+  @media(max-width:1000px){ .ci-split{grid-template-columns:1fr;} .ci-panel{display:none;} }
+  .ci-panel{position:sticky; top:84px; border-radius:20px; padding:24px 22px; background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.12); box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 16px 40px rgba(0,0,0,.4); --oc:#3DD6FF; min-height:120px;}
+  .ci-panel .ci-ini{width:64px; height:64px; font-size:22px; margin:0 0 12px;}
+  .ci-panel h3{margin:0; font-size:20px; line-height:1.25; color:#fff; overflow-wrap:anywhere;} .ci-panel .pu{margin-top:3px; font-size:13.5px; color:#8FE6FF;}
+  .ci-tags{display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 4px;} .ci-tag{font-size:11px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--oc); background:rgba(255,255,255,.07); border-radius:999px; padding:3px 10px;}
+  .ci-row{margin-top:14px;} .ci-row .k{font-size:11px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:#8A9BBE; margin-bottom:3px;}
+  .ci-row .v{font-size:14px; color:#E3ECFA; overflow-wrap:anywhere; display:flex; align-items:center; gap:8px; flex-wrap:wrap;} .ci-row .v a{color:#8FE6FF; text-decoration:none;} .ci-row .v a:hover{text-decoration:underline;}
+  .ci-copy{border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.07); color:#C8D8F2; border-radius:999px; padding:2px 10px; font:600 11px Poppins,sans-serif; cursor:pointer;} .ci-copy:hover{background:rgba(255,255,255,.15);}
+  .ci-link{border:none; background:none; color:#8FE6FF; font:500 14px Poppins,sans-serif; cursor:pointer; padding:2px 0; text-align:left;} .ci-link:hover{text-decoration:underline;}
+  .ci-sin{color:#6F82A8; font-size:13px;}
+  .ci-box.sel{border-color:var(--oc); box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 2px var(--oc),0 16px 36px rgba(0,0,0,.5);}
 
   /* Ventana de edición */
   .ci-ov{position:fixed; inset:0; background:rgba(3,7,18,.72); backdrop-filter:blur(4px); z-index:9000; display:none; align-items:center; justify-content:center; padding:20px;} .ci-ov.open{display:flex;}
@@ -204,7 +224,8 @@
 
 <main class="wk-main">
   <div id="statusBox"></div>
-  <div id="content"><div class="loading">Cargando contactos…</div></div>
+  <div class="ci-bar" id="ciBar"></div>
+  <div class="ci-split"><div id="ciBody"><div class="loading">Cargando contactos…</div></div><aside class="ci-panel" id="ciPanel"></aside></div>
 </main>
 
 <div class="ci-ov" id="overlay" onclick="if(event.target===this) closeSheet()"><div class="ci-sheet" id="sheet"></div></div>
@@ -241,7 +262,7 @@ function colHtml(p, delCat, color){
   const hijos = delCat.filter(x => x.reportaA === p.id);
   const cont = [p.email, p.telefono].filter(Boolean).join(' · ');
   const cerrado = colapsados.has(p.id);
-  return '<div class="ci-col"><div class="ci-box" data-id="' + esc(p.id) + '" onclick="openSheet(\'' + esc(p.id) + '\')" data-tip="' + esc(p.nombre + (p.puesto ? '\n' + p.puesto : '') + (p.area ? '\n' + p.area : '') + (p.notas ? '\n\n' + p.notas : '') + '\n\nClic para ' + (window.SOLO_LECTURA ? 'ver' : 'ver o editar')) + '">' +
+  return '<div class="ci-col"><div class="ci-box" data-id="' + esc(p.id) + '" onclick="selecciona(\'' + esc(p.id) + '\')" data-tip="' + esc(p.nombre + (p.puesto ? '\n' + p.puesto : '') + (p.area ? '\n' + p.area : '') + (p.notas ? '\n\n' + p.notas : '') + '\n\nClic para ' + (window.SOLO_LECTURA ? 'ver' : 'ver o editar')) + '">' +
     '<div class="ci-ini">' + esc(iniciales(p.nombre)) + '</div>' +
     '<div class="ci-name">' + esc(p.nombre) + '</div>' + (p.puesto ? '<div class="ci-puesto">' + esc(p.puesto) + '</div>' : '') +
     (p.area ? '<span class="ci-area">' + esc(p.area) + '</span>' : '') + (cont ? '<div class="ci-contact">' + esc(cont) + '</div>' : '') +
@@ -275,43 +296,61 @@ function dibujaLineas(){
 window.addEventListener('resize', () => { if(personas.length) dibujaLineas(); });
 
 /* ---------- Tablero ---------- */
+let vista = 'org', catAct = 'sap', consulta = '', selId = null;
+const angosto = () => window.matchMedia('(max-width:1000px)').matches;
+function selecciona(id){ if(angosto()) return openSheet(id); selId = id; document.querySelectorAll('.ci-box').forEach(b => b.classList.toggle('sel', b.dataset.id === id)); panel(); }
+function setVista(v){ vista = v; render(); }
+function setCat(id){ catAct = id; vista = 'org'; consulta = ''; render(); }
+function buscar(v){
+  consulta = v; const q = v.trim();
+  if(q && vista !== 'dir'){ vista = 'dir'; render(); const i = document.getElementById('ciQ'); if(i){ i.focus(); i.setSelectionRange(v.length, v.length); } return; }
+  const t = document.getElementById('tablaContactos'); if(t) WK.filtrar(t, v);
+}
+function copiar(txt, btn){ try{ navigator.clipboard.writeText(txt); const o = btn.textContent; btn.textContent = '¡Copiado!'; setTimeout(() => btn.textContent = o, 1200); }catch(e){} }
+function panel(){
+  const el = document.getElementById('ciPanel'), p = personas.find(x => x.id === selId);
+  if(!p){ el.style.setProperty('--oc', '#3DD6FF'); el.innerHTML = '<div class="ci-sin">Selecciona a una persona para ver su ficha, correo y teléfono.</div>'; return; }
+  const c = catDe(p), jefe = personas.find(x => x.id === p.reportaA), reportes = personas.filter(x => x.reportaA === p.id);
+  const fila = (k, v) => v ? '<div class="ci-row"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>' : '';
+  el.style.setProperty('--oc', c.color);
+  el.innerHTML = '<div class="ci-ini" style="background:' + c.color + '22;border-color:' + c.color + '">' + esc(iniciales(p.nombre)) + '</div><h3>' + esc(p.nombre) + '</h3>' + (p.puesto ? '<div class="pu">' + esc(p.puesto) + '</div>' : '') +
+    '<div class="ci-tags"><span class="ci-tag">' + c.ico + ' ' + esc(c.nombre) + '</span>' + (p.area ? '<span class="ci-tag">' + esc(p.area) + '</span>' : '') + '</div>' +
+    fila('Correo', p.email ? '<a href="mailto:' + esc(p.email) + '">' + esc(p.email) + '</a><button class="ci-copy" onclick="copiar(' + esc(JSON.stringify(p.email)) + ',this)">Copiar</button>' : '<span class="ci-sin">Sin correo</span>') +
+    fila('Teléfono', p.telefono ? '<a href="tel:' + esc(p.telefono.replace(/[^\d+]/g, '')) + '">' + esc(p.telefono) + '</a><button class="ci-copy" onclick="copiar(' + esc(JSON.stringify(p.telefono)) + ',this)">Copiar</button>' : '<span class="ci-sin">Sin teléfono</span>') +
+    fila('Reporta a', jefe ? '<button class="ci-link" onclick="selecciona(\'' + esc(jefe.id) + '\')">' + esc(jefe.nombre) + '</button>' : '') +
+    fila('Le reportan', reportes.map(r => '<button class="ci-link" onclick="selecciona(\'' + esc(r.id) + '\')">' + esc(r.nombre) + '</button>').join('')) +
+    fila('Notas', p.notas ? esc(p.notas) : '') +
+    '<button class="ci-pill on" style="margin-top:20px;width:100%" onclick="openSheet(\'' + esc(p.id) + '\')">' + (window.SOLO_LECTURA ? 'Ver ficha completa' : 'Editar ficha') + '</button>';
+}
 function render(){
-  const content = document.getElementById('content'), N = personas.length;
+  const content = document.getElementById('ciBody'), bar = document.getElementById('ciBar'), N = personas.length;
   if(!N){
+    bar.style.display = 'none'; document.getElementById('ciPanel').style.display = 'none';
     content.innerHTML = '<div class="wk-card"><div class="ci-vacio"><b>👥</b><h2 style="margin:0 0 8px;color:#fff">Aún no hay contactos</h2>' + (window.SOLO_LECTURA ? 'Todavía no se ha capturado a nadie.' : 'Agrega a las personas clave con "+ Agregar contacto".') + '</div></div>';
     return;
   }
+  bar.style.display = ''; document.getElementById('ciPanel').style.display = '';
   const porCat = CATS.map(c => ({ c, items:personas.filter(p => catDe(p).id === c.id) }));
-  const nombres = it => it.slice(0, 12).map(p => '• ' + p.nombre).join('\n') + (it.length > 12 ? '\n+' + (it.length - 12) + ' más' : '');
-  const areas = {}; personas.forEach(p => { const a = (p.area || '').trim(); if(a){ (areas[a] = areas[a] || []).push(p); } });
-  const areasOrd = Object.keys(areas).map(a => ({ a, it:areas[a] })).sort((x, y) => y.it.length - x.it.length);
-  const completos = personas.filter(p => p.email && p.telefono).length, sinCorreo = personas.filter(p => !p.email).length, sinTel = personas.filter(p => !p.telefono).length;
-  const pctC = completos / N, tonoC = pctC >= .8 ? 'green' : (pctC >= .5 ? 'amber' : 'red');
-
-  const hero = WK.heroGrid([
-    WK.hero({ label:'Contactos importantes', ico:'👥', value:WK.num(N), tono:'violet', sub:'Repartidos en ' + porCat.filter(x => x.items.length).length + ' categoría(s)',
-      chart: WK.donut(porCat.filter(x => x.items.length).map(x => ({ label:x.c.nombre, value:x.items.length, color:x.c.color, tip:x.c.ico + ' ' + x.c.nombre + '\n' + nombres(x.items) })), { centro:String(N), sub:N === 1 ? 'contacto' : 'contactos', tamano:'190px' }) }),
-    WK.hero({ label:'Áreas con más contactos', ico:'🧭', value:WK.num(areasOrd.length), tono:'cyan', sub: areasOrd.length ? 'Áreas o especialidades distintas' : 'Todavía no hay áreas capturadas',
-      chart: areasOrd.length ? WK.ranked(areasOrd.slice(0, 6).map(x => ({ label:x.a, value:x.it.length, tip:x.a + '\n' + nombres(x.it) })), { fmt:v => v + (v === 1 ? ' contacto' : ' contactos'), max:areasOrd[0].it.length }) : '' }),
-    WK.hero({ label:'Datos de contacto completos', ico:'📇', value:WK.pct(pctC), tono:tonoC, sub:completos + ' de ' + N + ' con correo y teléfono' + (sinCorreo || sinTel ? ' · ' + sinCorreo + ' sin correo · ' + sinTel + ' sin teléfono' : ''),
-      chart: WK.gauge({ valor:completos, max:N, tono:tonoC, texto:WK.pct(pctC), label:'completos', tip:'Contactos con correo y teléfono\n' + completos + ' de ' + N + (sinCorreo ? '\nSin correo: ' + personas.filter(p => !p.email).map(p => p.nombre).slice(0, 8).join(', ') : '') }) })
-  ]);
-
-  const chips = WK.chips(porCat.map(x => ({ id:'cat-' + x.c.id, label:x.c.ico + ' ' + x.c.nombre, n:x.items.length })).concat([{ id:'directorio', label:'Directorio', n:N }]));
-  const bloques = porCat.map(x => WK.band('cat-' + x.c.id, x.c.nombre, x.c.sub) +
-    WK.card({ ico:x.c.ico, titulo:'Organigrama', sub:window.SOLO_LECTURA ? 'Pasa el mouse sobre una persona; clic para ver su ficha.' : 'Clic en una persona para ver o editar su ficha · − / + oculta sus reportes.', count:x.items.length, body:arbolHtml(x.c) })).join('');
-
-  const filas = personas.map(p => { const jefe = personas.find(x => x.id === p.reportaA); return { id:p.id, nombre:p.nombre, cat:catDe(p).ico + ' ' + catDe(p).nombre, puesto:p.puesto || '—', area:p.area || '—', email:p.email || '—', tel:p.telefono || '—', jefe:jefe ? jefe.nombre : '—', notas:p.notas || '' }; });
-  const tabla = WK.band('directorio', 'Directorio', 'Busca por nombre, puesto, área o correo · clic en una fila para abrir la ficha') +
-    WK.card({ ico:'📇', titulo:'Todos los contactos', count:N,
-      body:'<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar contacto…" oninput="WK.filtrar(document.getElementById(\'tablaContactos\'), this.value)"></div>' +
-        WK.table([
-          { k:'nombre', label:'Nombre', tipo:'strong' }, { k:'cat', label:'Categoría', tipo:'tag' }, { k:'puesto', label:'Puesto', tipo:'text' }, { k:'area', label:'Área', tipo:'text' },
-          { k:'email', label:'Correo', tipo:'text' }, { k:'tel', label:'Teléfono', tipo:'text' }, { k:'jefe', label:'Reporta a', tipo:'text' }, { k:'notas', label:'Notas', tipo:'note' }
-        ], filas, { id:'tablaContactos', rowAttrs:f => 'onclick="openSheet(\'' + esc(f.id) + '\')" style="cursor:pointer"' }) });
-
-  content.innerHTML = hero + chips + bloques + tabla;
-  WK.sortable(content);
+  if(!CATS.some(c => c.id === catAct)) catAct = CATS[0].id;
+  const cat = CATS.find(c => c.id === catAct);
+  bar.innerHTML = '<div class="ci-pills">' + porCat.map(x => '<button class="ci-pill' + (vista === 'org' && x.c.id === catAct ? ' on' : '') + '" onclick="setCat(\'' + x.c.id + '\')">' + x.c.ico + ' ' + esc(x.c.nombre) + '<small>' + x.items.length + '</small></button>').join('') + '</div>' +
+    '<div class="ci-seg"><button class="' + (vista === 'org' ? 'on' : '') + '" onclick="setVista(\'org\')">Organigrama</button><button class="' + (vista === 'dir' ? 'on' : '') + '" onclick="setVista(\'dir\')">Directorio</button></div>' +
+    '<div class="ci-search"><input id="ciQ" type="search" placeholder="Buscar por nombre, puesto, área o correo…" value="' + esc(consulta) + '" oninput="buscar(this.value)"></div>';
+  if(vista === 'org'){
+    content.innerHTML = WK.card({ ico:cat.ico, titulo:cat.nombre, sub:cat.sub + ' · ' + (window.SOLO_LECTURA ? 'clic en una persona para ver su ficha' : 'clic en una persona para ver su ficha o editarla') + ' · − / + oculta reportes', count:porCat.find(x => x.c.id === catAct).items.length, body:arbolHtml(cat) });
+  }else{
+    const filas = personas.map(p => { const jefe = personas.find(x => x.id === p.reportaA); return { id:p.id, nombre:p.nombre, cat:catDe(p).ico + ' ' + catDe(p).nombre, puesto:p.puesto || '—', area:p.area || '—',
+      email:p.email ? '<a href="mailto:' + esc(p.email) + '" onclick="event.stopPropagation()" style="color:#8FE6FF">' + esc(p.email) + '</a>' : '—', tel:p.telefono || '—', jefe:jefe ? jefe.nombre : '—' }; });
+    content.innerHTML = WK.card({ ico:'📇', titulo:'Todos los contactos', sub:'Clic en una fila para ver la ficha · clic en un encabezado para ordenar', count:N,
+      body:WK.table([
+        { k:'nombre', label:'Nombre', tipo:'strong' }, { k:'cat', label:'Categoría', tipo:'tag' }, { k:'puesto', label:'Puesto', tipo:'text' }, { k:'area', label:'Área', tipo:'text' },
+        { k:'email', label:'Correo', tipo:'html' }, { k:'tel', label:'Teléfono', tipo:'text' }, { k:'jefe', label:'Reporta a', tipo:'text' }
+      ], filas, { id:'tablaContactos', rowAttrs:f => 'onclick="selecciona(\'' + esc(f.id) + '\')" style="cursor:pointer"' }) });
+    WK.sortable(content); if(consulta) WK.filtrar(document.getElementById('tablaContactos'), consulta);
+  }
+  if(selId && !personas.some(x => x.id === selId)) selId = null;
+  panel();
+  if(selId) document.querySelectorAll('.ci-box').forEach(b => b.classList.toggle('sel', b.dataset.id === selId));
   requestAnimationFrame(() => { dibujaLineas(); setTimeout(dibujaLineas, 400); });
 }
 
