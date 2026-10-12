@@ -50,6 +50,9 @@
   .ob-blk:hover{transform:translateY(-3px); border-color:var(--oc); box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 22px 50px rgba(0,0,0,.5),0 0 40px -12px var(--oc);}
   .ob-head{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; position:relative; z-index:1;}
   .ob-head b{font-size:24px; font-weight:800; color:#fff; letter-spacing:-.3px;}
+  .ob-who{display:flex; align-items:center; gap:12px; min-width:0;}
+  .ob-who img{width:58px; height:58px; border-radius:50%; object-fit:cover; flex:none; border:2px solid var(--oc); box-shadow:0 0 0 4px rgba(255,255,255,.06),0 6px 18px rgba(0,0,0,.45);}
+  .ob-who small{display:block; margin-top:2px; font-size:12.5px; font-weight:500; color:var(--wk-grey);}
   .ob-deltas{display:flex; gap:6px; flex-wrap:wrap;}
   .ob-blk .wk-gauge{max-width:230px; margin:4px auto 8px; position:relative; z-index:1;}
   .ob-row{margin-top:14px; position:relative; z-index:1; padding:6px 8px 8px; border-radius:10px;}
@@ -288,6 +291,9 @@ const colorLob = (lobs, nombre) => LOBCOL[Math.max(0, lobs.findIndex(l => String
 // Proyectos sanos (mínimo estimado): el Excel solo trae conteos, así que se asume que ningún proyecto tiene desvío y riesgo a la vez
 const sanosMin = (p, d, r) => p ? Math.max(0, p - d - r) : 0;
 const TONO_SANO = f => f == null ? 'cyan' : (f >= 0.8 ? 'green' : (f >= 0.65 ? 'amber' : 'red'));
+// Responsable de cada LOB (foto en /assets/owners). Se busca por nombre de LOB sin acentos, espacios ni signos.
+const RESP_LOB = { rise:{ n:'Rogelio Leyva', f:'rogelio' }, grow:{ n:'Rogelio Leyva', f:'rogelio' }, sfsf:{ n:'Araceli Peñaloza', f:'araceli' }, b1:{ n:'María José Bastian', f:'mariajose' } };
+const respLob = nom => RESP_LOB[String(nom || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')] || null;
 function saludPorLob(lobs, prev){
   const max = Math.max.apply(null, lobs.map(l => l.proyectos || 0)) || 1;
   const pv = {}; (prev ? prev.porLob : []).forEach(l => { pv[String(l.lob)] = l; });
@@ -301,7 +307,7 @@ function saludPorLob(lobs, prev){
     const d = '<div class="ob-deltas">' + chip(l.conDesvio, p && p.conDesvio, 'Desvíos') + chip(l.conRiesgo, p && p.conRiesgo, 'Riesgos') + '</div>';
     const sano = pctDe(sanosMin(P, D, R), P);
     const gauge = P ? WK.gauge({ valor:sanosMin(P, D, R), max:P, tono:TONO_SANO(sano), texto:WK.pct(sano), label:'proyectos sanos (mín.)', tip:nom + ' · proyectos sanos\n' + WK.num(sanosMin(P, D, R)) + ' de ' + WK.num(P) + ' sin desvío ni riesgo\nEstimación mínima: supone que ningún proyecto tiene desvío y riesgo a la vez' }) : '';
-    return '<div class="ob-blk" style="--oc:' + colorLob(lobs, nom) + '"><div class="ob-head"><b>' + esc(nom) + '</b>' + d + '</div>' + gauge +
+    return '<div class="ob-blk" style="--oc:' + colorLob(lobs, nom) + '"><div class="ob-head">' + (respLob(nom) ? '<div class="ob-who"><img src="/assets/owners/' + respLob(nom).f + '.jpg" alt="' + esc(respLob(nom).n) + '" loading="lazy" onerror="this.remove()"><div><b>' + esc(nom) + '</b><small>' + esc(respLob(nom).n) + '</small></div></div>' : '<b>' + esc(nom) + '</b>') + d + '</div>' + gauge +
       fila('Proyectos', P, 'cyan', 0, p && p.proyectos) + fila('Con desvío', D, 'amber', P, p && p.conDesvio) + fila('Con riesgo', R, 'red', P, p && p.conRiesgo) + fila('Go-Live anual', l.goLiveAnual, 'green', 0, p && p.goLiveAnual) + '</div>';
   }).join('') + '</div><div class="ob-note">Barras a la misma escala · los chips aparecen cuando cambian desvíos o riesgos contra el corte anterior (verde = bajaron) · pasa el mouse sobre cualquier barra o medidor para ver el detalle.</div>';
 }
