@@ -11,8 +11,7 @@
 <title>Investigación de Prospecto · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="/wbr-kit.js?v=20261010s"></script>
+<script src="/wbr-kit.js?v=20261012a"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
@@ -109,6 +108,15 @@
   .p-actions{display:flex; gap:10px; flex-wrap:wrap; margin:6px 0 24px;}
   .p-two{display:grid; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); gap:18px; margin-bottom:18px;}
   .p-two .wk-callout{height:100%;}
+  .p-hist{display:grid; gap:8px; margin-top:4px;}
+  .p-hist-row{display:grid; grid-template-columns:minmax(140px,1.6fr) minmax(90px,1fr) minmax(120px,1.2fr) auto auto; gap:12px; align-items:center; padding:10px 14px; border:1px solid var(--wk-line); border-radius:12px; background:rgba(255,255,255,.04); font-size:13px;}
+  .p-hist-row:hover{border-color:var(--wk-cyan);}
+  .p-hist-row b{color:var(--wk-navy2); font-weight:600;} .p-hist-row small{color:var(--wk-greyl); font-size:11.5px;}
+  .p-mini{border:1px solid var(--wk-line); background:rgba(255,255,255,.06); color:var(--wk-ink); border-radius:8px; padding:6px 12px; font:600 12px Poppins,sans-serif; cursor:pointer;}
+  .p-mini:hover{border-color:var(--wk-cyan); color:var(--wk-cyan);} .p-mini.del{color:#FFB3C0;} .p-mini.del:hover{border-color:#FF5C7A;}
+  .p-bx-row{display:flex; gap:14px; flex-wrap:wrap; align-items:center; padding:10px 0; border-top:1px solid var(--wk-line); font-size:13px;} .p-bx-row:first-of-type{border-top:0;}
+  .p-bx-row b{color:var(--wk-navy2);} .p-bx-row span{color:var(--wk-grey);}
+  @media (max-width:700px){ .p-hist-row{grid-template-columns:1fr auto;} }
   @media (max-width:700px){ .p-row{grid-template-columns:1fr;} .p-hero{grid-template-columns:1fr;} .p-two{grid-template-columns:1fr;} }
 </style>
 </head>
@@ -269,6 +277,11 @@
     </details>
   </section>
 
+  <section class="wk-card" id="histCard">
+    <div class="wk-card-head"><div><h3>🗂️ Investigaciones recientes</h3><p>Reabre una investigación sin volver a consultar a Delfos. Se guardan las últimas <span id="histMax">50</span>, una por empresa.</p></div><span class="wk-count" id="histCount">0</span></div>
+    <div id="histBody"><div class="p-loading" style="padding:14px;"><span class="spinner"></span>Cargando…</div></div>
+  </section>
+
   <div id="resultSection" style="display:none;">
     <div id="resultBody"></div>
   </div>
@@ -325,7 +338,6 @@ function promptCompleto(){
 }
 
 let lastData = null;
-let lastText = '';
 let lastCompany = '';
 
 const esc = WK.esc;
@@ -427,29 +439,9 @@ function renderDashboard(d){
   ], fuentes.map(f => { const n = Number(f.nivel); return { nombre:f.nombre, nivel: WK.badge('Nivel ' + (n || '—'), n === 1 ? 'green' : (n === 2 ? 'blue' : 'amber')), url: /^https?:\/\//i.test(f.url || '') ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener" style="color:var(--wk-cyan);">abrir</a>' : '—' }; }), { sinOrden:true, vacio:'Delfos no listó fuentes.' });
   const fuSec = WK.band('p-fuentes', 'Fuentes consultadas', 'Nivel 1 = máxima confianza') + WK.card({ ico:'🔗', titulo:'Fuentes', count: fuentes.length, body: tablaFu });
 
-  const acciones = '<div class="p-actions"><button class="p-btn" onclick="downloadPDF()">Descargar PDF</button><button class="p-btn sec" onclick="investigar()">Volver a investigar</button></div>';
+  const acciones = '<div class="p-actions wk-nosend"><button class="p-btn sec" onclick="investigar()">Volver a investigar</button></div>';
 
-  return chips + hero + gauges + encajeSec + contSec + senSec + fuSec + acciones;
-}
-
-/* Texto plano (respaldo y PDF) */
-function datoATexto(d){
-  const e = d.empresa || {}, L = [];
-  const f = x => val(x) || 'sin confirmar';
-  L.push('NOMBRE COMERCIAL', '- ' + f(e.nombreComercial), 'RAZÓN SOCIAL', '- ' + f(e.razonSocial), 'RFC', '- ' + f(e.rfc), 'INDUSTRIA', '- ' + f(e.industria));
-  L.push('PRINCIPALES CONTACTOS O PERSONAS CLAVE');
-  arr(d.contactos).forEach(c => L.push('- ' + [c.nombre, c.cargo, c.area].filter(Boolean).join(' — ') + (val(c.correo) ? ' · ' + c.correo : '') + (val(c.telefono) ? ' · Tel. ' + c.telefono : '') + (c.fuente ? ' (fuente: ' + c.fuente + ')' : '')));
-  L.push('QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP');
-  arr(d.portafolioSap).forEach(p => L.push('- ' + p.solucion + ' (encaje ' + (clamp(p.encaje) == null ? '—' : clamp(p.encaje) + '%') + '): ' + (p.porque || '') + (p.posicionamiento ? ' Cómo posicionarlo: ' + p.posicionamiento : '')));
-  L.push('VALUE DRIVERS PARA ENGANCHAR');
-  arr(d.valueDrivers).forEach(v => L.push('- ' + v.titulo + ': ' + (v.detalle || '')));
-  L.push('OTROS DATOS ÚTILES PARA LA LLAMADA');
-  arr(d.senales).forEach(s => L.push('- [' + (s.tipo || '') + '] ' + s.titulo + ': ' + (s.detalle || '') + (s.fuente ? ' (fuente: ' + s.fuente + (s.fecha ? ', ' + s.fecha : '') + ')' : '')));
-  if(d.apertura && val(d.apertura.llamada)) L.push('- Apertura para llamada: ' + d.apertura.llamada);
-  arr(d.datosPorConfirmar).forEach(p => L.push('- Dato sin confirmar en fuente oficial: ' + p));
-  L.push('FUENTES CONSULTADAS');
-  arr(d.fuentes).forEach(x => L.push('- ' + x.nombre + ' — Nivel ' + (x.nivel || '—')));
-  return L.join('\n');
+  return chips + '<div id="p-bx"></div>' + hero + gauges + encajeSec + contSec + senSec + fuSec + acciones;
 }
 
 /* Respaldo si Delfos no devolvió JSON */
@@ -476,7 +468,7 @@ function renderFeedback(text){
 async function investigar(){
   const company = document.getElementById('companyInput').value.trim();
   if(!company) return;
-  lastCompany = company; lastData = null; lastText = '';
+  lastCompany = company; lastData = null;
   const btn = document.getElementById('goBtn');
   const resultSection = document.getElementById('resultSection');
   const resultBody = document.getElementById('resultBody');
@@ -517,13 +509,13 @@ async function investigar(){
           if(!gotError && fullText){
             const data = extraerJSON(fullText);
             if(data){
-              lastData = data; lastText = datoATexto(data);
+              lastData = data;
               resultBody.innerHTML = renderDashboard(data);
+              guardarInv(company, data); llenarBx(data, company);
               document.getElementById('fechaBadge').innerHTML = '<span class="fecha-revision" style="display:inline-block;margin-top:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;">' + esc(company) + ' · ' + new Date().toLocaleDateString('es-MX') + '</span>';
             }else{
-              lastText = fullText;
-              resultBody.innerHTML = '<section class="wk-card"><div class="wk-card-head"><div><h3>📄 Perfil comercial</h3><p>No pude estructurar la respuesta en tablero; te la muestro en texto.</p></div></div>' + renderFeedback(fullText) +
-                '<div class="p-actions" style="margin-top:16px;"><button class="p-btn" onclick="downloadPDF()">Descargar PDF</button></div></section>';
+                            resultBody.innerHTML = '<section class="wk-card"><div class="wk-card-head"><div><h3>📄 Perfil comercial</h3><p>No pude estructurar la respuesta en tablero; te la muestro en texto.</p></div></div>' + renderFeedback(fullText) +
+                '</section>';
             }
           }
         }
@@ -537,75 +529,100 @@ async function investigar(){
 
 const PDF_KNOWN_HEADERS = ['NOMBRE COMERCIAL','RAZÓN SOCIAL','RFC','INDUSTRIA','PRINCIPALES CONTACTOS O PERSONAS CLAVE','QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP','VALUE DRIVERS PARA ENGANCHAR','OTROS DATOS ÚTILES PARA LA LLAMADA','FUENTES CONSULTADAS'];
 
-async function exportFeedbackPDF(title, subtitle, feedbackText, filename){
-  if(!window.jspdf){
-    alert('No se pudo cargar la librería para generar el PDF. Revisa tu conexión a internet y vuelve a intentar; si el problema persiste, avísale a Sam.');
-    return;
-  }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 44;
-  let y;
+/* ---- Historial (últimas 50, compartido) ---- */
+let histAdmin = false;
+function fechaCorta(iso){ try{ return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' }); }catch(e){ return ''; } }
+function quien(email){ return (email || '').split('@')[0].replace(/[._]/g, ' '); }
 
-  doc.setFillColor(10, 18, 38);
-  doc.rect(0, 0, pageWidth, 70, 'F');
+async function cargarHistorial(){
+  const body = document.getElementById('histBody');
   try{
-    const resp = await fetch('/assets/logo_dark.png');
-    const blob = await resp.blob();
-    const dataUrl = await new Promise(res => { const r = new FileReader(); r.onload = ()=>res(r.result); r.readAsDataURL(blob); });
-    doc.addImage(dataUrl, 'PNG', margin, 20, 90, 30);
-  }catch(e){}
-
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(13);
-  doc.setFont(undefined, 'bold');
-  doc.text(title, pageWidth - margin, 32, { align: 'right' });
-  doc.setFontSize(9);
-  doc.setFont(undefined, 'normal');
-  doc.text(subtitle + ' · ' + new Date().toLocaleDateString('es-MX'), pageWidth - margin, 48, { align: 'right' });
-
-  y = 100;
-  doc.setTextColor(22,34,58);
-
-  const lines = feedbackText.split('\n').map(l=>l.trim()).filter(l=>l);
-  lines.forEach(line=>{
-    const isHeader = PDF_KNOWN_HEADERS.some(h => line.toUpperCase().startsWith(h));
-    if(y > pageHeight - 60){ doc.addPage(); y = 50; }
-    if(isHeader){
-      y += 8;
-      doc.setFontSize(11);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(30, 91, 184);
-      doc.text(line, margin, y);
-      y += 16;
-      doc.setTextColor(22,34,58);
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(10);
-    }else{
-      const clean = line.replace(/^[-•]\s*/, '•  ');
-      const wrapped = doc.splitTextToSize(clean, pageWidth - margin*2);
-      wrapped.forEach(w=>{
-        if(y > pageHeight - 60){ doc.addPage(); y = 50; }
-        doc.text(w, margin, y);
-        y += 14;
-      });
-    }
-  });
-
-  try{
-    doc.save(filename);
+    const r = await fetch('/api/prospecto-historial');
+    const d = await r.json();
+    if(!r.ok || !d.ok) throw new Error(d.error || 'sin acceso');
+    histAdmin = !!d.esAdmin;
+    document.getElementById('histMax').textContent = d.max || 50;
+    document.getElementById('histCount').textContent = d.items.length + ' / ' + (d.max || 50);
+    body.innerHTML = d.items.length ? '<div class="p-hist">' + d.items.map(it =>
+      '<div class="p-hist-row"><div><b>' + esc(it.empresa) + '</b><br><small>' + esc(it.industria || '') + '</small></div>' +
+      '<div>' + (it.encaje == null ? '' : WK.badge('Encaje ' + it.encaje, tonoPct(it.encaje))) + '</div>' +
+      '<div><small>' + esc(fechaCorta(it.en)) + '<br>por ' + esc(quien(it.por)) + '</small></div>' +
+      '<button class="p-mini" onclick="abrirInv(\'' + esc(it.id) + '\')">Abrir</button>' +
+      (histAdmin ? '<button class="p-mini del" title="Borrar" onclick="borrarInv(\'' + esc(it.id) + '\', this)">🗑</button>' : '<span></span>') + '</div>').join('') + '</div>'
+      : WK.empty('Aún no hay investigaciones guardadas. La primera que hagas aparecerá aquí.');
   }catch(e){
-    console.error(e);
-    alert('No se pudo generar el archivo PDF. Intenta de nuevo — si sigue fallando, avísale a Sam.');
+    body.innerHTML = '<div class="p-hint">No se pudo cargar el historial.</div>';
   }
 }
 
-function downloadPDF(){
-  if(!lastText) return;
-  exportFeedbackPDF('Investigación de Prospecto', lastCompany, lastText, `Prospecto - ${lastCompany}.pdf`);
+async function guardarInv(company, data){
+  try{
+    const r = await fetch('/api/prospecto-historial', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ empresa: company, data }) });
+    if(r.ok) cargarHistorial();
+  }catch(e){ /* guardar es opcional: si falla, el tablero ya se muestra */ }
 }
+
+async function abrirInv(id){
+  const resultSection = document.getElementById('resultSection');
+  const resultBody = document.getElementById('resultBody');
+  resultSection.style.display = 'block';
+  resultBody.innerHTML = '<section class="wk-card"><div class="p-loading"><span class="spinner"></span>Abriendo investigación…</div></section>';
+  try{
+    const r = await fetch('/api/prospecto-historial?id=' + encodeURIComponent(id));
+    const d = await r.json();
+    if(!r.ok || !d.ok) throw new Error(d.error || 'No se pudo abrir.');
+    const reg = d.registro;
+    lastData = reg.data; lastCompany = reg.empresa;
+    const inp = document.getElementById('companyInput'); inp.value = reg.empresa; document.getElementById('goBtn').disabled = false;
+    resultBody.innerHTML = renderDashboard(reg.data);
+    llenarBx(reg.data, reg.empresa);
+    document.getElementById('fechaBadge').innerHTML = '<span style="display:inline-block;margin-top:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;">' + esc(reg.empresa) + ' · consultada el ' + esc(fechaCorta(reg.en)) + ' por ' + esc(quien(reg.por)) + '</span>';
+    resultSection.scrollIntoView({ behavior:'smooth', block:'start' });
+  }catch(e){
+    resultBody.innerHTML = '<div class="p-error">' + esc(e.message || 'No se pudo abrir la investigación.') + '</div>';
+  }
+}
+
+async function borrarInv(id, btn){
+  if(!confirm('¿Borrar esta investigación del historial? No se puede deshacer.')) return;
+  btn.disabled = true;
+  try{
+    const r = await fetch('/api/prospecto-historial?id=' + encodeURIComponent(id), { method:'DELETE' });
+    const d = await r.json();
+    if(!r.ok || !d.ok) throw new Error(d.error || 'No se pudo borrar.');
+    cargarHistorial();
+  }catch(e){ alert(e.message || 'No se pudo borrar.'); btn.disabled = false; }
+}
+
+/* ---- ¿Ya aparece en la Base Instalada de BX? ---- */
+async function llenarBx(data, company){
+  const el = document.getElementById('p-bx');
+  if(!el) return;
+  const e = (data && data.empresa) || {};
+  const q = new URLSearchParams({ nombre: val(e.nombreComercial) || company });
+  if(val(e.razonSocial)) q.set('razon', e.razonSocial);
+  try{
+    const r = await fetch('/api/prospecto-bx?' + q.toString());
+    if(!r.ok) return;
+    const d = await r.json();
+    if(!d.ok || !d.disponible) return;
+    const m = d.coincidencias || [];
+    const hayExacta = m.some(x => x.tipo === 'exacta');
+    const filas = m.map(x => '<div class="p-bx-row"><b>' + esc(x.cuenta) + '</b>' + WK.badge(x.tipo === 'exacta' ? 'Coincide' : 'Posible', x.tipo === 'exacta' ? 'green' : 'amber') +
+      '<span>LOB: ' + esc(x.lob || '—') + '</span><span>KAM: ' + esc(x.kam || '—') + '</span><span>Ejecutivo BX: ' + esc(x.ejecutivoBx || '—') + '</span></div>').join('');
+    const corte = d.corte ? ' · corte del ' + fechaCorta(d.corte) : '';
+    el.innerHTML = m.length
+      ? WK.card({ ico: hayExacta ? '🏷️' : '🔎', titulo: hayExacta ? 'Ya aparece en la Base Instalada de BX' : 'Posible coincidencia en la Base Instalada de BX', sub: (hayExacta ? 'Es cuenta existente: coordina con el KAM antes de contactar.' : 'Verifica que sea la misma empresa antes de contactar.') + corte, body: filas })
+      : WK.card({ ico:'🆕', titulo:'Sin coincidencia en la Base Instalada de BX', sub:'Por el nombre buscado, parece prospecto nuevo' + corte + '.', body:'' });
+  }catch(err){ /* el cruce es informativo: si falla, no se muestra */ }
+}
+
+/* ---- Enviar / descargar vista (botones del kit WBR) ---- */
+window.WK_SEND_READY = () => !!lastData;
+window.WK_PDF_PLAN = async cap => [await cap(document.getElementById('resultBody'))];
+window.WK_SEND_TITULO = () => 'Prospecto · ' + (lastCompany || 'empresa');
+
+cargarHistorial();
 </script>
 <script>
 (function(){

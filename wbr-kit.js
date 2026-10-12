@@ -843,7 +843,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
 
 /* ---- Enviar vista por correo (PDF) — todos los tableros WBR ---- */
 (function(){
-  var m = (location.pathname||'').match(/\/(wbr-[a-z0-9-]+)(?:\.html)?\/?$/i);
+  var m = (location.pathname||'').match(/\/(wbr-[a-z0-9-]+|prospecto)(?:\.html)?\/?$/i);
   if(!m) return;
   var PAGINA = m[1].toLowerCase(), LIBS = ['https://cdn.jsdelivr.net/npm/html2canvas-pro@2.4.5/dist/html2canvas-pro.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'];
   var CSS = '.wk-sendbar{position:fixed;right:20px;bottom:20px;z-index:90;display:flex;gap:8px}.wk-send{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:11px 18px;background:#1E5BB8;color:#fff;font:600 13px Poppins,"Segoe UI",sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(10,18,38,.35);transition:transform .12s,background .12s}.wk-send:hover{background:#2F6FD6;transform:translateY(-2px)}'+
@@ -857,7 +857,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
   function cargaScript(u){ return new Promise(function(ok, ko){ var s = document.createElement('script'); s.src = u; s.onload = ok; s.onerror = function(){ ko(new Error('No se pudo cargar el generador de PDF.')); }; document.head.appendChild(s); }); }
   function cargarLib(){ if(window.html2canvas && window.jspdf) return Promise.resolve(); if(libP) return libP; libP = Promise.all(LIBS.map(function(u){ return (u.indexOf('html2canvas')>=0 && window.html2canvas) || (u.indexOf('jspdf')>=0 && window.jspdf) ? null : cargaScript(u); })).catch(function(e){ libP = null; throw e; }); return libP; }
   function hoy(){ var d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-  function titulo(){ return (document.title||'WBR').split('·')[0].trim(); }
+  function titulo(){ if(typeof window.WK_SEND_TITULO === 'function'){ try{ var t = window.WK_SEND_TITULO(); if(t) return String(t); }catch(e){} } return (document.title||'WBR').split('·')[0].trim(); }
   function archivo(){ return titulo().replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'') + '_' + hoy() + '.pdf'; }
   function esperar(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
   // Reparte las capturas en páginas A4 horizontales; cada captura empieza en página nueva y se corta antes de un bloque, no a la mitad.
@@ -883,7 +883,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
   }
   function fondoDe(el){ while(el){ var c = getComputedStyle(el).backgroundColor, m = c && c.match(/[\d.]+/g); if(m && m.length >= 3 && !(m.length >= 4 && +m[3] === 0) && c !== 'rgba(0, 0, 0, 0)') return [+m[0], +m[1], +m[2]]; el = el.parentElement; } return [10,18,38]; }
   var SEL_BLOQUES = '.cm-p,.cm-box,.cm-sec,.cm-cp,.cm-cov,.wk-kpis,.wk-hero-grid,.wk-card,.wk-band,.wk-callout,.card,.kpis,.kpi,.verdict,.ins,.g2,.g3,.top,.health,.srcdist,.funnelwrap,.vstates,header,section,article';
-  var OCULTOS = '.dls-ov,.cm-dr,.cm-dov,.dl-fab,.dl-panel,.wk-sendbar,.wk-sm,.toast,.wk-tip,.topnav,.wk-nav,#peModal,.pm,nav.topnav,.nav-dropdown-menu';
+  var OCULTOS = '.dls-ov,.cm-dr,.cm-dov,.dl-fab,.dl-panel,.wk-sendbar,.wk-sm,.toast,.wk-tip,.wk-nosend,.topnav,.wk-nav,#peModal,.pm,nav.topnav,.nav-dropdown-menu';
   // Captura un elemento a lienzo: sin zoom, sin animaciones de entrada, ancho fijo para que todos los PDFs se vean igual.
   async function cap(el, o){
     o = o || {};

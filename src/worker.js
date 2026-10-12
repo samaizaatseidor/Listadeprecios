@@ -480,6 +480,8 @@ const RUTAS_PERMISO = {
   '/api/minutas': { modo:'ia', paginas:['minutas'] },
   '/api/correo-cliente': { modo:'ia', paginas:['correo-cliente'] },
   '/api/prospecto': { modo:'ia', paginas:['prospecto'] },
+  '/api/prospecto-historial': { modo:'ia', paginas:['prospecto'] }, // borrar solo admin (se valida dentro)
+  '/api/prospecto-bx': { modo:'ia', paginas:['prospecto'] },
   '/api/proyecto-resumen': { modo:'ia', paginas:['proyecto'] },
   '/api/audit-resumen': { modo:'ia', paginas:['auditoria'] },
   '/api/checklist-resumen': { modo:'ia', paginas:['checklist'] },
@@ -685,6 +687,100 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
         await stream.write({ type: 'error', text: String(e.message || e) });
       }).finally(() => stream.close()));
       return new Response(stream.readable, { headers: { 'Content-Type': 'application/x-ndjson' } });
+    }
+
+    // Investigación de Prospecto: historial compartido (máx. 50, una entrada por empresa; solo un admin borra)
+    if (url.pathname === '/api/prospecto-historial') {
+      const JH = { 'Content-Type': 'application/json' };
+      const KI = 'prospecto_indice', KR = id => 'prospecto_inv_' + id, MAX = 50;
+      const j = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: JH });
+      const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
+      const cfgRoles = await getRolesConfig(env);
+      const leerIndice = async () => { try { const r = await env.PM_KV.get(KI); const a = r ? JSON.parse(r) : []; return Array.isArray(a) ? a : []; } catch (e) { return []; } };
+      const idOk = v => /^[a-z0-9-]{8,40}$/i.test(v || '');
+      const id = url.searchParams.get('id');
+      if (request.method === 'GET') {
+        if (id) {
+          if (!idOk(id)) return j({ ok: false, error: 'Id no válido.' }, 400);
+          const r = await env.PM_KV.get(KR(id));
+          if (!r) return j({ ok: false, error: 'No se encontró la investigación.' }, 404);
+          return j({ ok: true, registro: JSON.parse(r) });
+        }
+        const indice = await leerIndice();
+        return j({ ok: true, max: MAX, esAdmin: esAdmin(email, cfgRoles), items: indice.slice().reverse() });
+      }
+      if (request.method === 'POST') {
+        let body; try { body = await request.json(); } catch (e) { return j({ ok: false, error: 'JSON inválido' }, 400); }
+        const nombre = String(body.empresa || '').trim().slice(0, 120);
+        const data = body.data;
+        if (!nombre || !data || typeof data !== 'object' || Array.isArray(data)) return j({ ok: false, error: 'Falta la empresa o el resultado.' }, 400);
+        const crudo = JSON.stringify(data);
+        if (crudo.length > 200 * 1024) return j({ ok: false, error: 'El resultado es demasiado grande para guardarse.' }, 413);
+        const clave = nombre.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+        let indice = await leerIndice();
+        const previos = indice.filter(x => x.clave === clave);
+        indice = indice.filter(x => x.clave !== clave);
+        for (const pv of previos) await env.PM_KV.delete(KR(pv.id));
+        const num = v => { const n = Number(v); return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : null; };
+        const emp = data.empresa || {};
+        const nuevoId = crypto.randomUUID();
+        const meta = { id: nuevoId, clave, empresa: nombre, industria: String(emp.industria || '').slice(0, 80) || null, encaje: num((data.encaje || {}).valor), madurez: num((data.madurezTI || {}).valor), por: email || 'desconocido', en: new Date().toISOString() };
+        await env.PM_KV.put(KR(nuevoId), JSON.stringify({ ...meta, data }));
+        indice.push(meta);
+        while (indice.length > MAX) { const viejo = indice.shift(); await env.PM_KV.delete(KR(viejo.id)); }
+        await env.PM_KV.put(KI, JSON.stringify(indice));
+        return j({ ok: true, id: nuevoId, total: indice.length, max: MAX });
+      }
+      if (request.method === 'DELETE') {
+        if (!esAdmin(email, cfgRoles)) return j({ ok: false, error: 'Solo un Administrador puede borrar investigaciones.' }, 403);
+        if (!idOk(id)) return j({ ok: false, error: 'Id no válido.' }, 400);
+        const indice = (await leerIndice()).filter(x => x.id !== id);
+        await env.PM_KV.delete(KR(id));
+        await env.PM_KV.put(KI, JSON.stringify(indice));
+        return j({ ok: true, total: indice.length });
+      }
+      return j({ ok: false, error: 'Método no permitido' }, 405);
+    }
+
+    // Investigación de Prospecto: ¿la empresa ya aparece en la Base Instalada de BX? Solo se devuelven cuenta, LOB, KAM y ejecutivo BX.
+    if (url.pathname === '/api/prospecto-bx' && request.method === 'GET') {
+      const JH = { 'Content-Type': 'application/json' };
+      const j = o => new Response(JSON.stringify(o), { headers: JH });
+      const buscados = ['nombre', 'razon'].map(k => (url.searchParams.get(k) || '').slice(0, 160)).filter(Boolean);
+      if (!buscados.length) return j({ ok: false, error: 'Falta el nombre de la empresa.' });
+      const crudo = await env.PM_KV.get('cultura_bi_dataset');
+      if (!crudo) return j({ ok: true, disponible: false });
+      let ds; try { ds = JSON.parse(crudo); } catch (e) { return j({ ok: true, disponible: false }); }
+      const filas = (ds && ds.raw && Array.isArray(ds.raw.hoja1)) ? ds.raw.hoja1 : [];
+      const STOP = new Set(['sa', 's', 'a', 'de', 'cv', 'c', 'v', 'sab', 'sapi', 'srl', 'rl', 'grupo', 'la', 'el', 'los', 'las', 'y', 'del', 'mexico', 'mx', 'sociedad', 'anonima', 'capital', 'variable', 'promotora', 'inversion', 'holding', 'corporativo']);
+      const tokens = s => {
+        const t = String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/&/g, ' y ').replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter(Boolean);
+        const util = t.filter(x => !STOP.has(x));
+        return util.length ? util : t;
+      };
+      const qs = buscados.map(tokens).filter(t => t.length);
+      const txt = v => (v == null ? '' : String(v).trim());
+      const puntaje = (q, c) => {
+        if (!q.length || !c.length) return 0;
+        if (q.join(' ') === c.join(' ')) return 3;
+        const A = new Set(q), B = new Set(c);
+        const inter = [...A].filter(x => B.has(x)).length;
+        if (!inter) return 0;
+        const menor = A.size <= B.size ? A : B, mayor = A.size <= B.size ? B : A;
+        const contenido = [...menor].every(x => mayor.has(x)) && [...menor].some(x => x.length >= 4);
+        if (contenido) return 2;
+        return inter / (A.size + B.size - inter) >= 0.6 ? 1 : 0;
+      };
+      const encontrados = [];
+      for (const r of filas) {
+        const cuenta = txt(r['Cuenta']);
+        if (!cuenta) continue;
+        const c = tokens(cuenta);
+        const mejor = Math.max(0, ...qs.map(q => puntaje(q, c)));
+        if (mejor > 0) encontrados.push({ score: mejor, cuenta, lob: txt(r['LOB']) || null, kam: txt(r['KAM']) || null, ejecutivoBx: txt(r['Ejecutivo BX']) || null, tipo: mejor === 3 ? 'exacta' : 'posible' });
+      }
+      encontrados.sort((a, b) => b.score - a.score);
+      return j({ ok: true, disponible: true, corte: ds.uploadedAt || null, coincidencias: encontrados.slice(0, 3).map(({ score, ...x }) => x) });
     }
 
     if (url.pathname === '/api/prospecto' && request.method === 'POST') {
@@ -1855,7 +1951,7 @@ ${JSON.stringify(checklist || [])}`;
       if (request.method !== 'POST') return j({ ok: false, error: 'Método no permitido' }, 405);
       let body; try { body = await request.json(); } catch (e) { return j({ ok: false, error: 'Solicitud inválida' }, 400); }
       const pagina = String(body.pagina || '');
-      if (!/^wbr-[a-z0-9-]+$/.test(pagina) || !PAGINAS_REGISTRO[pagina]) return j({ ok: false, error: 'Tablero no válido.' }, 400);
+      if (!/^(wbr-[a-z0-9-]+|prospecto)$/.test(pagina) || !PAGINAS_REGISTRO[pagina]) return j({ ok: false, error: 'Tablero no válido.' }, 400);
       const nivel = await getPermiso(env, email, pagina);
       if ((NIVEL_RANGO[nivel] || 0) < NIVEL_RANGO['lectura']) return j({ ok: false, error: 'No tienes acceso a este tablero.' }, 403);
       const norm = a => [...new Set((Array.isArray(a) ? a : []).map(x => String(x || '').trim().toLowerCase()).filter(Boolean))];
