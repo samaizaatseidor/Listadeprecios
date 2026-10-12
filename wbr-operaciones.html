@@ -299,8 +299,10 @@ function saludPorLob(lobs, prev){
   const pv = {}; (prev ? prev.porLob : []).forEach(l => { pv[String(l.lob)] = l; });
   return '<div class="ob-grid">' + lobs.map(l => {
     const p = pv[String(l.lob)], nom = String(l.lob), P = l.proyectos || 0, D = l.conDesvio || 0, R = l.conRiesgo || 0;
-    const fila = (txt, n, tono, total, prevN) => {
-      const tip = nom + ' · ' + txt + '\n' + WK.num(n||0) + (total ? ' de ' + WK.num(total) + ' proyectos (' + WK.pct(pctDe(n||0, total)) + ')' : (txt === 'Proyectos' ? ' proyectos activos' : ' en el año')) + (p && prevN != null ? '\nCorte anterior: ' + WK.num(prevN) : '');
+    const tops = String(l.topProyectos || '').split('|').map(x => x.trim()).filter(Boolean);
+    const lista = tops.length ? '\n\nProyectos más relevantes de ' + nom + ':\n' + tops.slice(0, 8).map(x => '• ' + x).join('\n') + (tops.length > 8 ? '\n+' + (tops.length - 8) + ' más' : '') + '\n(El Excel no separa cuáles tienen desvío y cuáles riesgo)' : '';
+    const fila = (txt, n, tono, total, prevN, conLista) => {
+      const tip = nom + ' · ' + txt + '\n' + WK.num(n||0) + (total ? ' de ' + WK.num(total) + ' proyectos (' + WK.pct(pctDe(n||0, total)) + ')' : (txt === 'Proyectos' ? ' proyectos activos' : ' en el año')) + (p && prevN != null ? '\nCorte anterior: ' + WK.num(prevN) : '') + (conLista && n ? lista : '');
       return '<div class="ob-row" data-tip="' + esc(tip) + '"><div class="t"><span>' + txt + '</span><b>' + WK.num(n||0) + (total ? '<small>' + WK.pct(pctDe(n||0, total)) + '</small>' : '') + '</b></div>' + WK.bar(Math.min(1, (n||0)/max), tono) + '</div>';
     };
     const chip = (a, b, t) => { const c = p && a !== b ? WK.delta(a, b, { bueno:'down' }) : ''; return c ? c.replace('Contra el corte anterior', t + ' vs. corte anterior').replace('>▲', '>' + t + ' ▲').replace('>▼', '>' + t + ' ▼') : ''; };
@@ -308,8 +310,8 @@ function saludPorLob(lobs, prev){
     const sano = pctDe(sanosMin(P, D, R), P);
     const gauge = P ? WK.gauge({ valor:sanosMin(P, D, R), max:P, tono:TONO_SANO(sano), texto:WK.pct(sano), label:'proyectos sanos (mín.)', tip:nom + ' · proyectos sanos\n' + WK.num(sanosMin(P, D, R)) + ' de ' + WK.num(P) + ' sin desvío ni riesgo\nEstimación mínima: supone que ningún proyecto tiene desvío y riesgo a la vez' }) : '';
     return '<div class="ob-blk" style="--oc:' + colorLob(lobs, nom) + '"><div class="ob-head">' + (respLob(nom) ? '<div class="ob-who"><img src="/assets/owners/' + respLob(nom).f + '.jpg" alt="' + esc(respLob(nom).n) + '" loading="lazy" onerror="this.remove()"><div><b>' + esc(nom) + '</b><small>' + esc(respLob(nom).n) + '</small></div></div>' : '<b>' + esc(nom) + '</b>') + d + '</div>' + gauge +
-      fila('Proyectos', P, 'cyan', 0, p && p.proyectos) + fila('Con desvío', D, 'amber', P, p && p.conDesvio) + fila('Con riesgo', R, 'red', P, p && p.conRiesgo) + fila('Go-Live anual', l.goLiveAnual, 'green', 0, p && p.goLiveAnual) + '</div>';
-  }).join('') + '</div><div class="ob-note">Barras a la misma escala · los chips aparecen cuando cambian desvíos o riesgos contra el corte anterior (verde = bajaron) · pasa el mouse sobre cualquier barra o medidor para ver el detalle.</div>';
+      fila('Proyectos', P, 'cyan', 0, p && p.proyectos) + fila('Con desvío', D, 'amber', P, p && p.conDesvio, true) + fila('Con riesgo', R, 'red', P, p && p.conRiesgo, true) + fila('Go-Live anual', l.goLiveAnual, 'green', 0, p && p.goLiveAnual) + '</div>';
+  }).join('') + '</div><div class="ob-note">Barras a la misma escala · los chips aparecen cuando cambian desvíos o riesgos contra el corte anterior (verde = bajaron) · pasa el mouse sobre cualquier barra o medidor para ver el detalle; en Con desvío y Con riesgo verás los proyectos más relevantes de la LOB.</div>';
 }
 function proyectosClave(lobs){
   const out = [];
