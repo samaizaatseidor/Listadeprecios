@@ -67,6 +67,7 @@
   .cta-est-row button{font:600 13px Poppins,sans-serif; color:#C8D8F2; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.16); border-radius:999px; padding:6px 14px; cursor:pointer;} .cta-est-row button.on{background:linear-gradient(135deg,#1E5BB8,#3DD6FF); border-color:transparent; color:#fff;}
   .cta-coms{margin:14px 0;} .cta-com-i{padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.05); margin-bottom:8px;} .cta-com-i b{font-size:13px; color:#fff;} .cta-com-i em{font-style:normal; font-size:11.5px; color:#8FA6C8; margin-left:8px;} .cta-com-i p{margin:4px 0 0; font-size:13.5px; line-height:1.5; color:#D6E2F5; white-space:pre-wrap;}
   .cta-box textarea{width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.16); border-radius:12px; padding:10px 12px; color:#fff; font:400 13.5px Poppins,sans-serif; resize:vertical;} .cta-box textarea:focus{outline:none; border-color:#3DD6FF;}
+  .cta-hu{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.05); margin-bottom:8px; cursor:pointer;} .cta-hu input{margin-top:4px; accent-color:#3DD6FF;} .cta-hu b{display:block; font-size:13.5px; color:#fff; font-weight:600;} .cta-hu em{font-style:normal; font-size:12px; color:#8FA6C8;}
   .cta-est{cursor:pointer; border:none; background:none; padding:0; font:inherit;} .cta-est:hover{filter:brightness(1.25);}
 </style>
 </head>
@@ -376,14 +377,35 @@ function parseMinuta(html){
 /* Hereda el estatus de acciones que ya venían en el corte anterior (mismas palabras clave) */
 function tokensAccion(t){ return new Set(sinAc(t).split(/[^a-z0-9]+/).filter(w => w.length >= 4)); }
 function heredaEstatus(nuevas, previas){
+  heredaEstatus.usadas = new Set();
   if(!previas || !previas.length) return 0; let n = 0;
   const P = previas.map(a => ({ a, t:tokensAccion(a.accion) }));
   nuevas.forEach(x => {
     const tx = tokensAccion(x.accion); let mejor = null, mj = 0;
     P.forEach(p => { let inter = 0; tx.forEach(w => { if(p.t.has(w)) inter++; }); const j = inter / ((tx.size + p.t.size - inter) || 1); if(j > mj){ mj = j; mejor = p.a; } });
-    if(mejor && mj >= 0.6){ x.estatus = mejor.estatus || x.estatus; x.previa = true; if(mejor.comentarios && mejor.comentarios.length) x.comentarios = mejor.comentarios.slice(); if(!x.fecha && mejor.fecha) x.fecha = mejor.fecha; n++; }
+    if(mejor && mj >= 0.6){ heredaEstatus.usadas.add(mejor); x.estatus = mejor.estatus || x.estatus; x.previa = true; if(mejor.comentarios && mejor.comentarios.length) x.comentarios = mejor.comentarios.slice(); if(!x.fecha && mejor.fecha) x.fecha = mejor.fecha; n++; }
   });
   return n;
+}
+/* Acciones del corte anterior con avance (comentarios o estatus distinto de Pendiente) que la minuta nueva ya no trae */
+function huerfanasConAvance(previas){
+  const usadas = heredaEstatus.usadas || new Set();
+  return (previas || []).filter(a => !usadas.has(a) && ((a.comentarios && a.comentarios.length) || catEstatus(a.estatus) !== 'pend'));
+}
+function revisarHuerfanas(lista){
+  return new Promise(res => {
+    const m = document.createElement('div'); m.className = 'cta-modal'; m.id = 'ctaHuerf';
+    const fila = (a, i) => { const nc = (a.comentarios || []).length, comp = catEstatus(a.estatus) === 'comp';
+      return '<label class="cta-hu"><input type="checkbox" data-i="' + i + '"' + (comp && !nc ? '' : ' checked') + '><span><b>' + WK.esc(a.accion) + '</b><em>' + WK.esc(a.responsable || 'Sin responsable') + ' · ' + WK.esc(a.estatus || 'Pendiente') + (nc ? ' · ' + nc + ' comentario' + (nc > 1 ? 's' : '') : '') + '</em></span></label>'; };
+    m.innerHTML = '<div class="cta-box"><h3>' + lista.length + ' acción(es) del corte anterior no aparecen en la minuta nueva</h3>' +
+      '<div class="cta-meta">Tenían avance o comentarios. Marca las que quieres llevar al nuevo corte; las demás se quedan solo en la bitácora.</div>' +
+      '<div class="cta-coms">' + lista.map(fila).join('') + '</div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end"><button class="wk-btn" style="background:rgba(255,255,255,.1)" data-k="no">No arrastrar ninguna</button><button class="wk-btn" style="background:#1E5BB8" data-k="si">Arrastrar seleccionadas</button></div></div>';
+    document.body.appendChild(m);
+    m.onclick = e => { const k = e.target && e.target.getAttribute && e.target.getAttribute('data-k'); if(!k) return;
+      const sel = k === 'si' ? [...m.querySelectorAll('input:checked')].map(c => lista[+c.getAttribute('data-i')]) : [];
+      m.remove(); res(sel); };
+  });
 }
 async function guardarSnapshot(snap){
   const r = await fetch('/api/wbr-cta', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ snapshot:snap }) });
@@ -397,13 +419,20 @@ async function handleWord(file){
     const res = await mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
     const mn = parseMinuta(res.value);
     const heredadas = heredaEstatus(mn.acciones, actual ? actual.acciones : null);
+    const huer = huerfanasConAvance(actual ? actual.acciones : null); let arrastradas = 0;
+    if(huer.length){
+      statusBox.innerHTML = '<div class="loading">Revisa las acciones que ya no aparecen…</div>';
+      const sel = await revisarHuerfanas(huer);
+      sel.forEach(a => { mn.acciones.push(Object.assign({}, a, { previa:true, arrastrada:true, comentarios:(a.comentarios || []).slice() })); });
+      arrastradas = sel.length;
+    }
     const semana = 'Sesión del ' + (mn.meta.fechaTxt || '—') + (mn.meta.numero ? ' · ' + mn.meta.numero : '');
     const snap = { fechaRevision:new Date().toISOString(), semana, archivo:String(file.name).slice(0, 200), acciones:mn.acciones,
       minuta:{ meta:mn.meta, asistentes:mn.asistentes, temas:mn.temas, abiertos:mn.abiertos, proxima:mn.proxima } };
     statusBox.innerHTML = '<div class="loading">Guardando…</div>';
     await guardarSnapshot(snap);
     snapshotVisto = null; await cargarHistorial(); render();
-    statusBox.innerHTML = `<div class="st-ok">Minuta leída: ${mn.acciones.length} acciones, ${mn.abiertos.length} puntos abiertos y ${mn.temas.length} temas.${heredadas ? ' ' + heredadas + ' acción(es) ya venían del corte anterior y conservaron su estatus.' : ''} Guardada en la bitácora.</div>`;
+    statusBox.innerHTML = `<div class="st-ok">Minuta leída: ${mn.acciones.length} acciones, ${mn.abiertos.length} puntos abiertos y ${mn.temas.length} temas.${heredadas ? ' ' + heredadas + ' acción(es) ya venían del corte anterior y conservaron su estatus.' : ''} ${arrastradas ? ' Se arrastraron ' + arrastradas + ' acción(es) del corte anterior.' : ''} Guardada en la bitácora.</div>`;
   }catch(e){
     console.error(e);
     statusBox.innerHTML = `<div class="st-err">No se pudo leer la minuta: ${WK.esc(e.message||String(e))}</div>`;
