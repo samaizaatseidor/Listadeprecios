@@ -1,0 +1,54 @@
+{
+ "fuente": "https://www.seidor.com/es-mx",
+ "obtenidoEn": "2026-10-12T06:30:00.000Z",
+ "respaldo": true,
+ "hero": {
+  "titulo": "Humanizing Technology"
+ },
+ "noticias": [
+  {
+   "titulo": "SEIDOR recibe dos SAP Partner Awards 2026 – Global Winner",
+   "resumen": "La compañía ha obtenido el máximo reconocimiento mundial que SAP concede a sus partners, en las categorías Small Enterprise Growth y Customer Transformation: Small Enterprise.",
+   "url": "https://www.seidor.com/es-mx/noticias/seidor-dos-sap-partner-awards-global-winner-2026",
+   "imagen": "https://proimg.seidor.com/sites/default/files/2026-05/PINNACLE-AWARD-WEB-HOME.png"
+  },
+  {
+   "titulo": "Somos SAP Global Platinum Reseller Partner",
+   "resumen": "SEIDOR alcanza el estatus Global Platinum Reseller de SAP y se une al nivel más alto de su ecosistema de partners",
+   "url": "https://www.seidor.com/es-mx/noticias/seidor-alcanza-estatus-global-platinum-reseller-sap-une-nivel-mas-alto-ecosistema-partners",
+   "imagen": "https://proimg.seidor.com/sites/default/files/2026-04/platinum-HOME-Tarjeta.png"
+  },
+  {
+   "titulo": "SEIDOR alcanza 1.174 millones de euros en 2025",
+   "resumen": "La consultora tecnológica aprueba su plan estratégico 2030 y refuerza su liderazgo en el midmarket, consolidando su posición en gran empresa y sector público.",
+   "url": "https://www.seidor.com/es-mx/noticias/seidor-alcanza1174-millones-deuros-cifra-negocio-2025-aprueba-nuevo-plan-estrategico-2030",
+   "imagen": "https://proimg.seidor.com/sites/default/files/2026-05/TIPO-HOME-Tarjeta%20ssa.png"
+  },
+  {
+   "titulo": "SEIDOR, referente global en SAP con 21 premios",
+   "resumen": "SEIDOR refuerza su liderazgo en el midmarket SAP global, apoyándose en SAP como motor estructural y en un modelo escalable a nivel internacional",
+   "url": "https://www.seidor.com/es-mx/noticias",
+   "imagen": "https://proimg.seidor.com/sites/default/files/2026-02/HOME-PKOM-01%20%281%29.png"
+  },
+  {
+   "titulo": "SEIDOR, protagonista en Forbes Reinventing Spain",
+   "resumen": "SEIDOR ha estado presente en el Forbes Summit Reinventing Spain, el evento anual estrella de la prestigiosa publicación de negocios Forbes, y ha participado Rubén Mora, CISO de SEIDOR.",
+   "url": "https://www.seidor.com/es-mx/noticias/seidor-protagonista-forbes-reinventing-spain",
+   "imagen": "https://proimg.seidor.com/sites/default/files/2024-11/02.png"
+  },
+  {
+   "titulo": "SEIDOR refuerza su infraestructura Cloud en EEUU",
+   "resumen": "Inauguramos dos nuevos centros de datos en Estados Unidos, ubicados en Miami y Atlanta. Reforzando nuestras capacidades de almacenamiento y gestión en Norteamérica y América Latina",
+   "url": "https://www.seidor.com/es-mx/noticias/seidor-expande-infraestructura-cloud-dos-nuevos-centros-datos-eeuu",
+   "imagen": "https://proimg.seidor.com/sites/default/files/2024-11/04.png"
+  }
+ ],
+ "talento": {
+  "titulo": "Descubre el talento SEIDOR",
+  "texto": "¿Quieres unirte a humanizar el mundo a través de la tecnología? Busca tu oportunidad y únete al equipo",
+  "cta": {
+   "titulo": "Buscar ofertas",
+   "url": "https://www.seidor.com/es-mx/talento/empleos"
+  }
+ }
+}

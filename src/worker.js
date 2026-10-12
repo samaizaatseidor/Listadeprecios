@@ -445,7 +445,7 @@ const NIVEL_RANGO = { 'ninguno': 0, 'lectura': 1, 'completo': 2 };
 // modo 'accion': exige 'completo' (p. ej. enviar correos).
 // modo 'admin':  solo administradores.  modo 'audit': leer = Auditoría; escribir = cualquier usuario autenticado.
 // Una ruta /api/* sin regla aquí queda denegada (acceso por defecto = ninguno).
-const RUTAS_PROPIAS = ['/api/mi-permiso', '/api/whoami', '/api/roles-config', '/api/wbr-enviar', '/api/asistente', '/api/saludo']; // validan por su cuenta
+const RUTAS_PROPIAS = ['/api/mi-permiso', '/api/whoami', '/api/roles-config', '/api/wbr-enviar', '/api/asistente', '/api/saludo', '/api/seidor-home']; // validan por su cuenta
 const PAGINAS_PROYECTO = ['proyecto', 'vista-general', 'checklist', 'handover', 'iniciar-proyecto', 'reporte-cuenta'];
 const RUTAS_PERMISO = {
   '/api/projects': { modo:'datos', paginas:['pipeline','ficha','kpis'], escritura:['pipeline','ficha'] },
@@ -530,6 +530,67 @@ async function autorizarRuta(request, env, pathname){
 // Se conserva por compatibilidad con los endpoints existentes; la validación real ya ocurrió en autorizarRuta.
 async function requierePermiso(request, env, nivelMinimo){ return null; }
 /* ==================== FIN ROLES Y PERMISOS ==================== */
+
+/* ==================== INICIO: CONTENIDO DE seidor.com/es-mx ==================== */
+// seidor.com guarda el contenido de su home como datos dentro de la página (__NEXT_DATA__).
+// Se lee de ahí (no del diseño), se guarda en KV y la página de inicio lo pinta. Si el sitio no
+// responde o lo bloquea su protección anti-bots, se sigue sirviendo la última copia buena.
+const SEIDOR_ORIGEN = 'https://www.seidor.com';
+const SEIDOR_HOME_URL = SEIDOR_ORIGEN + '/es-mx';
+const SEIDOR_HOME_TTL_MS = 6 * 3600 * 1000;
+const SEIDOR_HOME_REINTENTO_S = 1800;
+
+function seidorTexto(h){
+  return String(h == null ? '' : h).replace(/<(br\s*\/?|\/p|\/div|\/li)>/gi, ' ').replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ').trim();
+}
+function seidorUrl(u){
+  if (!u) return '';
+  const abs = /^https?:\/\//i.test(u) ? u : SEIDOR_ORIGEN + (u.startsWith('/') ? '' : '/') + u;
+  try { const x = new URL(abs); return /(^|\.)seidor\.com$/i.test(x.hostname) && x.protocol === 'https:' ? x.href : ''; } catch (e) { return ''; }
+}
+function parseSeidorHome(html){
+  const m = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+  if (!m) throw new Error('La página no trae sus datos (posible bloqueo anti-bots).');
+  const j = JSON.parse(m[1]);
+  const pb = ((((j.props || {}).pageProps || {}).data || {}).Content || {}).data;
+  const bloques = (pb && pb.field_page_builder) || [];
+  const v = x => Array.isArray(x) ? x[0] : x;
+  const tipo = b => { const t = v(b && b.type); return t && t.target_id; };
+  const hero = bloques.find(b => tipo(b) === 'heroimagevideo');
+  const cards = bloques.find(b => tipo(b) === 'cards');
+  const talento = bloques.find(b => tipo(b) === 'textmedia');
+  const noticias = ((cards && cards.field_cards_list) || []).map(c => {
+    const titulo = seidorTexto(v(c.field_title_plain));
+    const img = v(c.field_image_card), media = img && v(img.field_media_image);
+    return { titulo, resumen: seidorTexto(v(c.field_body)), url: seidorUrl((v(c.field_link) || {}).url) || (SEIDOR_ORIGEN + '/es-mx/noticias'), imagen: seidorUrl(media && media.url) };
+  }).filter(n => n.titulo).slice(0, 8);
+  if (noticias.length < 3) throw new Error('No se encontraron noticias en la página.');
+  const cta = talento && v(talento.field_cta);
+  return {
+    fuente: SEIDOR_HOME_URL,
+    hero: { titulo: seidorTexto(hero && v(hero.field_title_formated)) || 'Humanizing Technology' },
+    noticias,
+    talento: talento ? { titulo: seidorTexto(v(talento.field_title_formatted)), texto: seidorTexto(v(talento.field_body)), cta: cta ? { titulo: cta.title || 'Buscar ofertas', url: seidorUrl(cta.url) } : null } : null
+  };
+}
+async function refrescarSeidorHome(env){
+  const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 8000);
+  try {
+    const r = await fetch(SEIDOR_HOME_URL, { signal: ctl.signal, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PortalSEIDORMexico/1.0; +https://crmpresalesmx.com)', 'Accept': 'text/html', 'Accept-Language': 'es-MX,es;q=0.9' } });
+    if (!r.ok) throw new Error('seidor.com respondió ' + r.status);
+    const datos = parseSeidorHome(await r.text());
+    datos.obtenidoEn = new Date().toISOString();
+    await env.PM_KV.put('seidor_home', JSON.stringify(datos));
+    await env.PM_KV.delete('seidor_home_fallo');
+    return datos;
+  } catch (e) {
+    await env.PM_KV.put('seidor_home_fallo', JSON.stringify({ en: new Date().toISOString(), error: String(e && e.message || e).slice(0, 200) }), { expirationTtl: SEIDOR_HOME_REINTENTO_S });
+    throw e;
+  } finally { clearTimeout(to); }
+}
+/* ==================== FIN INICIO ==================== */
 
 export default {
   async fetch(request, env, ctx) {
@@ -1746,6 +1807,21 @@ ${JSON.stringify(checklist || [])}`;
 
     // Enviar una vista (PDF) de un tablero WBR por correo. Solo a direcciones de dominios SEIDOR; queda bitácora (quién, a quién, cuándo).
     // Saludos de bienvenida: animación que ve cada persona UNA vez al día al abrir una página WBR (la configura un administrador).
+    if (url.pathname === '/api/seidor-home' && request.method === 'GET') {
+      const JH = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
+      let cache = null; try { const raw = await env.PM_KV.get('seidor_home'); cache = raw ? JSON.parse(raw) : null; } catch (e) {}
+      const antiguo = !cache || (Date.now() - Date.parse(cache.obtenidoEn || 0)) > SEIDOR_HOME_TTL_MS;
+      if (antiguo) {
+        const enPausa = await env.PM_KV.get('seidor_home_fallo');
+        if (!enPausa) {
+          if (cache) ctx.waitUntil(refrescarSeidorHome(env).catch(() => {}));
+          else { try { cache = await refrescarSeidorHome(env); } catch (e) {} }
+        }
+      }
+      if (!cache) return new Response(JSON.stringify({ ok: false, error: 'Sin datos de seidor.com por ahora.' }), { status: 200, headers: JH });
+      return new Response(JSON.stringify(Object.assign({ ok: true }, cache)), { status: 200, headers: JH });
+    }
+
     if (url.pathname === '/api/saludo') {
       const JH = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
       const j = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: JH });
