@@ -88,6 +88,8 @@
   .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:20; align-items:flex-end; justify-content:center;}
   .overlay.open{display:flex;}
   .sheet{background:#fff; width:100%; max-width:520px; border-radius:16px 16px 0 0; padding:20px; max-height:90vh; overflow-y:auto;}
+  .sheet.wide{max-width:760px;}
+  @media (min-width:700px){ .overlay{align-items:center;} .sheet{border-radius:16px; max-height:88vh; box-shadow:0 24px 70px rgba(10,18,38,.35);} }
   .sheet label{display:block; font-size:11.5px; color:var(--grey); margin:14px 0 5px; font-weight:500;}
   .sheet label:first-of-type{margin-top:4px;}
   .sheet input[type=text], .sheet input[type=url], .sheet select, .sheet textarea{
@@ -545,7 +547,7 @@ function applyGoNoGo(value){
   if(value === 'No-Go') stageSelect.value = 'no_go';
 }
 
-function closeSheet(){ document.getElementById('overlay').classList.remove('open'); currentId = null; }
+function closeSheet(){ document.getElementById('overlay').classList.remove('open'); document.getElementById('sheet').classList.remove('wide'); currentId = null; }
 
 function buildActivityDiff(existing, newVals){
   if(!existing) return [{ at: new Date().toISOString(), by: currentUser, note: 'Creó la tarjeta' }];
@@ -709,6 +711,7 @@ function viewFicha(id){
     <p class="sheet-title">Ficha de ${esc(p.client)}</p>
     ${body}
   `;
+  document.getElementById('sheet').classList.add('wide');
   document.getElementById('overlay').classList.add('open');
 }
 
