@@ -288,7 +288,7 @@ Para cada dato importante (RFC, nombres de directivos, cifras, nombramientos rec
 
 Qué necesito saber:
 - Identidad: nombre comercial, razón social, RFC (nunca inventes un RFC; idealmente confirmado contra el SAT), industria, sede, tamaño aproximado, tipo de empresa.
-- Personas clave para una venta B2B: dirección general, TI, finanzas, operaciones, compras (nombre, cargo, área y fuente; LinkedIn es la más confiable aquí; si no encuentras nombres específicos, indica qué roles buscar).
+- Personas clave para una venta B2B: dirección general, TI, finanzas, operaciones, compras (nombre, cargo, área y fuente; LinkedIn es la más confiable aquí; si no encuentras nombres específicos, indica qué roles buscar). Para cada persona incluye su correo electrónico y teléfono SOLO si están publicados en una fuente pública (sitio oficial, LinkedIn, comunicados de prensa, reportes anuales, registros de gobierno). Nunca adivines ni deduzcas correos a partir de patrones, y nunca inventes teléfonos: si no está publicado, usa null. Incluye también el teléfono y correo generales de la empresa si son públicos.
 - Qué soluciones SAP (S/4HANA, SuccessFactors, BTP, Analytics Cloud, etc.) encajarían mejor dado su tamaño, industria y posible madurez tecnológica, y cómo posicionarlo en una llamada o correo en frío.
 - Los 3-5 value drivers más relevantes para esta empresa específica (eficiencia operativa, cumplimiento fiscal, escalabilidad, reducción de costos, etc.).
 - Señales recientes: noticias, expansión, cambios de liderazgo, retos del sector, competidores — con fuente y fecha.
@@ -301,13 +301,13 @@ Responde ÚNICAMENTE con un objeto JSON válido (sin texto antes ni después, si
 {
   "empresa": {
     "nombreComercial": "", "razonSocial": null, "rfc": null, "industria": "", "sede": null,
-    "sitioWeb": null, "empleados": null, "ingresos": null, "fundacion": null,
+    "sitioWeb": null, "telefonoGeneral": null, "correoGeneral": null, "empleados": null, "ingresos": null, "fundacion": null,
     "tipo": "Pública | Privada | Subsidiaria | Gobierno | null",
     "descripcion": "2-3 frases sobre a qué se dedica"
   },
   "encaje": { "valor": 0, "razon": "por qué este puntaje (0-100, estimación)" },
   "madurezTI": { "valor": 0, "razon": "por qué este puntaje (0-100, estimación)", "erpActual": null },
-  "contactos": [ { "nombre": "", "cargo": "", "area": "Dirección | TI | Finanzas | Operaciones | Compras | RH | Otra", "fuente": "" } ],
+  "contactos": [ { "nombre": "", "cargo": "", "area": "Dirección | TI | Finanzas | Operaciones | Compras | RH | Otra", "correo": null, "telefono": null, "fuente": "de dónde salen el cargo y los datos de contacto" } ],
   "portafolioSap": [ { "solucion": "", "encaje": 0, "porque": "", "posicionamiento": "cómo plantearlo en llamada o correo" } ],
   "valueDrivers": [ { "titulo": "", "detalle": "" } ],
   "senales": [ { "tipo": "Noticia | Expansión | Liderazgo | Reto | Competidor", "titulo": "", "detalle": "", "fecha": null, "fuente": "", "tono": "green | amber | red | blue" } ],
@@ -345,6 +345,17 @@ function iniciales(n){
   const p = (n || '?').replace(/[^\p{L}\p{N} ]/gu, '').trim().split(/\s+/).filter(Boolean);
   return ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase();
 }
+function correoHtml(v){
+  v = val(v);
+  if(v == null || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v).trim())) return '<span style="color:var(--wk-greyl);">—</span>';
+  return '<a href="mailto:' + esc(String(v).trim()) + '" style="color:var(--wk-cyan);text-decoration:none;">' + esc(String(v).trim()) + '</a>';
+}
+function telHtml(v){
+  v = val(v);
+  if(v == null) return '<span style="color:var(--wk-greyl);">—</span>';
+  const digitos = String(v).replace(/[^\d+]/g, '');
+  return digitos.length >= 7 ? '<a href="tel:' + esc(digitos) + '" style="color:var(--wk-cyan);text-decoration:none;white-space:nowrap;">' + esc(v) + '</a>' : esc(v);
+}
 function hechoHtml(label, v, link){
   v = val(v);
   if(v == null) return '<div class="p-fact"><span>' + esc(label) + '</span><b style="color:var(--wk-greyl);font-weight:500;">Sin confirmar</b></div>';
@@ -370,12 +381,12 @@ function renderDashboard(d){
     '<div class="p-hero"><div class="p-avatar">' + esc(iniciales(nombre)) + '</div><div>' +
       '<h2>' + esc(nombre) + '</h2>' +
       '<div class="sub">' + esc(val(e.razonSocial) || 'Razón social sin confirmar') + (val(e.tipo) ? ' · ' + esc(e.tipo) : '') + '</div>' +
-      '<div class="p-facts">' + hechoHtml('RFC', e.rfc) + hechoHtml('Industria', e.industria) + hechoHtml('Sede', e.sede) + hechoHtml('Sitio web', sitioUrl, true) + '</div>' +
+      '<div class="p-facts">' + hechoHtml('RFC', e.rfc) + hechoHtml('Industria', e.industria) + hechoHtml('Sede', e.sede) + hechoHtml('Sitio web', sitioUrl, true) + hechoHtml('Teléfono general', e.telefonoGeneral) + hechoHtml('Correo general', e.correoGeneral) + '</div>' +
     '</div></div>' +
     (val(e.descripcion) ? '<p class="p-desc">' + esc(e.descripcion) + '</p>' : '') +
     '<div style="margin-top:16px;">' + WK.stats([
       { valor: esc(val(e.empleados) || '—'), label:'Empleados' }, { valor: esc(val(e.ingresos) || '—'), label:'Ingresos aprox.' },
-      { valor: esc(val(e.fundacion) || '—'), label:'Fundación' }, { valor: contactos.length, label:'Contactos clave' }, { valor: senales.length, label:'Señales recientes' }
+      { valor: esc(val(e.fundacion) || '—'), label:'Fundación' }, { valor: contactos.length + (contactos.some(c => val(c.correo) || val(c.telefono)) ? ' · ' + contactos.filter(c => val(c.correo) || val(c.telefono)).length + ' con dato' : ''), label:'Contactos clave' }, { valor: senales.length, label:'Señales recientes' }
     ]) + '</div>' });
 
   const gauges = '<div class="p-gauges">' +
@@ -396,8 +407,8 @@ function renderDashboard(d){
   const porArea = {};
   contactos.forEach(c => { const a = c.area || 'Otra'; porArea[a] = (porArea[a] || 0) + 1; });
   const tablaCont = WK.table([
-    { k:'nombre', label:'Nombre', tipo:'strong' }, { k:'cargo', label:'Cargo' }, { k:'area', label:'Área', tipo:'tag' }, { k:'fuente', label:'Fuente', tipo:'note' }
-  ], contactos, { vacio:'No se encontraron nombres específicos; busca estos roles en LinkedIn.' });
+    { k:'nombre', label:'Nombre', tipo:'strong' }, { k:'cargo', label:'Cargo' }, { k:'area', label:'Área', tipo:'tag' }, { k:'correo', label:'Correo', tipo:'html' }, { k:'telefono', label:'Teléfono', tipo:'html' }, { k:'fuente', label:'Fuente', tipo:'note' }
+  ], contactos.map(c => ({ nombre:c.nombre, cargo:c.cargo, area:c.area, correo:correoHtml(c.correo), telefono:telHtml(c.telefono), fuente:c.fuente })), { vacio:'No se encontraron nombres específicos; busca estos roles en LinkedIn.' });
   const contSec = WK.band('p-contactos', 'Personas clave', 'A quién buscar') +
     '<div class="wk-grid2">' + WK.card({ ico:'👥', titulo:'Contactos por área', body: contactos.length ? WK.donut(Object.keys(porArea).map(k => ({ label:k, value:porArea[k] })), { centro: contactos.length + '', sub:'contactos' }) : WK.empty('Sin contactos.') }) +
     WK.card({ ico:'📇', titulo:'Directorio', count: contactos.length, body: tablaCont }) + '</div>';
@@ -427,7 +438,7 @@ function datoATexto(d){
   const f = x => val(x) || 'sin confirmar';
   L.push('NOMBRE COMERCIAL', '- ' + f(e.nombreComercial), 'RAZÓN SOCIAL', '- ' + f(e.razonSocial), 'RFC', '- ' + f(e.rfc), 'INDUSTRIA', '- ' + f(e.industria));
   L.push('PRINCIPALES CONTACTOS O PERSONAS CLAVE');
-  arr(d.contactos).forEach(c => L.push('- ' + [c.nombre, c.cargo, c.area].filter(Boolean).join(' — ') + (c.fuente ? ' (fuente: ' + c.fuente + ')' : '')));
+  arr(d.contactos).forEach(c => L.push('- ' + [c.nombre, c.cargo, c.area].filter(Boolean).join(' — ') + (val(c.correo) ? ' · ' + c.correo : '') + (val(c.telefono) ? ' · Tel. ' + c.telefono : '') + (c.fuente ? ' (fuente: ' + c.fuente + ')' : '')));
   L.push('QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP');
   arr(d.portafolioSap).forEach(p => L.push('- ' + p.solucion + ' (encaje ' + (clamp(p.encaje) == null ? '—' : clamp(p.encaje) + '%') + '): ' + (p.porque || '') + (p.posicionamiento ? ' Cómo posicionarlo: ' + p.posicionamiento : '')));
   L.push('VALUE DRIVERS PARA ENGANCHAR');
