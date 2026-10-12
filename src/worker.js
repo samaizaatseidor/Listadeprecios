@@ -370,7 +370,7 @@ const PAGINAS_REGISTRO = {
   'alta': 'Generador de Formato de Alta',
   'metricas-sap': 'Explicador de Métricas SAP',
   'kyc': 'Formularios KYC / Diligencia Debida',
-  'contactos-sap': 'Contactos SAP',
+  'contactos-sap': 'Contactos importantes',
   'pipeline': 'CRM PresalesMX',
   'documentos': 'Documentos de Apoyo',
   'kpis': 'Tablero de Control',

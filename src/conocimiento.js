@@ -29,7 +29,7 @@ Comercial:
 - Generador de Formato de Alta (/alta.html): se sube el SOW o estimación firmada y se completa el resto con un formulario.
 - Explicador de Métricas SAP (/metricas-sap.html): para BX, explica qué mide cada métrica de un tablero de SAP Cloud ALM.
 - Formularios KYC / Diligencia Debida (/kyc.html): identificación de terceros (clientes o proveedores) antes de contratar, Anexos I y II.
-- Contactos SAP (/contactos-sap.html): directorio de personas clave de SAP por organigrama.
+- Contactos importantes (/contactos-sap.html): directorio de personas clave (SAP, partners y equipo extendido SEIDOR) por organigrama.
 Presales:
 - CRM PresalesMX (/pipeline.html): tablero de seguimiento por etapa, compartido con el equipo.
 - Tablero de Control (/kpis.html): KPIs de preventas en vivo desde CRM PresalesMX; se filtra por Solution Engineer (Gustavo Najar, Rocío Anaya, Samuel Aiza).
