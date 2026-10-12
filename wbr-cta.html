@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <style>
   :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
   *{box-sizing:border-box;}
@@ -51,6 +52,11 @@
   body.wk-dark .wk-hero .wk-rank-row{grid-template-columns:minmax(80px,max-content) minmax(60px,1fr) auto; gap:12px;} body.wk-dark .wk-hero .wk-rank-row .n{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px;}
   .cta-split{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:34px; align-items:center;} .cta-prox-t{font-size:12.5px; letter-spacing:1.4px; text-transform:uppercase; color:#8FE6FF; font-weight:700; margin-bottom:14px;}
   @media(max-width:1000px){ .cta-split{grid-template-columns:1fr;} }
+  .cta-op{padding:12px 14px; border-radius:12px; background:rgba(255,200,87,.07); border:1px solid rgba(255,200,87,.22); margin-bottom:10px;} .cta-op b{display:block; color:#FFC857; font-size:14px; margin-bottom:3px;} .cta-op span{color:#C8D8F2; font-size:13.5px; line-height:1.55;}
+  .cta-tema{border:1px solid rgba(255,255,255,.10); border-radius:12px; margin-bottom:10px; background:rgba(255,255,255,.03);} .cta-tema summary{cursor:pointer; padding:12px 16px; font-weight:700; font-size:14.5px; color:#fff; list-style:none; display:flex; justify-content:space-between; gap:10px;} .cta-tema summary::-webkit-details-marker{display:none;} .cta-tema summary i{font-style:normal; color:#8FE6FF; font-size:12px; font-weight:600;}
+  .cta-tema .it{padding:9px 16px; border-top:1px solid rgba(255,255,255,.07); font-size:13.5px; line-height:1.55; color:#C8D8F2;} .cta-tema .it b{color:#fff;} .cta-tema .gr{display:inline-block; font-size:11px; letter-spacing:.6px; text-transform:uppercase; color:#8FE6FF; font-weight:700; margin-right:8px;}
+  .cta-prox-reu{display:grid; grid-template-columns:auto 1fr; gap:6px 18px; font-size:14px; color:#C8D8F2;} .cta-prox-reu b{color:#8FE6FF; font-size:12px; letter-spacing:.7px; text-transform:uppercase;}
+  .cta-est{cursor:pointer; border:none; background:none; padding:0; font:inherit;} .cta-est:hover{filter:brightness(1.25);}
 </style>
 </head>
 <body>
@@ -167,8 +173,8 @@
     <p>Acciones de la semana — foco principal, responsable, fecha y estatus · Fechas DD/MM/AA</p>
     <div id="fechaRevisionBadge"></div>
   </div>
-  <label class="upload-label" for="fileInput">⬆️ Subir corte de esta semana</label>
-  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+  <label class="upload-label" for="fileInput">⬆️ Subir minuta (Word) o corte (Excel)</label>
+  <input type="file" id="fileInput" accept=".docx,.xlsx,.xls" onchange="handleFile(this.files[0])">
 </header>
 
 <main class="wk-main">
@@ -212,6 +218,7 @@ function volverActual(){ snapshotVisto = null; render(); }
 
 async function handleFile(file){
   if(!file) return;
+  if(/\.docx$/i.test(file.name)) return handleWord(file);
   const statusBox = document.getElementById('statusBox');
   statusBox.innerHTML = '<div class="loading">Leyendo el archivo…</div>';
   try{
@@ -247,6 +254,171 @@ async function handleFile(file){
   }
 }
 
+/* ================= Minuta de Word (TRUST Weekly Leadership) ================= */
+const MESES_ES = { enero:1, febrero:2, marzo:3, abril:4, mayo:5, junio:6, julio:7, agosto:8, septiembre:9, setiembre:9, octubre:10, noviembre:11, diciembre:12 };
+const sinAc = t => String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+const limpia = t => String(t||'').replace(/\s+/g,' ').trim();
+const dd = n => String(n).padStart(2,'0');
+const fmtDMA = (d,m,y) => dd(d) + '/' + dd(m) + '/' + dd(y % 100);
+
+function fechaDeTexto(t){ // "29/9//2026", "29-09-2026", "29 de septiembre de 2026"
+  t = limpia(t); let m = t.match(/(\d{1,2})\D+(\d{1,2})\D+(\d{4})/);
+  if(m) return { d:+m[1], m:+m[2], y:+m[3] };
+  m = sinAc(t).match(/(\d{1,2})\s+de\s+([a-z]+)(?:\s+de\s+(\d{4}))?/);
+  if(m && MESES_ES[m[2]]) return { d:+m[1], m:MESES_ES[m[2]], y:m[3] ? +m[3] : null };
+  return null;
+}
+function nombreResponsable(tok, asistentes){
+  const k = sinAc(tok).replace(/[^a-z ]/g,'').trim(); if(!k) return '';
+  const alias = { majo:'maria jose' }; const q = alias[k] || k;
+  const hit = asistentes.filter(a => { const n = sinAc(a.nombre); return n === q || n.startsWith(q + ' ') || n.split(' ')[0] === q; });
+  if(hit.length === 1) return hit[0].nombre;
+  return tok.charAt(0).toUpperCase() + tok.slice(1).toLowerCase();
+}
+function parseAccion(texto, base, asistentes){
+  const t = limpia(texto); let accion = t, owners = '';
+  const m = t.match(/^(.*?)\s*\.\s*([A-ZÁÉÍÓÚÑ]{2,}(?:\s*[\/,]\s*[A-ZÁÉÍÓÚÑ]{2,})*)[\s?!.]*$/);
+  if(m){ accion = m[1].trim(); owners = m[2].split(/[\/,]/).map(x => nombreResponsable(x.trim(), asistentes)).filter(Boolean).join(' / '); }
+  accion = accion.replace(/[\s.]+$/, '');
+  // fecha compromiso: "el 4 de octubre de 2026", "29 de septiembre", "en 2 semanas"
+  let fecha = '', f = null; const mm = sinAc(accion).match(/(\d{1,2})\s+de\s+([a-z]+)(?:\s+de\s+(\d{4}))?/);
+  if(mm && MESES_ES[mm[2]]){ f = { d:+mm[1], m:MESES_ES[mm[2]], y: mm[3] ? +mm[3] : (base ? base.y : new Date().getFullYear()) }; fecha = fmtDMA(f.d, f.m, f.y); }
+  else if(base){
+    const w = sinAc(accion).match(/en\s+(\d+|una|un|dos|tres)\s+semanas?/);
+    if(w){ const n = ({ una:1, un:1, dos:2, tres:3 })[w[1]] || +w[1]; const dt = new Date(Date.UTC(base.y, base.m - 1, base.d + 7 * n)); fecha = fmtDMA(dt.getUTCDate(), dt.getUTCMonth() + 1, dt.getUTCFullYear()); }
+  }
+  return { accion, responsable:owners, fecha, estatus:'Pendiente' };
+}
+function textoPropio(li){ const c = li.cloneNode(true); c.querySelectorAll('ul,ol').forEach(x => x.remove()); return limpia(c.textContent); }
+function itemDeTexto(txt, grupo){
+  const m = txt.match(/^([^:]{3,110}):\s+([\s\S]+)$/);
+  return m ? { grupo:grupo || '', titulo:m[1].trim(), texto:m[2].trim() } : { grupo:grupo || '', titulo:'', texto:txt };
+}
+function recogeItems(lista, grupo, out){
+  Array.from(lista.children).forEach(li => {
+    if(li.tagName !== 'LI') return;
+    const own = textoPropio(li), sub = li.querySelector(':scope > ul, :scope > ol');
+    if(sub){ if(own && /:$/.test(own)) recogeItems(sub, own.replace(/:$/, ''), out); else { if(own) out.push(itemDeTexto(own, grupo)); recogeItems(sub, grupo, out); } }
+    else if(own) out.push(itemDeTexto(own, grupo));
+  });
+}
+function parseMinuta(html){
+  const doc = new DOMParser().parseFromString(html, 'text/html'), body = doc.body, T = el => limpia(el.textContent);
+  const meta = {}, asistentes = [];
+  const llaves = [['titulo', /^t[ií]tulo de la reuni/], ['fecha', /^fecha$/], ['hora', /^hora de inicio/], ['facilitador', /^facilitador/], ['responsableMinuta', /^responsable de minuta/], ['numero', /^n[uú]mero de minuta/], ['tema', /^proyecto/]];
+  body.querySelectorAll('table').forEach(tb => {
+    const filas = Array.from(tb.rows), cab = filas[0] ? Array.from(filas[0].cells).map(c => sinAc(T(c))) : [];
+    if(cab.includes('nombre completo')){
+      const iN = cab.indexOf('nombre completo'), iC = cab.indexOf('cargo'), iA = cab.findIndex(x => x.startsWith('asisti')), iR = cab.indexOf('rol');
+      filas.slice(1).forEach(r => { const c = Array.from(r.cells).map(T); if(c[iN]) asistentes.push({ nombre:c[iN], cargo:c[iC] || '', rol:c[iR] || '', asistio:/^s[ií]/i.test(c[iA] || '') }); });
+    } else {
+      filas.forEach(r => { const c = Array.from(r.cells).map(T); c.forEach((x, i) => { const k = llaves.find(l => l[1].test(sinAc(x))); if(k && c[i + 1] != null && !meta[k[0]]) meta[k[0]] = c[i + 1]; }); });
+    }
+  });
+  const kids = Array.from(body.children);
+  const ini = kids.findIndex(el => /^\d+\.\s*desarrollo/i.test(sinAc(T(el))));
+  if(ini < 0) throw new Error('No encontré la sección "Desarrollo de la reunión". ¿Es la minuta TRUST de siempre?');
+  let modo = 'desarrollo', tema = null, grupo = '', esperaObj = false;
+  const temas = [], acciones = [], abiertos = [], proxima = {};
+  let fechaM = fechaDeTexto(meta.fecha || '') || null; if(fechaM && !fechaM.y) fechaM.y = new Date().getFullYear();
+  const asist = asistentes;
+  const asegura = () => { if(!tema){ tema = { titulo:'General', items:[] }; temas.push(tema); } return tema; };
+  kids.slice(ini + 1).forEach(el => {
+    const tag = el.tagName, txt = T(el); if(!txt) return;
+    const s = sinAc(txt);
+    if(/^proximos pasos/.test(s)){ modo = 'acciones'; return; }
+    if(/identificado los siguientes puntos|no se concluyeron/.test(s)){ modo = 'abiertos'; return; }
+    if(/^objetivo de la proxima/.test(s)){ proxima.objetivo = txt.replace(/^objetivo de la pr[oó]xima reuni[oó]n:?\s*/i, ''); modo = 'fin'; return; }
+    if(/^proxima reunion/.test(s)){ proxima.texto = txt; const f = fechaDeTexto(txt.replace(/^pr[oó]xima reuni[oó]n:?\s*/i, '')); if(f){ if(!f.y) f.y = fechaM ? fechaM.y : new Date().getFullYear(); proxima.fecha = fmtDMA(f.d, f.m, f.y); } modo = 'fin'; return; }
+    if(modo === 'desarrollo' || modo === 'intro'){
+      if(/^h[1-6]$/i.test(tag)){
+        if(/^objetivos?:?$/.test(s)){ esperaObj = true; return; }
+        if(esperaObj){ meta.objetivo = txt; esperaObj = false; return; }
+        if(/^avisos ejecutivos/.test(s)) return;
+        tema = { titulo:txt.replace(/:$/, ''), items:[] }; temas.push(tema); grupo = ''; return;
+      }
+      if(tag === 'UL' || tag === 'OL'){ const out = []; recogeItems(el, grupo, out); out.forEach(i => asegura().items.push(i)); return; }
+      if(tag === 'P'){ if(/:$/.test(txt)){ grupo = txt.replace(/:$/, ''); return; } asegura().items.push(itemDeTexto(txt, grupo)); }
+      return;
+    }
+    if(modo === 'acciones'){
+      if(tag !== 'UL' && tag !== 'OL') return;
+      Array.from(el.children).forEach(li => {
+        const own = textoPropio(li), sub = li.querySelector(':scope > ul, :scope > ol');
+        if(sub){ Array.from(sub.children).forEach(l2 => { const a = parseAccion(textoPropio(l2), fechaM, asist); if(a.accion){ a.categoria = own.replace(/:$/, ''); acciones.push(a); } }); }
+        else if(own){ const a = parseAccion(own, fechaM, asist); a.categoria = ''; acciones.push(a); }
+      });
+      return;
+    }
+    if(modo === 'abiertos'){
+      if(tag === 'UL' || tag === 'OL'){ Array.from(el.children).forEach(li => { const o = itemDeTexto(textoPropio(li), ''); abiertos.push({ titulo:o.titulo || o.texto, detalle:o.titulo ? o.texto : '' }); }); }
+      else if(tag === 'P' && abiertos.length){ const u = abiertos[abiertos.length - 1]; u.detalle = (u.detalle ? u.detalle + ' ' : '') + txt; }
+    }
+  });
+  if(!acciones.length) throw new Error('No encontré la sección "Próximos pasos" con acciones.');
+  const fechaIso = fechaM ? fechaM.y + '-' + dd(fechaM.m) + '-' + dd(fechaM.d) : '';
+  return { meta:{ titulo:meta.titulo || '', numero:meta.numero || '', fecha:fechaIso, fechaTxt:fechaM ? fmtDMA(fechaM.d, fechaM.m, fechaM.y) : '', facilitador:meta.facilitador || '', responsableMinuta:meta.responsableMinuta || '', objetivo:meta.objetivo || '' },
+    asistentes, temas:temas.filter(t => t.items.length), acciones, abiertos, proxima };
+}
+/* Hereda el estatus de acciones que ya venían en el corte anterior (mismas palabras clave) */
+function tokensAccion(t){ return new Set(sinAc(t).split(/[^a-z0-9]+/).filter(w => w.length >= 4)); }
+function heredaEstatus(nuevas, previas){
+  if(!previas || !previas.length) return 0; let n = 0;
+  const P = previas.map(a => ({ a, t:tokensAccion(a.accion) }));
+  nuevas.forEach(x => {
+    const tx = tokensAccion(x.accion); let mejor = null, mj = 0;
+    P.forEach(p => { let inter = 0; tx.forEach(w => { if(p.t.has(w)) inter++; }); const j = inter / ((tx.size + p.t.size - inter) || 1); if(j > mj){ mj = j; mejor = p.a; } });
+    if(mejor && mj >= 0.6){ x.estatus = mejor.estatus || x.estatus; x.previa = true; if(!x.fecha && mejor.fecha) x.fecha = mejor.fecha; n++; }
+  });
+  return n;
+}
+async function guardarSnapshot(snap){
+  const r = await fetch('/api/wbr-cta', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ snapshot:snap }) });
+  if(!r.ok){ const eg = await r.json().catch(() => ({})); throw new Error(eg.error || ('No se pudo guardar (error ' + r.status + ')')); }
+}
+async function handleWord(file){
+  const statusBox = document.getElementById('statusBox');
+  statusBox.innerHTML = '<div class="loading">Leyendo la minuta…</div>';
+  try{
+    if(typeof mammoth === 'undefined') throw new Error('No se pudo cargar la librería para leer Word.');
+    const res = await mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
+    const mn = parseMinuta(res.value);
+    const heredadas = heredaEstatus(mn.acciones, actual ? actual.acciones : null);
+    const semana = 'Sesión del ' + (mn.meta.fechaTxt || '—') + (mn.meta.numero ? ' · ' + mn.meta.numero : '');
+    const snap = { fechaRevision:new Date().toISOString(), semana, archivo:String(file.name).slice(0, 200), acciones:mn.acciones,
+      minuta:{ meta:mn.meta, asistentes:mn.asistentes, temas:mn.temas, abiertos:mn.abiertos, proxima:mn.proxima } };
+    statusBox.innerHTML = '<div class="loading">Guardando…</div>';
+    await guardarSnapshot(snap);
+    snapshotVisto = null; await cargarHistorial(); render();
+    statusBox.innerHTML = `<div class="st-ok">Minuta leída: ${mn.acciones.length} acciones, ${mn.abiertos.length} puntos abiertos y ${mn.temas.length} temas.${heredadas ? ' ' + heredadas + ' acción(es) ya venían del corte anterior y conservaron su estatus.' : ''} Guardada en la bitácora.</div>`;
+  }catch(e){
+    console.error(e);
+    statusBox.innerHTML = `<div class="st-err">No se pudo leer la minuta: ${WK.esc(e.message||String(e))}</div>`;
+  }
+}
+const CICLO = ['Pendiente', 'En proceso', 'Completada'];
+async function ciclarEstatus(i){
+  if(snapshotVisto || !actual || window.SOLO_LECTURA) return;
+  const a = actual.acciones[i]; if(!a) return;
+  const previo = a.estatus; a.estatus = CICLO[(CICLO.indexOf(CICLO.find(c => catEstatus(c) === catEstatus(previo))) + 1) % 3];
+  render();
+  try{ await guardarSnapshot(actual); await cargarHistorial(); }
+  catch(e){ a.estatus = previo; render(); document.getElementById('statusBox').innerHTML = `<div class="st-err">No se pudo guardar el cambio de estatus: ${WK.esc(e.message||String(e))}</div>`; }
+}
+function minutaCards(m){
+  if(!m) return { top:'', bottom:'', chips:[], nAb:0 };
+  const ab = m.abiertos || [], temas = m.temas || [], px = m.proxima || {}, me = m.meta || {};
+  const reu = (px.texto || px.objetivo || me.facilitador) ? WK.card({ id:'sesion', ico:'🗓️', titulo:'Sesión y próxima reunión', sub:me.titulo || '',
+    body:'<div class="cta-prox-reu">' + (me.fechaTxt ? '<b>Sesión</b><span>' + WK.esc(me.fechaTxt + (me.numero ? ' · ' + me.numero : '')) + '</span>' : '') + (me.facilitador ? '<b>Facilitador</b><span>' + WK.esc(me.facilitador) + '</span>' : '') +
+      (me.objetivo ? '<b>Objetivo</b><span>' + WK.esc(me.objetivo) + '</span>' : '') + (px.texto ? '<b>Próxima</b><span>' + WK.esc(px.texto.replace(/^pr[oó]xima reuni[oó]n:?\s*/i, '').replace(/_+/g, '')) + '</span>' : '') + (px.objetivo ? '<b>Objetivo próxima</b><span>' + WK.esc(px.objetivo) + '</span>' : '') + '</div>' }) : '';
+  const abCard = ab.length ? WK.card({ id:'abiertos', ico:'⚠️', titulo:'Puntos abiertos de la sesión', sub:'Quedaron sin conclusión o sin acción clara — hay que atenderlos', count:ab.length,
+    body:ab.map(x => '<div class="cta-op"><b>' + WK.esc(x.titulo) + '</b>' + (x.detalle ? '<span>' + WK.esc(x.detalle) + '</span>' : '') + '</div>').join('') }) : '';
+  const tmCard = temas.length ? WK.card({ id:'temas', ico:'📝', titulo:'Resumen de la sesión', sub:'Lo que se habló, por tema', count:temas.length,
+    body:temas.map((t, i) => '<details class="cta-tema"' + (i === 0 ? ' open' : '') + '><summary>' + WK.esc(t.titulo) + '<i>' + t.items.length + '</i></summary>' +
+      t.items.map(it => '<div class="it">' + (it.grupo ? '<span class="gr">' + WK.esc(it.grupo) + '</span>' : '') + (it.titulo ? '<b>' + WK.esc(it.titulo) + ':</b> ' : '') + WK.esc(it.texto) + '</div>').join('') + '</details>').join('') }) : '';
+  return { top: reu + abCard, bottom: tmCard, chips:[].concat(ab.length ? [{ id:'abiertos', label:'Puntos abiertos', n:ab.length }] : []).concat(temas.length ? [{ id:'temas', label:'Resumen de la sesión' }] : []), nAb:ab.length };
+}
+
 function bitacoraHtml(){
   const bitacora = WK.table([
     { k:'corte', label:'Fecha del corte', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' },
@@ -262,7 +434,7 @@ function render(){
   const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte del <b>' + WK.esc(WK.fecha(new Date(snapshotVisto.fechaRevision))) + '</b> (' + WK.esc(etiquetaCarga(snapshotVisto)) + ') — no es el más reciente. “Vencida” se calcula a la fecha de ese corte.</span><button class="wk-btn" onclick="volverActual()">Volver al corte más reciente</button></div>' : '';
   document.getElementById('fechaRevisionBadge').innerHTML = semana ? '<span class="fecha-revision">Semana de revisión: ' + WK.esc(semana) + '</span>' : '';
   if(!acciones || !acciones.length){
-    content.innerHTML = banner + `<div class="wk-card"><div class="cta-vacio"><div class="big">✅</div><h2>Sin acciones capturadas esta semana</h2><p>Sube el Excel semanal (con la pestaña "Call to Action") para verlas aquí.</p></div></div>` + bitacoraHtml();
+    content.innerHTML = banner + `<div class="wk-card"><div class="cta-vacio"><div class="big">✅</div><h2>Sin acciones capturadas esta semana</h2><p>Sube la minuta semanal (Word) o el Excel (pestaña "Call to Action") para verlas aquí.</p></div></div>` + bitacoraHtml();
     return;
   }
   const hoy = snapshotVisto ? (d => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))(new Date(snapshotVisto.fechaRevision)) : hoyTs();
@@ -287,6 +459,7 @@ function render(){
   const vencResp = {}; venc.forEach(a => { const r = a.responsable || 'Sin responsable'; (vencResp[r] = vencResp[r] || []).push(a); });
   const rankVenc = Object.keys(vencResp).map(r => ({ label:r, value:vencResp[r].length, tono:'red', tip:r + '\n' + lista(vencResp[r]) })).sort((a, b) => b.value - a.value).slice(0, 3);
 
+  const MN = minutaCards(mostrando.minuta);
   const kpis = WK.heroGrid([
     WK.hero({ label:'Cumplimiento', ico:'🎯', value:Math.round(pct * 100) + '%', tono:tonoCump,
       sub:plural(comp.length, 'acción completada', 'acciones completadas') + ' de ' + N,
@@ -302,7 +475,7 @@ function render(){
     WK.hero({ label:'Próximo vencimiento', ico:'📆', value: prox ? prox.dias : '—', unit: prox ? (prox.dias === 1 ? 'día' : 'días') : '', tono:'violet',
       sub: prox ? '<span class="cta-prox">' + WK.esc(corto(prox.accion, 70)) + '</span>' + WK.esc((prox.responsable ? prox.responsable + ' · ' : '') + prox.fecha) : 'Sin fechas por venir',
       chart: WK.stats([{ valor:en7, label:'vencen en 7 días' }, { valor:sinFecha, label:'abiertas sin fecha' }]) })
-  ]);
+  ].concat(MN.nAb ? [WK.hero({ label:'Puntos abiertos', ico:'⚠️', value:MN.nAb, tono:'amber', sub:'Sin conclusión o sin acción clara en la sesión', chart:WK.stats([{ valor:A.filter(a => !a.responsable).length, label:'acciones sin responsable' }, { valor:A.filter(a => a.abierta && !a.fecha).length, label:'abiertas sin fecha' }]) })] : []));
 
   // Dona por estatus
   const dona = WK.card({ id:'estatus', ico:'🍩', titulo:'Estatus de las acciones', sub:'Pasa el mouse sobre cada segmento para ver las acciones', count:N,
@@ -310,7 +483,7 @@ function render(){
       { centro:Math.round(pct * 100) + '%', sub:'completado', fmt:v => String(v) }) });
 
   // Columnas por responsable
-  const resp = {}; A.forEach(a => { const r = a.responsable || 'Sin responsable'; (resp[r] = resp[r] || []).push(a); });
+  const resp = {}; A.forEach(a => { const rr = String(a.responsable || 'Sin responsable').split(' / '); rr.forEach(r => { (resp[r] = resp[r] || []).push(a); }); });
   const rs = Object.keys(resp).sort((x, y) => resp[y].length - resp[x].length || x.localeCompare(y, 'es'));
   const abrev = r => (rs.length > 5 && r.length > 12) ? r.split(/\s+/)[0] + (r.split(/\s+/)[1] ? ' ' + r.split(/\s+/)[1][0] + '.' : '') : r;
   const porResp = WK.card({ id:'responsables', ico:'👥', titulo:'Carga por responsable', sub:'Acciones por persona y estatus', count:rs.length,
@@ -336,19 +509,19 @@ function render(){
     ], { fmt:v => String(Math.round(v)), id:'cal', h:280 }) + '</div>' + rankProx + '</div>' }) : '';
 
   // Tabla completa
-  const filas = A.map(a => ({ accion:a.accion, responsable:a.responsable, fecha:a.fecha, estatus:a.estatus, dias:a.dias, venc:a.venc, cat:a.cat }));
+  const filas = A.map(a => ({ i:a.i, accion:a.accion, responsable:a.responsable, fecha:a.fecha, estatus:a.estatus, dias:a.dias, venc:a.venc, cat:a.cat, previa:a.previa, categoria:a.categoria }));
   const tabla = WK.card({ id:'tabla', ico:'🗂️', titulo:'Todas las acciones', sub:'Ordena por cualquier columna o busca por acción, responsable o estatus. Marcadas en rojo las vencidas.', count:N,
     body: '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar acción, responsable, estatus…" oninput="WK.filtrar(document.getElementById(\'tablaCta\'), this.value)"></div>' +
       WK.table([
         { k:'accion', label:'Acción', tipo:'strong' }, { k:'responsable', label:'Responsable', tipo:'tag' }, { k:'fecha', label:'Fecha', tipo:'date' },
         { k:'estatusH', label:'Estatus', tipo:'html' }, { k:'dias', label:'Días para vencer', tipo:'num', cls:'cta-dias' }
-      ], filas.map(f => Object.assign({}, f, { estatusH: WK.badge(f.estatus, f.cat === 'comp' ? 'green' : (f.cat === 'proc' ? 'amber' : 'blue')) + (f.venc ? ' ' + WK.badge('Vencida', 'red') : '') })),
+      ], filas.map(f => Object.assign({}, f, { estatusH: ((snapshotVisto || window.SOLO_LECTURA) ? '' : '<button type="button" class="cta-est" title="Clic para cambiar el estatus" onclick="ciclarEstatus(' + f.i + ')">') + WK.badge(f.estatus, f.cat === 'comp' ? 'green' : (f.cat === 'proc' ? 'amber' : 'blue')) + ((snapshotVisto || window.SOLO_LECTURA) ? '' : '</button>') + (f.venc ? ' ' + WK.badge('Vencida', 'red') : '') + (f.previa ? ' ' + WK.badge('De la sesión anterior', 'blue') : '') })),
         { id:'tablaCta', rowAttrs:f => f.venc ? 'class="cta-venc"' : '' }) });
 
 
-  content.innerHTML = banner + WK.chips([{ id:'resumen', label:'Resumen' }, { id:'estatus', label:'Estatus' }, { id:'responsables', label:'Responsables' }].concat(ks.length ? [{ id:'calendario', label:'Calendario' }] : []).concat([{ id:'tabla', label:'Todas las acciones', n:N }, { id:'bitacora', label:'Bitácora', n:historial.length }])) +
-    '<div id="resumen" style="scroll-margin-top:70px">' + kpis + '</div>' +
-    '<div class="wk-grid2" style="margin-bottom:18px">' + dona + porResp + '</div>' + calendario + tabla + bitacoraHtml() +
+  content.innerHTML = banner + WK.chips([{ id:'resumen', label:'Resumen' }, { id:'estatus', label:'Estatus' }, { id:'responsables', label:'Responsables' }].concat(ks.length ? [{ id:'calendario', label:'Calendario' }] : []).concat(MN.chips).concat([{ id:'tabla', label:'Todas las acciones', n:N }, { id:'bitacora', label:'Bitácora', n:historial.length }])) +
+    '<div id="resumen" style="scroll-margin-top:70px">' + kpis + '</div>' + MN.top +
+    '<div class="wk-grid2" style="margin-bottom:18px">' + dona + porResp + '</div>' + calendario + tabla + MN.bottom + bitacoraHtml() +
     '<div class="wk-foot">Fechas en DD/MM/AA. “Vencida” = acción abierta con fecha anterior a hoy.</div>';
   WK.sortable(content);
   if(WK.observarSecciones) WK.observarSecciones();
