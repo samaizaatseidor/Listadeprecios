@@ -359,7 +359,7 @@ const RISK_DEF = [
 class Component {
   constructor() {
     this.data = {};
-    this.state = { mode: 'proj', tgt: { proj: 35, ams: 10 }, dev: 0, dso: 1, deal: { acv: 0, tcv: 0, ccf: 10 }, risk: [1, 1, 1, 1, 1, 1, 1], pct: { proj: [], ams: [] }, fte: '', ebm: { on: false, pct: 5 } };
+    this.state = { mode: 'proj', tgt: { proj: 35, ams: 10 }, dev: 0, dso: 1, deal: { acv: 0, tcv: 0, ccf: 10 }, risk: [1, 1, 1, 1, 1, 1, 1], pct: { proj: [], ams: [] }, fte: '', ebm: { on: false, pct: 5 }, hp: 0 };
     this.onChange = null;
   }
   load(type, data) {
@@ -373,6 +373,7 @@ class Component {
       const v = data.vig;
       s.pct.ams = [20].concat(new Array(v).fill(80 / v)); s.tgt.ams = Math.round(data.util * 1000) / 10;
     }
+    if (type === 'ams') s.hp = 0;
     s.mode = type; s.dev = 0; s.risk = [1, 1, 1, 1, 1, 1, 1];
   }
   has() { return !!(this.data.proj || this.data.ams); }
@@ -381,13 +382,14 @@ class Component {
   setTgt(v) {
     if (isNaN(v)) return;
     const l = this.lim(), o = Object.assign({}, this.state.tgt); o[this.state.mode] = Math.max(l[0], Math.min(l[1], v));
-    this.setState({ tgt: o });
+    this.setState(this.state.mode === 'ams' ? { tgt: o, hp: 0 } : { tgt: o });
   }
   setPct(k, v) {
     const s = this.state, arr = s.pct[s.mode].slice(); arr[k] = Math.max(0, Math.min(100, v));
     const o = Object.assign({}, s.pct); o[s.mode] = arr; this.setState({ pct: o });
   }
   setPctArr(arr) { const s = this.state, o = Object.assign({}, s.pct); o[s.mode] = arr.slice(); this.setState({ pct: o }); }
+  setHp(v) { this.setState({ hp: isNaN(v) || v <= 0 ? 0 : v }); }
   setEbm(o) { const e = Object.assign({}, this.state.ebm, o); e.pct = isNaN(e.pct) ? 0 : Math.max(0, Math.min(50, e.pct)); this.setState({ ebm: e }); }
   setDeal(k, v) { const o = Object.assign({}, this.state.deal || { acv: 0, tcv: 0, ccf: 10 }); o[k] = isNaN(v) ? 0 : Math.max(0, v); this.setState({ deal: o }); }
 
@@ -407,7 +409,10 @@ class Component {
     const cargoRate = isAms ? OH : TOT;
     const tg = s.tgt[s.mode] / 100;
     const priceOf = (u, cb) => (isAms ? cb * (1 + OH) * (1 + CT) / (1 - u) : cb / (1 - u));
-    const P = priceOf(tg, Cb);
+    // AMS: si capturas el precio por hora, el precio sale de ahí y la utilidad se deriva
+    const hpOn = isAms && s.hp > 0 && HRS > 0;
+    const P = hpOn ? s.hp * HRS : priceOf(tg, Cb);
+    const tgDer = hpOn ? 1 - Cb * (1 + OH) * (1 + CT) / P : tg;
     // EBM: comisión (% sobre el precio de venta) que reduce el ingreso reconocido; los márgenes se miden sobre ese ingreso
     const ebmOn = !!(s.ebm && s.ebm.on && s.ebm.pct > 0), e = ebmOn ? s.ebm.pct / 100 : 0, k = 1 - e;
     const ebmAmt = P * e, Rv = P * k;
@@ -668,7 +673,7 @@ class Component {
       : { a: upper(AD.cliente), b: AD.proyecto ? '· ' + upper(AD.proyecto) : '', sub: 'AMS SAP · ' + AD.vig + ' meses de vigencia' + (AD.fecha ? ' · propuesta del ' + AD.fecha : ''), file: AD.file, ids: AD.resp ? 'Responsable: ' + AD.resp : '' };
     const assump = isProj
       ? 'Cargo de finanzas sobre costo: variables 3% · overhead 1% · G&A 19.5% · D&A 0% (suma 23.5%) · niveles de Deal Desk sobre margen bruto · contingencia 3 / 6 / 10% según criterios de Costo y rangos de chequeo provisionales · costo mensual tomado del Plan de Proyecto de la hoja · riesgo en Medio por defecto, sin calificar · hitos 20% de anticipo y mensuales parejos, editables.'
-      : 'Overhead ' + pc(OH) + ' del costo directo (cargo completo de finanzas) y contingencia ' + pc(CT) + ' sobre costo + overhead, tomados de la hoja AMS · Deal Desk AMS sobre margen bruto: 30 / 35 / 40% · apertura del 11.7% pendiente, por eso margen directo y operativo no se muestran · costo mensual parejo en 12 meses · facturación mensual vencida con 20% de anticipo · riesgo en Medio por defecto, sin calificar.';
+      : (hpOn ? 'Precio fijado por hora: ' + money(s.hp) + ' × ' + Math.round(HRS) + ' horas = ' + money(P) + ' (utilidad resultante ' + pc(tgDer) + ') · ' : '') + 'Overhead ' + pc(OH) + ' del costo directo (cargo completo de finanzas) y contingencia ' + pc(CT) + ' sobre costo + overhead, tomados de la hoja AMS · Deal Desk AMS sobre margen bruto: 30 / 35 / 40% · apertura del 11.7% pendiente, por eso margen directo y operativo no se muestran · costo mensual parejo en 12 meses · facturación mensual vencida con 20% de anticipo · riesgo en Medio por defecto, sin calificar.';
 
     const ebmAssump = ebmOn ? ' · EBM: comisión de ' + pc(e) + ' sobre el precio de venta (' + money(ebmAmt) + '); el ingreso reconocido baja a ' + money(Rv) + ' y los márgenes, EBIT y niveles de Deal Desk se miden sobre ese ingreso. El margen objetivo es antes de EBM; cobros netos de la comisión.' : '';
     return {
@@ -676,7 +681,8 @@ class Component {
       e, k, ebmOn, ebmAmt, Rv, brutoPre, dl: ebmOn ? 'del ingreso' : 'del precio',
       P, Cb, Cd, d, bruto, variables, ovh, ga, cargo, directo, oper, ebit, ebitAdj, brutoAdj, cont, HRS, OH, CT, vigA, nP, cargoRate, eqPrice, pAt, cushAmt, cush,
       ladder, cargoNote, wf, effort, rate, priceCurve, devCurve, CM, cash, sched, months, presets, hmMin, cashNote, cap: capO, ams: amsO, checks, drivers, risk, sens, sensCols, mix, deal,
-      tgtVal: s.tgt[s.mode], lim: this.lim(),
+      hpOn, hpVal: isAms && HRS > 0 ? Math.round(P / HRS * 100) / 100 : 0,
+      tgtVal: hpOn ? Math.round(tgDer * 1000) / 10 : s.tgt[s.mode], lim: this.lim(),
       tgtLabel: (isProj ? 'Margen bruto objetivo' : 'Utilidad objetivo sobre precio') + (ebmOn ? ' (antes de EBM)' : ''),
       devLabel: isProj ? 'Desviación de jornadas' : 'Desviación de horas',
       monthsTxt: hm + ' meses'
@@ -811,6 +817,7 @@ function controls(V) {
       '<input class="vp-in" type="number" step="0.5" value="' + tg + '" aria-label="' + A(V.tgtLabel) + '"' + on('change', (e) => logic.setTgt(parseFloat(e.target.value))) + '>' +
     '</div></div>' +
     '<div><div class="vp-cap">' + esc(V.devLabel) + '</div><div class="vp-row">' + devB + '</div></div>' +
+    (V.isAms ? '<div><div class="vp-cap">Precio por hora (USD)</div><div class="vp-row"><input class="vp-in" type="number" min="0" step="1" value="' + V.hpVal + '" aria-label="Precio por hora del consultor en dólares"' + on('change', (e) => logic.setHp(parseFloat(e.target.value))) + '>' + (V.hpOn ? '<button class="wk-chip vp-chip sm" type="button"' + on('click', () => logic.setHp(0)) + '>Usar utilidad objetivo</button>' : '') + '</div></div>' : '') +
     '<div><div class="vp-cap">EBM (comisión sobre precio)</div><div class="vp-row"><button class="wk-chip vp-chip sm' + (s.ebm.on ? ' on' : '') + '" type="button"' + on('click', () => logic.setEbm({ on: !logic.state.ebm.on })) + '>' + (s.ebm.on ? 'Con EBM' : 'Sin EBM') + '</button>' +
       '<input class="vp-in" type="number" min="0" max="50" step="0.5" value="' + s.ebm.pct + '"' + (s.ebm.on ? '' : ' disabled') + ' aria-label="Porcentaje de EBM sobre el precio de venta"' + on('change', (e) => logic.setEbm({ pct: parseFloat(e.target.value) })) + '><span class="vp-cap">%</span></div></div>' +
     '<div><div class="vp-cap">Cobro a (DSO)</div><div class="vp-row">' + dsoB + '</div></div>' +
@@ -1071,7 +1078,7 @@ function mix(V) {
 function view() {
   if (!logic.has()) return '<div class="vp-root">' + viewEmpty() + '</div>';
   const V = logic.calc();
-  const info = 'Evidencia VOP · ' + V.head.a + ' ' + V.head.b + ' · Hoja cargada: ' + V.head.file + ' · Generado el ' + WK.hora(new Date().toISOString()) + '. Parámetros: ' + (V.isAms ? 'utilidad sobre precio ' : 'margen bruto objetivo ') + V.s.tgt[V.s.mode] + '% · desviación ' + Math.round(V.d * 100) + '% · DSO ' + [30, 60, 90][V.s.dso] + ' días · precio ' + money(V.P) + (V.ebmOn ? ' · EBM ' + pc(V.e) + ' (ingreso reconocido ' + money(V.Rv) + ')' : '') + ' · nivel: ' + V.sem.label + '.';
+  const info = 'Evidencia VOP · ' + V.head.a + ' ' + V.head.b + ' · Hoja cargada: ' + V.head.file + ' · Generado el ' + WK.hora(new Date().toISOString()) + '. Parámetros: ' + (V.isAms ? 'utilidad sobre precio ' : 'margen bruto objetivo ') + V.tgtVal + '% · desviación ' + Math.round(V.d * 100) + '% · DSO ' + [30, 60, 90][V.s.dso] + ' días · precio ' + money(V.P) + (V.ebmOn ? ' · EBM ' + pc(V.e) + ' (ingreso reconocido ' + money(V.Rv) + ')' : '') + ' · nivel: ' + V.sem.label + '.';
   return '<div class="vp-root">' + dealCard(V) + '<div class="onlyprint">' + esc(info) + '</div>' + controls(V) + chipsRow() + resumen(V) + precio(V) + caja(V) + capacidad(V) + riesgo(V) + mix(V) +
     '<section class="wk-card" style="padding:18px 24px"><div class="vp-cap" style="margin-bottom:8px">Supuestos del modelo (a confirmar)</div><div class="vp-note" style="margin:0">' + esc(V.assump) + '</div></section></div>';
 }
