@@ -403,8 +403,8 @@ class Component {
     const dsos = [1, 2, 3];
 
     // ---- modelo por tipo de deal ----
-    const SV = 0.03, SO = 0.01, SG = 0.177, SD = 0, TOT = SV + SO + SG + SD;
-    const OH = isAms ? 0.217 : 0, CT = isAms ? AD.ct : 0, HRS = isAms ? AD.hrs : 0, vigA = isAms ? AD.vig : 0, nP = isAms ? 0 : PD.n;
+    const SV = 0.03, SO = 0.01, SG = 0.187, SD = 0, TOT = SV + SO + SG + SD;
+    const OH = isAms ? 0.227 : 0, CT = isAms ? AD.ct : 0, HRS = isAms ? AD.hrs : 0, vigA = isAms ? AD.vig : 0, nP = isAms ? 0 : PD.n;
     const Cb = DD.cb;
     const cargoRate = isAms ? OH : TOT;
     const tg = s.tgt[s.mode] / 100;
@@ -480,7 +480,7 @@ class Component {
       lrow('Margen directo', 'Bruto − variables', directo, true),
       lrow('Overhead de delivery', '1.0% del costo: bench, PMO, práctica', ovh, false),
       lrow('Margen operativo', 'Directo − overhead de delivery', oper, true),
-      lrow('G&A corporativo', '17.7% del costo: finanzas, RRHH, TI', ga, false),
+      lrow('G&A corporativo', '18.7% del costo: finanzas, RRHH, TI', ga, false),
       lrow('EBITDA / EBIT', 'Operativo − G&A (D&A = 0%)', ebit, true)
     ] : [
       lrow('Costo directo', 'Recursos de horas + costos adicionales', Cd, false),
@@ -491,7 +491,7 @@ class Component {
       lrow('Utilidad (EBIT ajustado)', 'EBIT − contingencia; coincide con la hoja AMS', ebitAdj, true)
     ]);
     const cargoNote = isProj
-      ? 'Cargo de finanzas: 21.7% del costo = ' + money(Cd * TOT) + ' (variables 3 · overhead de delivery 1 · G&A 17.7 · D&A 0). Con D&A en 0, EBITDA y EBIT son una sola línea.'
+      ? 'Cargo de finanzas: 22.7% del costo = ' + money(Cd * TOT) + ' (variables 3 · overhead de delivery 1 · G&A 18.7 · D&A 0). Con D&A en 0, EBITDA y EBIT son una sola línea.'
       : 'Cargo completo de finanzas en AMS: ' + pc(OH) + ' del costo directo = ' + money(cargo) + '. EBITDA y EBIT son una sola línea.';
 
     // ---- cascada (pasos con su rango para dibujar) ----
@@ -505,7 +505,7 @@ class Component {
       ['Directo', 'Margen directo', 'tot', directo, 0, directo, 'Bruto − variables'],
       ['Overhead', 'Overhead de delivery', 'ded', ovh, oper, directo, '1.0% del costo'],
       ['Operativo', 'Margen operativo', 'tot', oper, 0, oper, 'Directo − overhead'],
-      ['G&A', 'G&A corporativo', 'ded', ga, ebit, oper, '17.7% del costo'],
+      ['G&A', 'G&A corporativo', 'ded', ga, ebit, oper, '18.7% del costo'],
       ['EBIT', 'EBITDA / EBIT', 'fin', ebit, 0, ebit, 'Operativo − G&A (D&A = 0%)']
     ] : [
       ['Precio', 'Precio de venta', 'tot', P, 0, P, 'Costo operativo ÷ (1 − utilidad)'],
@@ -672,7 +672,7 @@ class Component {
       ? { a: upper(PD.cliente), b: PD.producto ? '+ ' + upper(PD.producto) : '', sub: PD.desc || '', file: PD.file, ids: [PD.id, PD.gn, PD.gc].filter(Boolean).join(' · ') }
       : { a: upper(AD.cliente), b: AD.proyecto ? '· ' + upper(AD.proyecto) : '', sub: 'AMS SAP · ' + AD.vig + ' meses de vigencia' + (AD.fecha ? ' · propuesta del ' + AD.fecha : ''), file: AD.file, ids: AD.resp ? 'Responsable: ' + AD.resp : '' };
     const assump = isProj
-      ? 'Cargo de finanzas sobre costo: variables 3% · overhead 1% · G&A 17.7% · D&A 0% (suma 21.7%) · niveles de Deal Desk sobre margen bruto · contingencia 3 / 6 / 10% según criterios de Costo y rangos de chequeo provisionales · costo mensual tomado del Plan de Proyecto de la hoja · riesgo en Medio por defecto, sin calificar · hitos 20% de anticipo y mensuales parejos, editables.'
+      ? 'Cargo de finanzas sobre costo: variables 3% · overhead 1% · G&A 18.7% · D&A 0% (suma 22.7%) · niveles de Deal Desk sobre margen bruto · contingencia 3 / 6 / 10% según criterios de Costo y rangos de chequeo provisionales · costo mensual tomado del Plan de Proyecto de la hoja · riesgo en Medio por defecto, sin calificar · hitos 20% de anticipo y mensuales parejos, editables.'
       : (hpOn ? 'Precio fijado por hora: ' + money(s.hp) + ' × ' + Math.round(HRS) + ' horas = ' + money(P) + ' (utilidad resultante ' + pc(tgDer) + ') · ' : '') + 'Overhead ' + pc(OH) + ' del costo directo (cargo completo de finanzas, igual para cualquier deal) y contingencia ' + pc(CT) + ' sobre costo + overhead, tomada de la hoja AMS · Deal Desk AMS sobre margen bruto: 30 / 35 / 40% · apertura del cargo pendiente, por eso margen directo y operativo no se muestran · costo mensual parejo en 12 meses · facturación mensual vencida con 20% de anticipo · riesgo en Medio por defecto, sin calificar.';
 
     const ebmAssump = ebmOn ? ' · EBM: comisión de ' + pc(e) + ' sobre el precio de venta (' + money(ebmAmt) + '); el ingreso reconocido baja a ' + money(Rv) + ' y los márgenes, EBIT y niveles de Deal Desk se miden sobre ese ingreso. El margen objetivo es antes de EBM; cobros netos de la comisión.' : '';
