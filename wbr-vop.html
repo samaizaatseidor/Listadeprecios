@@ -359,7 +359,7 @@ const RISK_DEF = [
 class Component {
   constructor() {
     this.data = {};
-    this.state = { mode: 'proj', tgt: { proj: 35, ams: 10 }, dev: 0, dso: 1, deal: { acv: 0, tcv: 0, ccf: 10 }, risk: [1, 1, 1, 1, 1, 1, 1], pct: { proj: [], ams: [] }, fte: '' };
+    this.state = { mode: 'proj', tgt: { proj: 35, ams: 10 }, dev: 0, dso: 1, deal: { acv: 0, tcv: 0, ccf: 10 }, risk: [1, 1, 1, 1, 1, 1, 1], pct: { proj: [], ams: [] }, fte: '', ebm: { on: false, pct: 5 } };
     this.onChange = null;
   }
   load(type, data) {
@@ -388,6 +388,7 @@ class Component {
     const o = Object.assign({}, s.pct); o[s.mode] = arr; this.setState({ pct: o });
   }
   setPctArr(arr) { const s = this.state, o = Object.assign({}, s.pct); o[s.mode] = arr.slice(); this.setState({ pct: o }); }
+  setEbm(o) { const e = Object.assign({}, this.state.ebm, o); e.pct = isNaN(e.pct) ? 0 : Math.max(0, Math.min(50, e.pct)); this.setState({ ebm: e }); }
   setDeal(k, v) { const o = Object.assign({}, this.state.deal || { acv: 0, tcv: 0, ccf: 10 }); o[k] = isNaN(v) ? 0 : Math.max(0, v); this.setState({ deal: o }); }
 
   // Todos los cálculos económicos del deal (idénticos al tablero original); devuelve números listos para dibujar
@@ -407,8 +408,12 @@ class Component {
     const tg = s.tgt[s.mode] / 100;
     const priceOf = (u, cb) => (isAms ? cb * (1 + OH) * (1 + CT) / (1 - u) : cb / (1 - u));
     const P = priceOf(tg, Cb);
+    // EBM: comisión (% sobre el precio de venta) que reduce el ingreso reconocido; los márgenes se miden sobre ese ingreso
+    const ebmOn = !!(s.ebm && s.ebm.on && s.ebm.pct > 0), e = ebmOn ? s.ebm.pct / 100 : 0, k = 1 - e;
+    const ebmAmt = P * e, Rv = P * k;
     const d = devs[s.dev], Cd = Cb * (1 + d);
-    const bruto = P - Cd;
+    const brutoPre = P - Cd;
+    const bruto = Rv - Cd;
     const variables = isProj ? Cd * SV : 0, ovh = isProj ? Cd * SO : 0, ga = isProj ? Cd * SG : 0;
     const cargo = Cd * cargoRate;
     const directo = bruto - variables, oper = directo - ovh;
@@ -439,32 +444,33 @@ class Component {
     // ---- niveles de aprobación ----
     const T = isAms ? [0.40, 0.35, 0.30] : [0.35, 0.30, 0.25];
     const lvOf = (b) => (b >= T[0] ? 0 : b >= T[1] ? 1 : b >= T[2] ? 2 : 3);
-    const bp = Math.round((bruto / P) * 1000) / 1000;
+    const bp = Math.round((bruto / Rv) * 1000) / 1000;
     const li = lvOf(bp), L = LV[li];
     const msgs = ['Margen bruto en o sobre ' + tp(T[0]) + ': no requiere aprobación.', 'Margen bruto entre ' + tp(T[1]) + ' y ' + tp(T[0]) + ': requiere aprobación de Nivel 1.', 'Margen bruto entre ' + tp(T[2]) + ' y ' + tp(T[1]) + ': requiere aprobación de Nivel 2.', 'Margen bruto menor a ' + tp(T[2]) + ': requiere aprobación de Nivel 3.'];
-    const policy = 'Política Deal Desk' + (isAms ? ' AMS' : '') + ' sobre margen bruto (precio − costo directo): ≥ ' + tp(T[0]) + ' sin aprobación · ' + tp(T[1]) + '–' + tp(T[0]) + ' Nivel 1 · ' + tp(T[2]) + '–' + tp(T[1]) + ' Nivel 2 · < ' + tp(T[2]) + ' Nivel 3.';
+    const policy = 'Política Deal Desk' + (isAms ? ' AMS' : '') + ' sobre margen bruto (' + (ebmOn ? 'ingreso reconocido' : 'precio') + ' − costo directo): ≥ ' + tp(T[0]) + ' sin aprobación · ' + tp(T[1]) + '–' + tp(T[0]) + ' Nivel 1 · ' + tp(T[2]) + '–' + tp(T[1]) + ' Nivel 2 · < ' + tp(T[2]) + ' Nivel 3.';
     const sem = { label: li === 0 ? 'Sin aprobación' : L.tag + ' de aprobación', msg: msgs[li] + (ebitAdj < 0 ? ' El EBIT ajustado por riesgo es negativo.' : '') };
 
-    const pAt = (x) => Cd / (1 - x);
+    const pAt = (x) => Cd / ((1 - x) * k);
     const curLow = li < 3 ? T[li] : null;
     const cushAmt = curLow ? P - pAt(curLow) : 0;
-    const eqPrice = Cd * (1 + cargoRate);
+    const eqPrice = Cd * (1 + cargoRate) / k;
     const crow = (idx, rule, price) => ({ idx, tag: LV[idx].tag, rule, price, delta: P - price >= 0 ? 'Bajar ' + money(P - price) + ' (' + pc((P - price) / P) + ')' : 'Subir ' + money(price - P) });
     const cush = {
       rows: [
         crow(0, 'Bruto ≥ ' + tp(T[0]), pAt(T[0])),
         crow(1, 'Bruto ≥ ' + tp(T[1]), pAt(T[1])),
         crow(2, 'Bruto ≥ ' + tp(T[2]), pAt(T[2])),
-        { idx: -1, tag: 'Equilibrio', rule: 'EBIT = 0 (costo × ' + (1 + cargoRate).toFixed(3) + ')', price: eqPrice, delta: 'Bajar ' + money(P - eqPrice) + ' (' + pc((P - eqPrice) / P) + ')' }
+        { idx: -1, tag: 'Equilibrio', rule: 'EBIT = 0 (costo × ' + (1 + cargoRate).toFixed(3) + (ebmOn ? ' ÷ ' + k.toFixed(3) : '') + ')', price: eqPrice, delta: 'Bajar ' + money(P - eqPrice) + ' (' + pc((P - eqPrice) / P) + ')' }
       ],
       msg: li === 3 ? 'Estás en Nivel 3. Sube el precio a ' + money(pAt(T[2])) + ' (+' + money(pAt(T[2]) - P) + ') para llegar a Nivel 2.' : (cushAmt < 1 ? 'Estás justo en el límite de ' + L.tag.toLowerCase() + ': cualquier descuento pasa a ' + LV[li + 1].tag + '.' : 'Puedes bajar ' + money(cushAmt) + ' (' + pc(cushAmt / P) + ') y seguir en ' + L.tag + '.')
     };
 
     // ---- escalera de márgenes ----
-    const lrow = (label, how, v, total) => ({ label, how, amt: total ? money(v) : '− ' + money(Math.abs(v)), pct: pc((total ? v : Math.abs(v)) / P), total });
-    const ladder = isProj ? [
+    const lrow = (label, how, v, total, den) => ({ label, how, amt: total ? money(v) : '− ' + money(Math.abs(v)), pct: pc((total ? v : Math.abs(v)) / (den || Rv)), total });
+    const ebmLadder = ebmOn ? [lrow('Comisión EBM', pc(e) + ' del precio de venta (' + money(P) + ')', ebmAmt, false, P), lrow('Ingreso reconocido', 'Precio − comisión EBM (% del precio de venta)', Rv, true, P)] : [];
+    const ladder = ebmLadder.concat(isProj ? [
       lrow('Costo del proyecto', 'Consultoría + 3ros + provisiones + viáticos', Cd, false),
-      lrow('Margen bruto', 'Precio − costo del proyecto', bruto, true),
+      lrow('Margen bruto', (ebmOn ? 'Ingreso reconocido' : 'Precio') + ' − costo del proyecto', bruto, true),
       lrow('Comisión y costos variables', '3.0% del costo: comisión AE, preventa', variables, false),
       lrow('Margen directo', 'Bruto − variables', directo, true),
       lrow('Overhead de delivery', '1.0% del costo: bench, PMO, práctica', ovh, false),
@@ -473,21 +479,23 @@ class Component {
       lrow('EBITDA / EBIT', 'Operativo − G&A (D&A = 0%)', ebit, true)
     ] : [
       lrow('Costo directo', 'Recursos de horas + costos adicionales', Cd, false),
-      lrow('Margen bruto', 'Precio − costo directo', bruto, true),
+      lrow('Margen bruto', (ebmOn ? 'Ingreso reconocido' : 'Precio') + ' − costo directo', bruto, true),
       lrow('Cargo de finanzas', pc(OH) + ' del costo directo', cargo, false),
       lrow('EBITDA / EBIT', 'Bruto − cargo de finanzas (antes de contingencia)', ebit, true),
       lrow('Contingencia', pc(CT) + ' sobre costo + overhead', cont, false),
       lrow('Utilidad (EBIT ajustado)', 'EBIT − contingencia; coincide con la hoja AMS', ebitAdj, true)
-    ];
+    ]);
     const cargoNote = isProj
       ? 'Cargo de finanzas: 23.5% del costo = ' + money(Cd * TOT) + ' (variables 3 · overhead de delivery 1 · G&A 19.5 · D&A 0). Con D&A en 0, EBITDA y EBIT son una sola línea.'
       : 'Cargo completo de finanzas en AMS: ' + pc(OH) + ' del costo directo = ' + money(cargo) + '. EBITDA y EBIT son una sola línea.';
 
     // ---- cascada (pasos con su rango para dibujar) ----
+    const wfEbm = ebmOn ? [['EBM', 'Comisión EBM', 'ded', ebmAmt, Rv, P, pc(e) + ' del precio de venta'], ['Ingreso', 'Ingreso reconocido', 'tot', Rv, 0, Rv, 'Precio − comisión EBM']] : [];
     const wf = (isProj ? [
       ['Precio', 'Precio de venta', 'tot', P, 0, P, 'Costo ÷ (1 − margen objetivo)'],
-      ['Costo', 'Costo del proyecto', 'ded', Cd, P - Cd, P, 'Consultoría + 3ros + provisiones + viáticos'],
-      ['Bruto', 'Margen bruto', 'tot', bruto, 0, bruto, 'Precio − costo del proyecto'],
+      ...wfEbm,
+      ['Costo', 'Costo del proyecto', 'ded', Cd, Rv - Cd, Rv, 'Consultoría + 3ros + provisiones + viáticos'],
+      ['Bruto', 'Margen bruto', 'tot', bruto, 0, bruto, (ebmOn ? 'Ingreso reconocido' : 'Precio') + ' − costo del proyecto'],
       ['Variables', 'Comisión y costos variables', 'ded', variables, directo, bruto, '3.0% del costo'],
       ['Directo', 'Margen directo', 'tot', directo, 0, directo, 'Bruto − variables'],
       ['Overhead', 'Overhead de delivery', 'ded', ovh, oper, directo, '1.0% del costo'],
@@ -496,22 +504,23 @@ class Component {
       ['EBIT', 'EBITDA / EBIT', 'fin', ebit, 0, ebit, 'Operativo − G&A (D&A = 0%)']
     ] : [
       ['Precio', 'Precio de venta', 'tot', P, 0, P, 'Costo operativo ÷ (1 − utilidad)'],
-      ['Costo', 'Costo directo', 'ded', Cd, P - Cd, P, 'Recursos de horas + costos adicionales'],
-      ['Bruto', 'Margen bruto', 'tot', bruto, 0, bruto, 'Precio − costo directo'],
+      ...wfEbm,
+      ['Costo', 'Costo directo', 'ded', Cd, Rv - Cd, Rv, 'Recursos de horas + costos adicionales'],
+      ['Bruto', 'Margen bruto', 'tot', bruto, 0, bruto, (ebmOn ? 'Ingreso reconocido' : 'Precio') + ' − costo directo'],
       ['Cargo fin.', 'Cargo de finanzas', 'ded', cargo, ebit, bruto, pc(OH) + ' del costo directo'],
       ['EBIT', 'EBITDA / EBIT', 'tot', ebit, 0, ebit, 'Bruto − cargo de finanzas'],
       ['Conting.', 'Contingencia', 'ded', cont, ebitAdj, ebit, pc(CT) + ' sobre costo + overhead'],
       ['Utilidad', 'Utilidad (EBIT ajustado)', 'fin', ebitAdj, 0, ebitAdj, 'EBIT − contingencia']
-    ]).map((a) => ({ label: a[0], name: a[1], kind: a[2], v: a[3], lo: a[4], hi: a[5], how: a[6] }));
+    ]).map((a, i) => ({ label: a[0], name: a[1], kind: a[2], v: a[3], lo: a[4], hi: a[5], how: a[6], den: (ebmOn && i < 3) ? P : Rv }));
 
     const rate = isProj
-      ? { title: 'Tarifa efectiva por jornada', sub: 'Precio ÷ ' + PD.jt + ' jornadas vendidas.', eff: money(P / PD.jt), cost: money(Cd / PD.jt), mg: money((P - Cd) / PD.jt), effN: P / PD.jt, costN: Cd / PD.jt, mgN: (P - Cd) / PD.jt, note: 'Tarifa de lista (sitio de precios): [por conectar]' }
-      : { title: 'Tarifa efectiva por hora', sub: 'Precio ÷ ' + Math.round(HRS) + ' horas del contrato (equivale a ' + money(P / HRS * 8) + ' por jornada).', eff: money(P / HRS), cost: money(Cd / HRS), mg: money((P - Cd) / HRS), effN: P / HRS, costN: Cd / HRS, mgN: (P - Cd) / HRS, note: 'La hoja AMS divide entre 600 horas fijas; aquí se usan las ' + Math.round(HRS) + ' reales del detalle de recursos.' };
+      ? { title: 'Tarifa efectiva por jornada', sub: 'Precio ÷ ' + PD.jt + ' jornadas vendidas.', eff: money(P / PD.jt), cost: money(Cd / PD.jt), mg: money((Rv - Cd) / PD.jt), effN: P / PD.jt, costN: Cd / PD.jt, mgN: (Rv - Cd) / PD.jt, note: 'Tarifa de lista (sitio de precios): [por conectar]' }
+      : { title: 'Tarifa efectiva por hora', sub: 'Precio ÷ ' + Math.round(HRS) + ' horas del contrato (equivale a ' + money(P / HRS * 8) + ' por jornada).', eff: money(P / HRS), cost: money(Cd / HRS), mg: money((Rv - Cd) / HRS), effN: P / HRS, costN: Cd / HRS, mgN: (Rv - Cd) / HRS, note: 'La hoja AMS divide entre 600 horas fijas; aquí se usan las ' + Math.round(HRS) + ' reales del detalle de recursos.' };
 
     // ---- curvas para las gráficas de los tiles ----
     const mgPts = isProj ? [20, 25, 30, 35, 40, 45, 50, 55] : [0, 5, 10, 15, 20, 25, 30, 35];
     const priceCurve = { vals: mgPts.map((m) => priceOf(m / 100, Cb)), labels: mgPts.map((m) => m + '%') };
-    const ebitAdjOf = (dv) => { const c2 = Cb * (1 + dv); return (P - c2 - c2 * cargoRate - cont) / P; };
+    const ebitAdjOf = (dv) => { const c2 = Cb * (1 + dv); return (Rv - c2 - c2 * cargoRate - cont) / Rv; };
     const devCurve = { vals: devs.map(ebitAdjOf), labels: devs.map((dv) => dv === 0 ? 'Base' : '+' + Math.round(dv * 100) + '%') };
 
     // ---- costo mensual esperado ----
@@ -531,7 +540,7 @@ class Component {
     if (isProj) { for (let k = 1; k <= nP; k++) cost[k] = (CM[k] || 0) * (1 + d); }
     else { for (let k = 1; k <= vigA; k++) cost[k] = Cd / vigA; }
     const fact = new Array(N).fill(0), cob = new Array(N).fill(0);
-    pctArr.forEach((p, k) => { fact[k] = P * p / 100; cob[k + dm] += P * p / 100; });
+    pctArr.forEach((p, k) => { fact[k] = P * p / 100; cob[k + dm] += Rv * p / 100; });
     const cumCob = [], cumCost = [];
     let a1 = 0, a2 = 0;
     for (let k = 0; k < N; k++) { a1 += cob[k]; a2 += cost[k]; cumCob[k] = a1; cumCost[k] = a2; }
@@ -569,9 +578,10 @@ class Component {
       ['Mensual anticipado', mkArr((x) => { for (let k = 0; k < vigA; k++) x[k] = 100 / vigA; })]
     ];
     const hmMin = isProj ? nP + 1 : vigA + 1;
-    const cashNote = isProj
+    const cashEbm = ebmOn ? ' Los cobros se muestran netos de la comisión EBM (' + pc(e) + ').' : '';
+    const cashNote = (isProj
       ? 'Si la hoja trae más meses, la ventana crece con + hasta 36. El costo mensual viene del Plan de Proyecto de la hoja (semanas × tarifa por rol); las facturas posteriores a M' + nP + ' solo suman entradas.'
-      : 'El costo mensual esperado es parejo durante los ' + vigA + ' meses de vigencia; la ventana crece con + hasta 36 si la facturación se extiende.';
+      : 'El costo mensual esperado es parejo durante los ' + vigA + ' meses de vigencia; la ventana crece con + hasta 36 si la facturación se extiende.') + cashEbm;
 
     // ---- capacidad ----
     const nM = Math.max(1, nP);
@@ -611,7 +621,7 @@ class Component {
     ] : [
       chk('PM sobre horas del equipo', AD.pmH / Math.max(1e-9, AD.hm), 0.05, 0.15, p1),
       flag('Contingencia de la hoja vs. sugerida', pc(fileRate), 'sugerida ' + pc(rrate), fileRate >= rrate),
-      flag('Margen bruto vs. política Deal Desk AMS', pc(bruto / P), '≥ 30% para evitar Nivel 3', bruto / P >= 0.30),
+      flag('Margen bruto vs. política Deal Desk AMS', pc(bruto / Rv), '≥ 30% para evitar Nivel 3', bruto / Rv >= 0.30),
       flag('Costos adicionales capturados', money(AD.extra), 'licencias, terceros, viáticos', AD.extra > 0)
     ];
 
@@ -619,7 +629,7 @@ class Component {
       ? [{ label: 'Gerencia', value: sumJ(G.pm), color: '#8B7CFF', unit: 'jornadas' }, { label: 'Funcional', value: sumJ(G.fu), color: '#3DD6FF', unit: 'jornadas' }, { label: 'Técnica', value: sumJ(G.te), color: '#2FE29B', unit: 'jornadas' }]
       : amsO.rows.map((r) => ({ label: r.mod + ' · ' + r.role, value: r.c, unit: 'costo' }));
     const drivers = R.map((r, i) => ({ i, name: r[0], w: Math.round(r[1] * 100) + '%', kind: r[2], sel: s.risk[i] }));
-    const risk = { score, band, contLabel: isAms ? 'Contingencia de la hoja' : 'Contingencia (solo Costo)', rate: pc(contRate), cont, bruto: brutoAdj / P, oper: ebitAdj / P, cmp: riskCmp, alerts: alertMsgs };
+    const risk = { score, band, contLabel: isAms ? 'Contingencia de la hoja' : 'Contingencia (solo Costo)', rate: pc(contRate), cont, bruto: brutoAdj / Rv, oper: ebitAdj / Rv, cmp: riskCmp, alerts: alertMsgs };
 
     // ---- sensibilidad desviación × objetivo ----
     const sOpts = isProj ? [0.25, 0.30, 0.35, 0.40] : [0.05, 0.10, 0.15, 0.20];
@@ -628,28 +638,28 @@ class Component {
       label: dv === 0 ? 'Según estimación' : (isProj ? 'Jornadas +' : 'Horas +') + Math.round(dv * 100) + '%',
       cells: sOpts.map((mo, mi) => {
         const Po = priceOf(mo, Cb);
-        const b = Math.round((1 - Cb * (1 + dv) / Po) * 1000) / 1000;
-        const op = b - cargoRate * Cb * (1 + dv) / Po;
+        const b = Math.round((1 - Cb * (1 + dv) / (Po * k)) * 1000) / 1000;
+        const op = b - cargoRate * Cb * (1 + dv) / (Po * k);
         return { b, op, lv: lvOf(b), sel: (di === s.dev && Math.abs(mo * 100 - s.tgt[s.mode]) < 0.01), colName: sensCols[mi], rowName: dv === 0 ? 'Según estimación' : (isProj ? 'Jornadas +' : 'Horas +') + Math.round(dv * 100) + '%', price: Po };
       })
     }));
 
     // ---- mix y deal completo ----
     const mix = [
-      { label: 'SEIDOR propio (consultoría)', v: P },
+      { label: 'SEIDOR propio (consultoría)', v: Rv },
       { label: 'Integrados (margen 0)', v: 0 },
       { label: 'Terceros', v: 0 }
     ];
     const dl = s.deal || { acv: 0, tcv: 0, ccf: 10 };
     const tcvEff = dl.tcv > 0 ? dl.tcv : dl.acv * 3;
     const ccfAmt = tcvEff * (dl.ccf / 100);
-    const revT = P + ccfAmt;
+    const revT = Rv + ccfAmt;
     const deal = {
       src: (PD && PD.dealFromSheet) ? 'DE LA HOJA' : (tcvEff > 0 ? 'CAPTURADO' : 'SIN SUSCRIPCIÓN'),
       acvIn: dl.acv || '', tcvIn: dl.tcv || '', ccfIn: dl.ccf,
       tcv: tcvEff > 0 ? money(tcvEff) : '—', ccf: tcvEff > 0 ? money(ccfAmt) : '—',
       mg: (revT - Cd) / revT, hasSub: tcvEff > 0,
-      note: tcvEff > 0 ? 'Margen = (precio + CCF − costo) ÷ (precio + CCF)' + (dl.tcv > 0 ? '.' : '. TCV estimado como ACV × 3 años.') : 'La hoja no trae ACV ni TCV; con suscripción en cero el margen del deal es el de servicios.'
+      note: tcvEff > 0 ? 'Margen = (' + (ebmOn ? 'ingreso reconocido' : 'precio') + ' + CCF − costo) ÷ (' + (ebmOn ? 'ingreso reconocido' : 'precio') + ' + CCF)' + (dl.tcv > 0 ? '.' : '. TCV estimado como ACV × 3 años.') : 'La hoja no trae ACV ni TCV; con suscripción en cero el margen del deal es el de servicios.'
     };
 
     const upper = (x) => String(x || '').toUpperCase();
@@ -660,12 +670,14 @@ class Component {
       ? 'Cargo de finanzas sobre costo: variables 3% · overhead 1% · G&A 19.5% · D&A 0% (suma 23.5%) · niveles de Deal Desk sobre margen bruto · contingencia 3 / 6 / 10% según criterios de Costo y rangos de chequeo provisionales · costo mensual tomado del Plan de Proyecto de la hoja · riesgo en Medio por defecto, sin calificar · hitos 20% de anticipo y mensuales parejos, editables.'
       : 'Overhead ' + pc(OH) + ' del costo directo (cargo completo de finanzas) y contingencia ' + pc(CT) + ' sobre costo + overhead, tomados de la hoja AMS · Deal Desk AMS sobre margen bruto: 30 / 35 / 40% · apertura del 11.7% pendiente, por eso margen directo y operativo no se muestran · costo mensual parejo en 12 meses · facturación mensual vencida con 20% de anticipo · riesgo en Medio por defecto, sin calificar.';
 
+    const ebmAssump = ebmOn ? ' · EBM: comisión de ' + pc(e) + ' sobre el precio de venta (' + money(ebmAmt) + '); el ingreso reconocido baja a ' + money(Rv) + ' y los márgenes, EBIT y niveles de Deal Desk se miden sobre ese ingreso. El margen objetivo es antes de EBM; cobros netos de la comisión.' : '';
     return {
-      s, isAms, isProj, PD, AD, TC, devs, T, lvOf, li, L, sem, policy, head, assump,
+      s, isAms, isProj, PD, AD, TC, devs, T, lvOf, li, L, sem, policy, head, assump: assump + ebmAssump,
+      e, k, ebmOn, ebmAmt, Rv, brutoPre, dl: ebmOn ? 'del ingreso' : 'del precio',
       P, Cb, Cd, d, bruto, variables, ovh, ga, cargo, directo, oper, ebit, ebitAdj, brutoAdj, cont, HRS, OH, CT, vigA, nP, cargoRate, eqPrice, pAt, cushAmt, cush,
       ladder, cargoNote, wf, effort, rate, priceCurve, devCurve, CM, cash, sched, months, presets, hmMin, cashNote, cap: capO, ams: amsO, checks, drivers, risk, sens, sensCols, mix, deal,
       tgtVal: s.tgt[s.mode], lim: this.lim(),
-      tgtLabel: isProj ? 'Margen bruto objetivo' : 'Utilidad objetivo sobre precio',
+      tgtLabel: (isProj ? 'Margen bruto objetivo' : 'Utilidad objetivo sobre precio') + (ebmOn ? ' (antes de EBM)' : ''),
       devLabel: isProj ? 'Desviación de jornadas' : 'Desviación de horas',
       monthsTxt: hm + ' meses'
     };
@@ -799,10 +811,12 @@ function controls(V) {
       '<input class="vp-in" type="number" step="0.5" value="' + tg + '" aria-label="' + A(V.tgtLabel) + '"' + on('change', (e) => logic.setTgt(parseFloat(e.target.value))) + '>' +
     '</div></div>' +
     '<div><div class="vp-cap">' + esc(V.devLabel) + '</div><div class="vp-row">' + devB + '</div></div>' +
+    '<div><div class="vp-cap">EBM (comisión sobre precio)</div><div class="vp-row"><button class="wk-chip vp-chip sm' + (s.ebm.on ? ' on' : '') + '" type="button"' + on('click', () => logic.setEbm({ on: !logic.state.ebm.on })) + '>' + (s.ebm.on ? 'Con EBM' : 'Sin EBM') + '</button>' +
+      '<input class="vp-in" type="number" min="0" max="50" step="0.5" value="' + s.ebm.pct + '"' + (s.ebm.on ? '' : ' disabled') + ' aria-label="Porcentaje de EBM sobre el precio de venta"' + on('change', (e) => logic.setEbm({ pct: parseFloat(e.target.value) })) + '><span class="vp-cap">%</span></div></div>' +
     '<div><div class="vp-cap">Cobro a (DSO)</div><div class="vp-row">' + dsoB + '</div></div>' +
     '<div class="vp-ctlr">' +
       '<div style="text-align:right"><div class="vp-cap">Precio</div><div class="vp-bigv">' + money(V.P) + '</div></div>' +
-      '<div style="text-align:right"><div class="vp-cap">EBIT</div><div class="vp-bigv c">' + pc(V.ebit / V.P) + '</div></div>' +
+      '<div style="text-align:right"><div class="vp-cap">EBIT</div><div class="vp-bigv c">' + pc(V.ebit / V.Rv) + '</div></div>' +
       pill(V.li, V.sem.label) +
     '</div></div>';
 }
@@ -810,23 +824,23 @@ function chipsRow() { return '<div class="vp-chips" data-keep>' + SECS.map((p) =
 
 // ----- Resumen -----
 function heroes(V) {
-  const { P, Cd, bruto, directo, oper, ebit, ebitAdj, TC, li, T, isProj, d, PD, HRS, cushAmt, vigA } = V;
+  const { P, Rv, Cd, bruto, directo, oper, ebit, ebitAdj, TC, li, T, isProj, d, PD, HRS, cushAmt, vigA } = V, dl = V.dl;
   const lt = LV[li].tone, items = [];
   const nivel = 'Nivel actual: ' + LV[li].tag;
-  items.push(heroT({ label: 'Precio de venta', ico: '💵', tono: 'cyan', value: money(P), sub: esc(money(P * TC) + ' MXN'),
+  items.push(heroT({ label: 'Precio de venta', ico: '💵', tono: 'cyan', value: money(P), sub: esc(V.ebmOn ? 'Reconocido ' + money(Rv) + ' · EBM −' + money(V.ebmAmt) : money(P * TC) + ' MXN'),
     chart: WK.area(V.priceCurve.vals, { labels: V.priceCurve.labels, fmt: money, color: C_CY, nombre: 'Precio', h: 100 }) + src(isProj ? 'Costo ÷ (1 − margen objetivo) · eje: margen' : 'Costo operativo ÷ (1 − utilidad) · eje: utilidad') }));
   items.push(heroT({ label: isProj ? 'Costo del proyecto' : 'Costo directo', ico: '🧾', tono: 'violet', value: money(Cd), sub: esc(isProj ? (d > 0 ? 'Base ' + money(V.Cb) + ' + ' + Math.round(d * 100) + '% jornadas' : PD.jt + ' jornadas') : (d > 0 ? 'Base ' + money(V.Cb) + ' + ' + Math.round(d * 100) + '% horas' : Math.round(HRS) + ' horas en ' + vigA + ' meses')),
     chart: (isProj ? WK.area(V.CM.slice(1, V.nP + 1).map((v) => v * (1 + d)), { labels: V.CM.slice(1, V.nP + 1).map((v, i) => 'M' + (i + 1)), fmt: money, color: C_VI, nombre: 'Costo', h: 100 }) : barT(Cd / P, null, 'Costo directo\n' + money(Cd) + ' · ' + pc(Cd / P) + ' del precio')) + src(isProj ? 'Costo mensual esperado · de tu hoja (Modelo Económico)' : 'Recursos de horas (hoja 1)') }));
-  items.push(heroT({ label: 'Margen bruto', ico: '📈', tono: lt, value: money(bruto), sub: esc(pc(bruto / P) + ' del precio'),
-    chart: WK.gauge({ valor: bruto / P, max: 0.6, meta: T[0], tono: lt, texto: pc(bruto / P), label: 'meta sin aprobación ' + tp(T[0]), tip: 'Margen bruto\n' + pc(bruto / P) + ' del precio\n' + nivel + '\nSin aprobación desde ' + tp(T[0]) }) + src('Precio − ' + (isProj ? 'costo del proyecto' : 'costo directo')) }));
+  items.push(heroT({ label: 'Margen bruto', ico: '📈', tono: lt, value: money(bruto), sub: esc(pc(bruto / Rv) + ' ' + dl + (V.ebmOn ? ' · ' + pc(V.brutoPre / P) + ' antes de EBM' : '')),
+    chart: WK.gauge({ valor: bruto / Rv, max: 0.6, meta: T[0], tono: lt, texto: pc(bruto / Rv), label: 'meta sin aprobación ' + tp(T[0]), tip: 'Margen bruto\n' + pc(bruto / Rv) + ' ' + dl + (V.ebmOn ? '\nAntes de EBM: ' + pc(V.brutoPre / P) + ' del precio' : '') + '\n' + nivel + '\nSin aprobación desde ' + tp(T[0]) }) + src((V.ebmOn ? 'Ingreso reconocido − ' : 'Precio − ') + (isProj ? 'costo del proyecto' : 'costo directo')) }));
   items.push(isProj
-    ? heroT({ label: 'Margen directo', ico: '🎯', tono: 'cyan', value: money(directo), sub: esc(pc(directo / P) + ' del precio'), chart: WK.gauge({ valor: directo / P, max: 0.6, tono: 'cyan', texto: pc(directo / P), label: 'del precio', tip: 'Margen directo\n' + money(directo) + ' · ' + pc(directo / P) + ' del precio' }) + src('Bruto − comisión y costos variables') })
+    ? heroT({ label: 'Margen directo', ico: '🎯', tono: 'cyan', value: money(directo), sub: esc(pc(directo / Rv) + ' ' + dl), chart: WK.gauge({ valor: directo / Rv, max: 0.6, tono: 'cyan', texto: pc(directo / Rv), label: dl, tip: 'Margen directo\n' + money(directo) + ' · ' + pc(directo / Rv) + ' ' + dl }) + src('Bruto − comisión y costos variables') })
     : heroT({ label: 'Precio promedio por hora', ico: '⏱️', tono: 'cyan', value: money(P / HRS), sub: esc(money(P / HRS * 8) + ' por jornada'), chart: WK.area(V.priceCurve.vals.map((x) => x / HRS), { labels: V.priceCurve.labels, fmt: money, color: C_CY, nombre: 'Precio por hora', h: 100 }) + src('Precio ÷ ' + Math.round(HRS) + ' horas · eje: utilidad') }));
   items.push(isProj
-    ? heroT({ label: 'Margen operativo', ico: '⚙️', tono: 'violet', value: money(oper), sub: esc(pc(oper / P) + ' del precio'), chart: WK.gauge({ valor: oper / P, max: 0.6, tono: 'violet', texto: pc(oper / P), label: 'del precio', tip: 'Margen operativo\n' + money(oper) + ' · ' + pc(oper / P) + ' del precio' }) + src('Directo − overhead de delivery') })
+    ? heroT({ label: 'Margen operativo', ico: '⚙️', tono: 'violet', value: money(oper), sub: esc(pc(oper / Rv) + ' ' + dl), chart: WK.gauge({ valor: oper / Rv, max: 0.6, tono: 'violet', texto: pc(oper / Rv), label: dl, tip: 'Margen operativo\n' + money(oper) + ' · ' + pc(oper / Rv) + ' ' + dl }) + src('Directo − overhead de delivery') })
     : heroT({ label: 'Margen operativo', ico: '⚙️', tono: 'violet', value: '—', sub: 'Pendiente', chart: barT(0, null, 'Pendiente\nFalta apertura de cargos para AMS') + src('Falta apertura de cargos para AMS') }));
-  items.push(heroT({ label: 'EBITDA / EBIT', ico: '🏦', tono: ebit >= 0 ? 'cyan' : 'red', value: money(ebit), sub: esc(pc(ebit / P) + ' del precio'), chart: WK.gauge({ valor: Math.max(0, ebit / P), max: 0.6, tono: ebit >= 0 ? 'cyan' : 'red', texto: pc(ebit / P), label: 'del precio', tip: 'EBITDA / EBIT\n' + money(ebit) + ' · ' + pc(ebit / P) + ' del precio' }) + src(isProj ? 'Operativo − G&A (D&A = 0)' : 'Bruto − cargo de finanzas (' + pc(V.OH) + ' del costo)') }));
-  items.push(heroT({ label: 'EBIT ajustado por riesgo', ico: '🛡️', tono: ebitAdj >= 0 ? 'green' : 'red', value: money(ebitAdj), sub: esc(pc(ebitAdj / P) + ' del precio'),
+  items.push(heroT({ label: 'EBITDA / EBIT', ico: '🏦', tono: ebit >= 0 ? 'cyan' : 'red', value: money(ebit), sub: esc(pc(ebit / Rv) + ' ' + dl), chart: WK.gauge({ valor: Math.max(0, ebit / Rv), max: 0.6, tono: ebit >= 0 ? 'cyan' : 'red', texto: pc(ebit / Rv), label: dl, tip: 'EBITDA / EBIT\n' + money(ebit) + ' · ' + pc(ebit / Rv) + ' ' + dl }) + src(isProj ? 'Operativo − G&A (D&A = 0)' : 'Bruto − cargo de finanzas (' + pc(V.OH) + ' del costo)') }));
+  items.push(heroT({ label: 'EBIT ajustado por riesgo', ico: '🛡️', tono: ebitAdj >= 0 ? 'green' : 'red', value: money(ebitAdj), sub: esc(pc(ebitAdj / Rv) + ' ' + dl),
     chart: WK.area(V.devCurve.vals, { labels: V.devCurve.labels, fmt: pc, color: ebitAdj >= 0 ? C_GR : C_RD, nombre: 'EBIT ajustado', h: 100 }) + src('EBIT − contingencia · curva: si el esfuerzo se desvía') }));
   items.push(heroT({ label: 'Colchón en tu nivel', ico: '🪂', tono: lt, value: li === 3 ? '—' : money(cushAmt), sub: esc(li === 3 ? 'Ya en Nivel 3' : pc(cushAmt / P) + ' del precio'),
     chart: WK.gauge({ valor: li === 3 ? 0 : cushAmt / P, max: 0.15, tono: lt, texto: li === 3 ? '—' : pc(cushAmt / P), label: 'descuento posible', tip: 'Colchón en ' + LV[li].tag + '\n' + (li === 3 ? 'Ya estás en el nivel más alto' : 'Puedes bajar ' + money(cushAmt) + ' (' + pc(cushAmt / P) + ') sin cambiar de nivel') }) + src('Descuento posible sin cambiar de nivel') }));
@@ -834,7 +848,7 @@ function heroes(V) {
 }
 function resumen(V) {
   const C = V.cash;
-  const txt = V.sem.msg + '\nPrecio ' + money(V.P) + ' contra costo ' + money(V.Cd) + ': margen bruto ' + pc(V.bruto / V.P) + ', EBIT ' + pc(V.ebit / V.P) + ' y EBIT ajustado por riesgo ' + pc(V.ebitAdj / V.P) + '. ' + V.cush.msg +
+  const txt = V.sem.msg + '\nPrecio ' + money(V.P) + ' contra costo ' + money(V.Cd) + (V.ebmOn ? ' (con EBM de ' + pc(V.e) + ' = ' + money(V.ebmAmt) + ', ingreso reconocido ' + money(V.Rv) + ')' : '') + ': margen bruto ' + pc(V.bruto / V.Rv) + (V.ebmOn ? ' (' + pc(V.brutoPre / V.P) + ' antes de EBM)' : '') + ', EBIT ' + pc(V.ebit / V.Rv) + ' y EBIT ajustado por riesgo ' + pc(V.ebitAdj / V.Rv) + '. ' + V.cush.msg +
     '\nEn caja, la exposición máxima es ' + C.peak + ' (' + C.peakAt.toLowerCase() + ') y ' + (C.be === 'Sin déficit' ? 'el cobro nunca queda por debajo del costo acumulado.' : 'el cobro alcanza al costo acumulado a partir del ' + C.be.toLowerCase() + '.');
   return WK.band('vp-resumen', 'Resumen del deal', 'Economía de un vistazo') +
     WK.callout('Lectura ejecutiva', esc(txt) + '<div class="vp-pol">' + esc(V.policy) + '</div>') +
@@ -853,11 +867,11 @@ function waterfallSvg(V) {
     const cx = mL + i * slot + slot / 2, x = cx - bw / 2;
     const y = base - sc(st.hi), h = Math.max(2, sc(st.hi) - sc(st.lo));
     const fill = st.kind === 'tot' ? 'wfT' : st.kind === 'ded' ? 'wfD' : (st.v >= 0 ? 'wfF' : 'wfN');
-    const tip = st.name + '\n' + (st.kind === 'ded' ? '−' : '') + money(st.v) + ' · ' + pc(st.v / P) + ' del precio\n' + st.how;
+    const tip = st.name + '\n' + (st.kind === 'ded' ? '−' : '') + money(st.v) + ' · ' + pc(st.v / st.den) + (st.den === P && V.ebmOn ? ' del precio' : ' ' + V.dl) + '\n' + st.how;
     if (i < n - 1) { const lvl = base - sc(st.kind === 'ded' ? st.lo : st.hi); s += '<line class="conn" x1="' + (x + bw) + '" x2="' + (cx + slot - bw / 2) + '" y1="' + lvl.toFixed(1) + '" y2="' + lvl.toFixed(1) + '"/>'; }
     s += '<rect class="wk-colbar" style="--bi:' + i + '" data-tip="' + A(tip) + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="8" fill="url(#' + fill + ')"/>';
     s += '<text class="val" x="' + cx.toFixed(1) + '" y="' + (y - 8).toFixed(1) + '" text-anchor="middle">' + (st.kind === 'ded' ? '−' : '') + short(st.v) + '</text>';
-    s += '<text class="big" x="' + cx.toFixed(1) + '" y="' + (base + 22) + '" text-anchor="middle" style="fill:#C9D8F0">' + esc(st.label) + '</text><text class="dim" x="' + cx.toFixed(1) + '" y="' + (base + 40) + '" text-anchor="middle">' + pc(st.v / P) + '</text>';
+    s += '<text class="big" x="' + cx.toFixed(1) + '" y="' + (base + 22) + '" text-anchor="middle" style="fill:#C9D8F0">' + esc(st.label) + '</text><text class="dim" x="' + cx.toFixed(1) + '" y="' + (base + 40) + '" text-anchor="middle">' + pc(st.v / st.den) + '</text>';
   });
   return s + '</svg>';
 }
@@ -877,9 +891,9 @@ function approvalMap(V) {
   return '<div class="vp-map"><div class="vp-pin" style="left:' + pin + '%"><b>' + money(P) + '</b></div><div class="vp-zones">' + zhtml + '</div></div>';
 }
 function precio(V) {
-  const ladderCols = [{ k: 'label', label: 'Concepto', tipo: 'strong' }, { k: 'how', label: 'Cómo se calcula', tipo: 'note' }, { k: 'amt', label: 'Monto', cls: 'wk-num' }, { k: 'pct', label: '% del precio', cls: 'wk-num' }];
+  const ladderCols = [{ k: 'label', label: 'Concepto', tipo: 'strong' }, { k: 'how', label: 'Cómo se calcula', tipo: 'note' }, { k: 'amt', label: 'Monto', cls: 'wk-num' }, { k: 'pct', label: V.ebmOn ? '% del ingreso reconocido' : '% del precio', cls: 'wk-num' }];
   const cascada = WK.card({ id: 'vp-cascada', ico: '💧', titulo: 'Cascada de precio a EBIT', sub: 'De cuánto vendes a cuánto te queda. Pasa el cursor sobre cada barra para ver el detalle.',
-    body: waterfallSvg(V) + '<div class="vp-legend"><span><i style="background:' + C_CY + '"></i>Subtotal</span><span><i style="background:' + C_VI + '"></i>Cargo que resta</span><span><i style="background:' + C_GR + '"></i>Resultado final</span></div><div class="vp-soft">Por cada $100 que cobras: <b>$' + (V.Cd / V.P * 100).toFixed(1) + '</b> se van en costo' + (V.isProj ? ', <b>$' + ((V.variables + V.ovh + V.ga) / V.P * 100).toFixed(1) + '</b> en cargos de finanzas' : ', <b>$' + (V.cargo / V.P * 100).toFixed(1) + '</b> en cargo de finanzas') + ' y <b>$' + (V.ebit / V.P * 100).toFixed(1) + '</b> llegan a EBIT.</div>' });
+    body: waterfallSvg(V) + '<div class="vp-legend"><span><i style="background:' + C_CY + '"></i>Subtotal</span><span><i style="background:' + C_VI + '"></i>Cargo que resta</span><span><i style="background:' + C_GR + '"></i>Resultado final</span></div><div class="vp-soft">Por cada $100 que cobras: ' + (V.ebmOn ? '<b>$' + (V.e * 100).toFixed(1) + '</b> se van en comisión EBM, ' : '') + '<b>$' + (V.Cd / V.P * 100).toFixed(1) + '</b> se van en costo' + (V.isProj ? ', <b>$' + ((V.variables + V.ovh + V.ga) / V.P * 100).toFixed(1) + '</b> en cargos de finanzas' : ', <b>$' + (V.cargo / V.P * 100).toFixed(1) + '</b> en cargo de finanzas') + ' y <b>$' + (V.ebit / V.P * 100).toFixed(1) + '</b> llegan a EBIT.</div>' });
   const cushRows = V.cush.rows.map((r) => Object.assign({}, r, { tagh: r.idx >= 0 ? pill(r.idx, r.tag, true) : '<span class="vp-pill sm gr">Equilibrio</span>' }));
   const colch = WK.card({ id: 'vp-colchon', ico: '🪂', titulo: 'Colchón de negociación', sub: 'Cuánto puedes bajar el precio antes de cambiar de nivel de aprobación.',
     body: approvalMap(V) + '<div class="vp-nw">' + WK.table([{ k: 'tagh', label: 'Nivel', tipo: 'html' }, { k: 'rule', label: 'Regla', tipo: 'note' }, { k: 'price', label: 'Precio', tipo: 'usd' }, { k: 'delta', label: 'Cambio', cls: 'wk-num' }], cushRows) + '</div><div class="vp-soft">' + esc(V.cush.msg) + '</div>' });
@@ -890,17 +904,17 @@ function precio(V) {
     '<div class="vp-g c32 stretch">' + cascada + colch + '</div><div class="vp-g c32">' + escalera + tarifa + '</div>' + negociacion(V);
 }
 function negociacion(V) {
-  const { P, Cd, cargoRate, T, lvOf, li, cushAmt } = V;
+  const { P, Cd, cargoRate, T, lvOf, li, cushAmt, k } = V;
   const wi = WK.whatif({ id: 'vopneg', sliders: [
     { k: 'desc', label: 'Descuento sobre el precio', min: 0, max: 25, step: 0.5, val: 0, fmt: (v) => v.toFixed(1) + '%' },
     { k: 'esf', label: V.isProj ? 'Jornadas adicionales sobre la estimación' : 'Horas adicionales sobre la estimación', min: 0, max: 40, step: 1, val: 0, fmt: (v) => '+' + v + '%' }
   ], calc: (vals) => {
-    const net = P * (1 - vals.desc / 100), c = Cd * (1 + vals.esf / 100), br = net - c, m = br / net, eb = br - c * cargoRate;
+    const net = P * (1 - vals.desc / 100), rec = net * k, c = Cd * (1 + vals.esf / 100), br = rec - c, m = br / rec, eb = br - c * cargoRate;
     const lx = lvOf(Math.round(m * 1000) / 1000), tone = LV[lx].tone;
     const msg = lx === li ? 'Sigues en <b>' + LV[li].tag + '</b>.' : (lx > li ? 'Pasas de <b>' + LV[li].tag + '</b> a <b>' + LV[lx].tag + '</b>.' : 'Subes de <b>' + LV[li].tag + '</b> a <b>' + LV[lx].tag + '</b>.');
     return {
       gauge: { valor: Math.max(0, m), max: 0.6, meta: T[0], tono: tone, texto: pc(m), label: 'margen bruto', tip: 'Margen bruto del escenario\n' + pc(m) + ' · ' + LV[lx].tag + '\nSin aprobación desde ' + tp(T[0]) },
-      stats: [{ valor: money(net), label: 'Precio final' }, { valor: pc(eb / net), label: 'EBIT' }, { valor: LV[lx].tag, label: 'Nivel de aprobación' }, { valor: money(P - net), label: 'Descuento otorgado' }],
+      stats: [{ valor: money(net), label: 'Precio final' }, { valor: pc(eb / rec), label: 'EBIT' }, { valor: LV[lx].tag, label: 'Nivel de aprobación' }, { valor: money(P - net), label: 'Descuento otorgado' }],
       nota: msg + ' ' + (li === 3 ? 'Ya estás en el nivel más alto.' : 'Sin cambiar de nivel puedes dar hasta <b>' + pc(cushAmt / P) + '</b> (' + money(cushAmt) + ') con el esfuerzo estimado.')
     };
   } });
@@ -1035,12 +1049,12 @@ function riesgo(V) {
 // ----- Mix y deal completo -----
 function mix(V) {
   const reparto = (V.isProj
-    ? [['Costo del proyecto', V.Cd, C_VI], ['Comisión y variables', V.variables, '#FFC857'], ['Overhead de delivery', V.ovh, '#FF9A4D'], ['G&A corporativo', V.ga, C_RD], ['EBIT', V.ebit, C_GR]]
-    : [['Costo directo', V.Cd, C_VI], ['Cargo de finanzas', V.cargo, '#FFC857'], ['Contingencia', V.cont, '#FF9A4D'], ['Utilidad (EBIT ajustado)', V.ebitAdj, C_GR]]).map((r) => ({ label: r[0], value: r[1], color: r[2], tip: r[0] + '\n' + money(r[1]) + ' · ' + pc(r[1] / V.P) + ' del precio' }));
+    ? [...(V.ebmOn ? [['Comisión EBM', V.ebmAmt, '#FF8CA2']] : []), ['Costo del proyecto', V.Cd, C_VI], ['Comisión y variables', V.variables, '#FFC857'], ['Overhead de delivery', V.ovh, '#FF9A4D'], ['G&A corporativo', V.ga, C_RD], ['EBIT', V.ebit, C_GR]]
+    : [...(V.ebmOn ? [['Comisión EBM', V.ebmAmt, '#FF8CA2']] : []), ['Costo directo', V.Cd, C_VI], ['Cargo de finanzas', V.cargo, '#FFC857'], ['Contingencia', V.cont, '#FF9A4D'], ['Utilidad (EBIT ajustado)', V.ebitAdj, C_GR]]).map((r) => ({ label: r[0], value: r[1], color: r[2], tip: r[0] + '\n' + money(r[1]) + ' · ' + pc(r[1] / V.P) + ' del precio' }));
   const repCard = WK.card({ id: 'vp-reparto', ico: '🍩', titulo: 'A dónde se va el precio', sub: 'Costo, cargos y lo que te queda. Pasa el cursor sobre cada tramo.', body: WK.donut(reparto, { centro: short(V.P), sub: 'precio', fmt: money }) });
   const mixCard = WK.card({ id: 'vp-mixc', ico: '🧩', titulo: 'Mix y pass-through', sub: 'El pass-through (integrados a margen 0) suma ingreso pero no margen y diluye el %.',
-    body: WK.ranked(V.mix.map((m, i) => ({ label: m.label, value: m.v, tono: i ? 'amber' : '', tip: m.label + '\n' + money(m.v) + ' · ' + pc(V.P ? m.v / V.P : 0) + ' del precio' })), { fmt: money, max: V.P }) +
-      '<div style="height:16px"></div>' + WK.stats([{ valor: pc(V.bruto / V.P), label: 'Margen sobre servicios propios' }, { valor: pc(V.bruto / V.P), label: 'Margen total' }]) +
+    body: WK.ranked(V.mix.map((m, i) => ({ label: m.label, value: m.v, tono: i ? 'amber' : '', tip: m.label + '\n' + money(m.v) + ' · ' + pc(V.Rv ? m.v / V.Rv : 0) + ' ' + V.dl })), { fmt: money, max: V.Rv }) +
+      '<div style="height:16px"></div>' + WK.stats([{ valor: pc(V.bruto / V.Rv), label: 'Margen sobre servicios propios' }, { valor: pc(V.bruto / V.Rv), label: 'Margen total' }]) +
       '<div class="vp-note">Con $30K de pass-through en $100K, un 35% propio se vería 24.5% total.</div>' });
   if (!V.isProj) return WK.band('vp-mix', 'Mix y pass-through', 'De dónde viene el precio') + '<div class="vp-g c11">' + mixCard + repCard + '</div>';
   const D = V.deal;
@@ -1049,7 +1063,7 @@ function mix(V) {
     extra: '<span class="vp-pill gr">' + esc(D.src) + '</span>',
     body: '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px">' + field('ACV (USD)', D.acvIn, 1000, 0, 'acv', 'ACV') + field('TCV (USD)', D.tcvIn, 1000, 0, 'tcv', 'TCV') + field('CCF %', D.ccfIn, 0.5, 100, 'ccf', 'CCF por ciento') + '</div>' +
       WK.stats([{ valor: D.tcv, label: 'TCV usado' }, { valor: D.ccf, label: 'Monto CCF' }, { valor: pc(D.mg), label: 'Margen deal completo' }]) + '<div style="height:12px"></div>' +
-      WK.columns(['Servicios propios', 'Deal completo'], [{ nombre: 'Margen', valores: [Math.max(0, V.bruto / V.P * 100), Math.max(0, D.mg * 100)], color: C_CY, extra: ['Precio − costo ÷ precio', D.note] }], { fmt: (v) => Math.round(v) + '%', h: 250, id: 'dm' }) +
+      WK.columns(['Servicios propios', 'Deal completo'], [{ nombre: 'Margen', valores: [Math.max(0, V.bruto / V.Rv * 100), Math.max(0, D.mg * 100)], color: C_CY, extra: [V.ebmOn ? 'Ingreso reconocido − costo ÷ ingreso reconocido' : 'Precio − costo ÷ precio', D.note] }], { fmt: (v) => Math.round(v) + '%', h: 250, id: 'dm' }) +
       '<div class="vp-note">' + esc(D.note) + '</div>' });
   return WK.band('vp-mix', 'Mix, pass-through y deal completo', 'Cómo cambia el margen al sumar la suscripción') + '<div class="vp-g c11"><div class="vp-stack">' + mixCard + repCard + '</div>' + dealCard + '</div>';
 }
@@ -1057,7 +1071,7 @@ function mix(V) {
 function view() {
   if (!logic.has()) return '<div class="vp-root">' + viewEmpty() + '</div>';
   const V = logic.calc();
-  const info = 'Evidencia VOP · ' + V.head.a + ' ' + V.head.b + ' · Hoja cargada: ' + V.head.file + ' · Generado el ' + WK.hora(new Date().toISOString()) + '. Parámetros: ' + (V.isAms ? 'utilidad sobre precio ' : 'margen bruto objetivo ') + V.s.tgt[V.s.mode] + '% · desviación ' + Math.round(V.d * 100) + '% · DSO ' + [30, 60, 90][V.s.dso] + ' días · precio ' + money(V.P) + ' · nivel: ' + V.sem.label + '.';
+  const info = 'Evidencia VOP · ' + V.head.a + ' ' + V.head.b + ' · Hoja cargada: ' + V.head.file + ' · Generado el ' + WK.hora(new Date().toISOString()) + '. Parámetros: ' + (V.isAms ? 'utilidad sobre precio ' : 'margen bruto objetivo ') + V.s.tgt[V.s.mode] + '% · desviación ' + Math.round(V.d * 100) + '% · DSO ' + [30, 60, 90][V.s.dso] + ' días · precio ' + money(V.P) + (V.ebmOn ? ' · EBM ' + pc(V.e) + ' (ingreso reconocido ' + money(V.Rv) + ')' : '') + ' · nivel: ' + V.sem.label + '.';
   return '<div class="vp-root">' + dealCard(V) + '<div class="onlyprint">' + esc(info) + '</div>' + controls(V) + chipsRow() + resumen(V) + precio(V) + caja(V) + capacidad(V) + riesgo(V) + mix(V) +
     '<section class="wk-card" style="padding:18px 24px"><div class="vp-cap" style="margin-bottom:8px">Supuestos del modelo (a confirmar)</div><div class="vp-note" style="margin:0">' + esc(V.assump) + '</div></section></div>';
 }
