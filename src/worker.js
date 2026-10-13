@@ -378,6 +378,7 @@ const PAGINAS_REGISTRO = {
   'handover': 'Handover Comercial → Operaciones',
   'estimador': 'Estimador de Esfuerzo',
   'tecnicas-presentacion': 'Técnicas de Presentación',
+  'meddpicc': 'Guía MEDDPICC Presales',
   'dias-habiles': 'Días Hábiles México',
   'minutas': 'Generador de Minutas / Status',
   'correo-cliente': 'Redactor de Correos a Cliente',

@@ -37,6 +37,7 @@ Presales:
 - Handover Comercial → Operaciones (/handover.html): lo que Operaciones necesita saber al recibir un proyecto ganado.
 - Estimador de Esfuerzo (/estimador.html): para usar en preventas, antes de que exista un SOW o proyecto.
 - Técnicas de Presentación (/tecnicas-presentacion.html): material de apoyo.
+- Guía MEDDPICC Presales (/meddpicc.html): qué es cada letra de MEDDPICC, qué debe hacer el presales y checklist interactivo por oportunidad.
 - Agentes (/agentes.html): herramientas de IA powered by Delfos para los equipos.
 - Documentos de Apoyo (/documentos.html): procesos, plantillas y herramientas del equipo de preventas.
 Operaciones:

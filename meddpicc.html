@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>Guía MEDDPICC Presales · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:24px; flex-wrap:wrap;}
+  .topnav-links a{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500;}
+  .topnav-links a:hover{color:var(--blue);}
+  .topnav-links a.active{color:var(--blue); border-bottom:2px solid var(--cyan); padding-bottom:2px;}
+
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-link.active{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+  main.mw{max-width:none; margin:0; padding:16px 24px 40px;}
+  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .section h2{font-size:16px; color:var(--navy2); margin:0 0 6px;}
+  .intro{font-size:13.5px; color:var(--grey); line-height:1.6; margin:0;}
+  .blk{font-size:12px; letter-spacing:.8px; text-transform:uppercase; color:var(--blue); margin:0 0 12px; font-weight:700;}
+  .btn{border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--blue); color:#fff;}
+  .btn-ghost{background:var(--card); color:var(--grey); border:1px solid var(--line);}
+  textarea{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px; resize:vertical;}
+
+  .deal-bar{display:grid; grid-template-columns:minmax(260px,1.2fr) minmax(260px,1fr) auto; gap:20px; align-items:end;}
+  .deal-field label, .pg-top{display:flex; justify-content:space-between; font-size:12px; color:var(--grey); font-weight:600; margin-bottom:6px;}
+  .deal-field input{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:14px;}
+  .pg-top b{color:var(--navy2);}
+  .pg-track{height:10px; background:var(--card); border:1px solid var(--line); border-radius:6px; overflow:hidden;}
+  .pg-fill{height:100%; width:0; background:linear-gradient(90deg,var(--blue),var(--cyan)); transition:width .25s;}
+  .deal-actions{display:flex; gap:8px;}
+
+  .layout{display:grid; grid-template-columns:280px 1fr; gap:16px; align-items:start;}
+  .side{position:sticky; top:12px; display:flex; flex-direction:column; gap:6px;}
+  .side-btn{display:flex; align-items:center; gap:10px; text-align:left; background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 12px; cursor:pointer; font-family:inherit; box-shadow:var(--shadow);}
+  .side-btn:hover{border-color:var(--cyan);}
+  .side-btn.active{background:var(--navy2); border-color:var(--navy2);}
+  .side-btn.active .st b{color:#fff;} .side-btn.active .st small{color:var(--cyan-l);} .side-btn.active .sc{color:var(--cyan-l);}
+  .side-btn.done .sc{color:#1F8A4C; font-weight:700;}
+  .st{display:flex; flex-direction:column; flex:1; min-width:0;}
+  .st b{font-size:13px; color:var(--navy2);} .st small{font-size:11.5px; color:var(--greyl);}
+  .sc{font-size:11.5px; color:var(--grey); font-weight:600;}
+  .sl{flex-shrink:0; width:30px; height:30px; border-radius:8px; background:var(--blue); color:#fff; font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center;}
+  .sl-all{background:var(--cyan);} .sl.big{width:52px; height:52px; border-radius:12px; font-size:28px;}
+  .l-head{display:flex; gap:16px; align-items:center;}
+
+  .obj-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+  .obj{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; display:flex; gap:10px;}
+  .obj p{margin:0; font-size:13.5px; line-height:1.55; color:var(--ink);}
+  .onum{flex-shrink:0; width:24px; height:24px; border-radius:6px; background:var(--blue); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;}
+
+  .grp{margin-bottom:14px;} .grp:last-child{margin-bottom:0;}
+  .grp-t{font-size:12.5px; font-weight:700; color:var(--navy2); margin-bottom:6px; padding-bottom:4px; border-bottom:1px solid var(--line);}
+  .q{display:flex; gap:10px; align-items:flex-start; padding:9px 10px; border-radius:8px; cursor:pointer; font-size:13.5px; line-height:1.5; color:var(--ink);}
+  .q:hover{background:var(--card);}
+  .q input{margin-top:3px; width:17px; height:17px; accent-color:var(--blue); flex-shrink:0; cursor:pointer;}
+  .q.on span{color:var(--greyl); text-decoration:line-through;}
+
+  .section.two{display:grid; grid-template-columns:1fr 1fr; gap:16px; background:none; box-shadow:none; padding:0;}
+  .alert-box,.tip-box{border-radius:12px; padding:16px 18px; box-shadow:var(--shadow);}
+  .alert-box{background:#FBE7E7;} .alert-box .blk{color:#B23A3A;}
+  .tip-box{background:#E7F3FB;}
+  .alert-box p,.tip-box p{margin:0; font-size:13.5px; line-height:1.55; color:var(--ink);}
+
+  .matrix{display:grid; grid-template-columns:minmax(220px,1.1fr) repeat(3,1fr); gap:8px;}
+  .mh{font-size:12px; font-weight:700; color:#fff; background:#14A39A; border-radius:8px; padding:8px 12px;}
+  .mh:first-child{background:none;}
+  .mrow-l{display:flex; gap:10px; align-items:flex-start; text-align:left; background:var(--navy2); color:#fff; border:none; border-radius:8px; padding:12px; cursor:pointer; font-family:inherit;}
+  .mrow-l b{display:block; font-size:13px;} .mrow-l small{display:block; font-size:11.5px; color:var(--cyan-l); line-height:1.4; margin-top:2px;}
+  .mcell{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; font-size:12.5px; line-height:1.5; color:var(--ink);}
+  .mcell.hot{background:#FDE9E1; border-color:#F1B9A4;}
+  .credit{font-size:11.5px; color:var(--greyl); margin:4px 0 0;}
+
+  @media (max-width:1000px){
+    .deal-bar{grid-template-columns:1fr;}
+    .layout{grid-template-columns:1fr;}
+    .side{position:static; flex-direction:row; overflow-x:auto; padding-bottom:4px;}
+    .side-btn{flex-shrink:0;} .sc{display:none;}
+    .obj-grid,.section.two{grid-template-columns:1fr;}
+    .matrix{grid-template-columns:1fr;} .mh{display:none;}
+  }
+  @media (max-width:600px){ main.mw{padding:12px 14px 30px;} }
+</style>
+</head>
+<body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    window.ES_ADMIN = !!d.esAdmin;
+    function _desbloquearCamposAdmin(){
+      document.querySelectorAll('.admin-only-edit').forEach(function(el){
+        if(d.esAdmin){
+          el.removeAttribute('readonly');
+          var hint = el.parentElement.querySelector('.admin-lock-hint');
+          if(hint) hint.style.display = 'none';
+        }
+      });
+    }
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', _desbloquearCamposAdmin);
+    }else{
+      _desbloquearCamposAdmin();
+    }
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      window.SOLO_LECTURA = true;
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){ /* si falla el chequeo, no bloqueamos: evita dejar a todos fuera si el endpoint falla */ }
+})();
+</script>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-mkt-test.html">MKT Test</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html" class="active">Guía MEDDPICC Presales</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
+        </div>
+      </div>
+    </div>
+  </div></nav>
+
+<header>
+  <h1>Guía MEDDPICC Presales</h1>
+  <p>Qué es cada letra, qué debes hacer tú como presales y qué preguntas debes poder contestar antes de avanzar una oportunidad</p>
+</header>
+
+<main class="mw">
+  <section class="section deal-bar">
+    <div class="deal-field">
+      <label for="dealName">Oportunidad / cliente</label>
+      <input id="dealName" list="dealList" type="text" placeholder="Ej. Pueblo Bonito — S/4HANA RISE" autocomplete="off">
+      <datalist id="dealList"></datalist>
+    </div>
+    <div class="deal-progress">
+      <div class="pg-top"><span>Avance de calificación</span><b id="pgTotal">0 / 0</b></div>
+      <div class="pg-track"><div class="pg-fill" id="pgFill"></div></div>
+    </div>
+    <div class="deal-actions">
+      <button class="btn btn-primary" id="btnCopy" type="button">Copiar resumen</button>
+      <button class="btn btn-ghost" id="btnReset" type="button">Limpiar</button>
+    </div>
+  </section>
+
+  <div class="layout">
+    <aside class="side" id="side"></aside>
+    <div class="content" id="content"></div>
+  </div>
+
+  <p class="credit">Basada en la guía “A Solution Engineer’s Guide to MEDDPICC” de Presales Rocks Tars (#MEDDPICCMONDAY), adaptada al midmarket mexicano y a nuestro portafolio SAP. Tu avance se guarda solo en este navegador.</p>
+</main>
+
+<script>
+const LETRAS = [
+ { id:'M', letra:'M', nombre:'Metrics', es:'Métricas',
+   def:'Los KPIs y métricas que el cliente usa para medir el éxito de su negocio.',
+   obj:['Alinear las capacidades técnicas de la solución con los KPIs del cliente.',
+        'Demostrar cómo la solución impacta esas métricas, en lugar de mostrar todas las funciones.',
+        'Armar POCs y demos alrededor de las métricas de éxito del cliente.'],
+   items:[
+    ['Métricas actuales',[
+      '¿Sabemos qué métricas usa hoy el cliente para medir el éxito y cómo las rastrea?',
+      '¿Hay huecos o retos en cómo las miden que nuestra solución pueda resolver?']],
+    ['Alineación e impacto',[
+      '¿Entendemos cómo se alinean las capacidades de la solución con sus KPIs clave?',
+      '¿Sabemos cómo cambiarían sus métricas a largo plazo con la solución?',
+      '¿Conocemos el costo de la inacción: qué pasa con sus métricas si no cambian nada?']],
+    ['Demostración y prueba',[
+      '¿Tenemos una forma de demostrar un impacto directo y medible (demo o POC armado con sus métricas de éxito)?',
+      '¿Tenemos casos de éxito o referencias que den prueba social?',
+      '¿Conocemos benchmarks de la industria que podamos usar como guía?']]],
+   alerta:'Tu demo muestra funciones y en ningún momento menciona una métrica del cliente.',
+   tip:'Habla en métricas que el midmarket entiende: días de cierre contable, tiempo de conciliación, exactitud de inventario, DSO, rotación de personal.' },
+
+ { id:'E', letra:'E', nombre:'Economic Buyer', es:'Comprador económico',
+   def:'La persona con la autoridad financiera para aprobar la compra.',
+   obj:['Darle información concisa que le ayude a entender el valor estratégico de la solución, más allá de las funciones.',
+        'Ligar las capacidades técnicas con beneficios económicos: la solución es una inversión, no un costo.',
+        'Facilitar los detalles técnicos y enfocar todas las actividades en los problemas críticos del Economic Buyer.'],
+   items:[
+    ['Acceso y retos',[
+      '¿Sabemos quién es el Economic Buyer y hemos hablado con él/ella (o tenemos acceso a través del champion)?',
+      '¿Conocemos sus retos clave de negocio y cómo los atiende la solución?',
+      '¿Entendemos cómo encaja la solución en su roadmap tecnológico y en sus metas estratégicas?']],
+    ['Traducir lo técnico a valor',[
+      '¿Sabemos traducir las capacidades técnicas a beneficio financiero (ahorro, ingreso, riesgo evitado)?',
+      '¿Tenemos casos o datos de clientes similares que lo respalden?',
+      '¿Simplificamos lo técnico para el EB? ¿Qué demo o material comunica el valor en su idioma?']],
+    ['ROI y confirmación',[
+      '¿Hemos demostrado el ROI en términos que el EB valora?',
+      '¿Mostramos que es una inversión a prueba de futuro, con riesgos técnicos mitigados?',
+      '¿El cliente confirmó que entiende y valida el beneficio de largo plazo?']]],
+   alerta:'Solo hablas con TI y nunca has visto a quien firma.',
+   tip:'En el midmarket el EB suele ser el director general, el CFO o el dueño. Pídele al champion la reunión; no esperes a que el EB aparezca solo.' },
+
+ { id:'D1', letra:'D', nombre:'Decision Criteria', es:'Criterios de decisión',
+   def:'Los parámetros y expectativas específicos que guían la decisión de compra.',
+   obj:['Identificar los criterios técnicos que son decisivos en la decisión del cliente.',
+        'Adaptar las demos técnicas a esos criterios específicos.',
+        'Colaborar con el AE para un enfoque unificado que cubra criterios técnicos y de negocio.'],
+   items:[
+    ['Identificar criterios',[
+      '¿Conocemos los criterios técnicos y de negocio que guían la compra?',
+      '¿Sabemos qué factores pesan más (funcionalidad, escalabilidad, integraciones, costo, tiempos)?',
+      '¿Hay estándares o criterios propios de su industria o regulatorios que deban cumplirse?']],
+    ['Ajustar nuestra propuesta',[
+      '¿Sabemos dónde cumplimos o superamos esos criterios… y dónde no?',
+      '¿Adaptamos la demo para atender los factores clave de decisión?',
+      '¿Sabemos cómo nos diferenciamos de la competencia frente a esos criterios?',
+      '¿Recogimos feedback de demos o reuniones previas para afinar el enfoque?']],
+    ['Alineación',[
+      '¿Estamos alineados con el AE para presentar un mensaje único técnico y de negocio?',
+      '¿Cubrimos su crecimiento y escalabilidad futura como parte de sus criterios?']]],
+   alerta:'Los criterios los escribió un competidor, o el cliente no los tiene por escrito.',
+   tip:'Confirma los criterios por escrito con el cliente y compártelos con el AE; si cambian, avisa de inmediato.' },
+
+ { id:'D2', letra:'D', nombre:'Decision Process', es:'Proceso de decisión',
+   def:'Los pasos que sigue el cliente para llegar a la compra.',
+   obj:['Entender los pasos de validación técnica dentro del proceso de decisión del cliente.',
+        'Ayudar a los stakeholders técnicos a llegar a consenso y facilitar discusiones que aceleren la decisión.',
+        'Anticipar los hitos clave y compartir información técnica con antelación para evitar retrasos y mitigar riesgo.'],
+   items:[
+    ['Pasos y validaciones',[
+      '¿Conocemos los pasos del proceso de decisión y en cuáles ocurren evaluaciones y aprobaciones técnicas?',
+      '¿Sabemos qué validaciones técnicas exige el cliente antes de decidir?',
+      '¿Alineamos nuestras demos e información técnica con esos pasos de validación?']],
+    ['Personas e información',[
+      '¿Sabemos quiénes participan en la decisión y qué información necesita cada uno?',
+      '¿Tenemos un plan para ayudar a construir consenso entre los stakeholders técnicos?',
+      '¿Entregamos a tiempo la información a cada stakeholder para no generar retrasos?']],
+    ['Hitos y antecedentes',[
+      '¿Tenemos fechas de los hitos clave (demo, comité, aprobación de presupuesto) y cómo prepararnos para cada uno?',
+      '¿Anticipamos preguntas o dudas posibles en cada hito?',
+      '¿Conocemos experiencias previas de compra del cliente y sus obstáculos? ¿El champion las conoce?']]],
+   alerta:'No sabes cuál es el siguiente paso del cliente ni su fecha.',
+   tip:'Pregunta “¿cómo decidieron la última vez que compraron algo de este tamaño?”: te da el proceso real, no el oficial.' },
+
+ { id:'P', letra:'P', nombre:'Paper Process', es:'Proceso administrativo y legal',
+   def:'Los procedimientos administrativos, legales y de compras para cerrar la venta.',
+   obj:['Proveer especificaciones y requerimientos técnicos para la documentación de compras.',
+        'Asegurar cumplimiento con los estándares legales y de industria dentro del proceso.',
+        'Colaborar con legal y compras para aclarar los aspectos técnicos.'],
+   items:[
+    ['Requisitos',[
+      '¿Sabemos qué especificaciones y documentación técnica pide el área de compras o legal?',
+      '¿Conocemos los estándares legales y de industria que el cliente debe cumplir (seguridad, protección de datos, fiscal)?']],
+    ['Cumplimiento y preparación',[
+      '¿Sabemos qué evidencia o documentación podemos entregar para demostrar cumplimiento?',
+      '¿Qué podemos adelantar para anticipar dudas técnicas del proceso de compra?',
+      '¿Preparamos con anticipación la información técnica (SOW, anexos, arquitectura) para agilizar el trámite?']],
+    ['Puente técnico–legal–comercial',[
+      '¿Hay un canal definido entre el equipo técnico, legal y comercial (contactos y cadencia)?',
+      '¿Estamos actuando como puente para alinear requerimientos técnicos con las consideraciones legales y comerciales?']]],
+   alerta:'Empiezas a pensar en el paper process hasta que el cliente ya dijo que sí.',
+   tip:'Involucra pronto al AE y a Deal Desk para SOW, condiciones comerciales y márgenes; así el cierre no se frena por papeleo.' },
+
+ { id:'I', letra:'I', nombre:'Identify Pain', es:'Identificar el dolor',
+   def:'Los problemas o necesidades reales del cliente que la solución resuelve.',
+   obj:['Hacer un análisis detallado para descubrir los problemas e ineficiencias de sus procesos actuales.',
+        'Hacer preguntas con sentido que descubran hechos reales, no solo preguntas de sondeo genéricas.',
+        'Usar el lenguaje del cliente al hablar de esos problemas para ganar relevancia.'],
+   items:[
+    ['Dolores por grupo',[
+      '¿Conocemos los grupos de stakeholders del cliente y los dolores distintos de cada uno?',
+      '¿Tenemos claro cómo cambia el dolor entre personal operativo, usuarios finales y decisores estratégicos?',
+      '¿Distinguimos dolores estratégicos de operativos y sabemos cómo los atiende la solución?']],
+    ['Demos y usuarios finales',[
+      '¿Sabemos qué grupos asistirán a la demo y cómo adaptarla al dolor de cada uno?',
+      '¿Hemos conectado con los usuarios finales y se sienten escuchados?']],
+    ['Lenguaje y validación',[
+      '¿Usamos la terminología y el lenguaje del cliente para describir sus problemas?',
+      '¿Validamos que los dolores sean reales (no “falsos positivos”) y evitamos preguntas que ponen las palabras en su boca?',
+      '¿Evitamos el sondeo genérico y hacemos preguntas dirigidas a la experiencia del usuario?']]],
+   alerta:'El dolor lo describiste tú, no el cliente con sus propias palabras.',
+   tip:'Si el cliente no puede ponerle un número o un impacto al dolor, probablemente todavía no es prioridad para él.' },
+
+ { id:'C1', letra:'C', nombre:'Champion', es:'Campeón interno',
+   def:'Un defensor dentro de la organización del cliente que impulsa nuestra solución.',
+   obj:['Establecer objetivos mutuos que alineen la solución con las metas del champion y de la organización.',
+        'Ganar credibilidad y confianza con experiencia técnica y guía durante el proceso de compra.',
+        'Equipar al champion con recursos técnicos y datos que atiendan los retos únicos de su organización.'],
+   items:[
+    ['Identificarlo',[
+      '¿Conocemos el rol del champion en los pasos y criterios de decisión?',
+      '¿Es un champion real que pelea por nuestra solución, o solo un navegador que nos informa?']],
+    ['Alinear y habilitar',[
+      '¿Conocemos sus metas personales y las de la organización, y cómo las apoya nuestra solución?',
+      '¿Cómo lo apoyamos para navegar el proceso de compra y construir consenso interno?',
+      '¿Qué recursos técnicos y datos le damos para que abogue por nosotros, y los personalizamos para su organización?']],
+    ['Confianza',[
+      '¿Conocemos los retos internos y las dinámicas que enfrenta para impulsar la compra?',
+      '¿Qué acciones concretas fortalecen la relación y su confianza en nosotros?']]],
+   alerta:'Tu champion no logra conseguirte una reunión con el Economic Buyer.',
+   tip:'Pon a prueba al champion con una tarea pequeña (una reunión, un dato interno). Si no la cumple, es navegador, no champion.' },
+
+ { id:'C2', letra:'C', nombre:'Competition', es:'Competencia',
+   def:'Las alternativas que el cliente considera: otros proveedores o dejar todo como está.',
+   obj:['Evaluar el estado actual del cliente, incluido el costo de “no hacer nada” o mantener lo existente.',
+        'Articular ventajas frente al status quo o las alternativas: eficiencia, ahorro y otras mejoras.',
+        'Convertirte en la ventaja competitiva: ofrecer una experiencia de compra única y ser el asesor de confianza.'],
+   items:[
+    ['Situación actual',[
+      '¿Qué retos enfrenta el cliente con su solución actual o con productos de la competencia?',
+      '¿En qué áreas sienten que la competencia se queda corta?',
+      '¿Hay amenazas emergentes o nuevos jugadores que puedan afectar su decisión?']],
+    ['Status quo y diferenciadores',[
+      '¿Cuáles son sus prioridades o must-have y qué aspecto único de nuestra solución las atiende?',
+      '¿Cuáles son los riesgos y costos de mantener el status quo o de no hacer nada?',
+      '¿Qué diferenciadores son relevantes para este cliente y cómo se traducen en beneficios tangibles?']],
+    ['Objeciones y asesor de confianza',[
+      '¿Qué objeciones tiene sobre cambiar a nuestra solución y cómo las atendemos en su contexto?',
+      '¿Qué valor adicional ofrecemos que va más allá de lo que da la competencia?',
+      '¿Qué aprendimos del feedback del cliente sobre los competidores?']]],
+   alerta:'Dices que “no hay competencia”. Siempre hay una: al menos el status quo.',
+   tip:'En el midmarket el rival casi siempre es el sistema actual (Excel, B1, un ERP viejo) y otro partner. Calcula el costo de no cambiar.' }
+];
+
+const STORE_KEY = 'meddpicc_guia_v1';
+let DB = { actual:'', deals:{} };
+let vista = 'resumen';
+
+function cargar(){ try{ const r = localStorage.getItem(STORE_KEY); if(r) DB = JSON.parse(r) || DB; }catch(e){} if(!DB.deals) DB.deals = {}; }
+function guardar(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DB)); }catch(e){} }
+function dealKey(){ return (DB.actual || '').trim() || '(sin nombre)'; }
+function estado(){ const k = dealKey(); if(!DB.deals[k]) DB.deals[k] = { checks:{}, notas:{} }; return DB.deals[k]; }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function totalItems(l){ return l.items.reduce((n,g)=>n+g[1].length,0); }
+function hechos(l){ const st = estado(); let n=0; l.items.forEach((g,gi)=>g[1].forEach((q,qi)=>{ if(st.checks[l.id+'-'+gi+'-'+qi]) n++; })); return n; }
+
+function renderSide(){
+  const side = document.getElementById('side');
+  let h = `<button class="side-btn ${vista==='resumen'?'active':''}" data-v="resumen"><span class="sl sl-all">∑</span><span class="st"><b>Vista general</b><small>8 letras · 3 objetivos</small></span></button>`;
+  LETRAS.forEach(l=>{
+    const t = totalItems(l), d = hechos(l);
+    h += `<button class="side-btn ${vista===l.id?'active':''} ${d===t?'done':''}" data-v="${l.id}">
+      <span class="sl">${l.letra}</span>
+      <span class="st"><b>${esc(l.nombre)}</b><small>${esc(l.es)}</small></span>
+      <span class="sc">${d}/${t}</span></button>`;
+  });
+  side.innerHTML = h;
+  side.querySelectorAll('.side-btn').forEach(b=>b.addEventListener('click',()=>{ vista=b.dataset.v; render(); window.scrollTo({top:0,behavior:'smooth'}); }));
+}
+
+function renderResumen(){
+  let h = `<section class="section"><h2>¿Qué es MEDDPICC?</h2>
+    <p class="intro">Es la metodología con la que calificamos una oportunidad. Cada letra es un área que debes tener clara antes de avanzar. Como presales, tu trabajo no es solo mostrar producto: es convertirte en asesor de confianza. Elige una letra a la izquierda para ver qué hacer y su checklist.</p></section>
+    <section class="section"><div class="matrix">
+      <div class="mh"></div><div class="mh">Objetivo #1</div><div class="mh">Objetivo #2</div><div class="mh">Objetivo #3</div>`;
+  LETRAS.forEach(l=>{
+    h += `<button class="mrow-l" data-v="${l.id}"><span class="sl">${l.letra}</span><span><b>${esc(l.nombre)}</b><small>${esc(l.def)}</small></span></button>`;
+    l.obj.forEach((o,i)=>{ h += `<div class="mcell ${l.id==='C2'&&i===2?'hot':''}">${esc(o)}</div>`; });
+  });
+  h += `</div></section>`;
+  return h;
+}
+
+function renderLetra(l){
+  const st = estado();
+  let h = `<section class="section">
+    <div class="l-head"><span class="sl big">${l.letra}</span>
+      <div><h2>${esc(l.nombre)} · ${esc(l.es)}</h2><p class="intro">${esc(l.def)}</p></div></div></section>
+    <section class="section"><h3 class="blk">Qué debes hacer tú como presales</h3>
+      <div class="obj-grid">${l.obj.map((o,i)=>`<div class="obj"><span class="onum">${i+1}</span><p>${esc(o)}</p></div>`).join('')}</div></section>
+    <section class="section"><h3 class="blk">Checklist — ¿ya lo sabemos?</h3>`;
+  l.items.forEach((g,gi)=>{
+    h += `<div class="grp"><div class="grp-t">${esc(g[0])}</div>`;
+    g[1].forEach((q,qi)=>{
+      const id = l.id+'-'+gi+'-'+qi, on = !!st.checks[id];
+      h += `<label class="q ${on?'on':''}"><input type="checkbox" data-id="${id}" ${on?'checked':''}><span>${esc(q)}</span></label>`;
+    });
+    h += `</div>`;
+  });
+  h += `</section>
+    <section class="section two">
+      <div class="alert-box"><h3 class="blk">🚩 Señal de alerta</h3><p>${esc(l.alerta)}</p></div>
+      <div class="tip-box"><h3 class="blk">💡 Tip para nuestro mercado</h3><p>${esc(l.tip)}</p></div>
+    </section>
+    <section class="section"><h3 class="blk">Notas de esta oportunidad</h3>
+      <textarea id="nota" rows="4" placeholder="Lo que sabes hoy de ${esc(l.nombre)} en esta oportunidad: nombres, fechas, datos clave…"></textarea></section>`;
+  return h;
+}
+
+function renderContent(){
+  const c = document.getElementById('content');
+  if(vista==='resumen'){ c.innerHTML = renderResumen(); c.querySelectorAll('.mrow-l').forEach(b=>b.addEventListener('click',()=>{ vista=b.dataset.v; render(); window.scrollTo({top:0,behavior:'smooth'}); })); return; }
+  const l = LETRAS.find(x=>x.id===vista);
+  c.innerHTML = renderLetra(l);
+  const st = estado();
+  c.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{
+    if(cb.checked) st.checks[cb.dataset.id]=1; else delete st.checks[cb.dataset.id];
+    cb.closest('.q').classList.toggle('on', cb.checked);
+    guardar(); renderSide(); renderProgress();
+  }));
+  const nota = document.getElementById('nota');
+  nota.value = st.notas[l.id] || '';
+  nota.addEventListener('input',()=>{ st.notas[l.id] = nota.value; guardar(); });
+}
+
+function renderProgress(){
+  let t=0,d=0; LETRAS.forEach(l=>{ t+=totalItems(l); d+=hechos(l); });
+  document.getElementById('pgTotal').textContent = d+' / '+t+' ('+(t?Math.round(d/t*100):0)+'%)';
+  document.getElementById('pgFill').style.width = (t?d/t*100:0)+'%';
+}
+
+function renderDeals(){
+  document.getElementById('dealList').innerHTML = Object.keys(DB.deals).filter(k=>k!=='(sin nombre)').map(k=>`<option value="${esc(k)}">`).join('');
+}
+
+function render(){ renderSide(); renderContent(); renderProgress(); renderDeals(); }
+
+function resumenTexto(){
+  const st = estado();
+  let out = 'MEDDPICC — ' + dealKey() + '\n';
+  let t=0,d=0; LETRAS.forEach(l=>{ t+=totalItems(l); d+=hechos(l); });
+  out += 'Avance: '+d+'/'+t+'\n';
+  LETRAS.forEach(l=>{
+    out += '\n'+l.nombre+' ('+hechos(l)+'/'+totalItems(l)+')\n';
+    const pend = [];
+    l.items.forEach((g,gi)=>g[1].forEach((q,qi)=>{ if(!st.checks[l.id+'-'+gi+'-'+qi]) pend.push(q); }));
+    if(pend.length) out += pend.map(q=>'  ☐ '+q).join('\n')+'\n'; else out += '  ✔ Todo cubierto\n';
+    if(st.notas[l.id]) out += '  Notas: '+st.notas[l.id]+'\n';
+  });
+  return out;
+}
+
+document.getElementById('dealName').addEventListener('change',e=>{ DB.actual = e.target.value.trim(); guardar(); render(); });
+document.getElementById('btnCopy').addEventListener('click',async()=>{
+  const b = document.getElementById('btnCopy'), txt = resumenTexto();
+  try{ await navigator.clipboard.writeText(txt); b.textContent = '¡Copiado!'; }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); b.textContent='¡Copiado!';}catch(_){ b.textContent='No se pudo copiar'; } ta.remove(); }
+  setTimeout(()=>{ b.textContent='Copiar resumen'; },1800);
+});
+document.getElementById('btnReset').addEventListener('click',()=>{
+  if(!confirm('¿Limpiar checklist y notas de "'+dealKey()+'"?')) return;
+  delete DB.deals[dealKey()]; guardar(); render();
+});
+
+cargar();
+document.getElementById('dealName').value = DB.actual || '';
+render();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+<script src="/asistente.js?v=1" defer></script>
+</body>
+</html>
