@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="/wbr-kit.js?v=20261010s"></script>
+<script src="/data.js"></script>
 <style>
   :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
   *{box-sizing:border-box;}
@@ -518,9 +519,23 @@ class Component {
       ['Utilidad', 'Utilidad (EBIT ajustado)', 'fin', ebitAdj, 0, ebitAdj, 'EBIT − contingencia']
     ]).map((a, i) => ({ label: a[0], name: a[1], kind: a[2], v: a[3], lo: a[4], hi: a[5], how: a[6], den: (ebmOn && i < 3) ? P : Rv }));
 
+    // tarifa de lista del sitio de precios (data.js): AMS por hora; proyecto por jornada (categoría Implementación)
+    const lista = (() => {
+      try {
+        const sv = (typeof INDIVIDUAL_SERVICES !== 'undefined' ? INDIVIDUAL_SERVICES : []).filter((x) => x.category === (isProj ? 'Implementación' : 'AMS'));
+        if (!sv.length) return null;
+        const rs = sv.map((x) => x.rate), avg = rs.reduce((q, v) => q + v, 0) / rs.length;
+        return { avg, min: Math.min(...rs), max: Math.max(...rs), upd: typeof LAST_UPDATED !== 'undefined' ? LAST_UPDATED : '' };
+      } catch (e) { return null; }
+    })();
+    const listNote = (eff, unit) => {
+      if (!lista) return 'Tarifa de lista (sitio de precios): no disponible.';
+      const dif = eff / lista.avg - 1;
+      return 'Tarifa de lista (sitio de precios' + (lista.upd ? ', ' + lista.upd : '') + '): promedio ' + money(lista.avg) + ' ' + unit + ' (rango ' + money(lista.min) + ' a ' + money(lista.max) + '). Tu tarifa efectiva está ' + pc(Math.abs(dif)) + (dif < 0 ? ' por debajo' : ' por encima') + ' del promedio de lista.';
+    };
     const rate = isProj
-      ? { title: 'Tarifa efectiva por jornada', sub: 'Precio ÷ ' + PD.jt + ' jornadas vendidas.', eff: money(P / PD.jt), cost: money(Cd / PD.jt), mg: money((Rv - Cd) / PD.jt), effN: P / PD.jt, costN: Cd / PD.jt, mgN: (Rv - Cd) / PD.jt, note: 'Tarifa de lista (sitio de precios): [por conectar]' }
-      : { title: 'Tarifa efectiva por hora', sub: 'Precio ÷ ' + Math.round(HRS) + ' horas del contrato (equivale a ' + money(P / HRS * 8) + ' por jornada).', eff: money(P / HRS), cost: money(Cd / HRS), mg: money((Rv - Cd) / HRS), effN: P / HRS, costN: Cd / HRS, mgN: (Rv - Cd) / HRS, note: 'La hoja AMS divide entre 600 horas fijas; aquí se usan las ' + Math.round(HRS) + ' reales del detalle de recursos.' };
+      ? { title: 'Tarifa efectiva por jornada', sub: 'Precio ÷ ' + PD.jt + ' jornadas vendidas.', eff: money(P / PD.jt), cost: money(Cd / PD.jt), mg: money((Rv - Cd) / PD.jt), effN: P / PD.jt, costN: Cd / PD.jt, mgN: (Rv - Cd) / PD.jt, note: listNote(P / PD.jt, 'por jornada (Implementación)'), listN: lista ? lista.avg : 0 }
+      : { title: 'Tarifa efectiva por hora', sub: 'Precio ÷ ' + Math.round(HRS) + ' horas del contrato (equivale a ' + money(P / HRS * 8) + ' por jornada).', eff: money(P / HRS), cost: money(Cd / HRS), mg: money((Rv - Cd) / HRS), effN: P / HRS, costN: Cd / HRS, mgN: (Rv - Cd) / HRS, note: listNote(P / HRS, 'por hora (AMS)') + ' La hoja AMS divide entre 600 horas fijas; aquí se usan las ' + Math.round(HRS) + ' reales del detalle de recursos.', listN: lista ? lista.avg : 0 };
 
     // ---- curvas para las gráficas de los tiles ----
     const mgPts = isProj ? [20, 25, 30, 35, 40, 45, 50, 55] : [0, 5, 10, 15, 20, 25, 30, 35];
@@ -906,7 +921,7 @@ function precio(V) {
     body: approvalMap(V) + '<div class="vp-nw">' + WK.table([{ k: 'tagh', label: 'Nivel', tipo: 'html' }, { k: 'rule', label: 'Regla', tipo: 'note' }, { k: 'price', label: 'Precio', tipo: 'usd' }, { k: 'delta', label: 'Cambio', cls: 'wk-num' }], cushRows) + '</div><div class="vp-soft">' + esc(V.cush.msg) + '</div>' });
   const escalera = WK.card({ id: 'vp-escalera', ico: '🪜', titulo: 'Escalera de márgenes en cifras', sub: 'Cada cargo que resta y cada margen que queda, con su peso sobre el precio.',
     body: '<div class="vp-nw">' + WK.table(ladderCols, V.ladder, { sinOrden: true, rowAttrs: (r) => r.total ? 'class="wk-on"' : '' }) + '</div><div class="vp-note">' + esc(V.cargoNote) + '</div>' });
-  const tarifa = WK.card({ id: 'vp-tarifa', ico: '🏷️', titulo: V.rate.title, sub: V.rate.sub, body: WK.stats([{ valor: V.rate.eff, label: 'Tarifa' }, { valor: V.rate.cost, label: 'Costo' }, { valor: V.rate.mg, label: 'Margen' }]) + '<div style="height:14px"></div>' + WK.columns(['Tarifa', 'Costo', 'Margen'], [{ nombre: V.isProj ? 'USD por jornada' : 'USD por hora', valores: [V.rate.effN, V.rate.costN, Math.max(0, V.rate.mgN)], color: C_CY }], { fmt: money, h: 230, id: 'rt' }) + '<div class="vp-note">' + esc(V.rate.note) + '</div>' });
+  const tarifa = WK.card({ id: 'vp-tarifa', ico: '🏷️', titulo: V.rate.title, sub: V.rate.sub, body: WK.stats([{ valor: V.rate.eff, label: 'Tarifa' }, { valor: V.rate.cost, label: 'Costo' }, { valor: V.rate.mg, label: 'Margen' }].concat(V.rate.listN ? [{ valor: money(V.rate.listN), label: 'Lista (prom.)' }] : [])) + '<div style="height:14px"></div>' + WK.columns(['Tarifa', 'Costo', 'Margen'].concat(V.rate.listN ? ['Lista (prom.)'] : []), [{ nombre: V.isProj ? 'USD por jornada' : 'USD por hora', valores: [V.rate.effN, V.rate.costN, Math.max(0, V.rate.mgN)].concat(V.rate.listN ? [V.rate.listN] : []), color: C_CY }], { fmt: money, h: 230, id: 'rt' }) + '<div class="vp-note">' + esc(V.rate.note) + '</div>' });
   return WK.band('vp-precio', 'Precio y márgenes', 'Cascada, colchón y tarifa') +
     '<div class="vp-g c32 stretch">' + cascada + colch + '</div><div class="vp-g c32">' + escalera + tarifa + '</div>' + negociacion(V);
 }
