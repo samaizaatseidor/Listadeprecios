@@ -56,6 +56,7 @@
   .ci-box:hover{transform:translateY(-3px); border-color:var(--oc); box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 36px rgba(0,0,0,.5),0 0 30px -10px var(--oc);}
   .ci-ini{width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font:700 13px Poppins,sans-serif; color:#04101F; background:linear-gradient(135deg,var(--oc),#fff); margin-bottom:8px;}
   .ci-name{font-size:14px; font-weight:700; color:#fff; line-height:1.25; overflow-wrap:anywhere;}
+  .ci-emp{font-size:11.5px; font-weight:700; color:#fff; margin-top:6px; line-height:1.3; opacity:.92;}
   .ci-puesto{font-size:12px; font-weight:500; color:#8FE6FF; margin-top:2px; line-height:1.35;}
   .ci-area{display:inline-block; margin-top:7px; font-size:10.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--oc); background:rgba(255,255,255,.07); border-radius:999px; padding:2px 9px;}
   .ci-contact{margin-top:7px; font-size:11px; color:var(--wk-grey,#A5B4CE); overflow-wrap:anywhere; line-height:1.4;}
@@ -242,6 +243,10 @@ const CATS = [
 let personas = [], currentId = null, formCat = null, confirmaBorrar = false;
 const colapsados = new Set();
 const esc = s => WK.esc(s);
+// Empresa: en Partners = empresa partner; en Equipo extendido = a qué SEIDOR pertenece
+const EMP_LABEL = { 'Partners': 'Empresa partner', 'Equipo extendido SEIDOR': 'SEIDOR a la que pertenece' };
+const EMP_PH = { 'Partners': 'Ej. Accenture, Deloitte, IBM', 'Equipo extendido SEIDOR': 'Ej. SEIDOR México, SEIDOR España' };
+const empDe = p => (EMP_LABEL[p.categoria] && p.empresa) ? p.empresa : '';
 const catDe = p => (CATS.find(c => c.nombre === p.categoria) || CATS[0]);
 const iniciales = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 
@@ -263,9 +268,10 @@ function colHtml(p, delCat, color){
   const hijos = delCat.filter(x => x.reportaA === p.id);
   const cont = [p.email, p.telefono].filter(Boolean).join(' · ');
   const cerrado = colapsados.has(p.id);
-  return '<div class="ci-col"><div class="ci-box" data-id="' + esc(p.id) + '" onclick="selecciona(\'' + esc(p.id) + '\')" data-tip="' + esc(p.nombre + (p.puesto ? '\n' + p.puesto : '') + (p.area ? '\n' + p.area : '') + (p.notas ? '\n\n' + p.notas : '') + '\n\nClic para ' + (window.SOLO_LECTURA ? 'ver' : 'ver o editar')) + '">' +
+  return '<div class="ci-col"><div class="ci-box" data-id="' + esc(p.id) + '" onclick="selecciona(\'' + esc(p.id) + '\')" data-tip="' + esc(p.nombre + (p.puesto ? '\n' + p.puesto : '') + (empDe(p) ? '\n' + empDe(p) : '') + (p.area ? '\n' + p.area : '') + (p.notas ? '\n\n' + p.notas : '') + '\n\nClic para ' + (window.SOLO_LECTURA ? 'ver' : 'ver o editar')) + '">' +
     '<div class="ci-ini">' + esc(iniciales(p.nombre)) + '</div>' +
     '<div class="ci-name">' + esc(p.nombre) + '</div>' + (p.puesto ? '<div class="ci-puesto">' + esc(p.puesto) + '</div>' : '') +
+    (empDe(p) ? '<div class="ci-emp">🏢 ' + esc(empDe(p)) + '</div>' : '') +
     (p.area ? '<span class="ci-area">' + esc(p.area) + '</span>' : '') + (cont ? '<div class="ci-contact">' + esc(cont) + '</div>' : '') +
     (hijos.length ? '<div class="ci-toggle" title="' + (cerrado ? 'Mostrar' : 'Ocultar') + ' ' + hijos.length + ' reporte(s)" onclick="toggleColapso(\'' + esc(p.id) + '\', event)">' + (cerrado ? '+' : '−') + '</div>' : '') +
     '</div>' + (hijos.length && !cerrado ? '<div class="ci-children">' + hijos.map(h => colHtml(h, delCat, color)).join('') + '</div>' : '') + '</div>';
@@ -318,6 +324,7 @@ function panel(){
     '<div class="ci-tags"><span class="ci-tag">' + c.ico + ' ' + esc(c.nombre) + '</span>' + (p.area ? '<span class="ci-tag">' + esc(p.area) + '</span>' : '') + '</div>' +
     fila('Correo', p.email ? '<a href="mailto:' + esc(p.email) + '">' + esc(p.email) + '</a><button class="ci-copy" onclick="copiar(' + esc(JSON.stringify(p.email)) + ',this)">Copiar</button>' : '<span class="ci-sin">Sin correo</span>') +
     fila('Teléfono', p.telefono ? '<a href="tel:' + esc(p.telefono.replace(/[^\d+]/g, '')) + '">' + esc(p.telefono) + '</a><button class="ci-copy" onclick="copiar(' + esc(JSON.stringify(p.telefono)) + ',this)">Copiar</button>' : '<span class="ci-sin">Sin teléfono</span>') +
+    fila(EMP_LABEL[p.categoria] || 'Empresa', empDe(p) ? esc(empDe(p)) : '') +
     fila('Reporta a', jefe ? '<button class="ci-link" onclick="selecciona(\'' + esc(jefe.id) + '\')">' + esc(jefe.nombre) + '</button>' : '') +
     fila('Le reportan', reportes.map(r => '<button class="ci-link" onclick="selecciona(\'' + esc(r.id) + '\')">' + esc(r.nombre) + '</button>').join('')) +
     fila('Notas', p.notas ? esc(p.notas) : '') +
@@ -340,11 +347,11 @@ function render(){
   if(vista === 'org'){
     content.innerHTML = WK.card({ ico:cat.ico, titulo:cat.nombre, sub:cat.sub + ' · ' + (window.SOLO_LECTURA ? 'clic en una persona para ver su ficha' : 'clic en una persona para ver su ficha o editarla') + ' · − / + oculta reportes', count:porCat.find(x => x.c.id === catAct).items.length, body:arbolHtml(cat) });
   }else{
-    const filas = personas.map(p => { const jefe = personas.find(x => x.id === p.reportaA); return { id:p.id, nombre:p.nombre, cat:catDe(p).ico + ' ' + catDe(p).nombre, puesto:p.puesto || '—', area:p.area || '—',
+    const filas = personas.map(p => { const jefe = personas.find(x => x.id === p.reportaA); return { id:p.id, nombre:p.nombre, cat:catDe(p).ico + ' ' + catDe(p).nombre, puesto:p.puesto || '—', empresa:empDe(p) || '—', area:p.area || '—',
       email:p.email ? '<a href="mailto:' + esc(p.email) + '" onclick="event.stopPropagation()" style="color:#8FE6FF">' + esc(p.email) + '</a>' : '—', tel:p.telefono || '—', jefe:jefe ? jefe.nombre : '—' }; });
     content.innerHTML = WK.card({ ico:'📇', titulo:'Todos los contactos', sub:'Clic en una fila para ver la ficha · clic en un encabezado para ordenar', count:N,
       body:WK.table([
-        { k:'nombre', label:'Nombre', tipo:'strong' }, { k:'cat', label:'Categoría', tipo:'tag' }, { k:'puesto', label:'Puesto', tipo:'text' }, { k:'area', label:'Área', tipo:'text' },
+        { k:'nombre', label:'Nombre', tipo:'strong' }, { k:'cat', label:'Categoría', tipo:'tag' }, { k:'puesto', label:'Puesto', tipo:'text' }, { k:'empresa', label:'Empresa', tipo:'text' }, { k:'area', label:'Área', tipo:'text' },
         { k:'email', label:'Correo', tipo:'html' }, { k:'tel', label:'Teléfono', tipo:'text' }, { k:'jefe', label:'Reporta a', tipo:'text' }
       ], filas, { id:'tablaContactos', rowAttrs:f => 'onclick="selecciona(\'' + esc(f.id) + '\')" style="cursor:pointer"' }) });
     WK.sortable(content); if(consulta) WK.filtrar(document.getElementById('tablaContactos'), consulta);
@@ -362,11 +369,16 @@ function opcionesJefe(catNombre, excluyeId, sel){
 function onCatChange(){
   const c = document.getElementById('f-categoria').value;
   document.getElementById('f-reportaA').innerHTML = '<option value="">— Nadie (nivel más alto) —</option>' + opcionesJefe(c, currentId, null);
+  const w = document.getElementById('f-empresa-wrap'), inp = document.getElementById('f-empresa');
+  w.style.display = EMP_LABEL[c] ? '' : 'none';
+  document.getElementById('f-empresa-lbl').textContent = EMP_LABEL[c] || 'Empresa';
+  inp.placeholder = EMP_PH[c] || '';
+  document.getElementById('dl-empresa').innerHTML = [...new Set(personas.filter(x => x.categoria === c && x.empresa).map(x => x.empresa))].map(e => '<option value="' + esc(e) + '">').join('');
 }
 function openSheet(id){
   currentId = id; confirmaBorrar = false;
   const ro = !!window.SOLO_LECTURA, dis = ro ? ' disabled' : '';
-  const p = id ? personas.find(x => x.id === id) : { nombre:'', puesto:'', area:'', email:'', telefono:'', reportaA:'', notas:'', categoria:CATS[0].nombre };
+  const p = id ? personas.find(x => x.id === id) : { nombre:'', puesto:'', area:'', email:'', telefono:'', reportaA:'', notas:'', categoria:CATS[0].nombre, empresa:'' };
   if(!p) return;
   const cat = catDe(p).nombre;
   document.getElementById('sheet').innerHTML =
@@ -374,6 +386,7 @@ function openSheet(id){
     '<label>Categoría</label><select id="f-categoria" onchange="onCatChange()"' + dis + '>' + CATS.map(c => '<option value="' + esc(c.nombre) + '"' + (c.nombre === cat ? ' selected' : '') + '>' + esc(c.nombre) + '</option>').join('') + '</select>' +
     '<label>Nombre</label><input type="text" id="f-nombre" value="' + esc(p.nombre) + '" placeholder="Ej. Laura Méndez"' + dis + '>' +
     '<label>Puesto</label><input type="text" id="f-puesto" value="' + esc(p.puesto) + '" placeholder="Ej. Account Executive, Public Cloud"' + dis + '>' +
+    '<div id="f-empresa-wrap"' + (EMP_LABEL[cat] ? '' : ' style="display:none"') + '><label id="f-empresa-lbl">' + esc(EMP_LABEL[cat] || 'Empresa') + '</label><input type="text" id="f-empresa" list="dl-empresa" value="' + esc(p.empresa || '') + '" placeholder="' + esc(EMP_PH[cat] || '') + '"' + dis + '><datalist id="dl-empresa">' + [...new Set(personas.filter(x => x.categoria === cat && x.empresa).map(x => x.empresa))].map(e => '<option value="' + esc(e) + '">').join('') + '</datalist></div>' +
     '<label>Área / especialidad</label><input type="text" id="f-area" value="' + esc(p.area) + '" placeholder="Ej. Public Cloud, BTP, Partner Management"' + dis + '>' +
     '<label>Reporta a</label><select id="f-reportaA"' + dis + '><option value="">— Nadie (nivel más alto) —</option>' + opcionesJefe(cat, id, p.reportaA) + '</select>' +
     '<label>Correo</label><input type="text" id="f-email" value="' + esc(p.email) + '" placeholder="nombre@sap.com"' + dis + '>' +
@@ -392,7 +405,7 @@ async function saveContacto(){
   const nombre = document.getElementById('f-nombre').value.trim();
   if(!nombre) return errSheet('Falta el nombre.');
   const item = { id:currentId || ('sap-' + Date.now().toString(36)), categoria:document.getElementById('f-categoria').value, nombre,
-    puesto:document.getElementById('f-puesto').value.trim(), area:document.getElementById('f-area').value.trim(), reportaA:document.getElementById('f-reportaA').value || null,
+    puesto:document.getElementById('f-puesto').value.trim(), empresa:EMP_LABEL[document.getElementById('f-categoria').value] ? document.getElementById('f-empresa').value.trim() : '', area:document.getElementById('f-area').value.trim(), reportaA:document.getElementById('f-reportaA').value || null,
     email:document.getElementById('f-email').value.trim(), telefono:document.getElementById('f-telefono').value.trim(), notas:document.getElementById('f-notas').value.trim() };
   if(item.reportaA === item.id) return errSheet('Una persona no puede reportarse a sí misma.');
   const antes = personas.slice();
