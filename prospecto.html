@@ -306,7 +306,14 @@ Qué necesito saber:
 - Qué soluciones SAP (S/4HANA, SuccessFactors, BTP, Analytics Cloud, etc.) encajarían mejor dado su tamaño, industria y posible madurez tecnológica, y cómo posicionarlo en una llamada o correo en frío.
 - Los 3-5 value drivers más relevantes para esta empresa específica (eficiencia operativa, cumplimiento fiscal, escalabilidad, reducción de costos, etc.).
 - Señales recientes: noticias, expansión, cambios de liderazgo, retos del sector, competidores — con fuente y fecha.
-- Una estimación honesta de encaje con el portafolio SAP y de madurez tecnológica, explicando en qué te basas.
+- El encaje con el portafolio SAP NO es una impresión general: es la suma de esta rúbrica de 100 puntos. Califica cada criterio por separado, con su puntaje (de 0 al máximo indicado) y una razón breve con el dato en que te basas. Si no tienes el dato, da 0 a ese criterio y dilo en la razón; no redondees hacia arriba ni repitas puntajes por costumbre:
+  1. Ingresos de la empresa (máx. 20): 0 si no hay dato o son muy bajos para un proyecto SAP; 20 si están en el rango ideal del midmarket mexicano o por encima con capacidad de inversión.
+  2. Tamaño por empleados y complejidad operativa (máx. 10).
+  3. ERP actual y probabilidad de migración (máx. 25): más puntos si usan un ERP obsoleto, fragmentado o sin soporte, o si están en transición; menos si ya tienen SAP moderno.
+  4. Industria con casos y soluciones SAP afines (máx. 15).
+  5. Señales recientes de compra o cambio: expansión, nuevo liderazgo en TI o finanzas, regulación, adquisiciones (máx. 20).
+  6. Contacto accesible: se identificaron decisores con dato público de contacto (máx. 10).
+  Además da una estimación honesta de madurez tecnológica (0-100), explicando en qué te basas.
 
 Si no encuentras información confiable sobre algún punto, usa null (o una lista vacía) en vez de inventar datos.`;
 
@@ -319,7 +326,7 @@ Responde ÚNICAMENTE con un objeto JSON válido (sin texto antes ni después, si
     "tipo": "Pública | Privada | Subsidiaria | Gobierno | null",
     "descripcion": "2-3 frases sobre a qué se dedica"
   },
-  "encaje": { "valor": 0, "razon": "por qué este puntaje (0-100, estimación)" },
+  "encaje": { "valor": 0, "razon": "resumen del puntaje total (0-100, suma de la rúbrica)", "desglose": [ { "criterio": "Ingresos de la empresa", "puntos": 0, "max": 20, "razon": "dato en que te basas" }, { "criterio": "Tamaño y complejidad operativa", "puntos": 0, "max": 10, "razon": "" }, { "criterio": "ERP actual y probabilidad de migración", "puntos": 0, "max": 25, "razon": "" }, { "criterio": "Industria afín a SAP", "puntos": 0, "max": 15, "razon": "" }, { "criterio": "Señales recientes de compra o cambio", "puntos": 0, "max": 20, "razon": "" }, { "criterio": "Contacto accesible", "puntos": 0, "max": 10, "razon": "" } ] },
   "madurezTI": { "valor": 0, "razon": "por qué este puntaje (0-100, estimación)", "erpActual": null },
   "contactos": [ { "nombre": "", "cargo": "", "area": "Dirección | TI | Finanzas | Operaciones | Compras | RH | Otra", "correo": null, "telefono": null, "fuente": "de dónde salen el cargo y los datos de contacto" } ],
   "portafolioSap": [ { "solucion": "", "encaje": 0, "porque": "", "posicionamiento": "cómo plantearlo en llamada o correo" } ],
@@ -376,10 +383,26 @@ function hechoHtml(label, v, link){
   return '<div class="p-fact"><span>' + esc(label) + '</span><b>' + esc(v) + '</b></div>';
 }
 
+const RUBRICA_MAX = [20, 10, 25, 15, 20, 10]; // ingresos, tamaño, ERP, industria, señales, contacto
+function encajeDesglose(d){
+  const ds = arr((d.encaje || {}).desglose);
+  if (ds.length !== RUBRICA_MAX.length) return null;
+  return ds.map((x, i) => ({ criterio: x.criterio || '', max: RUBRICA_MAX[i], puntos: Math.max(0, Math.min(RUBRICA_MAX[i], Number(x.puntos) || 0)), razon: x.razon || '' }));
+}
+function encajeTotal(d){
+  const ds = encajeDesglose(d);
+  return ds ? Math.round(ds.reduce((q, x) => q + x.puntos, 0)) : clamp((d.encaje || {}).valor);
+}
+function desgloseHtml(d){
+  const ds = encajeDesglose(d);
+  if (!ds) return '';
+  return '<div class="why" style="margin-top:12px">' + ds.map(x => '<div style="margin:6px 0"><b>' + esc(x.criterio) + ': ' + x.puntos + '/' + x.max + '</b>' + (x.razon ? ' · ' + esc(x.razon) : '') + '</div>').join('') + '</div>';
+}
+
 function renderDashboard(d){
   const e = d.empresa || {};
   const nombre = val(e.nombreComercial) || lastCompany;
-  const enc = clamp((d.encaje || {}).valor), mad = clamp((d.madurezTI || {}).valor);
+  const enc = encajeTotal(d), mad = clamp((d.madurezTI || {}).valor);
   const contactos = arr(d.contactos), portafolio = arr(d.portafolioSap), drivers = arr(d.valueDrivers), senales = arr(d.senales), fuentes = arr(d.fuentes), pend = arr(d.datosPorConfirmar);
   const ap = d.apertura || {};
   const sitio = val(e.sitioWeb); const sitioUrl = sitio && !/^https?:\/\//i.test(sitio) ? 'https://' + sitio : sitio;
@@ -403,7 +426,7 @@ function renderDashboard(d){
     ]) + '</div>' });
 
   const gauges = '<div class="p-gauges">' +
-    WK.card({ ico:'🎯', titulo:'Encaje con portafolio SAP', sub:'Estimación de Delfos', body: WK.gauge({ valor: enc || 0, max:100, tono: tonoPct(enc), texto: enc == null ? '—' : enc + '', label:'de 100' }) + '<div class="why">' + esc(val((d.encaje || {}).razon) || 'Sin explicación.') + '</div>' }) +
+    WK.card({ ico:'🎯', titulo:'Encaje con portafolio SAP', sub:encajeDesglose(d) ? 'Suma de rúbrica de 100 puntos' : 'Estimación de Delfos', body: WK.gauge({ valor: enc || 0, max:100, tono: tonoPct(enc), texto: enc == null ? '—' : enc + '', label:'de 100' }) + '<div class="why">' + esc(val((d.encaje || {}).razon) || 'Sin explicación.') + '</div>' + desgloseHtml(d) }) +
     WK.card({ ico:'🧠', titulo:'Madurez tecnológica', sub:'Estimación de Delfos' + (val((d.madurezTI || {}).erpActual) ? ' · ERP: ' + d.madurezTI.erpActual : ''), body: WK.gauge({ valor: mad || 0, max:100, tono: tonoPct(mad), texto: mad == null ? '—' : mad + '', label:'de 100' }) + '<div class="why">' + esc(val((d.madurezTI || {}).razon) || 'Sin explicación.') + '</div>' }) +
   '</div>';
 

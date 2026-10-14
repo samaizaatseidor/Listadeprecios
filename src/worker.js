@@ -786,7 +786,7 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
         const num = v => { const n = Number(v); return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : null; };
         const emp = data.empresa || {};
         const nuevoId = crypto.randomUUID();
-        const meta = { id: nuevoId, clave, empresa: nombre, industria: String(emp.industria || '').slice(0, 80) || null, encaje: num((data.encaje || {}).valor), madurez: num((data.madurezTI || {}).valor), por: email || 'desconocido', en: new Date().toISOString() };
+        const meta = { id: nuevoId, clave, empresa: nombre, industria: String(emp.industria || '').slice(0, 80) || null, encaje: (() => { const ds = Array.isArray((data.encaje || {}).desglose) ? data.encaje.desglose : []; const mx = [20, 10, 25, 15, 20, 10]; return ds.length === mx.length ? num(ds.reduce((q, x, i) => q + Math.max(0, Math.min(mx[i], Number(x.puntos) || 0)), 0)) : num((data.encaje || {}).valor); })(), madurez: num((data.madurezTI || {}).valor), por: email || 'desconocido', en: new Date().toISOString() };
         await env.PM_KV.put(KR(nuevoId), JSON.stringify({ ...meta, data }));
         indice.push(meta);
         while (indice.length > MAX) { const viejo = indice.shift(); await env.PM_KV.delete(KR(viejo.id)); }
