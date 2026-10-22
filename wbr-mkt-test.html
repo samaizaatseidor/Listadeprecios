@@ -729,6 +729,11 @@ const COLS = ['id','name','created','fcst','valor','close','entorno','etapa','la
 function fromRaw(){ return RAW.map(a => Object.fromEntries(COLS.map((c,i) => [c, a[i]]))); }
 
 /* ---------- upload ---------- */
+/* El export de HubSpot puede venir con encabezados en español o en inglés (según el idioma de la cuenta de quien lo descarga). */
+const HDR_EN = {'ID de registro':['Record ID'],'Nombre del negocio':['Deal Name'],'Fecha de creación':['Create Date'],'Valor':['Amount'],'Fecha de cierre':['Close Date'],'Etapa del negocio':['Deal Stage'],'Última actividad':['Last Activity Date','Last Activity'],'Tipo de negocio':['Deal Type'],'Propietario del negocio':['Deal owner','Deal Owner']};
+const normH = x => String(x == null ? '' : x).replace(/\s+/g,' ').trim().toLowerCase();
+function getCol(r, k){ if(k in r) return r[k]; const alts = HDR_EN[k] || []; for(const a of alts){ if(a in r) return r[a]; } const nk = normH(k); for(const c in r){ if(normH(c) === nk || alts.some(a => normH(a) === normH(c))) return r[c]; } return undefined; }
+function hasCol(r, k){ return getCol(r, k) !== undefined; }
 const HDR = {'ID de registro':'id','Nombre del negocio':'name','Fecha de creación':'created','MX_ FCST_TEAM':'fcst','Valor':'valor','Fecha de cierre':'close','MX_Entorno':'entorno','Etapa del negocio':'etapa','Última actividad':'lastAct','Tipo de negocio':'tipo','Propietario del negocio':'owner','MX_Origen de la oportunidad':'origen','MX_Tipo de Venta':'tipoVenta','Motivo de pérdida':'motivo'};
 $('#file').addEventListener('change', e => {
   const f = e.target.files[0]; if(!f) return;
@@ -739,8 +744,8 @@ $('#file').addEventListener('change', e => {
       if(tryTargets(wb, f.name)) return;
       const sh = wb.Sheets['MX_PIPE'] || wb.Sheets[wb.SheetNames.find(n => /MX_PIPE/i.test(n))] || wb.Sheets[wb.SheetNames[0]];
       const js = XLSX.utils.sheet_to_json(sh, { defval:null, raw:true });
-      if(!js.length || !('Etapa del negocio' in js[0])) throw new Error('No encontré la columna "Etapa del negocio" ni una tabla LOB / TARGET. Usa el export MX_PIPE de HubSpot o el Excel Dashboard Ventas by LOB.');
-      const rows = js.map(r => { const o = {}; for(const k in HDR){ let v = r[k]; if(v instanceof Date) v = iso(v); else if(typeof v === 'string' && ['created','close','lastAct'].includes(HDR[k])) v = v.slice(0,10); o[HDR[k]] = v; } if(typeof o.valor === 'string') o.valor = parseFloat(o.valor.replace(/[^0-9.\-]/g,'')); return o; });
+      if(!js.length || !hasCol(js[0], 'Etapa del negocio')) throw new Error('No encontré la columna "Etapa del negocio" ni una tabla LOB / TARGET. Usa el export MX_PIPE de HubSpot o el Excel Dashboard Ventas by LOB.');
+      const rows = js.map(r => { const o = {}; for(const k in HDR){ let v = getCol(r, k); if(v instanceof Date) v = iso(v); else if(typeof v === 'string' && ['created','close','lastAct'].includes(HDR[k])) v = v.slice(0,10); o[HDR[k]] = v; } if(typeof o.valor === 'string') o.valor = parseFloat(o.valor.replace(/[^0-9.\-]/g,'')); return o; });
       const m = f.name.match(/(\d{4})-(\d{2})-(\d{2})/);
       const asOf = m ? new Date(+m[1], +m[2]-1, +m[3]) : new Date();
       load(rows, asOf, f.name); PE_SAVE_CORTE(rows, asOf, f.name);
