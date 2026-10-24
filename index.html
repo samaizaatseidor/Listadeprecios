@@ -200,6 +200,7 @@
       <a class="pill main" href="/pipeline.html">Ir al CRM PresalesMX</a>
       <a class="pill ghost" href="https://www.seidor.com/es-mx" target="_blank" rel="noopener">Visitar seidor.com</a>
     </div>
+    <a id="revAviso" href="/pipeline.html?revisar=1" style="display:none; margin-top:14px; align-items:center; gap:10px; width:fit-content; max-width:100%; padding:10px 16px; border-radius:12px; background:rgba(255,200,87,.16); border:1px solid rgba(255,200,87,.55); color:#FFE3A3; font-size:14px; text-decoration:none;"></a>
     <div class="quick">
       <a href="/wbr.html">WBR</a><a href="/precios.html">Lista de Precios</a><a href="/documentos.html">Documentos de Apoyo</a><a href="/ficha.html">Ficha del Cliente</a><a href="/instalar.html">📲 Instalar la app</a>
     </div>
@@ -299,6 +300,31 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(function(){});
   });
 }
+</script>
+<script>
+/* Aviso para SEs: oportunidades con el próximo paso sin actualizar (solo se muestra si eres SE) */
+(function(){
+  var SE = { 'gustavo.najar@seidor.com':'Gustavo Najar', 'rocio.anaya@seidor.com':'Rocío Anaya',
+             'veronica.pang@seidor.com':'Verónica Pang', 'samuel.aiza@seidor.com':'Samuel Aiza' };
+  var DIAS = 7, EXCLUIR = ['no_go','pausado'];
+  fetch('/api/whoami').then(function(r){ return r.json(); }).then(function(w){
+    var nombre = SE[String(w.email||'').toLowerCase()];
+    if(!nombre) return;
+    return fetch('/api/projects', { cache:'no-store' }).then(function(r){
+      if(!r.ok) return;
+      return r.json().then(function(d){
+        var n = (d.projects||[]).filter(function(p){
+          if(p.asignadoA !== nombre || EXCLUIR.indexOf(p.stage) >= 0) return false;
+          return !p.nextAt || (Date.now() - new Date(p.nextAt).getTime()) > DIAS*864e5;
+        }).length;
+        if(!n) return;
+        var a = document.getElementById('revAviso');
+        a.innerHTML = '\u23F0 <span>Tienes <b>'+n+'</b> oportunidad'+(n===1?'':'es')+' sin actualizar el próximo paso</span> <b style="text-decoration:underline">Repasar ahora →</b>';
+        a.style.display = 'inline-flex';
+      });
+    });
+  }).catch(function(){});
+})();
 </script>
 <script src="/asistente.js?v=1" defer></script>
 </body>
