@@ -868,6 +868,7 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
     const PREVENTAS_EMAILS = {
       'Gustavo Najar': 'gustavo.najar@seidor.com',
       'Rocío Anaya': 'rocio.anaya@seidor.com',
+      'Verónica Pang': 'veronica.pang@seidor.com',
       'Samuel Aiza': 'samuel.aiza@seidor.com'
     };
 
@@ -879,6 +880,7 @@ Sé profesional, claro, y evita sonar defensivo o culpar al cliente.`;
       'Freda Juárez': 'freda.juarez@seidor.com',
       'Fernanda Villagómez': 'fernanda.villagomez@seidor.com',
       'Josselyn González': 'josselyn.gonzalez@seidor.com',
+      'Carolina Romei': 'carolina.romei@seidor.com',
       'Omar Dávila': 'omar.davila@seidor.com'
     };
     const SAM_EMAIL = 'samuel.aiza@seidor.com';

@@ -32,7 +32,7 @@ Comercial:
 - Contactos importantes (/contactos-sap.html): directorio de personas clave (SAP, partners y equipo extendido SEIDOR) por organigrama.
 Presales:
 - CRM PresalesMX (/pipeline.html): tablero de seguimiento por etapa, compartido con el equipo.
-- Tablero de Control (/kpis.html): KPIs de preventas en vivo desde CRM PresalesMX; se filtra por Solution Engineer (Gustavo Najar, Rocío Anaya, Samuel Aiza).
+- Tablero de Control (/kpis.html): KPIs de preventas en vivo desde CRM PresalesMX; se filtra por Solution Engineer (Gustavo Najar, Rocío Anaya, Verónica Pang, Samuel Aiza).
 - Revisión de SOW (/sow-review.html): se sube un Word o Excel y devuelve retroalimentación automática de riesgos y huecos.
 - Handover Comercial → Operaciones (/handover.html): lo que Operaciones necesita saber al recibir un proyecto ganado.
 - Estimador de Esfuerzo (/estimador.html): para usar en preventas, antes de que exista un SOW o proyecto.

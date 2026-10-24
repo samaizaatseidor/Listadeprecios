@@ -33,6 +33,23 @@
   .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
   .btn-danger{background:#fff; color:#B23A3A; border:1px solid #E8C7C7;}
 
+
+  .rev-banner{display:none; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 16px; background:#FFF6E0; border-bottom:1px solid #F0DDA8; font-size:13px; color:#6B4E08;}
+  .rev-banner.show{display:flex;}
+  .rev-banner b{color:#4A3505;}
+  .rev-banner .sp{flex:1;}
+  .rev-card{padding:6px 2px;}
+  .rev-prog{font-size:12px; color:var(--grey); margin-bottom:10px;}
+  .rev-bar{height:4px; background:#E4ECF6; border-radius:4px; margin-bottom:14px; overflow:hidden;}
+  .rev-bar i{display:block; height:100%; background:var(--blue); transition:width .25s;}
+  .rev-card h3{margin:0 0 6px; font-size:17px; color:var(--navy2);}
+  .rev-meta{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;}
+  .rev-box{background:#F3F8FD; border-radius:10px; padding:10px 12px; font-size:13px; color:var(--ink); margin-bottom:12px; line-height:1.45;}
+  .rev-box small{display:block; color:var(--grey); font-size:11px; margin-bottom:3px;}
+  .rev-card textarea{width:100%; min-height:84px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:14px; color:var(--ink); resize:vertical; box-sizing:border-box;}
+  .rev-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+  .rev-actions .sp{flex:1;}
+
   .board{display:flex; gap:14px; padding:16px; overflow-x:auto;}
   .col{background:#EDF3FA; border-radius:12px; min-width:270px; max-width:290px; flex-shrink:0; padding:10px; max-height:calc(100vh - 190px); overflow-y:auto;}
   .col h2{font-size:12px; color:var(--grey); margin:2px 4px 10px; display:flex; justify-content:space-between; font-weight:600;}
@@ -275,7 +292,18 @@
   <button class="btn btn-danger" onclick="clearAll()">Borrar todo</button>
 </div>
 
+<div class="rev-banner" id="revBanner">
+  <span id="revBannerTxt"></span>
+  <span class="sp"></span>
+  <button class="btn btn-primary" onclick="openReview()">Repasar ahora</button>
+  <button class="btn btn-ghost" onclick="hideBannerToday()">Hoy no</button>
+</div>
+
 <div class="board" id="board"><div class="loading" style="color:var(--grey)">Cargando…</div></div>
+
+<div class="overlay" id="revOverlay" onclick="if(event.target===this) closeReview()">
+  <div class="sheet" id="revSheet"></div>
+</div>
 
 <div class="overlay" id="overlay" onclick="if(event.target===this) closeSheet()">
   <div class="sheet" id="sheet"></div>
@@ -293,7 +321,7 @@ const STAGES = [
 ];
 const GONOGO = ['Go', 'No-Go'];
 const HANDOVER_OPTS = ['Sí', 'No'];
-const ASIGNADOS = ['Gustavo Najar', 'Rocío Anaya', 'Samuel Aiza'];
+const ASIGNADOS = ['Gustavo Najar', 'Rocío Anaya', 'Verónica Pang', 'Samuel Aiza'];
 const PRODUCTS = ['S/4HANA', 'SuccessFactors', 'BTP', 'Analytics Cloud', 'Ariba', 'Otro'];
 const MODALIDADES = ['Public', 'Private', 'OnPremise', 'N/A'];
 const CONTRATACIONES = ['Solo servicios', 'Servicios + Suscripción'];
@@ -607,9 +635,11 @@ async function saveCard(){
     modulos: document.getElementById('f-modulos').value.trim(),
     sharepoint: document.getElementById('f-sharepoint').value.trim(),
     next: document.getElementById('f-next').value.trim(),
+    nextAt: undefined,
     notes: document.getElementById('f-notes').value.trim(),
     ficha: existing ? existing.ficha : undefined
   };
+  data.nextAt = (existing && existing.next === data.next && existing.nextAt) ? existing.nextAt : (data.next ? new Date().toISOString() : (existing ? existing.nextAt : undefined));
   const newActivity = buildActivityDiff(existing, data);
   newActivity.forEach(a => logAudit(existing ? 'Editó tarjeta' : 'Creó tarjeta', `${client} — ${a.note}`));
   data.activityLog = (existing && existing.activityLog ? existing.activityLog.slice() : []).concat(newActivity);
@@ -878,11 +908,139 @@ async function importExcel(input){
   }
 }
 
+
+// ---------- Repaso de próximos pasos ----------
+const SE_EMAILS = {
+  'gustavo.najar@seidor.com':'Gustavo Najar', 'rocio.anaya@seidor.com':'Rocío Anaya',
+  'veronica.pang@seidor.com':'Verónica Pang', 'samuel.aiza@seidor.com':'Samuel Aiza'
+};
+const REVIEW_DIAS = 7;                       // días sin tocar el próximo paso para considerarlo desactualizado
+const REVIEW_EXCLUIR = ['no_go', 'pausado'];  // etapas que no se repasan
+let reviewQueue = [];
+let reviewPos = 0;
+let reviewFor = '';
+
+function reviewOwner(){
+  const qs = new URLSearchParams(location.search);
+  const forced = qs.get('asignado');
+  if(forced && ASIGNADOS.includes(forced)) return forced;
+  return SE_EMAILS[(currentUser || '').toLowerCase()] || '';
+}
+function nextIsStale(p){
+  if(REVIEW_EXCLUIR.includes(p.stage)) return false;
+  if(!p.nextAt) return true;
+  return (Date.now() - new Date(p.nextAt).getTime()) > REVIEW_DIAS*24*3600*1000;
+}
+function staleFor(owner){
+  return projects.filter(p => p.asignadoA === owner && nextIsStale(p));
+}
+function todayKey(){ return 'revHide-' + new Date().toISOString().slice(0,10); }
+function updateReviewBanner(){
+  const banner = document.getElementById('revBanner');
+  const owner = reviewOwner();
+  if(!owner){ banner.classList.remove('show'); return; }
+  let hidden = false;
+  try{ hidden = localStorage.getItem(todayKey()) === '1'; }catch(e){}
+  const n = staleFor(owner).length;
+  if(!n || (hidden && !new URLSearchParams(location.search).has('revisar'))){ banner.classList.remove('show'); return; }
+  document.getElementById('revBannerTxt').innerHTML = `Tienes <b>${n}</b> oportunidad${n===1?'':'es'} sin actualizar el próximo paso (más de ${REVIEW_DIAS} días).`;
+  banner.classList.add('show');
+}
+function hideBannerToday(){
+  try{ localStorage.setItem(todayKey(), '1'); }catch(e){}
+  document.getElementById('revBanner').classList.remove('show');
+}
+function openReview(){
+  reviewFor = reviewOwner();
+  reviewQueue = staleFor(reviewFor).map(p => p.id);
+  reviewPos = 0;
+  if(!reviewQueue.length){ alert('Todo al día: no tienes próximos pasos pendientes de actualizar.'); return; }
+  renderReview();
+  document.getElementById('revOverlay').classList.add('open');
+}
+function closeReview(){
+  document.getElementById('revOverlay').classList.remove('open');
+  updateReviewBanner();
+  render();
+}
+function daysAgo(iso){
+  if(!iso) return 'nunca actualizado';
+  const d = Math.floor((Date.now() - new Date(iso).getTime())/86400000);
+  return d <= 0 ? 'hoy' : `hace ${d} día${d===1?'':'s'}`;
+}
+function renderReview(){
+  const sheet = document.getElementById('revSheet');
+  if(reviewPos >= reviewQueue.length){
+    sheet.innerHTML = `<div class="rev-card"><h3>Listo ✅</h3><p style="color:var(--grey);font-size:13px">Repasaste ${reviewQueue.length} oportunidad${reviewQueue.length===1?'':'es'}.</p>
+      <div class="rev-actions"><span class="sp"></span><button class="btn btn-primary" onclick="closeReview()">Cerrar</button></div></div>`;
+    return;
+  }
+  const p = projects.find(x => x.id === reviewQueue[reviewPos]);
+  if(!p){ reviewPos++; renderReview(); return; }
+  const stage = (STAGES.find(s => s.id === p.stage) || {}).label || p.stage;
+  const pct = Math.round(reviewPos / reviewQueue.length * 100);
+  const chips = [`<span class="chip">${esc(stage)}</span>`]
+    .concat(p.valor ? [`<span class="chip">💰 ${esc(p.valor)}</span>`] : [])
+    .concat(p.risk ? [`<span class="chip">Riesgo ${esc(p.risk)}</span>`] : []).join('');
+  sheet.innerHTML = `<div class="rev-card">
+    <div class="rev-prog">${reviewPos+1} de ${reviewQueue.length} · ${esc(reviewFor)}</div>
+    <div class="rev-bar"><i style="width:${pct}%"></i></div>
+    <h3>${esc(p.client)}</h3>
+    <div class="rev-meta">${chips}</div>
+    <div class="rev-box"><small>Próximo paso actual · ${daysAgo(p.nextAt)}</small>${p.next ? esc(p.next) : '<i>Sin definir</i>'}</div>
+    <label style="font-size:12px;color:var(--grey)">¿Cuál es el próximo paso?</label>
+    <textarea id="rev-next" placeholder="Ej. Enviar propuesta económica — 30 oct">${esc(p.next || '')}</textarea>
+    <div class="rev-actions">
+      <button class="btn btn-primary" onclick="reviewSave(false)">Guardar y siguiente</button>
+      <button class="btn btn-ghost" onclick="reviewSave(true)" ${p.next ? '' : 'disabled style="opacity:.5"'}>Sigue igual</button>
+      <button class="btn btn-ghost" onclick="reviewSkip()">Saltar</button>
+      <span class="sp"></span>
+      <button class="btn btn-ghost" onclick="closeReview()">Cerrar</button>
+    </div></div>`;
+  const ta = document.getElementById('rev-next');
+  if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+function reviewSkip(){ reviewPos++; renderReview(); }
+async function reviewSave(sameAsBefore){
+  const id = reviewQueue[reviewPos];
+  const txt = document.getElementById('rev-next').value.trim();
+  if(!txt){ alert('Escribe el próximo paso, o usa "Saltar".'); return; }
+  try{
+    // Traer lo más reciente para no pisar cambios de otros
+    const r0 = await fetch('/api/projects');
+    const fresh = await r0.json();
+    const list = fresh.projects || [];
+    const p = list.find(x => x.id === id);
+    if(!p){ alert('Esa oportunidad ya no existe en el tablero.'); reviewPos++; renderReview(); return; }
+    const changed = (p.next || '') !== txt;
+    const now = new Date().toISOString();
+    p.next = txt;
+    p.nextAt = now;
+    p.activityLog = (p.activityLog || []).concat([{ at: now, by: currentUser,
+      note: changed ? `Actualizó próximo paso: "${txt}"` : 'Confirmó que el próximo paso sigue vigente' }]);
+    const r = await fetch('/api/projects', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(list) });
+    if(!r.ok){ alert('No se pudo guardar (' + r.status + '). Revisa tus permisos de edición en el CRM.'); return; }
+    const out = await r.json();
+    document.getElementById('synctag').textContent = out.updatedBy ? `Última edición: ${out.updatedBy}` : '';
+    projects = list;
+    logAudit('Repaso de próximo paso', `${p.client} — ${changed ? 'actualizó' : 'confirmó'}`);
+    reviewPos++;
+    renderReview();
+  }catch(e){
+    console.error(e);
+    alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
+  }
+}
+
 document.getElementById('search').addEventListener('input', render);
 document.getElementById('filterAsignado').addEventListener('change', render);
 populateFilters();
-loadCurrentUser();
-loadFromServer();
+(async function(){
+  await loadCurrentUser();
+  await loadFromServer();
+  updateReviewBanner();
+  if(new URLSearchParams(location.search).has('revisar') && reviewOwner()) openReview();
+})();
 </script>
 <script>
 (function(){
