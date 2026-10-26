@@ -401,6 +401,8 @@ const PAGINAS_REGISTRO = {
   'wbr-ejecutivo': 'WBR — Centro de Mando',
   'wbr-vop': 'WBR — Tablero VOP',
   'bx-base-instalada': 'Business Experience — Base Instalada',
+  'forecast-semanal': 'Forecast Semanal (ver · Sales Ops edita)',
+  'forecast-semanal-ae': 'Forecast Semanal — AE edita su propio tablero',
   'auditoria': 'Auditoría',
   'agentes': 'Agentes',
 };
@@ -460,6 +462,7 @@ const RUTAS_PERMISO = {
   '/api/docs/file': { modo:'datos', paginas:['documentos'] },
   '/api/contactos-sap': { modo:'datos', paginas:['contactos-sap'] },
   '/api/bx-base-instalada': { modo:'datos', paginas:['bx-base-instalada'] },
+  '/api/forecast-semanal': { modo:'datos', paginas:['forecast-semanal','forecast-semanal-ae'], escritura:['forecast-semanal','forecast-semanal-ae'] }, // el detalle (Sales Ops vs AE propio) se valida dentro
   '/api/wbr-finanzas': { modo:'datos', paginas:['wbr-finanzas'] },
   '/api/wbr-ventas': { modo:'datos', paginas:['wbr-ventas'] },
   '/api/wbr-operaciones': { modo:'datos', paginas:['wbr-operaciones'] },
@@ -594,6 +597,111 @@ async function refrescarSeidorHome(env){
   } finally { clearTimeout(to); }
 }
 /* ==================== FIN INICIO ==================== */
+
+/* ==================== FORECAST SEMANAL ==================== */
+// Tableros de forecast por AE (reporte de los lunes). Montos en miles de USD.
+// Quién edita qué (se valida aquí, no solo en la pantalla):
+//  - Sales Ops / Admin (permiso 'completo' en forecast-semanal): todo, en cualquier tablero.
+//  - AE (permiso 'completo' en forecast-semanal-ae + correo asignado a su tablero): SOLO las celdas amarillas
+//    de su propio tablero (Cerrado YTD y Top Deals). Cuotas y todo lo demás lo edita Sales Ops.
+const FCS_ESTATUS = ['Won','VC= Commited+ Probable Plan A','Top Upside =Plan B','Upside'];
+const FCS_LOBS = ['B1','Grow','Rise','SFSF','LOB','Serv. Consultoría','Tech'];
+const FCS_MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const FCS_PLANES = ['Plan A','Plan B'];
+const FCS_AES = [
+  { slug:'fernanda',  nombre:'Fernanda Richards', email:'' },
+  { slug:'manuel',    nombre:'Manuel Apon',       email:'' },
+  { slug:'natalia',   nombre:'Natalia Ossa',      email:'' },
+  { slug:'estefania', nombre:'Estefanía Muñoz',   email:'' },
+  { slug:'carolina',  nombre:'Carolina',          email:'' },
+];
+const fcsNum = x => { const n = Number(x); return Number.isFinite(n) ? Math.round(Math.max(-1e9, Math.min(1e9, n)) * 1000) / 1000 : 0; };
+const fcsTxt = (x, n) => String(x == null ? '' : x).slice(0, n);
+function fcsBoardVacio(){ return { cuota:{ swAnual:0, svAnual:0, swYtd:0, svYtd:0 }, q:{ swCuota:0, svCuota:0, mes:[0,0,0] }, deals:[], version:0, semana:null, reportadoEn:null, reportadoPor:null, editadoEn:null, editadoPor:null }; }
+function fcsLimpiar(b){
+  b = b && typeof b === 'object' ? b : {};
+  const c = b.cuota || {}, q = b.q || {};
+  const deals = (Array.isArray(b.deals) ? b.deals : []).slice(0, 300).map(d => {
+    d = d || {};
+    return {
+      id: fcsTxt(d.id, 60), cuenta: fcsTxt(d.cuenta, 120),
+      lob: FCS_LOBS.includes(d.lob) ? d.lob : '',
+      sw: fcsNum(d.sw), sv: fcsNum(d.sv),
+      estatus: FCS_ESTATUS.includes(d.estatus) ? d.estatus : '',
+      mes: FCS_MESES.includes(d.mes) ? d.mes : '',
+      plan: FCS_PLANES.includes(d.plan) ? d.plan : '',
+      next: fcsTxt(d.next, 1500)
+    };
+  }).filter(d => d.id || d.cuenta || d.sw || d.sv || d.next);
+  return {
+    cuota: { swAnual: fcsNum(c.swAnual), svAnual: fcsNum(c.svAnual), swYtd: fcsNum(c.swYtd), svYtd: fcsNum(c.svYtd) },
+    q: { swCuota: fcsNum(q.swCuota), svCuota: fcsNum(q.svCuota), mes: [0,1,2].map(i => fcsNum((q.mes||[])[i])) },
+    deals
+  };
+}
+async function fcsConfig(env){
+  const raw = await env.PM_KV.get('fcs_config');
+  const guardado = raw ? JSON.parse(raw) : {};
+  const porSlug = {}; (Array.isArray(guardado.aes) ? guardado.aes : []).forEach(a => { if (a && a.slug) porSlug[a.slug] = a; });
+  return { aes: FCS_AES.map(a => ({ slug:a.slug, nombre:(porSlug[a.slug]||{}).nombre || a.nombre, email: fcsTxt((porSlug[a.slug]||{}).email, 120).toLowerCase() })) };
+}
+async function fcsManejar(request, env, url){
+  const json = (o, status) => new Response(JSON.stringify(o), { status: status || 200, headers: { 'Content-Type': 'application/json' } });
+  const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
+  const cfgRoles = await getRolesConfig(env);
+  const esOps = esAdmin(email, cfgRoles) || (await getPermiso(env, email, 'forecast-semanal')) === 'completo';
+  const puedeAe = (await getPermiso(env, email, 'forecast-semanal-ae')) === 'completo';
+  const fcfg = await fcsConfig(env);
+  const miAe = (email && puedeAe) ? ((fcfg.aes.find(a => a.email && a.email === email) || {}).slug || null) : null;
+  const yo = { email, esOps, ae: miAe };
+  const rawLive = await env.PM_KV.get('fcs_live');
+  const live = rawLive ? JSON.parse(rawLive) : {};
+
+  if (request.method === 'GET') {
+    const rawH = await env.PM_KV.get('fcs_hist');
+    return json({ ok:true, live, historial: rawH ? JSON.parse(rawH) : [], config: fcfg, yo, catalogos:{ estatus:FCS_ESTATUS, lobs:FCS_LOBS, meses:FCS_MESES, planes:FCS_PLANES } });
+  }
+  if (request.method !== 'POST') return json({ ok:false, error:'Método no permitido' }, 405);
+  let body; try { body = await request.json(); } catch (e) { return json({ ok:false, error:'JSON inválido' }, 400); }
+  const accion = body.accion;
+
+  if (accion === 'config') {
+    if (!esOps) return json({ ok:false, error:'Solo Sales Ops o un Administrador puede asignar los correos de los AEs.' }, 403);
+    const aes = FCS_AES.map(a => { const x = (Array.isArray(body.aes) ? body.aes : []).find(y => y && y.slug === a.slug) || {}; const em = fcsTxt(x.email, 120).trim().toLowerCase(); return { slug:a.slug, nombre: fcsTxt(x.nombre, 80).trim() || a.nombre, email: /^[^\s@]+@[^\s@]+$/.test(em) ? em : '' }; });
+    await env.PM_KV.put('fcs_config', JSON.stringify({ aes }));
+    return json({ ok:true, config:{ aes } });
+  }
+
+  const slug = String(body.ae || '');
+  if (!FCS_AES.some(a => a.slug === slug)) return json({ ok:false, error:'Tablero desconocido.' }, 400);
+  if (!esOps && miAe !== slug) return json({ ok:false, error:'Solo puedes editar tu propio tablero. Si es el tuyo, pide a Sales Ops que asigne tu correo.' }, 403);
+  const actual = live[slug] || fcsBoardVacio();
+  const ahora = new Date().toISOString();
+
+  if (accion === 'guardar') {
+    if (Number(body.version || 0) !== Number(actual.version || 0)) return json({ ok:false, conflicto:true, error:'Alguien más guardó este tablero mientras lo editabas. Se recargó la versión más reciente.', board: actual }, 409);
+    const nuevo = fcsLimpiar(body.board);
+    const fusion = esOps ? nuevo : { cuota: { ...actual.cuota, swYtd: nuevo.cuota.swYtd, svYtd: nuevo.cuota.svYtd }, q: actual.q, deals: nuevo.deals };
+    live[slug] = { ...actual, ...fusion, version: (actual.version || 0) + 1, editadoEn: ahora, editadoPor: email || 'desconocido' };
+    await env.PM_KV.put('fcs_live', JSON.stringify(live));
+    return json({ ok:true, board: live[slug] });
+  }
+
+  if (accion === 'reportar') {
+    const semana = /^\d{4}-\d{2}-\d{2}$/.test(String(body.semana || '')) ? body.semana : ahora.slice(0, 10);
+    if (!actual.deals.length && !actual.cuota.swAnual && !actual.cuota.svAnual) return json({ ok:false, error:'El tablero está vacío; captura o carga datos antes de reportar.' }, 400);
+    live[slug] = { ...actual, semana, reportadoEn: ahora, reportadoPor: email || 'desconocido' };
+    const rawH = await env.PM_KV.get('fcs_hist');
+    let hist = rawH ? JSON.parse(rawH) : [];
+    hist.push({ ae: slug, semana, reportadoEn: ahora, reportadoPor: email || 'desconocido', board: { cuota: actual.cuota, q: actual.q, deals: actual.deals } });
+    if (hist.length > 600) hist = hist.slice(hist.length - 600);
+    await env.PM_KV.put('fcs_hist', JSON.stringify(hist));
+    await env.PM_KV.put('fcs_live', JSON.stringify(live));
+    return json({ ok:true, board: live[slug], totalReportes: hist.length });
+  }
+  return json({ ok:false, error:'Acción desconocida.' }, 400);
+}
+/* ================== FIN FORECAST SEMANAL ================== */
 
 export default {
   async fetch(request, env, ctx) {
@@ -2227,6 +2335,10 @@ ${JSON.stringify(checklist || [])}`;
       await env.PM_KV.put('cultura_bi_dataset', serializado);
       await env.PM_KV.put('cultura_bi_historial', JSON.stringify(historial));
       return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/forecast-semanal') {
+      return fcsManejar(request, env, url);
     }
 
     if (url.pathname === '/api/mi-permiso' && request.method === 'GET') {
