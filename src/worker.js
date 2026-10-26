@@ -391,6 +391,7 @@ const PAGINAS_REGISTRO = {
   'wbr-finanzas': 'WBR — Finanzas',
   'wbr-ventas': 'WBR — Ventas & Pipeline',
   'wbr-operaciones': 'WBR — Operaciones',
+  'wbr-operaciones-b1': 'WBR — Operaciones B1',
   'wbr-bx': 'WBR — Business Experience',
   'wbr-ccflex': 'WBR — CCFlex',
   'wbr-cta': 'WBR — Call to Action',
