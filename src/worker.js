@@ -463,6 +463,7 @@ const RUTAS_PERMISO = {
   '/api/wbr-finanzas': { modo:'datos', paginas:['wbr-finanzas'] },
   '/api/wbr-ventas': { modo:'datos', paginas:['wbr-ventas'] },
   '/api/wbr-operaciones': { modo:'datos', paginas:['wbr-operaciones'] },
+  '/api/wbr-operaciones-b1': { modo:'datos', paginas:['wbr-operaciones-b1'] },
   '/api/wbr-ccflex': { modo:'datos', paginas:['wbr-ccflex'] },
   '/api/wbr-bx': { modo:'datos', paginas:['wbr-bx'] },
   '/api/wbr-anuncios': { modo:'datos', paginas:['wbr-anuncios'] },
@@ -1661,6 +1662,35 @@ ${JSON.stringify(checklist || [])}`;
 
       await env.PM_KV.put('wbr_operaciones_historial', JSON.stringify(historial));
       return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    // Dashboard Operaciones B1 — historial de cortes (cada carga del Excel semanal queda guardada con quién y cuándo)
+    if (url.pathname === '/api/wbr-operaciones-b1' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('wbr_operaciones_b1_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/wbr-operaciones-b1' && request.method === 'POST') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const snapshot = body.snapshot;
+      const JH = { 'Content-Type': 'application/json' };
+      if (!snapshot || !snapshot.D || !Array.isArray(snapshot.D.p) || !snapshot.D.p.length) return new Response(JSON.stringify({ ok:false, error:'El corte viene sin proyectos' }), { status: 400, headers: JH });
+      for (const k of ['g','r','i','b']) if (!Array.isArray(snapshot.D[k])) return new Response(JSON.stringify({ ok:false, error:'El corte viene incompleto (falta ' + k + ')' }), { status: 400, headers: JH });
+      if (!snapshot.fechaRevision || isNaN(new Date(snapshot.fechaRevision))) return new Response(JSON.stringify({ ok:false, error:'El corte no trae fecha de actualización' }), { status: 400, headers: JH });
+      const raw = await env.PM_KV.get('wbr_operaciones_b1_historial');
+      let historial = raw ? JSON.parse(raw) : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || 'desconocido';
+      // Cada carga es un registro nuevo (quién y cuándo)
+      snapshot.guardadoPor = email;
+      snapshot.guardadoEn = new Date().toISOString();
+      historial.push(snapshot);
+      historial.sort((a,b) => (new Date(a.fechaRevision) - new Date(b.fechaRevision)) || String(a.guardadoEn||'').localeCompare(String(b.guardadoEn||'')));
+      if (historial.length > 52) historial = historial.slice(historial.length - 52);
+      await env.PM_KV.put('wbr_operaciones_b1_historial', JSON.stringify(historial));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: JH });
     }
 
     if (url.pathname === '/api/wbr-operaciones-insight' && request.method === 'POST') {
