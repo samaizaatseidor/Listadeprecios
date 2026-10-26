@@ -226,7 +226,8 @@ const ETAPAS = [
   { id:'pausado', label:'Pausado', color:'#7D8FAE' },
   { id:'no_go', label:'No-Go', color:'#FF5C7A' }
 ];
-const ACTIVAS = ['prospeccion', 'asignada_preventa', 'propuesta', 'scoping', 'implementacion'];
+/* Implementación = oportunidad ya cerrada (ganada): no cuenta como activa ni entra a los KPIs del pipeline abierto */
+const ACTIVAS = ['prospeccion', 'asignada_preventa', 'propuesta', 'scoping'];
 const ETQ = Object.fromEntries(ETAPAS.map(e => [e.id, e.label]));
 const COL = Object.fromEntries(ETAPAS.map(e => [e.id, e.color]));
 const STALE_DAYS = 14;
@@ -295,11 +296,12 @@ function render(){
   const act = P.filter(p => ACTIVAS.includes(p.stage));
   const pausadas = P.filter(p => p.stage === 'pausado'), nogo = P.filter(p => p.stage === 'no_go');
   const porEtapa = id => P.filter(p => p.stage === id);
-  const conGNG = P.filter(p => p.goNoGo === 'Go' || p.goNoGo === 'No-Go');
-  const pctGNG = conGNG.length / P.length;
+  const PB = P.filter(p => p.stage !== 'implementacion'), cerradas = P.filter(p => p.stage === 'implementacion');
+  const conGNG = PB.filter(p => p.goNoGo === 'Go' || p.goNoGo === 'No-Go');
+  const pctGNG = PB.length ? conGNG.length / PB.length : 0;
   const impl = P.filter(p => p.stage === 'implementacion'), implHO = impl.filter(p => p.handoverFormal === 'Sí');
   const pctHO = impl.length ? implHO.length / impl.length : null;
-  const conScore = P.filter(p => typeof p.meddpiccScore === 'number');
+  const conScore = PB.filter(p => typeof p.meddpiccScore === 'number');
   const medd = conScore.length ? conScore.reduce((a, p) => a + p.meddpiccScore, 0) / conScore.length : null;
   const enRiesgo = act.filter(p => p.risk === 'Alto' || p.risk === 'Medio'), riesgoAlto = act.filter(p => p.risk === 'Alto');
   const estancadas = act.filter(p => { const d = diasEnEtapa(p); return d != null && d >= STALE_DAYS; });
@@ -316,15 +318,15 @@ function render(){
 
   const kpis1 = WK.heroGrid([
     WK.hero({ label:'Oportunidades activas', ico:'🧭', value:act.length, tono:'cyan',
-      sub: 'de ' + P.length + ' totales' + (pausadas.length ? ' · ' + pausadas.length + ' pausadas' : '') + (nogo.length ? ' · ' + nogo.length + ' No-Go' : ''),
+      sub: 'de ' + P.length + ' totales' + (cerradas.length ? ' · ' + cerradas.length + ' cerradas (Implementación)' : '') + (pausadas.length ? ' · ' + pausadas.length + ' pausadas' : '') + (nogo.length ? ' · ' + nogo.length + ' No-Go' : ''),
       chart: WK.donut(ETAPAS.filter(e => ACTIVAS.includes(e.id)).map(e => ({ label:e.label, value:porEtapa(e.id).length, color:e.color, tip:e.label + ' · ' + plural(porEtapa(e.id).length, 'oportunidad', 'oportunidades') + '\n' + lista(porEtapa(e.id)) })),
         { centro:String(act.length), sub:'en curso', tamano:'190px', sinLeyenda:true }) }),
     WK.hero({ label:'Go / No-Go documentado', ico:'🚦', value:Math.round(pctGNG * 100) + '%', tono:tono(pctGNG, .8, .5),
-      sub: conGNG.length + ' de ' + P.length + ' con decisión registrada',
-      chart: WK.gauge({ valor:conGNG.length, max:P.length, tono:tono(pctGNG, .8, .5), texto:conGNG.length + ' de ' + P.length, label:'con Go / No-Go', dark:true,
-        tip:'Decisión Go / No-Go\n' + P.filter(p => p.goNoGo === 'Go').length + ' Go · ' + P.filter(p => p.goNoGo === 'No-Go').length + ' No-Go · ' + (P.length - conGNG.length) + ' sin decisión' }) }),
+      sub: conGNG.length + ' de ' + PB.length + ' con decisión registrada',
+      chart: WK.gauge({ valor:conGNG.length, max:PB.length || 1, tono:tono(pctGNG, .8, .5), texto:conGNG.length + ' de ' + PB.length, label:'con Go / No-Go', dark:true,
+        tip:'Decisión Go / No-Go\n' + PB.filter(p => p.goNoGo === 'Go').length + ' Go · ' + PB.filter(p => p.goNoGo === 'No-Go').length + ' No-Go · ' + (PB.length - conGNG.length) + ' sin decisión' }) }),
     WK.hero({ label:'MEDDPICC promedio', ico:'🎯', value: medd == null ? '—' : Math.round(medd) + '%', tono: medd == null ? null : tono(medd / 100, .71, .41),
-      sub: conScore.length ? plural(conScore.length, 'oportunidad calificada', 'oportunidades calificadas') + ' de ' + P.length : 'Aún sin calificaciones',
+      sub: conScore.length ? plural(conScore.length, 'oportunidad calificada', 'oportunidades calificadas') + ' de ' + PB.length : 'Aún sin calificaciones',
       chart: medd == null ? '' : WK.gauge({ valor:medd, max:100, meta:71, tono:tono(medd / 100, .71, .41), texto:Math.round(medd) + '%', label:'meta 71%', dark:true,
         tip:'MEDDPICC promedio\n' + Math.round(medd) + '% · ' + conScore.filter(p => p.meddpiccScore >= 71).length + ' alta · ' + conScore.filter(p => p.meddpiccScore >= 41 && p.meddpiccScore < 71).length + ' media · ' + conScore.filter(p => p.meddpiccScore < 41).length + ' baja' }) }),
     WK.hero({ label:'Handover formal', ico:'🤝', value: pctHO == null ? 'N/A' : Math.round(pctHO * 100) + '%', tono: pctHO == null ? null : tono(pctHO, .8, .5),
@@ -377,7 +379,7 @@ function render(){
 
   // Simulador: valor esperado por etapa de cierre
   const nProp = porEtapa('propuesta').length, nScop = porEtapa('scoping').length;
-  const vProp = valorEtapa('propuesta'), vScop = valorEtapa('scoping'), vImpl = valorEtapa('implementacion');
+  const vProp = valorEtapa('propuesta'), vScop = valorEtapa('scoping'), vImpl = cerradas.map(p => valorNum(p.valor)).filter(v => v != null).reduce((a, v) => a + v, 0);
   const sim = WK.card({ id:'simulador', ico:'🎛️', titulo:'Simulador: ¿y si cerramos…?', sub:'Mueve los controles · no se guarda',
     body: WK.whatif({ id:'kpisim', sliders:[
       { k:'prop', label:'Cierre de Propuestas / RFP', min:0, max:100, step:5, val:30, fmt:v => v + '%' },
@@ -388,7 +390,7 @@ function render(){
       if(!nProp && !nScop) return { stats:[ { valor:'0', label:'en Propuesta / RFP' }, { valor:'0', label:'en Scoping / SOW' } ], nota:'No hay oportunidades en Propuesta ni en Scoping para simular' + (filtro ? ' con este filtro' : '') + '.' };
       return { gauge:{ valor:dealsC, max:base, tono:'cyan', texto:(Math.round(dealsC * 10) / 10) + '', label:'cierres esperados de ' + (nProp + nScop),
           tip:'Cierres esperados\n' + (Math.round(dealsC * 10) / 10) + ' de ' + (nProp + nScop) + ' oportunidades en Propuesta + Scoping' },
-        stats:[ { valor:(Math.round(dealsC * 10) / 10) + '', label:'cierres esperados' }, { valor:fmtUsd(usdC), label:'valor esperado (USD aprox.)' }, { valor:fmtUsd(usdC + vImpl), label:'+ ya en Implementación' }, { valor:fmtUsd(vProp + vScop - usdC), label:'valor que no cerraría' } ],
+        stats:[ { valor:(Math.round(dealsC * 10) / 10) + '', label:'cierres esperados' }, { valor:fmtUsd(usdC), label:'valor esperado (USD aprox.)' }, { valor:fmtUsd(usdC + vImpl), label:'+ ya cerrado (Implementación)' }, { valor:fmtUsd(vProp + vScop - usdC), label:'valor que no cerraría' } ],
         nota:'Con ' + v.prop + '% de cierre en Propuesta (' + plural(nProp, 'oportunidad', 'oportunidades') + ') y ' + v.scop + '% en Scoping (' + plural(nScop, 'oportunidad', 'oportunidades') + '), esperaríamos ' + (Math.round(dealsC * 10) / 10) + ' cierres' + (vProp + vScop ? ' por ' + fmtUsd(usdC) + ' USD aprox.' : '') + '. El valor sale del texto libre “Valor estimado” del CRM.' };
     } }) });
 
