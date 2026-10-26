@@ -52,13 +52,7 @@
   @keyframes b1in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
   /* KPIs */
-  main.b1 .kpis,main.b1 .monthcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:18px;}
-  main.b1 .card{position:relative;overflow:hidden;border-radius:16px;padding:18px 20px 16px;background:linear-gradient(150deg,rgba(255,255,255,.08),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.09);box-shadow:0 18px 44px rgba(0,0,0,.4);transition:transform .2s,border-color .2s;}
-  main.b1 .card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--wk-blue);}
-  main.b1 .card.green:before{background:var(--wk-green);} main.b1 .card.amber:before{background:var(--wk-amber);} main.b1 .card.red:before{background:var(--wk-red);} main.b1 .card.gray:before{background:#8A97AC;}
-  main.b1 .card:hover{transform:translateY(-3px);border-color:rgba(61,214,255,.4);}
-  main.b1 .lab{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--wk-greyl);}
-  main.b1 .value{font-size:36px;line-height:1.1;font-weight:800;color:#fff;margin:8px 0 2px;letter-spacing:-.5px;}
+  main.b1 .kpis,main.b1 .monthcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:18px;} main.b1 .kpis .wk-kpi,main.b1 .monthcards .wk-kpi{border-top:0;}
   main.b1 .card small{color:var(--wk-grey);font-size:12.5px;}
 
   /* paneles */
@@ -72,7 +66,6 @@
   main.b1 .line:last-child{border-bottom:0;} main.b1 .line b{color:#fff;} main.b1 .line small{color:var(--wk-grey);font-size:12.5px;}
   main.b1 .total{text-align:right;color:var(--wk-greyl);font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;}
   main.b1 .total b{display:block;font-size:30px;font-weight:800;color:#fff;letter-spacing:-.5px;}
-  main.b1 .value{color:#fff;}
 
   /* barras */
   main.b1 .bar{height:10px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin:10px 0;}
@@ -243,6 +236,22 @@ const active=D.p.filter(x=>String(x.Fase||'').toUpperCase()!=='CANCELADO'), cnt=
 function rp(){const q=document.getElementById('q').value.toLowerCase(),f=document.getElementById('fs').value,a=active.filter(x=>(!q||`${x.Cliente} ${x.Proyecto}`.toLowerCase().includes(q))&&(!f||x.Estado===f));document.getElementById('pc').textContent=a.length+' proyectos';document.getElementById('pr').innerHTML=a.map(x=>`<tr><td><b>${safe(x.Cliente)}</b></td><td>${safe(x['Project Manager'])}</td><td>${safe(x.Fase)}</td><td class="prog">${pct(x['% Avance real'])}<div class="bar"><span style="width:${Math.min(100,x['% Avance real']*100)}%"></span></div></td><td>${n(x['Horas planificadas'])}</td><td>${n(x['Horas consumidas'])}</td><td>${pct(x['% Consumo horas'])}</td><td><span class="badge ${cls(x.Estado)}">${x.Estado}</span></td><td>${safe(x['Go Live actual'])}</td><td>${safe(x['Motivo / bloqueo'])}</td><td>${safe(x['Próximo hito'])}<br><small>${safe(x['Fecha próximo hito'])}</small></td><td>${safe(x['Comentario ejecutivo'])}</td></tr>`).join('')}q.oninput=rp;fs.onchange=rp;rp();
 document.getElementById('gl').innerHTML=D.g.map(x=>`<div class="item"><h3>${safe(x.Cliente)} <span class="badge ${cls(x.Estado)}">${safe(x.Tipo)}</span></h3><p>${safe(x.Proyecto)} · Preparación <b>${pct(x['% Preparación'])}</b></p><div class="bar"><span style="width:${Math.min(100,x['% Preparación']*100)}%"></span></div><p><b>Riesgo:</b> ${safe(x['Riesgo principal'])}</p><p>Plan: ${safe(x['Fecha planificada'])} · Actual: ${safe(x['Fecha actual'])}</p></div>`).join('');document.getElementById('rr').innerHTML=D.r.map(x=>`<tr><td><b>${safe(x.Cliente)}</b></td><td>${safe(x.Tipo)}</td><td>${safe(x.Descripción)}</td><td>${safe(x.Impacto)}</td><td>${safe(x.Prioridad)}</td><td>${safe(x['Acción de mitigación'])}</td><td>${safe(x.Responsable)}</td><td>${safe(x['Fecha compromiso'])}</td><td>${safe(x.Estado)}</td></tr>`).join('');document.getElementById('ii').innerHTML=D.i.map(x=>`<div class="item"><h3>${safe(x.Iniciativa)} <span class="badge ${cls(x.Estado)}">${safe(x.Estado)}</span></h3><p><b>${safe(x.Categoría)}</b> · ${safe(x.Objetivo)}</p><div class="bar"><span style="width:${Math.min(100,x['% Avance']*100)}%"></span></div><p>Avance ${pct(x['% Avance'])} · Objetivo ${safe(x['Fecha objetivo'])}</p></div>`).join('');
 const key=d=>{const m=String(d).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?`${m[3]}-${m[2]}`:'Sin fecha'},label=k=>{if(k==='Sin fecha')return k;const[y,m]=k.split('-');return new Intl.DateTimeFormat('es-MX',{month:'long',year:'numeric'}).format(new Date(+y,+m-1,1))},sums={};D.b.forEach(x=>{const k=key(x['Fecha facturación']);sums[k]=(sums[k]||0)+x.Neto});const months=Object.keys(sums).sort(),grand=D.b.reduce((a,x)=>a+x.Neto,0);bt.textContent=money(grand);bc.innerHTML=months.map(k=>`<div class="card"><div class="lab" style="text-transform:capitalize">${label(k)}</div><div class="value">${money(sums[k])}</div><small>${D.b.filter(x=>key(x['Fecha facturación'])===k).length} hitos</small></div>`).join('');tabs.innerHTML=months.map(k=>`<button class="monthtab" data-k="${k}">${label(k)}</button>`).join('');let sel=months[0]||'';function rb(){document.querySelectorAll('.monthtab').forEach(b=>b.classList.toggle('active',b.dataset.k===sel));const a=D.b.filter(x=>key(x['Fecha facturación'])===sel);bm.textContent=label(sel);bmt.textContent=money(a.reduce((s,x)=>s+x.Neto,0));bmc.textContent=a.length;br.innerHTML=a.map(x=>`<tr><td><b>${safe(x.Cliente)}</b></td><td>${safe(x.Pedido)}</td><td>${safe(x['Fecha facturación'])}</td><td>${safe(x.Hito)}</td><td><b>${money(x.Neto)}</b></td></tr>`).join('')}tabs.onclick=e=>{const b=e.target.closest('.monthtab');if(b){sel=b.dataset.k;rb()}};rb();
+</script>
+<script>
+/* Efectos WBR: se enganchan al tablero sin modificarlo (clases del kit) */
+(function(){
+  var tone={green:'wk-t-green',amber:'wk-t-amber',red:'wk-t-red'};
+  document.querySelectorAll('.kpis .card,.monthcards .card').forEach(function(c){
+    c.classList.add('wk-kpi'); Object.keys(tone).forEach(function(t){ if(c.classList.contains(t)) c.classList.add(tone[t]); });
+    var l=c.querySelector('.lab'); if(l) l.classList.add('wk-kpi-label');
+    var v=c.querySelector('.value'); if(v) v.classList.add('wk-kpi-val');
+  });
+  document.querySelectorAll('.panel,.item').forEach(function(c){ c.classList.add('wk-card'); });
+  document.querySelectorAll('.bar').forEach(function(b){ b.classList.add('wk-bar'); });
+  document.querySelectorAll('main.b1 .wrap').forEach(function(w){ w.classList.add('wk-tablewrap'); });
+  document.querySelectorAll('main.b1 table').forEach(function(t){ t.classList.add('wk-table'); t.setAttribute('data-sortable',''); });
+  if(window.WK){ WK.sortable(document); WK.fx && WK.fx(document); }
+})();
 </script>
 <script>
 (function(){
