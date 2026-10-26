@@ -8,6 +8,8 @@
 
   var CSS = '.dl-fab{position:fixed;left:20px;bottom:20px;z-index:95;display:inline-flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:11px 18px 11px 14px;background:linear-gradient(135deg,#1E5BB8,#3DD6FF);color:#fff;font:700 13px Poppins,"Segoe UI",sans-serif;cursor:pointer;box-shadow:0 10px 28px rgba(10,18,38,.45),0 0 0 1px rgba(255,255,255,.18) inset;transition:transform .15s ease,box-shadow .15s ease}.dl-fab:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(10,18,38,.55),0 0 22px rgba(61,214,255,.45)}.dl-fab svg{width:20px;height:20px;flex:none}'+
   '.dl-fab.dl-on{display:none}'+
+  '.dl-fab{gap:0;padding:12px}.dl-fab span{max-width:0;opacity:0;overflow:hidden;white-space:nowrap;transition:max-width .25s ease,opacity .2s ease,margin .25s ease}.dl-fab:hover span,.dl-fab:focus-visible span,.dl-fab.dl-intro span{max-width:190px;opacity:1;margin-left:9px}'+
+  'body::after{content:"";display:block;height:84px;pointer-events:none}@media print{body::after{display:none}}'+
   '.dl-panel{position:fixed;left:20px;bottom:20px;z-index:96;width:min(410px,calc(100vw - 24px));height:min(620px,calc(100vh - 40px));display:none;flex-direction:column;border-radius:20px;overflow:hidden;background:linear-gradient(170deg,#0E1E3F,#060C1B 70%);color:#E3ECFA;font:400 13.5px/1.5 Poppins,"Segoe UI",sans-serif;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(143,230,255,.28)}.dl-panel.dl-on{display:flex;animation:dlIn .22s ease}.dl-panel *{box-sizing:border-box}@keyframes dlIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}'+
   '.dl-h{display:flex;align-items:center;gap:11px;padding:14px 14px 12px 16px;background:linear-gradient(120deg,rgba(30,91,184,.6),rgba(14,30,63,.2) 70%);border-bottom:1px solid rgba(255,255,255,.1)}.dl-h .dl-lg{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,#1E5BB8,#3DD6FF);box-shadow:0 0 18px rgba(61,214,255,.4);flex:none}.dl-h .dl-lg svg{width:19px;height:19px;color:#fff}.dl-h b{display:block;font-size:14.5px;color:#fff;font-weight:700}.dl-h small{display:block;font-size:11px;color:#8FE6FF}.dl-h .dl-sp{flex:1;min-width:0}'+
   '.dl-ib{border:0;background:rgba(255,255,255,.08);color:#C4D2EA;width:30px;height:30px;border-radius:9px;cursor:pointer;font-size:14px;line-height:1}.dl-ib:hover{background:rgba(61,214,255,.2);color:#fff}'+
@@ -30,6 +32,7 @@
     '<form class="dl-f" id="dlF"><textarea id="dlT" rows="1" maxlength="1500" placeholder="Pregunta algo del portal o de esta pantalla…" aria-label="Tu pregunta"></textarea><button type="submit" id="dlS" aria-label="Enviar">➤</button></form>' +
     '<div class="dl-n">Delfos puede equivocarse: verifica las cifras importantes en el tablero.</div>';
   document.body.appendChild(fab); document.body.appendChild(panel);
+  fab.classList.add('dl-intro'); setTimeout(function(){ fab.classList.remove('dl-intro'); }, 4500);
   var M = panel.querySelector('#dlM'), T = panel.querySelector('#dlT'), F = panel.querySelector('#dlF'), S = panel.querySelector('#dlS'), SG = panel.querySelector('#dlSg'), CX = panel.querySelector('#dlCtx');
 
   function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); }
