@@ -158,6 +158,7 @@
   .fs-tag.won{background:rgba(61,160,255,.2); color:#8FD0FF;} .fs-tag.vc{background:rgba(47,226,155,.14); color:#4CE8AB;} .fs-tag.top{background:rgba(255,200,87,.15); color:#FFD479;} .fs-tag.up{background:rgba(255,255,255,.08); color:#A5B4CE;}
   .fs-x{border:none; background:none; color:#FF8CA2; cursor:pointer; font-size:15px; padding:2px 6px; border-radius:6px;} .fs-x:hover{background:rgba(255,92,122,.18);}
   .fs-one>.wk-card{margin-bottom:18px;}
+  body.fs-ov .wk-owner-multi .wk-owner-cap{display:none;}
   .fs-note{font-size:12px; color:#A5B4CE; margin:10px 2px 0;} .fs-note b{color:#fff;}
   .fs-warn{background:rgba(255,200,87,.12); border:1px solid rgba(255,200,87,.35); color:#FFD479; border-radius:10px; padding:8px 12px; font-size:12.5px; font-weight:600; margin:0 0 12px;}
   .fs-snap{background:linear-gradient(135deg,rgba(61,214,255,.14),rgba(139,124,255,.10)); border:1px solid rgba(61,214,255,.28); border-left:5px solid #3DD6FF; border-radius:12px; padding:10px 14px; font-size:13px; color:#E3ECFA; margin-bottom:14px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
@@ -643,6 +644,7 @@ function pintar(conservar){
   }
   avatares();
   // retrato del encabezado
+  document.body.classList.toggle('fs-ov', vista === 'overview');
   if(window.WK && WK.ownerSet){
     if(vista === 'overview' || snap) WK.ownerSet(WK.OWNERS.forecastequipo);
     else { const o = WK.OWNERS[vista]; WK.ownerSet({ etiqueta:'Dueño del tablero · Forecast Semanal', equipo:[{ nombre: nombreAe(vista), cargo:'Account Executive', foto: (o && o.foto) || ('/assets/owners/' + vista + '.png') }] }); }
