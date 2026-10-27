@@ -366,12 +366,12 @@ function calc(b, meses){
   const lobDe = d => LOBS.find(l => l.toLowerCase() === String(d.lob||'').toLowerCase());
   let tv = 0, tp = 0;
   LOBS.forEach(l => {
-    const mias = ds.filter(d => d.enLob && lobDe(d) === l), vend = mias.filter(won).reduce((a,d) => a + totalDeal(d), 0), todo = mias.reduce((a,d) => a + totalDeal(d), 0);
+    const mias = ds.filter(d => lobDe(d) === l), vend = mias.filter(won).reduce((a,d) => a + totalDeal(d), 0), todo = mias.reduce((a,d) => a + totalDeal(d), 0);
     v['lv.'+l] = vend; v['lp.'+l] = todo - vend; v['lt.'+l] = todo; tv += vend; tp += todo - vend;
   });
   v['lv.t'] = tv; v['lp.t'] = tp; v['lt.t'] = tv + tp;
-  v['sinlob.n'] = ds.filter(d => d.enLob && !lobDe(d)).length;
-  v['sinlob.t'] = ds.filter(d => d.enLob && !lobDe(d)).reduce((a,d) => a + totalDeal(d), 0);
+  v['sinlob.n'] = ds.filter(d => !lobDe(d) && totalDeal(d)).length;
+  v['sinlob.t'] = ds.filter(d => !lobDe(d)).reduce((a,d) => a + totalDeal(d), 0);
   return v;
 }
 function fmtClave(k, n){
@@ -508,7 +508,7 @@ function bloqueDeals(b, ed, conAe){
       '<td class="ae"><select class="fs-in t" data-d="estatus" style="min-width:250px">' + selectOpts(ESTATUS, d.estatus) + '</select></td>' +
       '<td class="ae"><select class="fs-in t" data-d="mes" style="min-width:115px">' + selectOpts(MESES, d.mes) + '</select></td>' +
       '<td class="ae"><select class="fs-in t" data-d="plan" style="min-width:95px">' + selectOpts(PLANES, d.plan) + '</select></td>' +
-      '<td class="ae" style="text-align:center"><input type="checkbox" class="fs-chk" data-d="enLob"' + (d.enLob ? ' checked' : '') + ' title="Marcar para que alimente la tabla LOB"></td>' +
+      '<td class="ae" style="text-align:center"><input type="checkbox" class="fs-chk" data-d="enLob"' + (d.enLob ? ' checked' : '') + ' title="Casilla LOB del Excel (informativa)"></td>' +
       '<td class="ae"><textarea class="fs-in t" data-d="next" rows="2" placeholder="Next steps" style="min-width:280px">' + esc(d.next) + '</textarea></td>' +
       '<td class="l"><button class="fs-x" data-del="' + i + '" title="Quitar deal">✕</button></td></tr>';
     return '<tr>' + (conAe ? '<td class="l"><span class="fs-tag">' + esc(nombreAe(d._ae)) + '</span></td>' : '') +
@@ -531,7 +531,7 @@ function bloqueLob(){
   return '<div class="wk-band"><h2>4 · Por LOB — vendido y por vender</h2><span>Cerrado vs pipeline abierto</span></div>' +
   '<div class="fs-one"><div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th>Concepto</th>' + cabs + '<th>Total</th></tr></thead><tbody>' +
     fila('Vendido (Cerrado)', 'lv') + fila('Por vender (VC + BC + Pipe)', 'lp') + fila('Total', 'lt', 'tot') + '</tbody></table></div>' +
-    '<p class="fs-note">Esta tabla se alimenta de los deals marcados con ✓ en Top deals. Si un deal marcado no tiene LOB asignado, no aparece aquí — asígnalo.</p></div>' +
+    '<p class="fs-note">Si un deal no tiene LOB asignado en Top deals, no aparece aquí — asígnalo.</p></div>' +
   '<div class="wk-card"><div class="wk-card-head"><div><h3>Mezcla por LOB</h3><p>Vendido (azul) y por vender (celeste)</p></div></div><div id="fsLobBars"></div></div></div>';
 }
 
@@ -562,7 +562,7 @@ function refrescar(raiz, b, qi, prev){
     lb.innerHTML = LOBS.map(l => '<div style="display:grid;grid-template-columns:120px 1fr 90px;gap:10px;align-items:center;margin:9px 0;font-size:12.5px"><b style="color:#fff">' + esc(l) + '</b><div class="fs-hbar" style="width:' + (v['lt.'+l]/mx*100) + '%;min-width:6px"><i style="background:#1E5BB8;width:' + (v['lv.'+l]/(v['lt.'+l]||1)*100) + '%"></i><i style="background:#9DD6EC;width:' + (v['lp.'+l]/(v['lt.'+l]||1)*100) + '%"></i></div><span style="text-align:right;color:var(--grey)">' + numK(v['lt.'+l]) + '</span></div>').join('');
   }
   const av = raiz.querySelector('#fsAvisoLob');
-  if(av) av.innerHTML = v['sinlob.n'] ? '<div class="fs-warn">⚠️ ' + v['sinlob.n'] + ' deal(s) marcado(s) para la tabla LOB sin LOB asignado (' + numK(v['sinlob.t']) + ') — no aparecen en el bloque 4 hasta que les asignes LOB.</div>' : '';
+  if(av) av.innerHTML = v['sinlob.n'] ? '<div class="fs-warn">⚠️ ' + v['sinlob.n'] + ' deal(s) sin LOB por ' + numK(v['sinlob.t']) + ' — no aparecen en el bloque 4 hasta que les asignes LOB.</div>' : '';
   return v;
 }
 
