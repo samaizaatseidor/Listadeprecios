@@ -278,6 +278,12 @@ function encontrarFila(matriz, textoAncla){
   }
   return -1;
 }
+function encontrarFilaRx(matriz, rx){
+  for(let i=0; i<matriz.length; i++){
+    if(matriz[i].some(c => typeof c === 'string' && rx.test(c.trim()))) return i;
+  }
+  return -1;
+}
 function parsearBloquePeriodos(matriz, idxHeader){
   const periodos = [];
   for(let i=idxHeader+1; i<idxHeader+4; i++){
@@ -296,7 +302,7 @@ function parsearTop10(matriz, idxHeader){
     if(!fila || !fila[0]){ if(++vaciasSeguidas > 3) break; continue; }
     vaciasSeguidas = 0;
     const c0 = String(fila[0]).toUpperCase();
-    if(c0.includes('TOTAL') || c0.includes('TOP 10') || c0.trim() === 'CLIENTE' || c0.trim().startsWith('*')) break;
+    if(c0.includes('TOTAL') || c0.includes('TOP 10') || c0.includes('TOP CLIENTES') || c0.trim() === 'CLIENTE' || c0.trim().startsWith('*')) break;
     clientes.push({ cliente: fila[0], lob: fila[1]||'', montoEUR: fila[2]||0, montoMXN: fila[3]||0, diasVencidos: fila[4]||0, nextStep: fila[5]||'' });
   }
   return clientes;
@@ -306,11 +312,19 @@ function parsearFinanzas(wb){
   if(!ws) throw new Error('El archivo no tiene una pestaña llamada "Finanzas"');
   const m = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true });
   const idxFecha = encontrarFila(m, 'Semana de revisión');
-  const fechaRevision = idxFecha>=0 ? (m[idxFecha].find(c => c instanceof Date) || null) : null;
+  let fechaRevision = idxFecha>=0 ? (m[idxFecha].find(c => c instanceof Date) || null) : null;
+  if(!fechaRevision){ // la celda de fecha de esta pestaña no es válida (p. ej. texto): se toma la de otra pestaña que tenga "Semana de revisión"
+    for(const nombre of wb.SheetNames){
+      const mm = XLSX.utils.sheet_to_json(wb.Sheets[nombre], { header:1, defval:null, raw:true });
+      const k = encontrarFila(mm, 'Semana de revisión');
+      const d = k>=0 ? mm[k].find(c => c instanceof Date) : null;
+      if(d){ fechaRevision = d; break; }
+    }
+  }
   const facturacion = parsearBloquePeriodos(m, encontrarFila(m,'FACTURACIÓN')+1);
   const cobranza = parsearBloquePeriodos(m, encontrarFila(m,'COBRANZA')+1);
-  const top10SAP = parsearTop10(m, encontrarFila(m,'TOP 10 CLIENTES POR COBRAR SAP')+1);
-  const top10B1 = parsearTop10(m, encontrarFila(m,'TOP 10 CLIENTES POR COBRAR B1')+1);
+  const top10SAP = parsearTop10(m, encontrarFilaRx(m,/^TOP\s*(10\s*)?CLIENTES\s+POR\s+COBRAR\s+SAP/i)+1);
+  const top10B1 = parsearTop10(m, encontrarFilaRx(m,/^TOP\s*(10\s*)?CLIENTES\s+POR\s+COBRAR\s+B1/i)+1);
   return { fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(), facturacion, cobranza, top10SAP, top10B1 };
 }
 function parsearAging(wb){
@@ -329,7 +343,9 @@ function parsearAging(wb){
     filas.push({ cliente, valores });
   }
   filas.sort((a,b) => b.valores[7] - a.valores[7]); // por TOTAL descendente
-  return { buckets, filas, totalGeneral: totalGeneral || buckets.map(()=>0) };
+  // Si el Excel no trae renglón de total general, se calcula sumando los clientes
+  if(!totalGeneral) totalGeneral = buckets.map((_,j) => filas.reduce((t,f) => t + (f.valores[j]||0), 0));
+  return { buckets, filas, totalGeneral };
 }
 
 /* ---------- Carga y guardado ---------- */
