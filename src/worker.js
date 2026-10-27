@@ -659,6 +659,22 @@ async function fcsManejar(request, env, url){
   const live = rawLive ? JSON.parse(rawLive) : {};
 
   if (request.method === 'GET') {
+    // Carga inicial (una sola vez): el Excel de Fer como corte de la semana pasada, para ver cómo se ve el historial.
+    try {
+      if (!(await env.PM_KV.get('fcs_seed')) && !live.fernanda && !(await env.PM_KV.get('fcs_hist'))) {
+        const r = await env.ASSETS.fetch(new Request(new URL('/data/forecast-semanal-fernanda.json', url.origin)));
+        if (r.ok) {
+          const base = fcsLimpiar(await r.json());
+          const mx = new Date(Date.now() - 6 * 3600 * 1000); // hora de México
+          mx.setUTCDate(mx.getUTCDate() - ((mx.getUTCDay() + 6) % 7) - 7); // lunes de la semana pasada
+          const semana = mx.toISOString().slice(0, 10), ts = new Date().toISOString();
+          live.fernanda = { ...base, version: 1, semana, reportadoEn: ts, reportadoPor: 'Carga inicial (Excel de Fernanda)', editadoEn: ts, editadoPor: 'Carga inicial (Excel de Fernanda)' };
+          await env.PM_KV.put('fcs_hist', JSON.stringify([{ ae:'fernanda', semana, reportadoEn: ts, reportadoPor: 'Carga inicial (Excel de Fernanda)', board: base }]));
+          await env.PM_KV.put('fcs_live', JSON.stringify(live));
+          await env.PM_KV.put('fcs_seed', '1');
+        }
+      }
+    } catch (e) { /* si falla la carga inicial, la página funciona igual vacía */ }
     const rawH = await env.PM_KV.get('fcs_hist');
     return json({ ok:true, live, historial: rawH ? JSON.parse(rawH) : [], config: fcfg, yo, catalogos:{ estatus:FCS_ESTATUS, lobs:FCS_LOBS, meses:FCS_MESES, planes:FCS_PLANES } });
   }
