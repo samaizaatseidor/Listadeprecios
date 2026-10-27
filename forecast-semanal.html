@@ -135,6 +135,9 @@
   .fs-t th{background:rgba(14,26,52,.96); color:#9FB2D3; font-size:11px; letter-spacing:.6px; text-transform:uppercase; padding:10px 10px; text-align:right; font-weight:700; white-space:nowrap; border-bottom:1px solid rgba(255,255,255,.1);}
   .fs-t th.l,.fs-t th:first-child{text-align:left;}
   .fs-t th.g2{color:#8FE6FF;}
+  .fs-t th.grp{text-align:center; color:#fff; font-size:11.5px; letter-spacing:1.4px; background:rgba(30,91,184,.35); border-bottom:2px solid #3DD6FF; border-left:1px solid rgba(255,255,255,.12);}
+  .fs-t th.grp.g2{color:#8FE6FF; background:rgba(61,214,255,.14);}
+  .fs-t th.grp0{background:transparent; border-bottom:none;}
   .fs-t td{padding:5px 8px; border-bottom:1px solid rgba(255,255,255,.06); text-align:right; font-variant-numeric:tabular-nums; vertical-align:middle; color:#DDE8F8;}
   .fs-t td:first-child,.fs-t td.l{text-align:left;}
   .fs-t td.k{font-weight:700; color:#fff; white-space:nowrap;}
@@ -487,7 +490,7 @@ function bloqueQ(ed, qi){
   '<div class="fs-grid">' + kpi('Forecast (Won + VC)', 'qf.t', 'Won ' + cv('qw.t') + ' · VC ' + cv('qv.t'), { sem:'qa.t', delta:'qf.t' }) +
     kpi('Alcance vs cuota del Q', 'qa.t', 'Cuota del Q <b>' + cv('qc.t') + '</b>', { sem:'qa.t', bar:'qa.t' }) +
     kpi('Cobertura de pipeline', 'qb.t', 'Pipeline <b>' + cv('qp.t') + '</b> (VC + Upside)', { delta:'qp.t' }) + '</div>' +
-  '<div class="fs-one"><div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th>Concepto</th><th>SW</th><th>Servicios</th><th>Total</th><th class="g2">' + M[0] + '</th><th class="g2">' + M[1] + '</th><th class="g2">' + M[2] + '</th></tr></thead><tbody>' +
+  '<div class="fs-one"><div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th class="grp0"></th><th colspan="3" class="grp">Q general</th><th colspan="3" class="grp g2">Mensual</th></tr><tr><th>Concepto</th><th>SW</th><th>Servicios</th><th>Total</th><th class="g2">' + M[0] + '</th><th class="g2">' + M[1] + '</th><th class="g2">' + M[2] + '</th></tr></thead><tbody>' +
     '<tr><td class="k">Cuota del Q</td>' + celda('q.swCuota', q.swCuota, 'n', ops, co) + celda('q.svCuota', q.svCuota, 'n', ops, co) + '<td class="calc">' + cv('qc.t') + '</td>' + [0,1,2].map(i => celda('q.mes.' + i, q.mes[i], 'n', ops, co)).join('') + '</tr>' +
     fila('Won en el Q', 'qw') + fila('VC (Commit + Probable)', 'qv') + fila('Forecast (Won + VC)', 'qf', 'hl') + fila('Alcance vs Cuota', 'qa') + fila('Pipeline (VC + Top Upside + Upside)', 'qp') + fila('Cobertura (Pipeline vs Cuota)', 'qb') +
   '</tbody></table></div><p class="fs-note">Compromiso por mes = <b>Cerrado + VC</b>. Las columnas de mes suman el monto total (SW + Servicios) de los deals con ese mes.</p></div>' +
