@@ -114,6 +114,7 @@
   .wk-wi-out .wk-stat-row{grid-template-columns:1fr 1fr; width:100%;}
   .wk-wi-out .wk-stat{padding:16px 18px;} .wk-wi-out .wk-stat b{font-size:30px;} .wk-wi-out .wk-stat span{font-size:13.5px; line-height:1.4;}
   .wk-wi-note{font-size:15.5px; margin:0 auto;}
+.fin-del{background:none;border:1px solid rgba(255,255,255,.15);color:#FF8CA2;border-radius:8px;padding:3px 8px;cursor:pointer;font-size:13px;} .fin-del:hover{background:rgba(255,77,106,.18);}
 </style>
 </head>
 <body>
@@ -416,6 +417,20 @@ function verSnapshotHistorico(idCarga){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
+async function eliminarCorte(id){
+  const h = historial.find(x => x.guardadoEn === id); if(!h) return;
+  if(!confirm('¿Eliminar el corte de la semana ' + WK.fecha(new Date(h.fechaRevision)) + ' (' + WK.hora(h.guardadoEn) + ')? No se puede deshacer.')) return;
+  try{
+    const r = await fetch('/api/wbr-finanzas', { method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ guardadoEn:id }) });
+    const d = await r.json();
+    if(!d.ok) throw new Error(d.error || 'No se pudo eliminar');
+    historial = historial.filter(x => x.guardadoEn !== id);
+    if(snapshotVisto && snapshotVisto.guardadoEn === id) snapshotVisto = null;
+    if(actual && actual.guardadoEn === id) actual = historial.length ? historial[historial.length-1] : null;
+    render();
+  }catch(e){ alert('No se pudo eliminar el corte: ' + (e.message||e)); }
+}
+
 function volverActual(){
   snapshotVisto = null;
   render();
@@ -601,10 +616,10 @@ function render(){
 
   /* Bitácora */
   const filasBit = historial.slice().reverse().map(h => { const r = resumenCorte(h), hc = WK.hora(h.guardadoEn).split(' ');
-    return { semana:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:hc[0] === '—' ? '' : hc[0], hora:hc[1] || '', fact:r.f.avance, cobr:r.c.avance, venc:r.vencido, _id:h.guardadoEn }; });
+    return { semana:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:hc[0] === '—' ? '' : hc[0], hora:hc[1] || '', fact:r.f.avance, cobr:r.c.avance, venc:r.vencido, del:'<button type="button" class="fin-del" title="Eliminar este corte" onclick="event.stopPropagation(); eliminarCorte(\'' + h.guardadoEn + '\')">🗑</button>', _id:h.guardadoEn }; });
   const bitacora = WK.table([
     { k:'semana', label:'Semana', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' }, { k:'hora', label:'Hora', tipo:'text' },
-    { k:'fact', label:'Facturación %', tipo:'pct' }, { k:'cobr', label:'Cobranza %', tipo:'pct' }, { k:'venc', label:'Cartera vencida', tipo:'usdK' }
+    { k:'fact', label:'Facturación %', tipo:'pct' }, { k:'cobr', label:'Cobranza %', tipo:'pct' }, { k:'venc', label:'Cartera vencida', tipo:'usdK' }, { k:'del', label:'', tipo:'html' }
   ], filasBit, { id:'tablaBitacora', rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver el dashboard completo de esta semana"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
   const bodyBit = filasBit.length > 6
     ? '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar semana o persona…" oninput="WK.filtrar(document.getElementById(\'tablaBitacora\'), this.value)"></div>' + bitacora

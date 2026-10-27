@@ -1679,6 +1679,19 @@ ${JSON.stringify(checklist || [])}`;
       return new Response(JSON.stringify({ ok: true, totalSnapshots: historial.length }), { headers: { 'Content-Type': 'application/json' } });
     }
 
+    if (url.pathname === '/api/wbr-finanzas' && request.method === 'DELETE') {
+      { const _bloqueo = await requierePermiso(request, env, 'completo'); if (_bloqueo) return _bloqueo; }
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      if (!body.guardadoEn) return new Response(JSON.stringify({ ok:false, error:'Falta el corte a eliminar' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      const raw = await env.PM_KV.get('wbr_finanzas_historial');
+      const historial = raw ? JSON.parse(raw) : [];
+      const resto = historial.filter(h => h.guardadoEn !== body.guardadoEn);
+      if (resto.length === historial.length) return new Response(JSON.stringify({ ok:false, error:'No se encontró ese corte' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+      await env.PM_KV.put('wbr_finanzas_historial', JSON.stringify(resto));
+      return new Response(JSON.stringify({ ok: true, totalSnapshots: resto.length }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
     if (url.pathname === '/api/wbr-finanzas-insight' && request.method === 'POST') {
       const token = await getDelfosToken(env);
       if (!token) return new Response(JSON.stringify({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
