@@ -116,7 +116,7 @@
   .fs-pill{display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:99px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); font-size:12px; font-weight:600; color:#A5B4CE;}
   .fs-pill.ok{background:rgba(47,226,155,.12); border-color:rgba(47,226,155,.35); color:#4CE8AB;} .fs-pill.warn{background:rgba(255,200,87,.12); border-color:rgba(255,200,87,.35); color:#FFD479;} .fs-pill.bad{background:rgba(255,92,122,.12); border-color:rgba(255,92,122,.35); color:#FF8CA2;}
   .fs-legend{display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:#A5B4CE; margin:0 0 12px;}
-  .fs-legend i{display:inline-block; width:14px; height:14px; border-radius:4px; vertical-align:-3px; margin-right:5px; border:1px solid rgba(255,255,255,.2);}
+  .fs-legend i{display:inline-block; width:22px; height:14px; border-radius:4px; vertical-align:-3px; margin-right:6px;}
   .fs-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; margin-bottom:16px;}
   .fs-kpi{position:relative; background:linear-gradient(150deg,rgba(255,255,255,.08),rgba(255,255,255,.025)); border:1px solid rgba(255,255,255,.09); border-radius:16px; padding:16px 18px; box-shadow:0 18px 44px rgba(0,0,0,.4); overflow:hidden;}
   .fs-kpi:before{content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:#3DD6FF;}
@@ -140,12 +140,13 @@
   .fs-t td.k{font-weight:700; color:#fff; white-space:nowrap;}
   .fs-t tr.hl td{background:rgba(61,214,255,.10); font-weight:700; color:#fff;}
   .fs-t tr.tot td{background:rgba(255,255,255,.06); font-weight:800; color:#fff; border-top:1px solid rgba(255,255,255,.18);}
-  .fs-t td.ae{background:rgba(255,214,64,.13); box-shadow:inset 0 0 0 1px rgba(255,214,64,.22);}
-  .fs-t td.ops{background:rgba(70,150,255,.16); box-shadow:inset 0 0 0 1px rgba(70,150,255,.28);}
-  .fs-t td.calc{background:rgba(255,255,255,.035); color:#fff; font-weight:600;}
+  .fs-t td.ae,.fs-legend i.ae{background:rgba(255,214,64,.20); box-shadow:inset 0 0 0 1px rgba(255,214,64,.45);}
+  .fs-t td.ops,.fs-legend i.ops{background:rgba(70,150,255,.24); box-shadow:inset 0 0 0 1px rgba(70,150,255,.50);}
+  .fs-t td.calc,.fs-legend i.calc{background:rgba(255,255,255,.05); box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);}
+  .fs-t td.calc{color:#fff; font-weight:600;}
   .fs-t tbody tr:hover td{background-color:rgba(61,214,255,.08)!important; color:#fff;}
-  .fs-t tbody tr:hover td.ae{background-color:rgba(255,214,64,.22)!important;}
-  .fs-t tbody tr:hover td.ops{background-color:rgba(70,150,255,.30)!important;}
+  .fs-t tbody tr:hover td.ae{background-color:rgba(255,214,64,.32)!important;}
+  .fs-t tbody tr:hover td.ops{background-color:rgba(70,150,255,.38)!important;}
   .fs-t tbody tr:hover td.calc{background-color:rgba(255,255,255,.09)!important;}
   .fs-chk{width:18px; height:18px; accent-color:#2FE29B; cursor:pointer;}
   .fs-in{width:100%; min-width:64px; font:600 13px Poppins,sans-serif; text-align:right; border:1px solid transparent; background:transparent; border-radius:6px; padding:5px 6px; color:#fff; font-variant-numeric:tabular-nums; color-scheme:dark;}
@@ -582,7 +583,7 @@ function permisoTexto(){
   if(D.yo.ae) return '<span class="fs-pill ok">✏️ Eres ' + esc(nombreAe(D.yo.ae)) + ' — editas solo tu tablero (celdas amarillas)</span>';
   return '<span class="fs-pill">👁️ Solo lectura</span>';
 }
-function leyenda(){ return '<div class="fs-legend"><span><i style="background:#FFFFCC"></i>Celdas del AE</span><span><i style="background:#E3F0FD"></i>Celdas de Sales Ops</span><span><i style="background:#F3F6FA"></i>Se calcula solo</span><span>Montos en miles de USD</span></div>'; }
+function leyenda(){ return '<div class="fs-legend"><span><i class="ae"></i>Celdas del AE</span><span><i class="ops"></i>Celdas de Sales Ops</span><span><i class="calc"></i>Se calcula solo</span><span>Montos en miles de USD</span></div>'; }
 
 function pintar(conservar){
   if(!D) return;
