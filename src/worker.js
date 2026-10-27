@@ -605,15 +605,15 @@ async function refrescarSeidorHome(env){
 //  - AE (permiso 'completo' en forecast-semanal-ae + correo asignado a su tablero): SOLO las celdas amarillas
 //    de su propio tablero (Cerrado YTD y Top Deals). Cuotas y todo lo demás lo edita Sales Ops.
 const FCS_ESTATUS = ['Won','VC= Commited+ Probable Plan A','Top Upside =Plan B','Upside'];
-const FCS_LOBS = ['B1','Grow','Rise','SFSF','LOB','Serv. Consultoría','Tech'];
+const FCS_LOBS = ['B1','Grow','Rise','SFSF','LOB'];
 const FCS_MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const FCS_PLANES = ['Plan A','Plan B'];
-const FCS_AES = [
-  { slug:'fernanda',  nombre:'Fernanda Richards', email:'' },
-  { slug:'manuel',    nombre:'Manuel Apon',       email:'' },
-  { slug:'natalia',   nombre:'Natalia Ossa',      email:'' },
-  { slug:'estefania', nombre:'Estefanía Muñoz',   email:'' },
-  { slug:'carolina',  nombre:'Carolina',          email:'' },
+const FCS_AES = [ // correos = los mismos que usa el portal para los AEs; Sales Ops puede cambiarlos en ⚙️ Responsables
+  { slug:'fernanda',  nombre:'Fernanda Richards', email:'fernanda.richards@seidor.com' },
+  { slug:'manuel',    nombre:'Manuel Apon',       email:'manuel.apon@seidor.com' },
+  { slug:'natalia',   nombre:'Natalia Ossa',      email:'natalia.ossa@seidor.com' },
+  { slug:'estefania', nombre:'Estefanía Muñoz',   email:'estefania.munoz@seidor.com' },
+  { slug:'carolina',  nombre:'Carolina Romei',    email:'carolina.romei@seidor.com' },
 ];
 const fcsNum = x => { const n = Number(x); return Number.isFinite(n) ? Math.round(Math.max(-1e9, Math.min(1e9, n)) * 1000) / 1000 : 0; };
 const fcsTxt = (x, n) => String(x == null ? '' : x).slice(0, n);
@@ -630,6 +630,7 @@ function fcsLimpiar(b){
       estatus: FCS_ESTATUS.includes(d.estatus) ? d.estatus : '',
       mes: FCS_MESES.includes(d.mes) ? d.mes : '',
       plan: FCS_PLANES.includes(d.plan) ? d.plan : '',
+      enLob: d.enLob === true,
       next: fcsTxt(d.next, 1500)
     };
   }).filter(d => d.id || d.cuenta || d.sw || d.sv || d.next);
@@ -643,7 +644,7 @@ async function fcsConfig(env){
   const raw = await env.PM_KV.get('fcs_config');
   const guardado = raw ? JSON.parse(raw) : {};
   const porSlug = {}; (Array.isArray(guardado.aes) ? guardado.aes : []).forEach(a => { if (a && a.slug) porSlug[a.slug] = a; });
-  return { aes: FCS_AES.map(a => ({ slug:a.slug, nombre:(porSlug[a.slug]||{}).nombre || a.nombre, email: fcsTxt((porSlug[a.slug]||{}).email, 120).toLowerCase() })) };
+  return { aes: FCS_AES.map(a => ({ slug:a.slug, nombre:(porSlug[a.slug]||{}).nombre || a.nombre, email: (porSlug[a.slug] && 'email' in porSlug[a.slug]) ? fcsTxt(porSlug[a.slug].email, 120).toLowerCase() : a.email })) };
 }
 async function fcsManejar(request, env, url){
   const json = (o, status) => new Response(JSON.stringify(o), { status: status || 200, headers: { 'Content-Type': 'application/json' } });

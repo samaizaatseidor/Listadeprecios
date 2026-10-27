@@ -212,6 +212,7 @@ var CSS = [
 '.wk-pop .disc{position:absolute;left:0;bottom:0;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 50% 28%,#6FD3F0 0%,#1E5BB8 42%,#0A1A44 100%);box-shadow:inset 0 0 0 3px rgba(255,255,255,.18),inset 0 -18px 30px rgba(0,0,0,.35);transform:translate(calc(var(--px,0)*-7px),calc(var(--py,0)*-4px));transition:transform .15s ease-out;}',
 '.wk-pop .ph{position:absolute;left:0;bottom:0;width:150px;height:188px;border-radius:0 0 75px 75px;overflow:hidden;transform:translate(calc(var(--px,0)*6px),calc(var(--py,0)*3px));transition:transform .15s ease-out;}',
 '.wk-pop .ph img{position:absolute;bottom:0;left:50%;height:100%;width:auto;max-width:none;transform:translateX(-50%);filter:drop-shadow(0 10px 16px rgba(0,0,0,.5)) contrast(1.04) saturate(1.05);}',
+'.wk-pop.wk-jpg .ph{height:150px;border-radius:50%;} .wk-pop.wk-jpg .ph img{position:absolute;inset:0;left:0;bottom:auto;width:100%;height:100%;object-fit:cover;transform:none;filter:none;} .wk-pop.wk-jpg .ph:after{display:none;}',
 '.wk-pop .ph:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 62%,rgba(5,10,24,.5));pointer-events:none;}',
 '.wk-owner-cap em{font-style:normal;font-size:13px;color:var(--wk-grey);font-weight:500;}',
 
@@ -709,16 +710,16 @@ WK.OWNERS = {
   anuncios:{ nombre:'Paul Sirrs', cargo:'CEO', rol:'Anuncios', foto:'/assets/owners/paul.png' }, cta:{ nombre:'Angel Aiza', cargo:'Director de Estrategia y Procesos', rol:'Call to Action', foto:'/assets/owners/angel.png' }, vop:{ rol:'VOP', equipo:[ { nombre:'Omar Dávila', cargo:'Director Comercial', foto:'/assets/owners/omar.png' }, { nombre:'Yurima Choco', cargo:'Directora de Operaciones', foto:'/assets/owners/yurima.png' }, { nombre:'Samuel Aiza', cargo:'Presales Manager', foto:'/assets/owners/sam.png' } ] }, presales:{ rol:'Tablero de control', etiqueta:'Solution Engineers', equipo:[ { nombre:'Gustavo Najar', cargo:'Solution Engineer', foto:'/assets/owners/gustavo.png' }, { nombre:'Rocío Anaya', cargo:'Solution Engineer', foto:'/assets/owners/rocio.png' }, { nombre:'Samuel Aiza', cargo:'Presales Manager', foto:'/assets/owners/sam.png' } ] },
   mariajose:{ nombre:'María José Bastian', cargo:'Gerente de B1', rol:'Operaciones B1' },
   forecastequipo:{ rol:'Forecast Semanal', etiqueta:'Equipo comercial · Forecast Semanal', equipo:[
-    { nombre:'Fernanda Richards', cargo:'Account Executive', foto:'/assets/owners/fernanda.png' },
+    { nombre:'Fernanda Richards', cargo:'Account Executive', foto:'/assets/owners/fernanda.jpg' },
     { nombre:'Manuel Apon', cargo:'Account Executive', foto:'/assets/owners/manuel.png' },
     { nombre:'Natalia Ossa', cargo:'Account Executive', foto:'/assets/owners/natalia.png' },
     { nombre:'Estefanía Muñoz', cargo:'Account Executive', foto:'/assets/owners/estefania.png' },
-    { nombre:'Carolina', cargo:'Account Executive', foto:'/assets/owners/carolina.png' } ] },
-  fernanda:{ nombre:'Fernanda Richards', cargo:'Account Executive', rol:'Forecast Semanal', foto:'/assets/owners/fernanda.png' },
+    { nombre:'Carolina Romei', cargo:'Account Executive', foto:'/assets/owners/carolina.png' } ] },
+  fernanda:{ nombre:'Fernanda Richards', cargo:'Account Executive', rol:'Forecast Semanal', foto:'/assets/owners/fernanda.jpg' },
   manuel:{ nombre:'Manuel Apon', cargo:'Account Executive', rol:'Forecast Semanal', foto:'/assets/owners/manuel.png' },
   natalia:{ nombre:'Natalia Ossa', cargo:'Account Executive', rol:'Forecast Semanal', foto:'/assets/owners/natalia.png' },
   estefania:{ nombre:'Estefanía Muñoz', cargo:'Account Executive', rol:'Forecast Semanal', foto:'/assets/owners/estefania.png' },
-  carolina:{ nombre:'Carolina', cargo:'Account Executive', rol:'Forecast Semanal', foto:'/assets/owners/carolina.png' },
+  carolina:{ nombre:'Carolina Romei', cargo:'Account Executive', rol:'Forecast Semanal', foto:'/assets/owners/carolina.png' },
   baseinstalada:{ nombre:'Daniela Flores', cargo:'Cultura y Business Experience', rol:'Base Instalada', foto:'/assets/owners/daniela.png' }
 };
 function iniciales(t){ return String(t||'').split(/\s+/).filter(Boolean).slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase(); }
@@ -751,7 +752,7 @@ function ownerEquipo(cfg){
   cfg.equipo.forEach(function(p){
     var pop = document.createElement('div'); pop.className = 'wk-pop'; pop.setAttribute('data-tip', p.nombre+'\n'+p.cargo);
     pop.innerHTML = '<div class="ring"></div><div class="disc"></div><div class="ph"></div>'; fotos.appendChild(pop);
-    var im = new Image(); im.alt = p.nombre; im.onload = function(){ pop.querySelector('.ph').appendChild(im); }; im.onerror = function(){ pop.querySelector('.ph').innerHTML = '<span class="ini">'+WK.esc(iniciales(p.nombre))+'</span>'; }; im.src = p.foto;
+    var im = new Image(); im.alt = p.nombre; im.onload = function(){ if(/\.jpe?g$/i.test(p.foto||'')) pop.classList.add('wk-jpg'); pop.querySelector('.ph').appendChild(im); }; im.onerror = function(){ pop.querySelector('.ph').innerHTML = '<span class="ini">'+WK.esc(iniciales(p.nombre))+'</span>'; }; im.src = p.foto;
     if(h){ h.addEventListener('mousemove', function(e){ var r = h.getBoundingClientRect(); pop.style.setProperty('--px', (((e.clientX-r.left)/r.width)*2-1).toFixed(3)); pop.style.setProperty('--py', (((e.clientY-r.top)/r.height)*2-1).toFixed(3)); });
       h.addEventListener('mouseleave', function(){ pop.style.setProperty('--px', 0); pop.style.setProperty('--py', 0); }); }
   });

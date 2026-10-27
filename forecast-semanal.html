@@ -143,9 +143,13 @@
   .fs-t td.ae{background:rgba(255,214,64,.13); box-shadow:inset 0 0 0 1px rgba(255,214,64,.22);}
   .fs-t td.ops{background:rgba(70,150,255,.16); box-shadow:inset 0 0 0 1px rgba(70,150,255,.28);}
   .fs-t td.calc{background:rgba(255,255,255,.035); color:#fff; font-weight:600;}
-  .fs-t tr:hover td{filter:brightness(1.15);}
+  .fs-t tbody tr:hover td{background-color:rgba(61,214,255,.08)!important; color:#fff;}
+  .fs-t tbody tr:hover td.ae{background-color:rgba(255,214,64,.22)!important;}
+  .fs-t tbody tr:hover td.ops{background-color:rgba(70,150,255,.30)!important;}
+  .fs-t tbody tr:hover td.calc{background-color:rgba(255,255,255,.09)!important;}
+  .fs-chk{width:18px; height:18px; accent-color:#2FE29B; cursor:pointer;}
   .fs-in{width:100%; min-width:64px; font:600 13px Poppins,sans-serif; text-align:right; border:1px solid transparent; background:transparent; border-radius:6px; padding:5px 6px; color:#fff; font-variant-numeric:tabular-nums; color-scheme:dark;}
-  .fs-in:hover{border-color:rgba(255,255,255,.25);} .fs-in:focus{outline:none; border-color:#3DD6FF; background:rgba(255,255,255,.08); box-shadow:0 0 0 3px rgba(61,214,255,.2);}
+  .fs-in:hover{border-color:rgba(255,255,255,.25); background:rgba(255,255,255,.07);} .fs-in:focus{outline:none; border-color:#3DD6FF; background:rgba(255,255,255,.08); box-shadow:0 0 0 3px rgba(61,214,255,.2);}
   .fs-in::placeholder{color:rgba(255,255,255,.3);}
   .fs-in.t{text-align:left;} .fs-t select.fs-in{cursor:pointer;} textarea.fs-in{resize:vertical; min-height:34px; line-height:1.35; font-weight:500; font-size:12px;}
   .fs-t .v{display:inline-block; padding:5px 6px; color:#fff; font-weight:600;}
@@ -308,7 +312,7 @@ const esc = WK.esc;
 const VC = 'VC= Commited+ Probable Plan A';
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const ESTATUS = ['Won', VC, 'Top Upside =Plan B', 'Upside'];
-const LOBS = ['B1','Grow','Rise','SFSF','LOB','Serv. Consultoría','Tech'];
+const LOBS = ['B1','Grow','Rise','SFSF','LOB'];
 const PLANES = ['Plan A','Plan B'];
 const p2 = n => String(n).padStart(2,'0');
 
@@ -362,12 +366,12 @@ function calc(b, meses){
   const lobDe = d => LOBS.find(l => l.toLowerCase() === String(d.lob||'').toLowerCase());
   let tv = 0, tp = 0;
   LOBS.forEach(l => {
-    const mias = ds.filter(d => lobDe(d) === l), vend = mias.filter(won).reduce((a,d) => a + totalDeal(d), 0), todo = mias.reduce((a,d) => a + totalDeal(d), 0);
+    const mias = ds.filter(d => d.enLob && lobDe(d) === l), vend = mias.filter(won).reduce((a,d) => a + totalDeal(d), 0), todo = mias.reduce((a,d) => a + totalDeal(d), 0);
     v['lv.'+l] = vend; v['lp.'+l] = todo - vend; v['lt.'+l] = todo; tv += vend; tp += todo - vend;
   });
   v['lv.t'] = tv; v['lp.t'] = tp; v['lt.t'] = tv + tp;
-  v['sinlob.n'] = ds.filter(d => !lobDe(d) && totalDeal(d)).length;
-  v['sinlob.t'] = ds.filter(d => !lobDe(d)).reduce((a,d) => a + totalDeal(d), 0);
+  v['sinlob.n'] = ds.filter(d => d.enLob && !lobDe(d)).length;
+  v['sinlob.t'] = ds.filter(d => d.enLob && !lobDe(d)).reduce((a,d) => a + totalDeal(d), 0);
   return v;
 }
 function fmtClave(k, n){
@@ -504,18 +508,19 @@ function bloqueDeals(b, ed, conAe){
       '<td class="ae"><select class="fs-in t" data-d="estatus" style="min-width:250px">' + selectOpts(ESTATUS, d.estatus) + '</select></td>' +
       '<td class="ae"><select class="fs-in t" data-d="mes" style="min-width:115px">' + selectOpts(MESES, d.mes) + '</select></td>' +
       '<td class="ae"><select class="fs-in t" data-d="plan" style="min-width:95px">' + selectOpts(PLANES, d.plan) + '</select></td>' +
+      '<td class="ae" style="text-align:center"><input type="checkbox" class="fs-chk" data-d="enLob"' + (d.enLob ? ' checked' : '') + ' title="Marcar para que alimente la tabla LOB"></td>' +
       '<td class="ae"><textarea class="fs-in t" data-d="next" rows="2" placeholder="Next steps" style="min-width:280px">' + esc(d.next) + '</textarea></td>' +
       '<td class="l"><button class="fs-x" data-del="' + i + '" title="Quitar deal">✕</button></td></tr>';
     return '<tr>' + (conAe ? '<td class="l"><span class="fs-tag">' + esc(nombreAe(d._ae)) + '</span></td>' : '') +
       '<td class="' + tn + ' l">' + esc(d.id) + ' ' + idLinks(d.id) + '</td><td class="' + tn + ' l">' + esc(d.cuenta) + '</td><td class="' + tn + ' l">' + esc(d.lob || '—') + '</td>' +
-      '<td class="' + tn + '">' + numK(d.sw) + '</td><td class="' + tn + '">' + numK(d.sv) + '</td><td class="calc">' + numK(totalDeal(d)) + '</td><td class="' + tn + ' l">' + tagEst(d.estatus) + '</td><td class="' + tn + ' l">' + esc(d.mes || '—') + '</td><td class="' + tn + ' l">' + esc(d.plan || '—') + '</td><td class="' + tn + ' l" style="min-width:260px;white-space:pre-wrap;font-size:12px">' + esc(d.next) + '</td></tr>';
+      '<td class="' + tn + '">' + numK(d.sw) + '</td><td class="' + tn + '">' + numK(d.sv) + '</td><td class="calc">' + numK(totalDeal(d)) + '</td><td class="' + tn + ' l">' + tagEst(d.estatus) + '</td><td class="' + tn + ' l">' + esc(d.mes || '—') + '</td><td class="' + tn + ' l">' + esc(d.plan || '—') + '</td><td class="' + tn + '" style="text-align:center">' + (d.enLob ? '✓' : '') + '</td><td class="' + tn + ' l" style="min-width:260px;white-space:pre-wrap;font-size:12px">' + esc(d.next) + '</td></tr>';
   }).join('');
-  const encabezado = (conAe ? '<th class="l">AE</th>' : '') + '<th class="l">ID HubSpot</th><th class="l">Cuenta</th><th class="l">LOB</th><th>SW</th><th>Servicios</th><th>Total</th><th class="l">Estatus</th><th class="l">Mes</th><th class="l">Plan A | B</th><th class="l">Next steps</th>' + (ae ? '<th></th>' : '');
+  const encabezado = (conAe ? '<th class="l">AE</th>' : '') + '<th class="l">ID HubSpot</th><th class="l">Cuenta</th><th class="l">LOB</th><th>SW</th><th>Servicios</th><th>Total</th><th class="l">Estatus</th><th class="l">Mes</th><th class="l">Plan A | B</th><th>En LOB ✓</th><th class="l">Next steps</th>' + (ae ? '<th></th>' : '');
   const nCols = (conAe ? 1 : 0) + 4;
   return '<div class="wk-band"><h2>3 · Top deals — los que cierran el GAP</h2><span>Detalle por oportunidad</span></div>' +
   '<div id="fsAvisoLob"></div>' +
   '<div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr>' + encabezado + '</tr></thead><tbody>' + (filas || '<tr><td colspan="12" class="l" style="color:#7D8FAE;padding:18px">Sin deals capturados.</td></tr>') +
-  '<tr class="tot">' + (conAe ? '<td></td>' : '') + '<td class="l" colspan="3">TOTAL</td><td>' + cv('dtot.sw') + '</td><td>' + cv('dtot.sv') + '</td><td>' + cv('dtot.t') + '</td><td colspan="' + (ae ? 5 : 4) + '"></td></tr></tbody></table></div>' +
+  '<tr class="tot">' + (conAe ? '<td></td>' : '') + '<td class="l" colspan="3">TOTAL</td><td>' + cv('dtot.sw') + '</td><td>' + cv('dtot.sv') + '</td><td>' + cv('dtot.t') + '</td><td colspan="' + (ae ? 6 : 5) + '"></td></tr></tbody></table></div>' +
   (ae ? '<div style="margin-top:12px"><button class="fs-btn" id="fsAddDeal">➕ Agregar deal</button></div>' : '') +
   '<p class="fs-note"><b>Plan A</b> Probable = Compromiso (monto) · <b>Plan B</b> Top Upside = Cobertura del probable · <b>Upside</b> = Resto. Montos en miles de USD.</p></div>';
 }
@@ -526,7 +531,7 @@ function bloqueLob(){
   return '<div class="wk-band"><h2>4 · Por LOB — vendido y por vender</h2><span>Cerrado vs pipeline abierto</span></div>' +
   '<div class="fs-one"><div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th>Concepto</th>' + cabs + '<th>Total</th></tr></thead><tbody>' +
     fila('Vendido (Cerrado)', 'lv') + fila('Por vender (VC + BC + Pipe)', 'lp') + fila('Total', 'lt', 'tot') + '</tbody></table></div>' +
-    '<p class="fs-note">Si un deal no tiene LOB asignado en Top deals, no aparece aquí — asígnalo.</p></div>' +
+    '<p class="fs-note">Esta tabla se alimenta de los deals marcados con ✓ en Top deals. Si un deal marcado no tiene LOB asignado, no aparece aquí — asígnalo.</p></div>' +
   '<div class="wk-card"><div class="wk-card-head"><div><h3>Mezcla por LOB</h3><p>Vendido (azul) y por vender (celeste)</p></div></div><div id="fsLobBars"></div></div></div>';
 }
 
@@ -557,7 +562,7 @@ function refrescar(raiz, b, qi, prev){
     lb.innerHTML = LOBS.map(l => '<div style="display:grid;grid-template-columns:120px 1fr 90px;gap:10px;align-items:center;margin:9px 0;font-size:12.5px"><b style="color:#fff">' + esc(l) + '</b><div class="fs-hbar" style="width:' + (v['lt.'+l]/mx*100) + '%;min-width:6px"><i style="background:#1E5BB8;width:' + (v['lv.'+l]/(v['lt.'+l]||1)*100) + '%"></i><i style="background:#9DD6EC;width:' + (v['lp.'+l]/(v['lt.'+l]||1)*100) + '%"></i></div><span style="text-align:right;color:var(--grey)">' + numK(v['lt.'+l]) + '</span></div>').join('');
   }
   const av = raiz.querySelector('#fsAvisoLob');
-  if(av) av.innerHTML = v['sinlob.n'] ? '<div class="fs-warn">⚠️ ' + v['sinlob.n'] + ' deal(s) sin LOB por ' + numK(v['sinlob.t']) + ' — no aparecen en el bloque 4 hasta que les asignes LOB.</div>' : '';
+  if(av) av.innerHTML = v['sinlob.n'] ? '<div class="fs-warn">⚠️ ' + v['sinlob.n'] + ' deal(s) marcado(s) para la tabla LOB sin LOB asignado (' + numK(v['sinlob.t']) + ') — no aparecen en el bloque 4 hasta que les asignes LOB.</div>' : '';
   return v;
 }
 
@@ -657,7 +662,7 @@ document.addEventListener('input', e => {
   const t = e.target; if(!D || snap || vista === 'overview') return;
   const slug = vista, b = boardDe(slug);
   if(t.dataset.f){ ponerRuta(b, t.dataset.f, parseNum(t.value)); }
-  else if(t.dataset.d){ const i = +t.closest('tr').dataset.i, k = t.dataset.d; b.deals[i][k] = (k === 'sw' || k === 'sv') ? parseNum(t.value) : t.value; }
+  else if(t.dataset.d){ const i = +t.closest('tr').dataset.i, k = t.dataset.d; b.deals[i][k] = (k === 'sw' || k === 'sv') ? parseNum(t.value) : (k === 'enLob' ? t.checked : t.value); }
   else return;
   dirty[slug] = true; marcarDirty();
   const prevSem = semanasHist().find(x => x < SEM), pb = prevSem ? boardsAl(prevSem).find(x => x._ae === slug) : null;
@@ -666,7 +671,7 @@ document.addEventListener('input', e => {
 document.addEventListener('click', async e => {
   const t = e.target.closest('button,tr.fs-row-click'); if(!t || !D) return;
   if(t.dataset.v && !t.dataset.snap){ snap = null; vista = t.dataset.v; history.replaceState(null, '', vista === 'overview' ? location.pathname : '#' + vista); pintar(); window.scrollTo(0,0); return; }
-  if(t.id === 'fsAddDeal'){ boardDe(vista).deals.push({ id:'', cuenta:'', lob:'', sw:0, sv:0, estatus:'', mes:'', plan:'', next:'' }); dirty[vista] = true; pintar(true); return; }
+  if(t.id === 'fsAddDeal'){ boardDe(vista).deals.push({ id:'', cuenta:'', lob:'', sw:0, sv:0, estatus:'', mes:'', plan:'', enLob:false, next:'' }); dirty[vista] = true; pintar(true); return; }
   if(t.dataset.del !== undefined){ if(!confirm('¿Quitar este deal del tablero?')) return; boardDe(vista).deals.splice(+t.dataset.del, 1); dirty[vista] = true; pintar(true); return; }
   if(t.id === 'fsGuardar'){ await guardar(vista); return; }
   if(t.id === 'fsReportar'){ await reportar(vista); return; }
@@ -700,9 +705,9 @@ async function leerExcel(file){
     if(sc){ nuevo.cuota.swYtd = n(g(sc,'C9')); nuevo.cuota.svYtd = n(g(sc,'D9')); }
     const deals = [];
     for(let r = 8; r <= 300; r++){
-      const idv = g(st,'B'+r), cu = g(st,'C'+r), lob = g(st,'D'+r), sw = g(st,'E'+r), sv = g(st,'F'+r), es = g(st,'H'+r), mes = g(st,'I'+r), pl = g(st,'J'+r), nx = g(st,'L'+r);
+      const idv = g(st,'B'+r), cu = g(st,'C'+r), lob = g(st,'D'+r), sw = g(st,'E'+r), sv = g(st,'F'+r), es = g(st,'H'+r), mes = g(st,'I'+r), pl = g(st,'J'+r), nx = g(st,'L'+r), kx = g(st,'K'+r);
       if(![idv,cu,sw,sv,nx].some(x => x !== null && x !== '')) continue;
-      deals.push({ id: String(idv == null ? '' : idv), cuenta: String(cu||''), lob: canon(LOBS, lob), sw: n(sw), sv: n(sv), estatus: estCanon(es), mes: canon(MESES, mes), plan: canon(PLANES, pl), next: String(nx||'').replace(/^\s*Next Steps:\s*/i,'').trim() });
+      deals.push({ id: String(idv == null ? '' : idv), cuenta: String(cu||''), lob: canon(LOBS, lob), sw: n(sw), sv: n(sv), estatus: estCanon(es), mes: canon(MESES, mes), plan: canon(PLANES, pl), enLob: kx === true || /^(true|verdadero|1|x|si|sí)$/i.test(String(kx == null ? '' : kx).trim()), next: String(nx||'').replace(/^\s*Next Steps:\s*/i,'').trim() });
     }
     nuevo.deals = deals; B[vista] = nuevo; dirty[vista] = true; pintar(true);
     toast('Excel cargado: ' + deals.length + ' deals. Revisa y presiona Guardar.');
