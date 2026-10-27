@@ -1,0 +1,21 @@
+{
+ "iniciativas": [
+  {"id":"i-liderazgo","nombre":"Liderazgo Global","responsable":"Cultura y Talento","respondieron":117,"convocados":0,"cierre":"2026-10-30","prorroga":"","duracion":"5–8 min · para todos","canal":"Correo de Comunicación SEIDOR del 14 de octubre. Mensaje de Gerentes y Directores (mensaje pre hecho).","estatus":"En curso","nota":""},
+  {"id":"i-pulse-ia","nombre":"1st Pulse de IA","responsable":"Cultura y Talento","respondieron":88,"convocados":163,"cierre":"","prorroga":"2026-11-06","duracion":"5 min · para todos","canal":"Correo: Cultura & Talento Mx. Programa y Adopción de IA.","estatus":"En curso","nota":"México: 88 de 163 convocados. Prórroga al 6 de noviembre."}
+ ],
+ "pulso": {
+  "enps": null, "enpsAnt": null, "nota": "",
+  "alertas": [
+   {"id":"a-estres","tema":"Estrés detectado en algunos equipos","detalle":"Detectamos estrés en algunos equipos.","accion":"Redoblar esfuerzos en el programa de bienestar. Octubre, mes de la salud mental: calendario de pláticas de TELUS por C&T Connect (Teams) y correo. El acompañamiento es permanente: programa y orientación psicológica telefónica.","estatus":"Atendiendo"}
+  ]
+ },
+ "temas": [
+  {"id":"t-enps","titulo":"eNPS: ¿noviembre o marzo?","detalle":"Ante el estrés detectado, discutir si mantenemos el lanzamiento previsto para noviembre o lo postergamos a marzo.","responsable":"Michelle Castro","estatus":"Abierto","decision":""},
+  {"id":"t-bienestar","titulo":"+Bienestar","detalle":"Detectamos estrés en algunos equipos y redoblaremos esfuerzos en el programa de bienestar. Octubre, mes de la salud mental.","responsable":"Michelle Castro","estatus":"Abierto","decision":""},
+  {"id":"t-estrategia","titulo":"EstrategIA — Challenge IA con impacto","detalle":"Estamos alineando workshops hands-on de mejores prácticas, inicialmente para quienes tienen Copilot Premium. Propuesta: después de los talleres, mejorar un proceso con IA y presentar un antes/después medible (horas ahorradas, productividad o calidad). Reconocer el impacto demostrado y replicable.","responsable":"Michelle Castro","estatus":"Abierto","decision":""}
+ ],
+ "logros": [
+  {"id":"l-reconoce","titulo":"SEIDOR Reconoce","detalle":"Trabajamos con algunas áreas en la calibración de las personas reconocidas del trimestre.","fecha":"2026-10-22","cifra":16,"etiqueta":"reconocidos Q3"},
+  {"id":"l-un-solo-equipo","titulo":"Integración del equipo B1 — Un Solo Equipo","detalle":"En esta sesión de integración trabajamos el driver: “Trabajando Juntos somos más fuertes”.","fecha":"2026-10-22","cifra":null,"etiqueta":""}
+ ]
+}

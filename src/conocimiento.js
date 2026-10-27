@@ -13,6 +13,7 @@ WBR (Weekly Business Review, sesión semanal de Management):
 - Ventas & Pipeline (/wbr-ventas.html): ventas YTD, trimestre actual, forecast vs. meta y pipeline. Dueño: Omar Dávila (Director Comercial). USD. Excel con la pestaña "Ventas & Pipeline".
 - Operaciones (/wbr-operaciones.html): proyectos por LOB, con desvío, con riesgo y Go-Lives. Dueña: Yurima Choco (Directora de Operaciones). Excel con la pestaña "Operaciones".
 - Business Experience (/wbr-bx.html): clientes tocados, riesgos de churn, escalaciones y oportunidades en seguimiento. Dueña: María Flores (Gerente de BX). USD. Excel semanal de BX (hoja "BX Dashboard Semanal").
+- Cultura y Talento (/wbr-cultura-talento.html): iniciativas con participación (Liderazgo Global, Pulse de IA), eNPS y alertas de bienestar, temas por decidir y logros (SEIDOR Reconoce, integración de equipos). Dueña: Michelle Castro (Gerente de Cultura y Talento), captura directamente en la página.
 - CCFlex (/wbr-ccflex.html): ventas y cobranza del programa CCFlex, C&S vs. A&O (USD). Dueño por asignar.
 - Call to Action (/wbr-cta.html): acciones semanales con responsable, fecha y estatus; marca las vencidas. Dueño: Angel Aiza (Director de Estrategia y Procesos). Excel con la pestaña "Call to Action". Las fechas van en DD/MM/AA.
 - Anuncios (/wbr-anuncios.html): comunicados internos de la sesión. Dueño: Paul Sirrs (CEO).

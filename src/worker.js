@@ -390,6 +390,7 @@ const PAGINAS_REGISTRO = {
   'cartera': 'Cartera Vencida',
   'wbr-finanzas': 'WBR — Finanzas',
   'wbr-ventas': 'WBR — Ventas & Pipeline',
+  'wbr-cultura-talento': 'WBR — Cultura y Talento',
   'wbr-operaciones': 'WBR — Operaciones',
   'wbr-operaciones-b1': 'WBR — Operaciones B1',
   'wbr-bx': 'WBR — Business Experience',
@@ -465,6 +466,7 @@ const RUTAS_PERMISO = {
   '/api/forecast-semanal': { modo:'datos', paginas:['forecast-semanal','forecast-semanal-ae'], escritura:['forecast-semanal','forecast-semanal-ae'] }, // el detalle (Sales Ops vs AE propio) se valida dentro
   '/api/wbr-finanzas': { modo:'datos', paginas:['wbr-finanzas'] },
   '/api/wbr-ventas': { modo:'datos', paginas:['wbr-ventas'] },
+  '/api/wbr-cultura-talento': { modo:'datos', paginas:['wbr-cultura-talento'], escritura:['wbr-cultura-talento'] },
   '/api/wbr-operaciones': { modo:'datos', paginas:['wbr-operaciones'] },
   '/api/wbr-operaciones-b1': { modo:'datos', paginas:['wbr-operaciones-b1'] },
   '/api/wbr-ccflex': { modo:'datos', paginas:['wbr-ccflex'] },
@@ -719,6 +721,89 @@ async function fcsManejar(request, env, url){
   return json({ ok:false, error:'Acción desconocida.' }, 400);
 }
 /* ================== FIN FORECAST SEMANAL ================== */
+
+/* ==================== WBR CULTURA Y TALENTO ==================== */
+const CT_ESTATUS = ['En curso', 'Por iniciar', 'Cerrado', 'En riesgo'];
+const CT_TEMA_ESTATUS = ['Abierto', 'Decidido', 'Pospuesto'];
+const CT_ALERTA_ESTATUS = ['Atendiendo', 'Pendiente', 'Resuelta'];
+function ctSel(v, lista, def){ return lista.includes(v) ? v : def; }
+function ctFecha(v){ return /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? String(v) : ''; }
+function ctId(v, pref, i){ const t = String(v || '').replace(/[^\w-]/g, '').slice(0, 30); return t || (pref + Date.now().toString(36) + i); }
+function ctBoardVacio(){ return { iniciativas: [], pulso: { enps: null, enpsAnt: null, nota: '', alertas: [] }, temas: [], logros: [] }; }
+function ctLimpiar(b){
+  b = b && typeof b === 'object' ? b : {};
+  const arr = (x, n) => (Array.isArray(x) ? x : []).slice(0, n);
+  const num = v => { const n = Number(v); return isFinite(n) ? n : 0; };
+  const numN = v => (v === null || v === '' || v === undefined || !isFinite(Number(v))) ? null : Number(v);
+  const pu = b.pulso && typeof b.pulso === 'object' ? b.pulso : {};
+  return {
+    iniciativas: arr(b.iniciativas, 30).map((x, i) => ({ id: ctId(x && x.id, 'i', i), nombre: fcsTxt(x && x.nombre, 120), responsable: fcsTxt(x && x.responsable, 80),
+      respondieron: Math.max(0, num(x && x.respondieron)), convocados: Math.max(0, num(x && x.convocados)), cierre: ctFecha(x && x.cierre), prorroga: ctFecha(x && x.prorroga),
+      duracion: fcsTxt(x && x.duracion, 60), canal: fcsTxt(x && x.canal, 300), estatus: ctSel(x && x.estatus, CT_ESTATUS, 'En curso'), nota: fcsTxt(x && x.nota, 600) })),
+    pulso: { enps: numN(pu.enps), enpsAnt: numN(pu.enpsAnt), nota: fcsTxt(pu.nota, 600),
+      alertas: arr(pu.alertas, 20).map((x, i) => ({ id: ctId(x && x.id, 'a', i), tema: fcsTxt(x && x.tema, 120), detalle: fcsTxt(x && x.detalle, 600), accion: fcsTxt(x && x.accion, 600), estatus: ctSel(x && x.estatus, CT_ALERTA_ESTATUS, 'Atendiendo') })) },
+    temas: arr(b.temas, 40).map((x, i) => ({ id: ctId(x && x.id, 't', i), titulo: fcsTxt(x && x.titulo, 140), detalle: fcsTxt(x && x.detalle, 800), responsable: fcsTxt(x && x.responsable, 80), estatus: ctSel(x && x.estatus, CT_TEMA_ESTATUS, 'Abierto'), decision: fcsTxt(x && x.decision, 600) })),
+    logros: arr(b.logros, 40).map((x, i) => ({ id: ctId(x && x.id, 'l', i), titulo: fcsTxt(x && x.titulo, 140), detalle: fcsTxt(x && x.detalle, 800), fecha: ctFecha(x && x.fecha), cifra: numN(x && x.cifra), etiqueta: fcsTxt(x && x.etiqueta, 80) }))
+  };
+}
+async function ctManejar(request, env, url){
+  const json = (o, status) => new Response(JSON.stringify(o), { status: status || 200, headers: { 'Content-Type': 'application/json' } });
+  const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
+  const cfgRoles = await getRolesConfig(env);
+  const puedeEditar = esAdmin(email, cfgRoles) || (await getPermiso(env, email, 'wbr-cultura-talento')) === 'completo';
+  const rawLive = await env.PM_KV.get('ct_live');
+  let live = rawLive ? JSON.parse(rawLive) : null;
+  if (request.method === 'GET') {
+    // Carga inicial (una sola vez): el contenido del PPT del 22 de octubre, para que Michelle lo edite
+    try {
+      if (!live && !(await env.PM_KV.get('ct_seed'))) {
+        const r = await env.ASSETS.fetch(new Request(new URL('/data/wbr-cultura-talento-inicial.json', url.origin)));
+        if (r.ok) {
+          const base = ctLimpiar(await r.json()), ts = new Date().toISOString();
+          live = { ...base, version: 1, semana: '2026-10-22', reportadoEn: ts, reportadoPor: 'Carga inicial (PPT del 22 de octubre)', editadoEn: ts, editadoPor: 'Carga inicial (PPT del 22 de octubre)' };
+          await env.PM_KV.put('ct_live', JSON.stringify(live));
+          await env.PM_KV.put('ct_hist', JSON.stringify([{ id: 'seed', semana: '2026-10-22', reportadoEn: ts, reportadoPor: live.reportadoPor, board: base }]));
+          await env.PM_KV.put('ct_seed', '1');
+        }
+      }
+    } catch (e) { /* si falla la carga inicial, la página funciona igual vacía */ }
+    const rawH = await env.PM_KV.get('ct_hist');
+    return json({ ok:true, live: live || { ...ctBoardVacio(), version: 0 }, historial: rawH ? JSON.parse(rawH) : [], yo: { email, puedeEditar }, catalogos: { estatus: CT_ESTATUS, temas: CT_TEMA_ESTATUS, alertas: CT_ALERTA_ESTATUS } });
+  }
+  if (request.method !== 'POST') return json({ ok:false, error:'Método no permitido' }, 405);
+  if (!puedeEditar) return json({ ok:false, error:'Solo la Gerente de Cultura y Talento (o un Administrador) puede editar este tablero.' }, 403);
+  let body; try { body = await request.json(); } catch (e) { return json({ ok:false, error:'JSON inválido' }, 400); }
+  const actual = live || { ...ctBoardVacio(), version: 0 };
+  const ahora = new Date().toISOString();
+  if (body.accion === 'guardar') {
+    if (Number(body.version || 0) !== Number(actual.version || 0)) return json({ ok:false, conflicto:true, error:'Alguien más guardó el tablero mientras lo editabas. Se recargó la versión más reciente.', board: actual }, 409);
+    live = { ...actual, ...ctLimpiar(body.board), version: (actual.version || 0) + 1, editadoEn: ahora, editadoPor: email || 'desconocido' };
+    await env.PM_KV.put('ct_live', JSON.stringify(live));
+    return json({ ok:true, board: live });
+  }
+  if (body.accion === 'reportar') {
+    const semana = /^\d{4}-\d{2}-\d{2}$/.test(String(body.semana || '')) ? body.semana : ahora.slice(0, 10);
+    live = { ...actual, semana, reportadoEn: ahora, reportadoPor: email || 'desconocido' };
+    const rawH = await env.PM_KV.get('ct_hist');
+    let hist = rawH ? JSON.parse(rawH) : [];
+    hist.push({ id: ahora, semana, reportadoEn: ahora, reportadoPor: email || 'desconocido', board: { iniciativas: actual.iniciativas, pulso: actual.pulso, temas: actual.temas, logros: actual.logros } });
+    if (hist.length > 200) hist = hist.slice(hist.length - 200);
+    await env.PM_KV.put('ct_hist', JSON.stringify(hist));
+    await env.PM_KV.put('ct_live', JSON.stringify(live));
+    return json({ ok:true, board: live, totalReportes: hist.length });
+  }
+  if (body.accion === 'eliminar') {
+    const rawH = await env.PM_KV.get('ct_hist');
+    const hist = rawH ? JSON.parse(rawH) : [];
+    const resto = hist.filter(h => h.id !== body.id);
+    if (resto.length === hist.length) return json({ ok:false, error:'No se encontró ese corte.' }, 404);
+    await env.PM_KV.put('ct_hist', JSON.stringify(resto));
+    return json({ ok:true });
+  }
+  return json({ ok:false, error:'Acción desconocida.' }, 400);
+}
+/* ================== FIN WBR CULTURA Y TALENTO ================== */
+
 
 export default {
   async fetch(request, env, ctx) {
@@ -2367,6 +2452,7 @@ ${JSON.stringify(checklist || [])}`;
       return new Response(JSON.stringify({ ok: true, historial }), { headers: { 'Content-Type': 'application/json' } });
     }
 
+    if (url.pathname === '/api/wbr-cultura-talento') { return ctManejar(request, env, url); }
     if (url.pathname === '/api/forecast-semanal') {
       return fcsManejar(request, env, url);
     }

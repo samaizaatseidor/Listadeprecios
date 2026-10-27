@@ -708,6 +708,7 @@ WK.OWNERS = {
   ejecutivo:{ nombre:'Paul Sirrs', cargo:'CEO', rol:'Centro de Mando', foto:'/assets/owners/paul.png' },
   marketing:{ nombre:'Nasarid Ramirez', cargo:'Gerente de Marketing', rol:'Marketing', foto:'/assets/owners/nasarid.png' },
   anuncios:{ nombre:'Paul Sirrs', cargo:'CEO', rol:'Anuncios', foto:'/assets/owners/paul.png' }, cta:{ nombre:'Angel Aiza', cargo:'Director de Estrategia y Procesos', rol:'Call to Action', foto:'/assets/owners/angel.png' }, vop:{ rol:'VOP', equipo:[ { nombre:'Omar Dávila', cargo:'Director Comercial', foto:'/assets/owners/omar.png' }, { nombre:'Yurima Choco', cargo:'Directora de Operaciones', foto:'/assets/owners/yurima.png' }, { nombre:'Samuel Aiza', cargo:'Presales Manager', foto:'/assets/owners/sam.png' } ] }, presales:{ rol:'Tablero de control', etiqueta:'Solution Engineers', equipo:[ { nombre:'Gustavo Najar', cargo:'Solution Engineer', foto:'/assets/owners/gustavo.png' }, { nombre:'Rocío Anaya', cargo:'Solution Engineer', foto:'/assets/owners/rocio.png' }, { nombre:'Samuel Aiza', cargo:'Presales Manager', foto:'/assets/owners/sam.png' } ] },
+  cultura:{ nombre:'Michelle Castro', cargo:'Gerente de Cultura y Talento', rol:'Cultura y Talento', foto:'/assets/owners/michelle.png' },
   mariajose:{ nombre:'María José Bastian', cargo:'Gerente de B1', rol:'Operaciones B1' },
   forecastequipo:{ rol:'Forecast Semanal', etiqueta:'Equipo comercial · Forecast Semanal', equipo:[
     { nombre:'Fernanda Richards', cargo:'Account Executive', foto:'/assets/owners/fernanda.png' },
