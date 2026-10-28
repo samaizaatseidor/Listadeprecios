@@ -281,6 +281,56 @@
 #pe .pe-dot.r{background:var(--alert)} #pe .pe-dot.a{background:var(--warn)} #pe .pe-dot.g{background:var(--s2)}
 #pe tr.sel td{background:var(--pos-bg)}
 
+/* ===== Pestaña Iniciativas (captura directa) ===== */
+#pe.ini-mode .fbar{display:none}
+#pe .ini-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#pe .ini-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--pos-bg);color:var(--pos-fg)}
+#pe .ini-pill.warn{background:#4A3A12;color:#F0B64A}
+#pe .ini-pill.ro{background:var(--neu-bg);color:var(--neu-fg)}
+#pe .ini-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:9px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+#pe .ini-btn:hover{border-color:var(--accent);color:var(--brand)}
+#pe .ini-btn.pri{background:#66B6FF;color:#07153A;border-color:#66B6FF}
+#pe .ini-btn.pri:hover{background:#8AC8FF}
+#pe .ini-btn.pri[disabled]{opacity:.45;cursor:default}
+#pe .ini-btn.dng{color:var(--neg-fg)}
+#pe .ini-btn.sm{padding:4px 9px;font-size:11px}
+#pe .ini-sum{display:flex;flex-wrap:wrap;gap:10px}
+#pe .ini-s{background:var(--bg);border:1px solid var(--line2);border-radius:12px;padding:10px 16px;min-width:118px}
+#pe .ini-s b{display:block;font-size:24px;font-weight:700;line-height:1.1}
+#pe .ini-s span{font-size:11px;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em}
+#pe .ini-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+#pe .ini-k{position:relative;background:var(--bg);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;border-left:4px solid var(--accent)}
+#pe .ini-k.g{border-left-color:#2FE29B}#pe .ini-k.a{border-left-color:#F0B64A}#pe .ini-k.r{border-left-color:#FF6B6B}
+#pe .ini-k .nm{font-size:12px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em}
+#pe .ini-k .big{font-size:28px;font-weight:700;line-height:1.1}
+#pe .ini-k .big small{font-size:13px;color:var(--ink3);font-weight:500;margin-left:4px}
+#pe .ini-k .meta{font-size:12px;color:var(--ink2)}
+#pe .ini-bar{height:6px;border-radius:99px;background:var(--line2);overflow:hidden}
+#pe .ini-bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+#pe .ini-k.g .ini-bar i{background:#2FE29B}#pe .ini-k.a .ini-bar i{background:#F0B64A}#pe .ini-k.r .ini-bar i{background:#FF6B6B}
+#pe .ini-grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px}
+#pe .ini-in,#pe .ini-sel,#pe .ini-ta{width:100%;box-sizing:border-box;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:0 9px;font-size:12.5px;font-family:inherit}
+#pe .ini-ta{height:auto;min-height:32px;padding:6px 9px;resize:vertical}
+#pe .ini-in:focus,#pe .ini-sel:focus,#pe .ini-ta:focus{outline:none;border-color:var(--accent)}
+#pe .ini-x{position:absolute;top:6px;right:6px;border:0;background:transparent;color:var(--ink3);cursor:pointer;font-size:14px;padding:4px 7px;border-radius:6px}
+#pe .ini-x:hover{background:var(--neg-bg);color:var(--neg-fg)}
+#pe .ini-tw{overflow-x:auto;border:1px solid var(--line2);border-radius:10px}
+#pe .ini-t{border-collapse:collapse;width:100%;min-width:max-content}
+#pe .ini-t th{position:sticky;top:0;background:var(--bg);text-align:left;white-space:nowrap}
+#pe .ini-t td{text-align:left;vertical-align:top;white-space:normal;padding:6px 8px}
+#pe .ini-t th.cf{color:var(--brand)}
+#pe .ini-t td .ini-in,#pe .ini-t td .ini-sel{min-width:120px}
+#pe .ini-t td.w-nm{min-width:240px}#pe .ini-t td.w-tx{min-width:240px}#pe .ini-t td.w-sm{min-width:130px}#pe .ini-t td.w-av{min-width:150px}
+#pe .ini-est{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;background:var(--neu-bg);color:var(--neu-fg);white-space:nowrap}
+#pe .ini-est.e-curso{background:var(--pos-bg);color:var(--pos-fg)}#pe .ini-est.e-riesgo{background:#4A3A12;color:#F0B64A}#pe .ini-est.e-comp{background:#12402F;color:#2FE29B}#pe .ini-est.e-pausa,#pe .ini-est.e-canc{background:var(--neu-bg);color:var(--ink3)}
+#pe .ini-pr{font-size:11px;font-weight:700}#pe .ini-pr.Alta{color:#FF8A8A}#pe .ini-pr.Media{color:#F0B64A}#pe .ini-pr.Baja{color:var(--ink3)}
+#pe .ini-av{display:flex;align-items:center;gap:8px}#pe .ini-av .ini-bar{flex:1;min-width:60px}
+#pe .ini-flt{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+#pe .ini-flt .ini-in,#pe .ini-flt .ini-sel{width:auto;min-width:170px}
+#pe .ini-cf{display:grid;grid-template-columns:minmax(160px,1.2fr) 140px minmax(160px,2fr) auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line2)}
+#pe .ini-empty{color:var(--ink3);font-size:13px;padding:14px 4px}
+@media(max-width:760px){#pe .ini-cf{grid-template-columns:1fr}}
+@media print{#pe .ini-btn,#pe .ini-x{display:none}}
 </style>
 </head>
 <body class="wk-dark" data-wk-owner="marketing">
@@ -431,6 +481,7 @@
   <button class="tab" role="tab" id="t-motores" data-v="motores" aria-selected="false">Motores y fuentes</button>
   <button class="tab" role="tab" id="t-cambios" data-v="cambios" aria-selected="false">Cambios y calidad</button>
   <button class="tab" role="tab" id="t-glosario" data-v="glosario" aria-selected="false">Glosario</button>
+  <button class="tab" role="tab" id="t-iniciativas" data-v="iniciativas" aria-selected="false">Iniciativas</button>
 </nav>
 
 <div class="pe-main">
@@ -583,6 +634,11 @@
     <div class="ch"><h2>Notas sobre los datos</h2><span class="sub">Lo que conviene saber al leer las cifras</span></div>
     <ul class="gnotes" id="gNotes"></ul>
   </div>
+</section>
+
+<!-- VIEW 6 · Iniciativas (captura directa de la dueña del tablero) -->
+<section class="view" id="v-iniciativas" role="tabpanel" aria-labelledby="t-iniciativas" hidden>
+  <div id="iniBox"><div class="card"><div class="ini-empty">Cargando iniciativas…</div></div></div>
 </section>
 
 </div>
@@ -799,6 +855,7 @@ function render(){
   if(v === 'motores') renderMotores(R);
   if(v === 'cambios') renderCambios(R);
   if(v === 'glosario') renderGlosario(R);
+  if(v === 'iniciativas') iniRender();
 }
 
 /* ===== VIEW 1 ===== */
@@ -1159,7 +1216,7 @@ function renderGlosario(R){
 }
 
 /* ---------- navigation & events ---------- */
-function go(v){ S.view = v; document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.v === v)); document.querySelectorAll('.view').forEach(s => s.hidden = s.id !== 'v-' + v); store.set('view', v); render(); requestAnimationFrame(() => Object.values(charts).forEach(c => c.resize())); }
+function go(v){ S.view = v; document.getElementById('pe').classList.toggle('ini-mode', v === 'iniciativas'); document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.v === v)); document.querySelectorAll('.view').forEach(s => s.hidden = s.id !== 'v-' + v); store.set('view', v); render(); requestAnimationFrame(() => Object.values(charts).forEach(c => c.resize())); }
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => go(t.dataset.v));
 document.querySelectorAll('#pe .pe-tools .seg button').forEach(b => b.onclick = () => { S.period = b.dataset.p; store.set('period', S.period); render(); });
 document.querySelectorAll('#measure button').forEach(b => b.onclick = () => { S.measure = b.dataset.m; document.querySelectorAll('#measure button').forEach(x => { x.setAttribute('aria-pressed', x === b); x.style.background = x === b ? 'var(--card)' : 'transparent'; }); render(); });
@@ -1169,7 +1226,7 @@ window.addEventListener('resize', () => Object.values(charts).forEach(c => c.res
 const rerender = () => { Object.values(charts).forEach(c => { try{ c.__ro && c.__ro.disconnect(); }catch(e){} c.dispose(); }); for(const k in charts) delete charts[k]; render(); };
 
 S.period = ['W','4W','Q','S','Y'].includes(store.get('period', '4W')) ? store.get('period', '4W') : '4W';
-const VIEWS = ['resumen','apuestas','motores','cambios','glosario'];
+const VIEWS = ['resumen','apuestas','motores','cambios','glosario','iniciativas'];
 const hv = (location.hash || '').slice(1), sv0 = VIEWS.includes(hv) ? hv : store.get('view', 'resumen'), sv = VIEWS.includes(sv0) ? sv0 : 'resumen';
 PE_START(sv);
 
@@ -1497,6 +1554,178 @@ window.WK_PDF_PLAN = async (cap) => {
     document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
   });
 })();
+</script>
+<script>
+/* ===== Iniciativas de Marketing: captura directa (campos, indicadores e iniciativas) ===== */
+const INI = { board: null, version: 0, puede: false, editadoEn: '', editadoPor: '', dirty: false, cargando: false, cargado: false, f: { q: '', est: '' }, delArm: '' };
+const INI_EST = ['Por iniciar','En curso','En riesgo','Pausada','Completada','Cancelada'];
+const INI_PRI = ['Alta','Media','Baja'];
+const INI_TIPOS = [['texto','Texto'],['numero','Número'],['fecha','Fecha'],['lista','Lista de opciones'],['porcentaje','Porcentaje']];
+const iniId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+const iniNum = v => (v === null || v === '' || v === undefined || !isFinite(Number(v))) ? null : Number(v);
+const iniFmt = v => v == null ? '—' : Number(v).toLocaleString('es-MX', { maximumFractionDigits: 2 });
+const estCls = e => ({'En curso':'e-curso','En riesgo':'e-riesgo','Completada':'e-comp','Pausada':'e-pausa','Cancelada':'e-canc'}[e] || '');
+const iniHoy = () => new Date().toISOString().slice(0, 10);
+
+async function iniCargar(){
+  if(INI.cargando) return; INI.cargando = true;
+  try{
+    const r = await fetch('/api/wbr-marketing-iniciativas'); const d = await r.json();
+    if(!r.ok || !d.ok) throw new Error(d.error || 'No se pudo cargar');
+    INI.board = { campos: d.live.campos || [], indicadores: d.live.indicadores || [], iniciativas: d.live.iniciativas || [] };
+    INI.version = d.live.version || 0; INI.editadoEn = d.live.editadoEn || ''; INI.editadoPor = d.live.editadoPor || '';
+    INI.puede = !!(d.yo && d.yo.puedeEditar); INI.cargado = true; INI.dirty = false;
+  }catch(e){ INI.error = String(e.message || e); }
+  INI.cargando = false; iniRender(true);
+}
+function iniRender(forzar){
+  const box = document.getElementById('iniBox'); if(!box) return;
+  if(!INI.cargado && !INI.error){ iniCargar(); return; }
+  if(INI.dirty && !forzar && box.dataset.pintado) return; // no pisar lo que se está capturando
+  if(INI.error && !INI.cargado){ box.innerHTML = '<div class="card"><div class="ini-empty">No se pudieron cargar las iniciativas: ' + esc(INI.error) + ' <button class="ini-btn sm" data-ia="reintentar">Reintentar</button></div></div>'; box.dataset.pintado = '1'; return; }
+  const sy = window.scrollY; box.innerHTML = iniHtml(); box.dataset.pintado = '1'; iniDerivados(); window.scrollTo(0, sy);
+}
+function iniPct(k){ // cumplimiento vs meta (0..1+) o null
+  const a = iniNum(k.actual), m = iniNum(k.meta); if(a == null || m == null || m === 0) return null;
+  if(k.sentido === 'menor') return a <= 0 ? 1 : m / a;
+  return a / m;
+}
+const iniTono = p => p == null ? '' : p >= 1 ? 'g' : p >= .8 ? 'a' : 'r';
+
+function iniHtml(){
+  const B = INI.board, ed = INI.puede;
+  const top = '<div class="card"><div class="ch"><h2>Iniciativas de Marketing</h2><span class="sub">Registro propio del equipo: iniciativas, indicadores y campos a la medida' + (INI.editadoEn ? ' · última edición ' + esc(new Date(INI.editadoEn).toLocaleString('es-MX', { dateStyle:'medium', timeStyle:'short' })) + (INI.editadoPor ? ' por ' + esc(INI.editadoPor) : '') : '') + '</span></div>' +
+    '<div class="ini-top">' + (ed ? '<span class="ini-pill">✏️ Puedes editar</span>' : '<span class="ini-pill ro">👁️ Solo lectura</span>') + '<span id="iniDirty"></span>' +
+    (ed ? '<span style="flex:1"></span><button class="ini-btn" data-ia="descartar">↺ Descartar cambios</button><button class="ini-btn pri" data-ia="guardar" id="iniGuardar">💾 Guardar cambios</button>' : '') + '</div></div>';
+  const sum = '<div class="card"><div class="ch"><h2>Resumen</h2><span class="sub">Se actualiza al capturar</span></div><div class="ini-sum" id="iniSum"></div></div>';
+
+  const kp = B.indicadores.map(k => {
+    const x = ed ? '<button class="ini-x" data-ia="del-k" data-id="' + esc(k.id) + '" title="Quitar indicador">' + (INI.delArm === k.id ? '¿Quitar?' : '✕') + '</button>' : '';
+    if(!ed) return '<div class="ini-k" data-kid="' + esc(k.id) + '"><div class="nm">' + esc(k.nombre || 'Sin nombre') + '</div><div class="big" data-big>—</div><div class="meta" data-meta></div><div class="ini-bar"><i style="width:0%"></i></div>' + (k.nota ? '<div class="meta">' + esc(k.nota) + '</div>' : '') + '</div>';
+    return '<div class="ini-k" data-kid="' + esc(k.id) + '">' + x +
+      '<input class="ini-in" data-t="k" data-id="' + esc(k.id) + '" data-f="nombre" value="' + esc(k.nombre) + '" placeholder="Nombre del indicador" style="width:calc(100% - 52px);font-weight:600">' +
+      '<div class="ini-grid2"><div><div class="meta">Actual</div><input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="actual" data-n="1" value="' + (k.actual ?? '') + '"></div>' +
+      '<div><div class="meta">Meta</div><input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="meta" data-n="1" value="' + (k.meta ?? '') + '"></div>' +
+      '<div><div class="meta">Periodo anterior</div><input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="previo" data-n="1" value="' + (k.previo ?? '') + '"></div>' +
+      '<div><div class="meta">Unidad</div><input class="ini-in" data-t="k" data-id="' + esc(k.id) + '" data-f="unidad" value="' + esc(k.unidad) + '" placeholder="%, USD, #…"></div></div>' +
+      '<select class="ini-sel" data-t="k" data-id="' + esc(k.id) + '" data-f="sentido"><option value="mayor"' + (k.sentido !== 'menor' ? ' selected' : '') + '>Mayor es mejor</option><option value="menor"' + (k.sentido === 'menor' ? ' selected' : '') + '>Menor es mejor</option></select>' +
+      '<input class="ini-in" data-t="k" data-id="' + esc(k.id) + '" data-f="nota" value="' + esc(k.nota) + '" placeholder="Nota (opcional)">' +
+      '<div class="big" data-big>—</div><div class="meta" data-meta></div><div class="ini-bar"><i style="width:0%"></i></div></div>';
+  }).join('');
+  const kCard = '<div class="card"><div class="ch"><h2>Indicadores</h2><span class="sub">Define los que necesites; el color compara el actual contra la meta</span>' + (ed ? '<button class="ini-btn sm" data-ia="add-k">➕ Agregar indicador</button>' : '') + '</div>' +
+    (kp ? '<div class="ini-kpis">' + kp + '</div>' : '<div class="ini-empty">' + (ed ? 'Aún no hay indicadores. Agrega el primero con “Agregar indicador”.' : 'Aún no hay indicadores registrados.') + '</div>') + '</div>';
+
+  const flt = '<div class="ini-flt"><input class="ini-in" id="iniQ" placeholder="Buscar iniciativa o responsable…" value="' + esc(INI.f.q) + '"><select class="ini-sel" id="iniEst"><option value="">Todos los estatus</option>' + INI_EST.map(e => '<option' + (INI.f.est === e ? ' selected' : '') + '>' + e + '</option>').join('') + '</select></div>';
+  const cf = B.campos;
+  const head = '<tr><th>Iniciativa</th><th>Responsable</th><th>Prioridad</th><th>Estatus</th><th>Inicio</th><th>Fin</th><th>Avance</th><th>Objetivo</th><th>Nota</th>' + cf.map(c => '<th class="cf">' + esc(c.nombre) + '</th>').join('') + (ed ? '<th></th>' : '') + '</tr>';
+  const q = INI.f.q.trim().toLowerCase();
+  const filas = B.iniciativas.filter(x => (!INI.f.est || x.estatus === INI.f.est) && (!q || (x.nombre + ' ' + x.responsable).toLowerCase().includes(q)));
+  const inp = (x, f, tipo, cls, ph) => '<input class="ini-in" type="' + (tipo || 'text') + '" data-t="i" data-id="' + esc(x.id) + '" data-f="' + f + '" value="' + esc(x[f]) + '"' + (ph ? ' placeholder="' + ph + '"' : '') + '>';
+  const rows = filas.map(x => {
+    const I = 'data-t="i" data-id="' + esc(x.id) + '"';
+    const extra = cf.map(c => {
+      const v = (x.extra || {})[c.id] ?? '';
+      if(!ed) return '<td>' + (c.tipo === 'porcentaje' && v !== '' ? esc(v) + '%' : esc(v) || '—') + '</td>';
+      const base = 'class="ini-in" data-t="x" data-id="' + esc(x.id) + '" data-c="' + esc(c.id) + '"';
+      if(c.tipo === 'lista') return '<td class="w-sm"><select class="ini-sel" data-t="x" data-id="' + esc(x.id) + '" data-c="' + esc(c.id) + '"><option value="">—</option>' + (c.opciones || []).map(o => '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select></td>';
+      return '<td class="w-sm"><input ' + base + ' type="' + (c.tipo === 'numero' || c.tipo === 'porcentaje' ? 'number' : c.tipo === 'fecha' ? 'date' : 'text') + '" step="any" value="' + esc(v) + '"></td>';
+    }).join('');
+    if(!ed) return '<tr><td class="w-nm"><b>' + esc(x.nombre || 'Sin nombre') + '</b></td><td>' + esc(x.responsable) + '</td><td><span class="ini-pr ' + x.prioridad + '">' + x.prioridad + '</span></td><td><span class="ini-est ' + estCls(x.estatus) + '">' + x.estatus + '</span></td><td>' + esc(x.inicio) + '</td><td>' + esc(x.fin) + '</td><td class="w-av"><div class="ini-av"><div class="ini-bar"><i style="width:' + x.avance + '%"></i></div><span>' + iniFmt(x.avance) + '%</span></div></td><td class="w-tx">' + esc(x.objetivo) + '</td><td class="w-tx">' + esc(x.nota) + '</td>' + extra + '</tr>';
+    return '<tr data-rid="' + esc(x.id) + '"><td class="w-nm">' + inp(x, 'nombre', 'text', '', 'Nombre de la iniciativa') + '</td><td class="w-sm">' + inp(x, 'responsable', 'text', '', 'Responsable') + '</td>' +
+      '<td class="w-sm"><select class="ini-sel" ' + I + ' data-f="prioridad">' + INI_PRI.map(p => '<option' + (x.prioridad === p ? ' selected' : '') + '>' + p + '</option>').join('') + '</select></td>' +
+      '<td class="w-sm"><select class="ini-sel" ' + I + ' data-f="estatus">' + INI_EST.map(p => '<option' + (x.estatus === p ? ' selected' : '') + '>' + p + '</option>').join('') + '</select></td>' +
+      '<td class="w-sm">' + inp(x, 'inicio', 'date') + '</td><td class="w-sm">' + inp(x, 'fin', 'date') + '</td>' +
+      '<td class="w-av"><div class="ini-av"><input class="ini-in" type="number" min="0" max="100" step="5" ' + I + ' data-f="avance" data-n="1" value="' + x.avance + '" style="width:72px"><span>%</span></div></td>' +
+      '<td class="w-tx"><textarea class="ini-ta" rows="2" ' + I + ' data-f="objetivo" placeholder="¿Qué queremos lograr?">' + esc(x.objetivo) + '</textarea></td>' +
+      '<td class="w-tx"><textarea class="ini-ta" rows="2" ' + I + ' data-f="nota" placeholder="Notas, bloqueos, siguientes pasos">' + esc(x.nota) + '</textarea></td>' + extra +
+      '<td><button class="ini-btn sm dng" data-ia="del-i" data-id="' + esc(x.id) + '">' + (INI.delArm === x.id ? '¿Quitar?' : '✕') + '</button></td></tr>';
+  }).join('');
+  const iCard = '<div class="card"><div class="ch"><h2>Iniciativas</h2><span class="sub">' + B.iniciativas.length + ' registradas' + (filas.length !== B.iniciativas.length ? ' · mostrando ' + filas.length : '') + '</span>' + (ed ? '<button class="ini-btn sm" data-ia="add-i">➕ Agregar iniciativa</button>' : '') + '</div>' +
+    (B.iniciativas.length ? flt + '<div class="ini-tw"><table class="ini-t"><thead>' + head + '</thead><tbody>' + (rows || '<tr><td colspan="' + (9 + cf.length + (ed ? 1 : 0)) + '"><div class="ini-empty">Ninguna iniciativa coincide con el filtro.</div></td></tr>') + '</tbody></table></div>'
+      : '<div class="ini-empty">' + (ed ? 'Aún no hay iniciativas. Agrega la primera con “Agregar iniciativa”.' : 'Aún no hay iniciativas registradas.') + '</div>') + '</div>';
+
+  let cCard = '';
+  if(ed){
+    const lista = cf.map(c => '<div class="ini-cf"><input class="ini-in" data-t="c" data-id="' + esc(c.id) + '" data-f="nombre" value="' + esc(c.nombre) + '" placeholder="Nombre del campo">' +
+      '<select class="ini-sel" data-t="c" data-id="' + esc(c.id) + '" data-f="tipo">' + INI_TIPOS.map(t => '<option value="' + t[0] + '"' + (c.tipo === t[0] ? ' selected' : '') + '>' + t[1] + '</option>').join('') + '</select>' +
+      (c.tipo === 'lista' ? '<input class="ini-in" data-t="c" data-id="' + esc(c.id) + '" data-f="opciones" value="' + esc((c.opciones || []).join(', ')) + '" placeholder="Opciones separadas por coma">' : '<span class="meta" style="color:var(--ink3);font-size:12px">Aparece como columna en la tabla</span>') +
+      '<button class="ini-btn sm dng" data-ia="del-c" data-id="' + esc(c.id) + '">' + (INI.delArm === c.id ? '¿Quitar y borrar datos?' : '✕ Quitar') + '</button></div>').join('');
+    cCard = '<div class="card"><div class="ch"><h2>Campos a la medida</h2><span class="sub">Agrega columnas propias a la tabla de iniciativas (canal, presupuesto, KPI ligado, etc.)</span><button class="ini-btn sm" data-ia="add-c">➕ Agregar campo</button></div>' +
+      (lista || '<div class="ini-empty">Sin campos adicionales. Los básicos (responsable, estatus, fechas, avance, objetivo y nota) ya vienen incluidos.</div>') + '</div>';
+  }
+  return top + sum + kCard + iCard + cCard;
+}
+
+/* Partes que dependen de los datos y se refrescan sin repintar (para no perder el cursor) */
+function iniDerivados(){
+  const B = INI.board; if(!B) return;
+  document.querySelectorAll('#iniBox .ini-k[data-kid]').forEach(el => {
+    const k = B.indicadores.find(x => x.id === el.dataset.kid); if(!k) return;
+    const p = iniPct(k), u = k.unidad ? '<small>' + esc(k.unidad) + '</small>' : '';
+    el.classList.remove('g','a','r'); const t = iniTono(p); if(t) el.classList.add(t);
+    el.querySelector('[data-big]').innerHTML = iniFmt(k.actual) + u;
+    const pv = iniNum(k.previo), a = iniNum(k.actual);
+    const dl = (pv != null && a != null) ? ' · ' + (a > pv ? '▲' : a < pv ? '▼' : '=') + ' ' + iniFmt(Math.abs(a - pv)) + ' vs. anterior' : '';
+    el.querySelector('[data-meta]').textContent = (k.meta != null ? 'Meta ' + iniFmt(k.meta) + (k.unidad ? ' ' + k.unidad : '') : 'Sin meta') + (p != null ? ' · ' + Math.round(p * 100) + '% de la meta' : '') + dl;
+    el.querySelector('.ini-bar i').style.width = (p == null ? 0 : Math.max(0, Math.min(100, p * 100))) + '%';
+  });
+  const L = B.iniciativas, cnt = e => L.filter(x => x.estatus === e).length;
+  const prom = L.length ? Math.round(L.reduce((s, x) => s + (Number(x.avance) || 0), 0) / L.length) : 0;
+  const venc = L.filter(x => x.fin && x.fin < iniHoy() && x.estatus !== 'Completada' && x.estatus !== 'Cancelada').length;
+  const s = document.getElementById('iniSum');
+  if(s) s.innerHTML = [[L.length, 'Iniciativas'], [cnt('En curso'), 'En curso'], [cnt('En riesgo'), 'En riesgo'], [cnt('Completada'), 'Completadas'], [venc, 'Vencidas'], [prom + '%', 'Avance promedio']].map(a => '<div class="ini-s"><b>' + a[0] + '</b><span>' + a[1] + '</span></div>').join('');
+  const dd = document.getElementById('iniDirty'); if(dd) dd.innerHTML = INI.dirty ? '<span class="ini-pill warn">● Cambios sin guardar</span>' : '';
+  const g = document.getElementById('iniGuardar'); if(g) g.disabled = !INI.dirty;
+  document.querySelectorAll('#iniBox tr[data-rid]').forEach(tr => { const x = L.find(y => y.id === tr.dataset.rid); if(x) tr.dataset.est = x.estatus; });
+}
+function iniMarcar(){ INI.dirty = true; INI.delArm = ''; iniDerivados(); }
+
+function iniBuscar(t, id){ const B = INI.board; return (t === 'k' ? B.indicadores : t === 'c' ? B.campos : B.iniciativas).find(x => x.id === id); }
+function iniCampo(e){
+  const el = e.target; if(!el.dataset || !el.dataset.t || !INI.puede) return false;
+  const o = iniBuscar(el.dataset.t === 'x' ? 'i' : el.dataset.t, el.dataset.id); if(!o) return false;
+  if(el.dataset.t === 'x'){ o.extra = o.extra || {}; o.extra[el.dataset.c] = el.value; return 'x'; }
+  const f = el.dataset.f;
+  if(el.dataset.t === 'c' && f === 'opciones'){ o.opciones = el.value.split(',').map(z => z.trim()).filter(Boolean).slice(0, 12); return 'c'; }
+  if(el.dataset.n) o[f] = f === 'avance' ? Math.max(0, Math.min(100, Number(el.value) || 0)) : (el.value === '' ? null : Number(el.value));
+  else o[f] = el.value;
+  return el.dataset.t === 'c' && f === 'tipo' ? 'estructura' : true;
+}
+document.addEventListener('input', e => { if(!e.target.closest || !e.target.closest('#iniBox')) return;
+  if(e.target.id === 'iniQ'){ INI.f.q = e.target.value; clearTimeout(INI._tq); INI._tq = setTimeout(() => { const pos = e.target.selectionStart; iniRender(true); const q = document.getElementById('iniQ'); if(q){ q.focus(); try{ q.setSelectionRange(pos, pos); }catch(_){} } }, 250); return; }
+  const r = iniCampo(e); if(r) iniMarcar(); });
+document.addEventListener('change', e => { if(!e.target.closest || !e.target.closest('#iniBox')) return;
+  if(e.target.id === 'iniEst'){ INI.f.est = e.target.value; iniRender(true); return; }
+  const r = iniCampo(e); if(r === 'estructura'){ iniMarcar(); iniRender(true); } else if(r){ iniMarcar(); } });
+document.addEventListener('click', async e => {
+  const b = e.target.closest ? e.target.closest('#iniBox [data-ia]') : null; if(!b) return;
+  const a = b.dataset.ia, B = INI.board, id = b.dataset.id;
+  if(a === 'reintentar'){ INI.error = ''; INI.cargado = false; iniCargar(); return; }
+  if(!INI.puede) return;
+  if(a === 'add-k'){ B.indicadores.push({ id: iniId('k'), nombre: '', unidad: '', actual: null, meta: null, previo: null, sentido: 'mayor', nota: '' }); iniMarcar(); iniRender(true); return; }
+  if(a === 'add-i'){ B.iniciativas.unshift({ id: iniId('i'), nombre: '', responsable: '', estatus: 'Por iniciar', prioridad: 'Media', inicio: '', fin: '', avance: 0, objetivo: '', nota: '', extra: {} }); INI.f = { q: '', est: '' }; iniMarcar(); iniRender(true); return; }
+  if(a === 'add-c'){ B.campos.push({ id: iniId('c'), nombre: 'Nuevo campo', tipo: 'texto', opciones: [] }); iniMarcar(); iniRender(true); return; }
+  if(a === 'del-k' || a === 'del-i' || a === 'del-c'){
+    if(INI.delArm !== id){ INI.delArm = id; iniRender(true); setTimeout(() => { if(INI.delArm === id){ INI.delArm = ''; iniRender(true); } }, 4000); return; }
+    if(a === 'del-k') B.indicadores = B.indicadores.filter(x => x.id !== id);
+    if(a === 'del-i') B.iniciativas = B.iniciativas.filter(x => x.id !== id);
+    if(a === 'del-c'){ B.campos = B.campos.filter(x => x.id !== id); B.iniciativas.forEach(x => { if(x.extra) delete x.extra[id]; }); }
+    INI.delArm = ''; INI.dirty = true; iniRender(true); return;
+  }
+  if(a === 'descartar'){ if(!INI.dirty) return; INI.cargado = false; INI.board = null; await iniCargar(); toast('Cambios descartados'); return; }
+  if(a === 'guardar'){
+    if(!INI.dirty) return; b.disabled = true; b.textContent = 'Guardando…';
+    try{
+      const r = await fetch('/api/wbr-marketing-iniciativas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accion: 'guardar', version: INI.version, board: B }) });
+      const d = await r.json().catch(() => ({}));
+      if(r.status === 409 && d.board){ INI.board = { campos: d.board.campos || [], indicadores: d.board.indicadores || [], iniciativas: d.board.iniciativas || [] }; INI.version = d.board.version || 0; INI.dirty = false; iniRender(true); toast(d.error || 'Se recargó la versión más reciente'); return; }
+      if(!r.ok || !d.ok) throw new Error(d.error || ('HTTP ' + r.status));
+      INI.board = { campos: d.board.campos, indicadores: d.board.indicadores, iniciativas: d.board.iniciativas }; INI.version = d.board.version; INI.editadoEn = d.board.editadoEn; INI.editadoPor = d.board.editadoPor; INI.dirty = false;
+      iniRender(true); toast('Iniciativas guardadas');
+    }catch(err){ toast('No se pudo guardar: ' + (err.message || err)); iniRender(true); }
+  }
+});
+window.addEventListener('beforeunload', e => { if(INI.dirty){ e.preventDefault(); e.returnValue = ''; } });
 </script>
 <script src="/asistente.js?v=1" defer></script>
 </body>

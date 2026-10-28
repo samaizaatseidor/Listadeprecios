@@ -473,6 +473,7 @@ const RUTAS_PERMISO = {
   '/api/wbr-anuncios': { modo:'datos', paginas:['wbr-anuncios'] },
   '/api/wbr-cta': { modo:'datos', paginas:['wbr-cta'] },
   '/api/wbr-marketing': { modo:'datos', paginas:['wbr-marketing'], escritura:['wbr-marketing'] },
+  '/api/wbr-marketing-iniciativas': { modo:'datos', paginas:['wbr-marketing'], escritura:['wbr-marketing'] },
   '/api/wbr-resumen': { modo:'ia', paginas:['wbr-ejecutivo'] }, // resumen ejecutivo de Delfos para el Centro de Mando
   '/api/wbr-ejecutivo': { modo:'datos', paginas:['wbr-ejecutivo'] }, // vista de solo lectura; el permiso de esta página cubre el resumen de todos los tableros
   '/api/wbr-marketing-insight': { modo:'ia', paginas:['wbr-marketing'] },
@@ -802,6 +803,68 @@ async function ctManejar(request, env, url){
   return json({ ok:false, error:'Acción desconocida.' }, 400);
 }
 /* ================== FIN WBR CULTURA Y TALENTO ================== */
+
+/* ================== WBR MARKETING · INICIATIVAS (captura directa de la dueña del tablero) ================== */
+const MI_ESTATUS = ['Por iniciar', 'En curso', 'En riesgo', 'Pausada', 'Completada', 'Cancelada'];
+const MI_PRIORIDAD = ['Alta', 'Media', 'Baja'];
+const MI_TIPOS = ['texto', 'numero', 'fecha', 'lista', 'porcentaje'];
+function miLimpiar(b){
+  b = b && typeof b === 'object' ? b : {};
+  const arr = (x, n) => Array.isArray(x) ? x.slice(0, n) : [];
+  const numN = v => (v === null || v === '' || v === undefined || !isFinite(Number(v))) ? null : Number(v);
+  const campos = arr(b.campos, 20).map((c, i) => {
+    const tipo = ctSel(c && c.tipo, MI_TIPOS, 'texto');
+    return { id: ctId(c && c.id, 'c', i), nombre: fcsTxt(c && c.nombre, 60) || 'Campo ' + (i + 1), tipo,
+      opciones: tipo === 'lista' ? arr(c && c.opciones, 12).map(o => fcsTxt(o, 40).trim()).filter(Boolean) : [] };
+  });
+  const ids = new Set(campos.map(c => c.id));
+  return {
+    campos,
+    indicadores: arr(b.indicadores, 24).map((x, i) => ({ id: ctId(x && x.id, 'k', i), nombre: fcsTxt(x && x.nombre, 80), unidad: fcsTxt(x && x.unidad, 20),
+      actual: numN(x && x.actual), meta: numN(x && x.meta), previo: numN(x && x.previo), sentido: (x && x.sentido === 'menor') ? 'menor' : 'mayor', nota: fcsTxt(x && x.nota, 300) })),
+    iniciativas: arr(b.iniciativas, 120).map((x, i) => {
+      const extra = {}; const ex = x && x.extra && typeof x.extra === 'object' ? x.extra : {};
+      Object.keys(ex).forEach(k => { if (ids.has(k)) extra[k] = fcsTxt(ex[k], 300); });
+      const av = numN(x && x.avance);
+      return { id: ctId(x && x.id, 'i', i), nombre: fcsTxt(x && x.nombre, 140), responsable: fcsTxt(x && x.responsable, 80),
+        estatus: ctSel(x && x.estatus, MI_ESTATUS, 'Por iniciar'), prioridad: ctSel(x && x.prioridad, MI_PRIORIDAD, 'Media'),
+        inicio: ctFecha(x && x.inicio), fin: ctFecha(x && x.fin), avance: av == null ? 0 : Math.max(0, Math.min(100, av)),
+        objetivo: fcsTxt(x && x.objetivo, 500), nota: fcsTxt(x && x.nota, 800), extra };
+    })
+  };
+}
+async function miManejar(request, env){
+  const json = (o, status) => new Response(JSON.stringify(o), { status: status || 200, headers: { 'Content-Type': 'application/json' } });
+  const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
+  const cfgRoles = await getRolesConfig(env);
+  const puedeEditar = esAdmin(email, cfgRoles) || (await getPermiso(env, email, 'wbr-marketing')) === 'completo';
+  const raw = await env.PM_KV.get('wbr_marketing_iniciativas');
+  let live = raw ? JSON.parse(raw) : null;
+  if (request.method === 'GET') {
+    return json({ ok:true, live: live || { campos: [], indicadores: [], iniciativas: [], version: 0 }, yo: { email, puedeEditar },
+      catalogos: { estatus: MI_ESTATUS, prioridad: MI_PRIORIDAD, tipos: MI_TIPOS } });
+  }
+  if (request.method !== 'POST') return json({ ok:false, error:'Método no permitido' }, 405);
+  if (!puedeEditar) return json({ ok:false, error:'Solo la Gerente de Marketing (o un Administrador) puede editar las iniciativas.' }, 403);
+  let body; try { body = await request.json(); } catch (e) { return json({ ok:false, error:'JSON inválido' }, 400); }
+  const actual = live || { campos: [], indicadores: [], iniciativas: [], version: 0 };
+  if (body.accion === 'guardar') {
+    if (Number(body.version || 0) !== Number(actual.version || 0)) return json({ ok:false, conflicto:true, error:'Alguien más guardó las iniciativas mientras editabas. Se recargó la versión más reciente.', board: actual }, 409);
+    live = { ...miLimpiar(body.board), version: (actual.version || 0) + 1, editadoEn: new Date().toISOString(), editadoPor: email || 'desconocido' };
+    await env.PM_KV.put('wbr_marketing_iniciativas', JSON.stringify(live));
+    // bitácora ligera de guardados (últimos 60) para poder recuperar una versión anterior
+    try {
+      const rawH = await env.PM_KV.get('wbr_marketing_iniciativas_hist');
+      let hist = rawH ? JSON.parse(rawH) : [];
+      hist.push({ version: live.version, editadoEn: live.editadoEn, editadoPor: live.editadoPor, board: { campos: live.campos, indicadores: live.indicadores, iniciativas: live.iniciativas } });
+      if (hist.length > 60) hist = hist.slice(hist.length - 60);
+      await env.PM_KV.put('wbr_marketing_iniciativas_hist', JSON.stringify(hist));
+    } catch (e) { /* la bitácora es best-effort */ }
+    return json({ ok:true, board: live });
+  }
+  return json({ ok:false, error:'Acción desconocida.' }, 400);
+}
+/* ================== FIN WBR MARKETING · INICIATIVAS ================== */
 
 
 export default {
@@ -2452,6 +2515,7 @@ ${JSON.stringify(checklist || [])}`;
     }
 
     if (url.pathname === '/api/wbr-cultura-talento') { return ctManejar(request, env, url); }
+    if (url.pathname === '/api/wbr-marketing-iniciativas') { return miManejar(request, env); }
     if (url.pathname === '/api/forecast-semanal') {
       return fcsManejar(request, env, url);
     }
