@@ -201,7 +201,7 @@
   <div id="content"></div>
 </main>
 
-<script src="/wbr-kit.js?v=20261010s"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 
 <script>
 /* Categoría del estatus (misma regla de siempre): completado / en proceso / pendiente */
@@ -553,21 +553,21 @@ function render(){
 
   const MN = minutaCards(mostrando.minuta);
   const kpis = WK.heroGrid([
-    WK.hero({ label:'Cumplimiento', ico:'🎯', value:Math.round(pct * 100) + '%', tono:tonoCump,
+    WK.hero({ label:'Cumplimiento', ir:'estatus', ico:'🎯', value:Math.round(pct * 100) + '%', tono:tonoCump,
       sub:plural(comp.length, 'acción completada', 'acciones completadas') + ' de ' + N,
       chart: WK.gauge({ valor:comp.length, max:N, tono:tonoCump, texto:comp.length + ' de ' + N, label:'completadas', dark:true,
         tip:'Cumplimiento de la semana\n' + comp.length + ' completadas · ' + proc.length + ' en proceso · ' + pend.length + ' pendientes' }) }),
-    WK.hero({ label:'Acciones de la semana', ico:'✅', value:N, tono:'cyan',
+    WK.hero({ label:'Acciones de la semana', ir:'tabla', ico:'✅', value:N, tono:'cyan',
       sub:[comp.length ? comp.length + ' completadas' : '', proc.length ? proc.length + ' en proceso' : '', pend.length ? pend.length + ' pendientes' : ''].filter(Boolean).join(' · '),
       chart: WK.ranked(['comp','proc','pend'].map(c => ({ label:CAT[c].nombre, value:por(c).length, tono:CAT[c].tono, tip:CAT[c].nombre + '\n' + (por(c).length ? lista(por(c)) : 'Ninguna') })),
         { fmt:v => String(v), max:N }) }),
-    WK.hero({ label:'Vencidas', ico:'⏰', value:venc.length, tono: venc.length ? 'red' : 'green',
+    WK.hero({ label:'Vencidas', ir:'calendario', ico:'⏰', value:venc.length, tono: venc.length ? 'red' : 'green',
       sub: venc.length ? 'Abiertas con fecha ya pasada' : 'Todo al corriente, nada vencido',
       chart: venc.length ? WK.ranked(rankVenc, { fmt:v => String(v), max:venc.length }) : '' }),
-    WK.hero({ label:'Próximo vencimiento', ico:'📆', value: prox ? prox.dias : '—', unit: prox ? (prox.dias === 1 ? 'día' : 'días') : '', tono:'violet',
+    WK.hero({ label:'Próximo vencimiento', ir:'calendario', ico:'📆', value: prox ? prox.dias : '—', unit: prox ? (prox.dias === 1 ? 'día' : 'días') : '', tono:'violet',
       sub: prox ? '<span class="cta-prox">' + WK.esc(corto(prox.accion, 70)) + '</span>' + WK.esc((prox.responsable ? prox.responsable + ' · ' : '') + prox.fecha) : 'Sin fechas por venir',
       chart: WK.stats([{ valor:en7, label:'vencen en 7 días' }, { valor:sinFecha, label:'abiertas sin fecha' }]) })
-  ].concat(MN.nAb ? [WK.hero({ label:'Puntos abiertos', ico:'⚠️', value:MN.nAb, tono:'amber', sub:'Sin conclusión o sin acción clara en la sesión', chart:WK.stats([{ valor:A.filter(a => !a.responsable).length, label:'acciones sin responsable' }, { valor:A.filter(a => a.abierta && !a.fecha).length, label:'abiertas sin fecha' }]) })] : []));
+  ].concat(MN.nAb ? [WK.hero({ label:'Puntos abiertos', ir:'abiertos', ico:'⚠️', value:MN.nAb, tono:'amber', sub:'Sin conclusión o sin acción clara en la sesión', chart:WK.stats([{ valor:A.filter(a => !a.responsable).length, label:'acciones sin responsable' }, { valor:A.filter(a => a.abierta && !a.fecha).length, label:'abiertas sin fecha' }]) })] : []));
 
   // Dona por estatus
   const dona = WK.card({ id:'estatus', ico:'🍩', titulo:'Estatus de las acciones', sub:'Pasa el mouse sobre cada segmento para ver las acciones', count:N,

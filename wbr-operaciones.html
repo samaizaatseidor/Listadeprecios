@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="/wbr-kit.js?v=20261010s"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 <style>
   :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
   *{box-sizing:border-box;}
@@ -354,13 +354,13 @@ function render(){
   const tendencia = (k, color) => (WK.area(serie(k), { labels:histLbl, color }) || '');
 
   const kpis = WK.heroGrid([
-    WK.hero({ label:'Proyectos activos', ico:'⚙️', value:WK.num(tP), sub:lobs.length + ' LOB', delta:dCnt(tP, pP, null),
+    WK.hero({ label:'Proyectos activos', ir:'lob', ico:'⚙️', value:WK.num(tP), sub:lobs.length + ' LOB', delta:dCnt(tP, pP, null),
       chart: tendencia('proyectos', '#33B4DD') || WK.gauge({ valor:tGA, max:Math.max(tP, tGA, 1), tono:'cyan', texto:WK.num(tGA), label:'Go-Live anual', dark:true }) }),
-    WK.hero({ label:'Con desvío', ico:'⏱️', value:WK.num(tD), tono:TONO_RIESGO(pD), sub:WK.pct(pD) + ' del total', delta:dPts(pD, pDp),
+    WK.hero({ label:'Con desvío', ir:'lob', ico:'⏱️', value:WK.num(tD), tono:TONO_RIESGO(pD), sub:WK.pct(pD) + ' del total', delta:dPts(pD, pDp),
       chart: WK.gauge({ valor:tD, max:tP || 1, tono:TONO_RIESGO(pD), texto:WK.pct(pD), label:'de los proyectos', dark:true }) }),
-    WK.hero({ label:'Con riesgo', ico:'⚠️', value:WK.num(tR), tono:TONO_RIESGO(pR), sub:WK.pct(pR) + ' del total', delta:dPts(pR, pRp),
+    WK.hero({ label:'Con riesgo', ir:'lob', ico:'⚠️', value:WK.num(tR), tono:TONO_RIESGO(pR), sub:WK.pct(pR) + ' del total', delta:dPts(pR, pRp),
       chart: WK.gauge({ valor:tR, max:tP || 1, tono:TONO_RIESGO(pR), texto:WK.pct(pR), label:'de los proyectos', dark:true }) }),
-    WK.hero({ label:'Go-Live este trimestre', ico:'🚀', value:WK.num(tGQ), sub:'de ' + WK.num(tGA) + ' Go-Live en el año', delta:dCnt(tGQ, prev ? suma(prev.porLob,'goLiveQ') : null, 'up'),
+    WK.hero({ label:'Go-Live este trimestre', ir:'detalle', ico:'🚀', value:WK.num(tGQ), sub:'de ' + WK.num(tGA) + ' Go-Live en el año', delta:dCnt(tGQ, prev ? suma(prev.porLob,'goLiveQ') : null, 'up'),
       chart: tendencia('goLiveQ', '#2FCB73') || WK.gauge({ valor:tGQ, max:tGA || 1, tono:'green', texto:WK.num(tGQ) + ' / ' + WK.num(tGA), label:'Q vs. año', dark:true }) })
   ]);
 

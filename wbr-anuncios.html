@@ -188,7 +188,7 @@
   <div id="content"></div>
 </main>
 
-<script src="/wbr-kit.js?v=20261010s"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 
 <script>
 /* Temas por palabra clave: solo para agrupar y dar color; el texto del anuncio se muestra tal cual viene del Excel. */
@@ -273,12 +273,12 @@ function render(){
   const N = items.length, primero = items[0];
 
   const hero = WK.heroGrid([
-    WK.hero({ label:'Anuncios de la semana', ico:'📣', value:N, tono:'violet', sub: N === 1 ? 'Un comunicado para la sesión' : 'Comunicados para la sesión',
+    WK.hero({ label:'Anuncios de la semana', ir:'anuncios', ico:'📣', value:N, tono:'violet', sub: N === 1 ? 'Un comunicado para la sesión' : 'Comunicados para la sesión',
       chart: WK.donut(grupos.map(g => ({ label:g.tema.nombre, value:g.items.length, color:g.tema.color, tip:tipGrupo(g) })),
         { centro:String(N), sub: N === 1 ? 'anuncio' : 'anuncios', tamano:'190px', sinLeyenda:true }) }),
-    WK.hero({ label:'Temas cubiertos', ico:'🧭', value:grupos.length, tono:'cyan', sub: grupos.length === 1 ? 'Un solo tema esta semana' : 'Agrupados por palabras clave del anuncio',
+    WK.hero({ label:'Temas cubiertos', ir:'anuncios', ico:'🧭', value:grupos.length, tono:'cyan', sub: grupos.length === 1 ? 'Un solo tema esta semana' : 'Agrupados por palabras clave del anuncio',
       chart: WK.ranked(grupos.map(g => ({ label:g.tema.ico + ' ' + g.tema.nombre, value:g.items.length, tip:tipGrupo(g) })), { fmt:v => v + (v === 1 ? ' anuncio' : ' anuncios'), max:grupos[0].items.length }) }),
-    WK.hero({ label:'Anuncio #1 · va primero', ico:'📌', value:'<span class="an-lead">' + WK.esc(corto(primero.texto, 90)) + '</span>', tono:'green',
+    WK.hero({ label:'Anuncio #1 · va primero', ir:'anuncios', ico:'📌', value:'<span class="an-lead">' + WK.esc(corto(primero.texto, 90)) + '</span>', tono:'green',
       sub: primero.tema.ico + ' ' + primero.tema.nombre,
       chart: '<div class="an-pills">' + grupos.map(g => '<span class="an-pill" data-tip="' + WK.esc(tipGrupo(g)) + '">' + g.tema.ico + ' ' + WK.esc(g.tema.nombre) + ' · ' + g.items.length + '</span>').join('') + '</div>' })
   ]);

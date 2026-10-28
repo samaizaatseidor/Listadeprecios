@@ -11,7 +11,7 @@
 <title>WBR — Cultura y Talento · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="/wbr-kit.js?v=20261010s"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
@@ -119,6 +119,7 @@
   .fs-legend i{display:inline-block; width:22px; height:14px; border-radius:4px; vertical-align:-3px; margin-right:6px;}
   .fs-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; margin-bottom:16px;}
   .fs-kpi{position:relative; background:linear-gradient(150deg,rgba(255,255,255,.08),rgba(255,255,255,.025)); border:1px solid rgba(255,255,255,.09); border-radius:16px; padding:16px 18px; box-shadow:0 18px 44px rgba(0,0,0,.4); overflow:hidden;}
+  .fs-kpi[data-ir]{cursor:pointer; transition:transform .15s ease;} .fs-kpi[data-ir]:hover{transform:translateY(-2px);} .fs-kpi[data-ir]:focus-visible{outline:3px solid #33B4DD; outline-offset:3px;}
   .fs-kpi:before{content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:#3DD6FF;}
   .fs-kpi[data-s="g"]:before{background:#2FE29B;} .fs-kpi[data-s="a"]:before{background:#FFC857;} .fs-kpi[data-s="r"]:before{background:#FF5C7A;}
   .fs-kpi .l{font-size:11px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:#7D8FAE;}
@@ -422,13 +423,13 @@ const tag = e => '<span class="fs-tag' + (e === 'En riesgo' ? ' top' : '') + '">
 /* ---------- bloques ---------- */
 function bloqueKpis(b, pv){
   const r = resumen(b), rp = pv ? resumen(pv) : null;
-  const k = (l, v, s, d, tono) => '<div class="fs-kpi" data-s="' + (tono||'') + '"><div class="l">' + l + '</div><div class="v">' + v + (d||'') + '</div><div class="s">' + s + '</div></div>';
+  const k = (l, v, s, d, tono, ir) => '<div class="fs-kpi" data-s="' + (tono||'') + '"' + (ir ? ' data-ir="' + ir + '" role="button" tabindex="0"' : '') + '><div class="l">' + l + '</div><div class="v">' + v + (d||'') + '</div><div class="s">' + s + '</div></div>';
   return '<div class="ct-kpis" id="ctKpis">' +
-    k('Iniciativas activas', r.activas, 'en curso o en riesgo', deltaTxt(r.activas, rp && rp.activas)) +
-    k('Participación', r.part == null ? '—' : Math.round(r.part*100) + '%', 'respondieron vs. convocados (donde hay meta)', deltaTxt(r.part, rp && rp.part, 'pp'), r.part == null ? '' : r.part >= .7 ? 'g' : r.part >= .5 ? 'a' : 'r') +
-    k('eNPS', r.enps == null ? '—' : r.enps, 'último valor registrado', deltaTxt(r.enps, (b.pulso||{}).enpsAnt != null ? b.pulso.enpsAnt : (pv && (pv.pulso||{}).enps))) +
-    k('Temas abiertos', r.abiertos, 'por conversar o decidir', deltaTxt(r.abiertos, rp && rp.abiertos)) +
-    k('Alertas de personas', r.alertas, 'sin resolver', '', r.alertas ? 'a' : 'g') + '</div>';
+    k('Iniciativas activas', r.activas, 'en curso o en riesgo', deltaTxt(r.activas, rp && rp.activas), '', 'ct-ini') +
+    k('Participación', r.part == null ? '—' : Math.round(r.part*100) + '%', 'respondieron vs. convocados (donde hay meta)', deltaTxt(r.part, rp && rp.part, 'pp'), r.part == null ? '' : r.part >= .7 ? 'g' : r.part >= .5 ? 'a' : 'r', 'ct-pulso') +
+    k('eNPS', r.enps == null ? '—' : r.enps, 'último valor registrado', deltaTxt(r.enps, (b.pulso||{}).enpsAnt != null ? b.pulso.enpsAnt : (pv && (pv.pulso||{}).enps)), '', 'ct-pulso') +
+    k('Temas abiertos', r.abiertos, 'por conversar o decidir', deltaTxt(r.abiertos, rp && rp.abiertos), '', 'ct-temas') +
+    k('Alertas de personas', r.alertas, 'sin resolver', '', r.alertas ? 'a' : 'g', 'ct-pulso') + '</div>';
 }
 function cardIni(x, i, pv){
   const p = pctPart(x), ant = pv ? (pv.iniciativas||[]).find(y => y.id === x.id) : null;

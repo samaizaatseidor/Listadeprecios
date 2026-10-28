@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="/wbr-kit.js?v=20261010s"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
@@ -408,14 +408,14 @@ function render(){
   const tonoCobro = pctCobro >= 0.7 ? 'green' : (pctCobro >= 0.4 ? 'amber' : 'red');
 
   const kpis = WK.heroGrid([
-    WK.hero({ label:'Vendido C&S (TCV)', ico:'🧾', value:fmtC(R.cs.vendido), unit:'USD', tono:'violet', sub:'Total 2026', delta:dlt(R.cs.vendido, RP && RP.cs.vendido),
+    WK.hero({ label:'Vendido C&S (TCV)', ir:'ventas', ico:'🧾', value:fmtC(R.cs.vendido), unit:'USD', tono:'violet', sub:'Total 2026', delta:dlt(R.cs.vendido, RP && RP.cs.vendido),
       chart:tendencia(r => r.cs.vendido, '#B7AEFF', 'Vendido C&S') }),
-    WK.hero({ label:'Vendido A&O (TCV)', ico:'🧾', value:fmtC(R.ao.vendido), unit:'USD', tono:'cyan', sub:'Total 2026', delta:dlt(R.ao.vendido, RP && RP.ao.vendido),
+    WK.hero({ label:'Vendido A&O (TCV)', ir:'ventas', ico:'🧾', value:fmtC(R.ao.vendido), unit:'USD', tono:'cyan', sub:'Total 2026', delta:dlt(R.ao.vendido, RP && RP.ao.vendido),
       chart:tendencia(r => r.ao.vendido, '#8FE6FF', 'Vendido A&O') }),
-    WK.hero({ label:'Cobrado C&S vs. comisión', ico:'💰', value:WK.pct(pctCobro), tono:R.cs.comision ? tonoCobro : null, sub:'Pagado ' + fmtC(R.cs.pagado) + ' de ' + fmtC(R.cs.comision), delta:dlt(R.cs.pagado, RP && RP.cs.pagado),
+    WK.hero({ label:'Cobrado C&S vs. comisión', ir:'cobranza', ico:'💰', value:WK.pct(pctCobro), tono:R.cs.comision ? tonoCobro : null, sub:'Pagado ' + fmtC(R.cs.pagado) + ' de ' + fmtC(R.cs.comision), delta:dlt(R.cs.pagado, RP && RP.cs.pagado),
       chart:WK.gauge({ valor:R.cs.pagado, max:R.cs.comision || 1, tono:R.cs.comision ? tonoCobro : 'cyan', texto:fmtC(R.cs.pagado), label:'pagado por SAP (USD)', dark:true,
         tip:'Cobranza C&S\nPagado por SAP: ' + fmtC(R.cs.pagado) + '\nComisión a pagar: ' + fmtC(R.cs.comision) + '\nAvance: ' + WK.pct(pctCobro) }) }),
-    WK.hero({ label:'Pendiente SAP → SEIDOR', ico:'⏳', value:fmtC(pendTot), unit:'USD', tono:'amber', sub:'C&S ' + fmtC(R.cs.pendiente) + ' · A&O ' + fmtC(R.ao.pendiente), delta:dlt(pendTot, RP && (RP.cs.pendiente + RP.ao.pendiente), 'down'),
+    WK.hero({ label:'Pendiente SAP → SEIDOR', ir:'cobranza', ico:'⏳', value:fmtC(pendTot), unit:'USD', tono:'amber', sub:'C&S ' + fmtC(R.cs.pendiente) + ' · A&O ' + fmtC(R.ao.pendiente), delta:dlt(pendTot, RP && (RP.cs.pendiente + RP.ao.pendiente), 'down'),
       chart:tendencia(r => r.cs.pendiente + r.ao.pendiente, '#FFD479', 'Pendiente SAP → SEIDOR') })
   ]);
 

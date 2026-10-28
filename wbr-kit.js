@@ -174,6 +174,7 @@ var CSS = [
 '.wk-hero:after{display:none;} .wk-hero:before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,rgba(255,255,255,.14),transparent 38%);pointer-events:none;}',
 '.wk-hero-top{font-size:13px;color:rgba(255,255,255,.72);} .wk-hero-val{font-size:60px;letter-spacing:-2px;margin:12px 0 4px;text-shadow:0 4px 30px rgba(0,0,0,.35);} .wk-hero-val small{font-size:24px;color:rgba(255,255,255,.7);} .wk-hero-sub{font-size:15px;color:rgba(255,255,255,.82);}',
 '.wk-hero-grid{gap:22px;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));margin-bottom:24px;}',
+'.wk-hero[data-ir],.wk-kpi[data-ir]{cursor:pointer;} .wk-hero[data-ir]:focus-visible,.wk-kpi[data-ir]:focus-visible{outline:3px solid var(--wk-cyan);outline-offset:3px;} .wk-kpi[data-ir]:hover{transform:translateY(-2px);} .wk-ir-go{margin-top:auto;padding-top:8px;font-size:11.5px;font-weight:700;letter-spacing:.4px;opacity:.55;position:relative;z-index:1;transition:opacity .2s;} .wk-hero[data-ir]:hover .wk-ir-go,.wk-kpi[data-ir]:hover .wk-ir-go{opacity:1;} @keyframes wkflash{0%{box-shadow:0 0 0 0 rgba(51,180,221,.75)}100%{box-shadow:0 0 0 18px rgba(51,180,221,0)}} .wk-ir-flash{animation:wkflash 1.1s ease-out 2;border-radius:16px;} .wk-band,.wk-card,[id="resumen"]{scroll-margin-top:70px;} @media print{.wk-ir-go{display:none;}}',
 /* animaciones */
 '.wk-rv{opacity:0;transform:translateY(22px) scale(.985);transition:opacity .75s ease,transform .75s cubic-bezier(.2,.8,.2,1);transition-delay:calc(var(--wki,0)*80ms);} .wk-rv.wk-vis{opacity:1;transform:none;}',
 '.wk-hero.wk-rv.wk-vis{transition:transform .25s ease,box-shadow .25s ease,opacity .75s ease;transition-delay:0s;}',
@@ -319,13 +320,38 @@ WK.bar = function(p, tono){
   return '<div class="wk-bar ' + (tono ? 'wk-t-'+tono : '') + '"><i style="width:'+w.toFixed(1)+'%"></i></div>';
 };
 
+/* Tarjetas con destino: o.ir = id de la sección a la que se baja al hacer clic */
+WK.irAttr = function(o){
+  return o && o.ir ? ' data-ir="'+WK.esc(o.ir)+'" role="button" tabindex="0" aria-label="'+WK.esc((o.label||'Ir')+' — ir al detalle')+'"' : '';
+};
+WK.irGo = function(id){
+  var el = document.getElementById(id);
+  if(!el) return false;
+  try{ el.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){ el.scrollIntoView(); }
+  el.classList.remove('wk-ir-flash'); void el.offsetWidth; el.classList.add('wk-ir-flash');
+  setTimeout(function(){ el.classList.remove('wk-ir-flash'); }, 2400);
+  return true;
+};
+document.addEventListener('click', function(e){
+  var t = e.target.closest ? e.target.closest('[data-ir]') : null;
+  if(!t || e.target.closest('a,button,input,select,textarea,.wk-pop,.wk-tip')) return;
+  WK.irGo(t.getAttribute('data-ir'));
+});
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  var t = e.target.closest ? e.target.closest('[data-ir]') : null;
+  if(!t || e.target !== t) return;
+  e.preventDefault(); WK.irGo(t.getAttribute('data-ir'));
+});
+
 WK.kpi = function(o){
-  return '<div class="wk-kpi' + (o.tono ? ' wk-t-'+o.tono : '') + '">' +
+  return '<div class="wk-kpi' + (o.tono ? ' wk-t-'+o.tono : '') + '"' + WK.irAttr(o) + '>' +
     '<div class="wk-kpi-top"><span class="wk-kpi-label">'+WK.esc(o.label)+'</span>' + (o.ico ? '<span class="wk-kpi-ico">'+o.ico+'</span>' : '') + '</div>' +
     '<div class="wk-kpi-val">'+o.value+(o.unit ? '<small>'+WK.esc(o.unit)+'</small>' : '')+'</div>' +
     '<div class="wk-kpi-sub">'+(o.sub||'')+'</div>' +
     (o.pct != null ? WK.bar(o.pct, o.tono) : '') +
     ((o.delta || o.spark) ? '<div class="wk-kpi-foot"><div>'+(o.delta||'')+'</div><div>'+(o.spark||'')+'</div></div>' : '') +
+    (o.ir ? '<div class="wk-ir-go wk-nosend">Ver detalle ↓</div>' : '') +
   '</div>';
 };
 
@@ -518,11 +544,12 @@ WK.area = function(vals, opt){
 
 /* Tile oscuro: {label, ico, value, unit, sub, delta, tono, chart(html), gauge(html)} */
 WK.hero = function(o){
-  return '<div class="wk-hero' + (o.tono ? ' wk-t-'+o.tono : '') + '">' +
+  return '<div class="wk-hero' + (o.tono ? ' wk-t-'+o.tono : '') + '"' + WK.irAttr(o) + '>' +
     '<div class="wk-hero-top"><span>'+WK.esc(o.label)+'</span>'+(o.ico?'<span>'+o.ico+'</span>':'')+'</div>' +
     '<div class="wk-hero-val">'+o.value+(o.unit?'<small>'+WK.esc(o.unit)+'</small>':'')+'</div>' +
     '<div class="wk-hero-sub">'+(o.sub||'')+(o.delta?o.delta:'')+'</div>' +
-    (o.chart ? '<div class="wk-hero-chart">'+o.chart+'</div>' : '') + '</div>';
+    (o.chart ? '<div class="wk-hero-chart">'+o.chart+'</div>' : '') +
+    (o.ir ? '<div class="wk-ir-go wk-nosend">Ver detalle ↓</div>' : '') + '</div>';
 };
 WK.heroGrid = function(items){ return '<div class="wk-hero-grid">' + items.join('') + '</div>'; };
 
@@ -607,11 +634,12 @@ WK.area = function(vals, opt){
 
 /* Tile de color: {label, ico, value, unit, sub, delta, tono(green|amber|red|cyan|violet), chart} */
 WK.hero = function(o){
-  return '<div class="wk-hero wk-rv' + (o.tono ? ' wk-t-'+o.tono : '') + '">' +
+  return '<div class="wk-hero wk-rv' + (o.tono ? ' wk-t-'+o.tono : '') + '"' + WK.irAttr(o) + '>' +
     '<div class="wk-hero-top"><span>'+WK.esc(o.label)+'</span>'+(o.ico?'<span style="font-size:20px">'+o.ico+'</span>':'')+'</div>' +
     '<div class="wk-hero-val">'+o.value+(o.unit?'<small>'+WK.esc(o.unit)+'</small>':'')+'</div>' +
     '<div class="wk-hero-sub">'+(o.sub||'')+(o.delta?o.delta:'')+'</div>' +
-    (o.chart ? '<div class="wk-hero-chart wk-anim">'+o.chart+'</div>' : '') + '</div>';
+    (o.chart ? '<div class="wk-hero-chart wk-anim">'+o.chart+'</div>' : '') +
+    (o.ir ? '<div class="wk-ir-go wk-nosend">Ver detalle ↓</div>' : '') + '</div>';
 };
 
 /* Medidor semicircular animado con tooltip. o:{valor,max,meta,tono,texto,label,dark,tip} */

@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="/wbr-kit.js?v=20261010s"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
@@ -521,15 +521,15 @@ function render(){
   const tonoCrit = pctCritico > 0.3 ? 'red' : (pctCritico > 0.15 ? 'amber' : 'green');
 
   const kpis = WK.heroGrid([
-    WK.hero({ label:'Facturación YTD', ico:'🧾', value:WK.pct(factYTD.avance), tono:TONO_AV(factYTD.avance), sub:'Objetivo ' + WK.usdK(factYTD.objetivo), delta:P ? dpp(factYTD.avance, P.f.avance) : '',
+    WK.hero({ label:'Facturación YTD', ir:'fact', ico:'🧾', value:WK.pct(factYTD.avance), tono:TONO_AV(factYTD.avance), sub:'Objetivo ' + WK.usdK(factYTD.objetivo), delta:P ? dpp(factYTD.avance, P.f.avance) : '',
       chart:WK.gauge({ valor:factYTD.real, max:factYTD.objetivo || 1, tono:TONO_AV(factYTD.avance), texto:fmtC(factYTD.real), label:'emitido (EUR)', dark:true, tip:'Facturación YTD\nEmitido ' + WK.usdK(factYTD.real) + ' de ' + WK.usdK(factYTD.objetivo) + '\nAvance ' + WK.pct(factYTD.avance) }) }),
-    WK.hero({ label:'Cobranza YTD', ico:'💵', value:WK.pct(cobrYTD.avance), tono:TONO_AV(cobrYTD.avance), sub:'Objetivo ' + WK.usdK(cobrYTD.objetivo), delta:P ? dpp(cobrYTD.avance, P.c.avance) : '',
+    WK.hero({ label:'Cobranza YTD', ir:'fact', ico:'💵', value:WK.pct(cobrYTD.avance), tono:TONO_AV(cobrYTD.avance), sub:'Objetivo ' + WK.usdK(cobrYTD.objetivo), delta:P ? dpp(cobrYTD.avance, P.c.avance) : '',
       chart:WK.gauge({ valor:cobrYTD.real, max:cobrYTD.objetivo || 1, tono:TONO_AV(cobrYTD.avance), texto:fmtC(cobrYTD.real), label:'cobrado (EUR)', dark:true, tip:'Cobranza YTD\nCobrado ' + WK.usdK(cobrYTD.real) + ' de ' + WK.usdK(cobrYTD.objetivo) + '\nAvance ' + WK.pct(cobrYTD.avance) }) }),
-    WK.hero({ label:'Cartera vencida', ico:'⏳', value:WK.usdK(totalVencido), tono:tonoVenc, sub:'de ' + WK.usdK(totalCartera) + ' en cartera total',
+    WK.hero({ label:'Cartera vencida', ir:'aging', ico:'⏳', value:WK.usdK(totalVencido), tono:tonoVenc, sub:'de ' + WK.usdK(totalCartera) + ' en cartera total',
       delta:P ? WK.delta(totalVencido, P.vencido, { bueno:'down', fmt:x => WK.usdK(x) }) : '',
       chart: WK.area(serie.map(s => s.vencido), { labels:lbl, color: tonoVenc === 'red' ? '#FF5C7A' : '#FFC857', fmt:WK.usdK, nombre:'Vencido' }) ||
              WK.gauge({ valor:totalVencido, max:totalCartera || 1, tono:tonoVenc, texto:WK.pct(totalCartera ? totalVencido/totalCartera : 0), label:'de la cartera está vencida', dark:true, tip:'Cartera vencida\n' + WK.usdK(totalVencido) + ' de ' + WK.usdK(totalCartera) }) }),
-    WK.hero({ label:'Zona crítica (+6 meses)', ico:'🚨', value:WK.pct(pctCritico), tono:tonoCrit, sub:clientesCriticos + ' cliente(s) con saldo ahí', delta:P ? dppMenos(pctCritico, P.pctCrit) : '',
+    WK.hero({ label:'Zona crítica (+6 meses)', ir:'aging', ico:'🚨', value:WK.pct(pctCritico), tono:tonoCrit, sub:clientesCriticos + ' cliente(s) con saldo ahí', delta:P ? dppMenos(pctCritico, P.pctCrit) : '',
       chart:WK.gauge({ valor:totalCritico, max:totalVencido || 1, tono:tonoCrit, texto:WK.usdK(totalCritico), label:'del vencido (EUR)', dark:true, tip:'Zona crítica (+6 meses)\n' + WK.usdK(totalCritico) + ' de ' + WK.usdK(totalVencido) + ' vencidos\n' + WK.pct(pctCritico) + ' del vencido' }) })
   ]);
 

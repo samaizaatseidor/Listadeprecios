@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="/wbr-kit.js?v=20261026a"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 <style>
   :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
   *{box-sizing:border-box;}
@@ -340,6 +340,13 @@ const fmtF = iso => new Date(iso).toLocaleDateString('es-MX', { timeZone:'UTC', 
 /* Efectos WBR: se enganchan al tablero sin modificarlo (clases del kit) */
 function vestir(){
   var tone={green:'wk-t-green',amber:'wk-t-amber',red:'wk-t-red'};
+  var irVista={'Proyectos activos':'projects','On Track':'projects','En atención':'projects','Críticos':'risks','Detenidos':'projects','Go Lives realizados':'golives','Go Lives próximos':'golives'};
+  document.querySelectorAll('#kpis .card').forEach(function(c){
+    var lb=c.querySelector('.lab'), v=lb && irVista[lb.textContent.trim()]; if(!v || c.dataset.irB1) return;
+    c.dataset.irB1='1'; c.setAttribute('role','button'); c.setAttribute('tabindex','0'); c.style.cursor='pointer';
+    var go=function(){ var t=document.querySelector('.nav[data-v="'+v+'"]'); if(t) t.click(); var el=document.getElementById(v); if(el){ setTimeout(function(){ try{ el.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){ el.scrollIntoView(); } },60); } };
+    c.addEventListener('click',go); c.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
+  });
   document.querySelectorAll('.kpis .card,.monthcards .card').forEach(function(c){
     c.classList.add('wk-kpi'); Object.keys(tone).forEach(function(t){ if(c.classList.contains(t)) c.classList.add(tone[t]); });
     var l=c.querySelector('.lab'); if(l) l.classList.add('wk-kpi-label');

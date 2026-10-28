@@ -199,7 +199,7 @@
   <div id="content"></div>
 </main>
 
-<script src="/wbr-kit.js?v=20261010s"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 <script>
 const FORMATO = 'bx-semanal-v2';
 let historial = [];      // solo cortes en el formato del Excel de BX
@@ -504,20 +504,20 @@ function render(){
   const gEsc = grupos(S['1.5'], 'riesgo');
 
   const kpis = WK.heroGrid([
-    WK.hero({ label:'Clientes tocados', ico:'🤝', value:K.clientes, tono:tonoSem, sub:sub1 || 'Sin interacciones registradas',
+    WK.hero({ label:'Clientes tocados', ir:'s1-1', ico:'🤝', value:K.clientes, tono:tonoSem, sub:sub1 || 'Sin interacciones registradas',
       delta: PK ? WK.delta(K.clientes, PK.clientes, { bueno:'up' }) : '',
       chart: semTotal ? WK.gauge({ valor:K.verdes, max:semTotal, tono:tonoSem, texto:K.verdes + ' de ' + semTotal, label:'clientes en verde', dark:true,
         tip:'Semáforo de clientes tocados\n' + K.verdes + ' verde · ' + K.amarillos + ' amarillo · ' + K.rojos + ' rojo' }) : '' }),
-    WK.hero({ label:'Riesgos de churn', ico:'⚠️', value: K.montoChurn ? WK.usd(K.montoChurn) : K.churn, tono: K.churn ? 'red' : 'green',
+    WK.hero({ label:'Riesgos de churn', ir:'s2-2', ico:'⚠️', value: K.montoChurn ? WK.usd(K.montoChurn) : K.churn, tono: K.churn ? 'red' : 'green',
       sub: K.churn ? 'USD · ' + plural(K.churn, 'cliente en riesgo', 'clientes en riesgo') + (K.montoChurn ? '' : ' · monto sin capturar') : 'Sin riesgos reportados',
       delta: (PK && K.montoChurn && montoPrev != null) ? WK.delta(K.montoChurn, montoPrev, { bueno:'down', fmt:x => WK.usd(x) }) : (PK ? WK.delta(K.churn, PK.churn, { bueno:'down' }) : ''),
       chart: rankingChurn(S, 3) }),
-    WK.hero({ label:'Escalaciones', ico:'🚨', value:K.escalaciones, tono: K.altas ? 'red' : (K.escalaciones ? 'amber' : 'green'),
+    WK.hero({ label:'Escalaciones', ir:'s1-5', ico:'🚨', value:K.escalaciones, tono: K.altas ? 'red' : (K.escalaciones ? 'amber' : 'green'),
       sub: K.altas ? K.altas + ' de riesgo alto' : (K.escalaciones ? 'Ninguna de riesgo alto' : 'Sin escalaciones'),
       delta: PK ? WK.delta(K.escalaciones, PK.escalaciones, { bueno:'down' }) : '',
       chart: K.escalaciones ? WK.gauge({ valor:K.altas, max:K.escalaciones, tono: K.altas ? 'red' : 'amber', texto:K.altas + ' de ' + K.escalaciones, label:'de riesgo alto', dark:true,
         tip:'Escalaciones por nivel de riesgo\n' + (gEsc.map(g => g.nombre + ': ' + g.n).join(' · ') || 'Sin clasificar') }) : '' }),
-    WK.hero({ label:'Oportunidades en seguimiento', ico:'🎯', value:K.seguimiento, tono:'cyan',
+    WK.hero({ label:'Oportunidades en seguimiento', ir:'s2-3', ico:'🎯', value:K.seguimiento, tono:'cyan',
       sub: K.detectadas ? K.detectadas + ' detectadas esta semana' : 'Con responsable comercial',
       delta: PK ? WK.delta(K.seguimiento, PK.seguimiento, { bueno:'up' }) : '',
       chart: WK.area(cortesVis.map(h => (h.kpis || calcularKpis(h)).seguimiento), { labels:histLbl, color:'#3DD6FF', nombre:'En seguimiento' }) ||

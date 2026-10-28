@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="/wbr-kit.js?v=20261010s"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
@@ -446,13 +446,13 @@ function render(){
 
   const histLbl = historial.slice(Math.max(0, hasta - 8), hasta).map(h => (WK.fecha(new Date(h.fechaRevision)) || '').slice(0,5));
   const kpis = WK.heroGrid([
-    WK.hero({ label:'Ventas YTD', ico:'💼', value:WK.pct(v.pctYTD), tono:TONO_AV(v.pctYTD), sub:'Meta anual ' + WK.usdK(v.targetAnual), delta:dpp(v.pctYTD, pv && pv.pctYTD),
+    WK.hero({ label:'Ventas YTD', ir:'metas', ico:'💼', value:WK.pct(v.pctYTD), tono:TONO_AV(v.pctYTD), sub:'Meta anual ' + WK.usdK(v.targetAnual), delta:dpp(v.pctYTD, pv && pv.pctYTD),
       chart:WK.gauge({ valor:v.resultadoYTD, max:v.targetAnual || 1, tono:TONO_AV(v.pctYTD), texto:WK.usdK(v.resultadoYTD), label:'acumulado (USD)', dark:true }) }),
-    WK.hero({ label:'Ventas — trimestre actual', ico:'🎯', value:WK.pct(v.pctCQ), tono:TONO_AV(v.pctCQ), sub:'Meta CQ ' + WK.usdK(v.targetCQ), delta:dpp(v.pctCQ, pv && pv.pctCQ),
+    WK.hero({ label:'Ventas — trimestre actual', ir:'metas', ico:'🎯', value:WK.pct(v.pctCQ), tono:TONO_AV(v.pctCQ), sub:'Meta CQ ' + WK.usdK(v.targetCQ), delta:dpp(v.pctCQ, pv && pv.pctCQ),
       chart:WK.gauge({ valor:v.resultadoCQ, max:v.targetCQ || 1, meta:v.targetFCST && v.targetCQ ? Math.min(v.targetFCST, v.targetCQ) : null, tono:TONO_AV(v.pctCQ), texto:WK.usdK(v.resultadoCQ), label:'en el trimestre (USD)', dark:true }) }),
-    WK.hero({ label:'Forecast vs. meta CQ', ico:'🔭', value:WK.pct(v.pctFCST), tono:TONO_AV(v.pctFCST), sub:'To go ' + WK.usdK(v.togo), delta:dpp(v.pctFCST, pv && pv.pctFCST),
+    WK.hero({ label:'Forecast vs. meta CQ', ir:'metas', ico:'🔭', value:WK.pct(v.pctFCST), tono:TONO_AV(v.pctFCST), sub:'To go ' + WK.usdK(v.togo), delta:dpp(v.pctFCST, pv && pv.pctFCST),
       chart:WK.gauge({ valor:Math.min(v.targetFCST, v.targetCQ || v.targetFCST), max:v.targetCQ || v.targetFCST || 1, tono:TONO_AV(v.pctFCST), texto:WK.usdK(v.targetFCST), label:'forecast (USD)', dark:true }) }),
-    WK.hero({ label:'Pipeline total (CQ)', ico:'🧱', value:WK.usdK(p.resultadoCQ), tono: TONO_AV(mult), sub:(Math.round(mult*10)/10) + 'x la meta de ' + WK.usdK(p.targetCQ),
+    WK.hero({ label:'Pipeline total (CQ)', ir:'ops', ico:'🧱', value:WK.usdK(p.resultadoCQ), tono: TONO_AV(mult), sub:(Math.round(mult*10)/10) + 'x la meta de ' + WK.usdK(p.targetCQ),
       delta: pp ? WK.delta(p.resultadoCQ, pp.resultadoCQ, { bueno:'up', fmt:x => WK.usdK(x) }) : '',
       chart: WK.area(serie(h => kpiPipe(h).resultadoCQ), { labels:histLbl, color:'#33B4DD' }) || '<div class="wk-hero-sub">La tendencia aparece desde el segundo corte.</div>' })
   ]);
