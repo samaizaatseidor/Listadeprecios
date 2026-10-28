@@ -346,6 +346,16 @@
 #pe .ini-v.mut{color:var(--ink3)}
 #pe .ini-av2{display:flex;align-items:center;gap:8px}#pe .ini-av2 .ini-in{width:80px;flex:none}#pe .ini-av2 .ini-bar{flex:1;min-width:40px}
 @media(max-width:760px){#pe .ini-list{grid-template-columns:1fr}}
+#pe .ini-k.tile{gap:8px;padding:16px 18px 14px}
+#pe .ini-k.tile .big{font-size:40px;letter-spacing:-.02em}
+#pe .ini-k.tile .big small{font-size:15px}
+#pe .ini-k.tile .nm{flex:1;min-width:0}
+#pe .ini-k .nota{color:var(--ink3);font-style:italic}
+#pe .ini-chips{display:flex;gap:6px;flex-wrap:wrap}
+#pe .ini-chip{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--neu-bg);color:var(--neu-fg)}
+#pe .ini-chip.g{background:#12402F;color:#2FE29B}#pe .ini-chip.a{background:#4A3A12;color:#F0B64A}#pe .ini-chip.r{background:#4A1E1A;color:#FF9A8A}
+#pe .ini-x.ok{color:var(--pos-fg);background:var(--pos-bg);font-weight:600;font-size:11.5px}
+#pe .ini-x.ok:hover{background:var(--accent);color:#fff}
 @media print{#pe .ini-btn,#pe .ini-x{display:none}}
 </style>
 </head>
@@ -1573,7 +1583,7 @@ window.WK_PDF_PLAN = async (cap) => {
 </script>
 <script>
 /* ===== Iniciativas de Marketing: captura directa (campos, indicadores e iniciativas) ===== */
-const INI = { board: null, version: 0, puede: false, editadoEn: '', editadoPor: '', dirty: false, cargando: false, cargado: false, f: { q: '', est: '' }, delArm: '' };
+const INI = { editK: new Set(), board: null, version: 0, puede: false, editadoEn: '', editadoPor: '', dirty: false, cargando: false, cargado: false, f: { q: '', est: '' }, delArm: '' };
 const INI_EST = ['Por iniciar','En curso','En riesgo','Pausada','Completada','Cancelada'];
 const INI_PRI = ['Alta','Media','Baja'];
 const INI_TIPOS = [['texto','Texto'],['numero','Número'],['fecha','Fecha'],['lista','Lista de opciones'],['porcentaje','Porcentaje']];
@@ -1590,7 +1600,7 @@ async function iniCargar(){
     if(!r.ok || !d.ok) throw new Error(d.error || 'No se pudo cargar');
     INI.board = { campos: d.live.campos || [], indicadores: d.live.indicadores || [], iniciativas: d.live.iniciativas || [] };
     INI.version = d.live.version || 0; INI.editadoEn = d.live.editadoEn || ''; INI.editadoPor = d.live.editadoPor || '';
-    INI.puede = !!(d.yo && d.yo.puedeEditar); INI.cargado = true; INI.dirty = false;
+    INI.puede = !!(d.yo && d.yo.puedeEditar); INI.cargado = true; INI.dirty = false; INI.editK.clear();
   }catch(e){ INI.error = String(e.message || e); }
   INI.cargando = false; iniRender(true);
 }
@@ -1616,16 +1626,22 @@ function iniHtml(){
   const sum = '<div class="card"><div class="ch"><h2>Resumen</h2><span class="sub">Se actualiza al capturar</span></div><div class="ini-sum" id="iniSum"></div></div>';
 
   const kp = B.indicadores.map(k => {
-    const x = ed ? '<button class="ini-x" data-ia="del-k" data-id="' + esc(k.id) + '" title="Quitar indicador">' + (INI.delArm === k.id ? '¿Quitar?' : '✕') + '</button>' : '';
-    if(!ed) return '<div class="ini-k" data-kid="' + esc(k.id) + '"><div class="nm">' + esc(k.nombre || 'Sin nombre') + '</div><div class="big" data-big>—</div><div class="meta" data-meta></div><div class="ini-bar"><i style="width:0%"></i></div>' + (k.nota ? '<div class="meta">' + esc(k.nota) + '</div>' : '') + '</div>';
-    return '<div class="ini-k" data-kid="' + esc(k.id) + '"><div class="ini-kh"><input class="ini-in" data-t="k" data-id="' + esc(k.id) + '" data-f="nombre" value="' + esc(k.nombre) + '" placeholder="Nombre del indicador">' + x + '</div>' +
-      '<div class="ini-grid2"><label class="ini-l">Actual<input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="actual" data-n="1" value="' + (k.actual ?? '') + '"></label>' +
-      '<label class="ini-l">Meta<input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="meta" data-n="1" value="' + (k.meta ?? '') + '"></label>' +
-      '<label class="ini-l">Periodo anterior<input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="previo" data-n="1" value="' + (k.previo ?? '') + '"></label>' +
-      '<label class="ini-l">Unidad<input class="ini-in" data-t="k" data-id="' + esc(k.id) + '" data-f="unidad" value="' + esc(k.unidad) + '" placeholder="%, USD, #…"></label></div>' +
-      '<select class="ini-sel" data-t="k" data-id="' + esc(k.id) + '" data-f="sentido"><option value="mayor"' + (k.sentido !== 'menor' ? ' selected' : '') + '>Mayor es mejor</option><option value="menor"' + (k.sentido === 'menor' ? ' selected' : '') + '>Menor es mejor</option></select>' +
-      '<input class="ini-in" data-t="k" data-id="' + esc(k.id) + '" data-f="nota" value="' + esc(k.nota) + '" placeholder="Nota (opcional)">' +
-      '<div class="big" data-big>—</div><div class="meta" data-meta></div><div class="ini-bar"><i style="width:0%"></i></div></div>';
+    const K = 'data-t="k" data-id="' + esc(k.id) + '"';
+    if(!(ed && INI.editK.has(k.id))){ // vista de indicador (la que ve todo el mundo y la que queda al guardar)
+      return '<div class="ini-k tile" data-kid="' + esc(k.id) + '"><div class="ini-kh"><div class="nm">' + esc(k.nombre || 'Sin nombre') + '</div>' + (ed ? '<button class="ini-x" data-ia="edit-k" data-id="' + esc(k.id) + '" title="Editar indicador">✏️</button>' : '') + '</div>' +
+        '<div class="big" data-big>—</div><div class="ini-chips"><span class="ini-chip" data-pct></span><span class="ini-chip" data-delta></span></div>' +
+        '<div class="ini-bar"><i style="width:0%"></i></div><div class="meta" data-meta></div>' + (k.nota ? '<div class="meta nota">' + esc(k.nota) + '</div>' : '') + '</div>';
+    }
+    return '<div class="ini-k" data-kid="' + esc(k.id) + '"><div class="ini-kh"><input class="ini-in" ' + K + ' data-f="nombre" value="' + esc(k.nombre) + '" placeholder="Nombre del indicador">' +
+      '<button class="ini-x ok" data-ia="ok-k" data-id="' + esc(k.id) + '" title="Ver como indicador">✓ Listo</button>' +
+      '<button class="ini-x" data-ia="del-k" data-id="' + esc(k.id) + '" title="Quitar indicador">' + (INI.delArm === k.id ? '¿Quitar?' : '✕') + '</button></div>' +
+      '<div class="ini-grid2"><label class="ini-l">Actual<input class="ini-in" type="number" step="any" ' + K + ' data-f="actual" data-n="1" value="' + (k.actual ?? '') + '"></label>' +
+      '<label class="ini-l">Meta<input class="ini-in" type="number" step="any" ' + K + ' data-f="meta" data-n="1" value="' + (k.meta ?? '') + '"></label>' +
+      '<label class="ini-l">Periodo anterior<input class="ini-in" type="number" step="any" ' + K + ' data-f="previo" data-n="1" value="' + (k.previo ?? '') + '"></label>' +
+      '<label class="ini-l">Unidad<input class="ini-in" ' + K + ' data-f="unidad" value="' + esc(k.unidad) + '" placeholder="%, USD, #…"></label></div>' +
+      '<select class="ini-sel" ' + K + ' data-f="sentido"><option value="mayor"' + (k.sentido !== 'menor' ? ' selected' : '') + '>Mayor es mejor</option><option value="menor"' + (k.sentido === 'menor' ? ' selected' : '') + '>Menor es mejor</option></select>' +
+      '<input class="ini-in" ' + K + ' data-f="nota" value="' + esc(k.nota) + '" placeholder="Nota (opcional)">' +
+      '<div class="meta" style="color:var(--ink3)">Vista previa</div><div class="big" data-big>—</div><div class="meta" data-meta></div><div class="ini-bar"><i style="width:0%"></i></div></div>';
   }).join('');
   const kCard = '<div class="card"><div class="ch"><h2>Indicadores</h2><span class="sub">Define los que necesites; el color compara el actual contra la meta</span>' + (ed ? '<button class="ini-btn sm" data-ia="add-k">➕ Agregar indicador</button>' : '') + '</div>' +
     (kp ? '<div class="ini-kpis">' + kp + '</div>' : '<div class="ini-empty">' + (ed ? 'Aún no hay indicadores. Agrega el primero con “Agregar indicador”.' : 'Aún no hay indicadores registrados.') + '</div>') + '</div>';
@@ -1685,8 +1701,17 @@ function iniDerivados(){
     el.classList.remove('g','a','r'); const t = iniTono(p); if(t) el.classList.add(t);
     el.querySelector('[data-big]').innerHTML = iniFmt(k.actual) + u;
     const pv = iniNum(k.previo), a = iniNum(k.actual);
-    const dl = (pv != null && a != null) ? ' · ' + (a > pv ? '▲' : a < pv ? '▼' : '=') + ' ' + iniFmt(Math.abs(a - pv)) + ' vs. anterior' : '';
-    el.querySelector('[data-meta]').textContent = (k.meta != null ? 'Meta ' + iniFmt(k.meta) + (k.unidad ? ' ' + k.unidad : '') : 'Sin meta') + (p != null ? ' · ' + Math.round(p * 100) + '% de la meta' : '') + dl;
+    const mejor = (a != null && pv != null) ? (k.sentido === 'menor' ? a < pv : a > pv) : null;
+    const dl = (pv != null && a != null) ? (a > pv ? '▲' : a < pv ? '▼' : '＝') + ' ' + iniFmt(Math.abs(a - pv)) + ' vs. anterior' : '';
+    const metaTxt = k.meta != null ? 'Meta ' + iniFmt(k.meta) + (k.unidad ? ' ' + k.unidad : '') : 'Sin meta definida';
+    const cPct = el.querySelector('[data-pct]'), cDl = el.querySelector('[data-delta]');
+    if(cPct){ // vista de indicador
+      cPct.textContent = p != null ? Math.round(p * 100) + '% de la meta' : 'Sin meta'; cPct.className = 'ini-chip ' + (t || 'n');
+      cDl.textContent = dl; cDl.style.display = dl ? '' : 'none'; cDl.className = 'ini-chip ' + (mejor == null || a === pv ? 'n' : mejor ? 'g' : 'r');
+      el.querySelector('[data-meta]').textContent = metaTxt;
+    }else{ // formulario: vista previa en una línea
+      el.querySelector('[data-meta]').textContent = metaTxt + (p != null ? ' · ' + Math.round(p * 100) + '% de la meta' : '') + (dl ? ' · ' + dl : '');
+    }
     el.querySelector('.ini-bar i').style.width = (p == null ? 0 : Math.max(0, Math.min(100, p * 100))) + '%';
   });
   const L = B.iniciativas, cnt = e => L.filter(x => x.estatus === e).length;
@@ -1722,12 +1747,14 @@ document.addEventListener('click', async e => {
   const a = b.dataset.ia, B = INI.board, id = b.dataset.id;
   if(a === 'reintentar'){ INI.error = ''; INI.cargado = false; iniCargar(); return; }
   if(!INI.puede) return;
-  if(a === 'add-k'){ B.indicadores.push({ id: iniId('k'), nombre: '', unidad: '', actual: null, meta: null, previo: null, sentido: 'mayor', nota: '' }); iniMarcar(); iniRender(true); return; }
+  if(a === 'add-k'){ const nid = iniId('k'); B.indicadores.push({ id: nid, nombre: '', unidad: '', actual: null, meta: null, previo: null, sentido: 'mayor', nota: '' }); INI.editK.add(nid); iniMarcar(); iniRender(true); return; }
+  if(a === 'edit-k'){ INI.editK.add(id); iniRender(true); return; }
+  if(a === 'ok-k'){ INI.editK.delete(id); iniRender(true); return; }
   if(a === 'add-i'){ B.iniciativas.unshift({ id: iniId('i'), nombre: '', responsable: '', estatus: 'Por iniciar', prioridad: 'Media', inicio: '', fin: '', avance: 0, objetivo: '', nota: '', extra: {} }); INI.f = { q: '', est: '' }; iniMarcar(); iniRender(true); return; }
   if(a === 'add-c'){ B.campos.push({ id: iniId('c'), nombre: 'Nuevo campo', tipo: 'texto', opciones: [] }); iniMarcar(); iniRender(true); return; }
   if(a === 'del-k' || a === 'del-i' || a === 'del-c'){
     if(INI.delArm !== id){ INI.delArm = id; iniRender(true); setTimeout(() => { if(INI.delArm === id){ INI.delArm = ''; iniRender(true); } }, 4000); return; }
-    if(a === 'del-k') B.indicadores = B.indicadores.filter(x => x.id !== id);
+    if(a === 'del-k'){ B.indicadores = B.indicadores.filter(x => x.id !== id); INI.editK.delete(id); }
     if(a === 'del-i') B.iniciativas = B.iniciativas.filter(x => x.id !== id);
     if(a === 'del-c'){ B.campos = B.campos.filter(x => x.id !== id); B.iniciativas.forEach(x => { if(x.extra) delete x.extra[id]; }); }
     INI.delArm = ''; INI.dirty = true; iniRender(true); return;
@@ -1738,9 +1765,9 @@ document.addEventListener('click', async e => {
     try{
       const r = await fetch('/api/wbr-marketing-iniciativas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accion: 'guardar', version: INI.version, board: B }) });
       const d = await r.json().catch(() => ({}));
-      if(r.status === 409 && d.board){ INI.board = { campos: d.board.campos || [], indicadores: d.board.indicadores || [], iniciativas: d.board.iniciativas || [] }; INI.version = d.board.version || 0; INI.dirty = false; iniRender(true); toast(d.error || 'Se recargó la versión más reciente'); return; }
+      if(r.status === 409 && d.board){ INI.board = { campos: d.board.campos || [], indicadores: d.board.indicadores || [], iniciativas: d.board.iniciativas || [] }; INI.version = d.board.version || 0; INI.dirty = false; INI.editK.clear(); iniRender(true); toast(d.error || 'Se recargó la versión más reciente'); return; }
       if(!r.ok || !d.ok) throw new Error(d.error || ('HTTP ' + r.status));
-      INI.board = { campos: d.board.campos, indicadores: d.board.indicadores, iniciativas: d.board.iniciativas }; INI.version = d.board.version; INI.editadoEn = d.board.editadoEn; INI.editadoPor = d.board.editadoPor; INI.dirty = false;
+      INI.board = { campos: d.board.campos, indicadores: d.board.indicadores, iniciativas: d.board.iniciativas }; INI.version = d.board.version; INI.editadoEn = d.board.editadoEn; INI.editadoPor = d.board.editadoPor; INI.dirty = false; INI.editK.clear();
       iniRender(true); toast('Iniciativas guardadas');
     }catch(err){ toast('No se pudo guardar: ' + (err.message || err)); iniRender(true); }
   }
