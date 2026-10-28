@@ -333,7 +333,7 @@
 #pe .ini-kh .ini-in{font-weight:600;flex:1;min-width:0}
 #pe .ini-l{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);font-weight:600}
 #pe .ini-l .ini-in,#pe .ini-l .ini-sel,#pe .ini-l .ini-ta{text-transform:none;letter-spacing:0;font-weight:400}
-#pe .ini-list{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,500px),1fr))}
+#pe .ini-list{display:flex;flex-direction:column;gap:10px}
 #pe .ini-card{background:var(--bg);border:1px solid var(--line2);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;border-left:4px solid var(--accent)}
 #pe .ini-card[data-est="En riesgo"]{border-left-color:#F0B64A}#pe .ini-card[data-est="Completada"]{border-left-color:#2FE29B}#pe .ini-card[data-est="Pausada"],#pe .ini-card[data-est="Cancelada"]{border-left-color:var(--ink3)}
 #pe .ini-ch{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -345,7 +345,6 @@
 #pe .ini-v{font-size:13px;color:var(--ink);text-transform:none;letter-spacing:0;font-weight:400;min-height:18px;line-height:1.45}
 #pe .ini-v.mut{color:var(--ink3)}
 #pe .ini-av2{display:flex;align-items:center;gap:8px}#pe .ini-av2 .ini-in{width:80px;flex:none}#pe .ini-av2 .ini-bar{flex:1;min-width:40px}
-@media(max-width:760px){#pe .ini-list{grid-template-columns:1fr}}
 #pe .ini-k.tile{gap:8px;padding:16px 18px 14px}
 #pe .ini-k.tile .big{font-size:40px;letter-spacing:-.02em}
 #pe .ini-k.tile .big small{font-size:15px}
@@ -356,6 +355,26 @@
 #pe .ini-chip.g{background:#12402F;color:#2FE29B}#pe .ini-chip.a{background:#4A3A12;color:#F0B64A}#pe .ini-chip.r{background:#4A1E1A;color:#FF9A8A}
 #pe .ini-x.ok{color:var(--pos-fg);background:var(--pos-bg);font-weight:600;font-size:11.5px}
 #pe .ini-x.ok:hover{background:var(--accent);color:#fff}
+#pe .ini-row{display:flex;align-items:flex-start;gap:16px;background:var(--bg);border:1px solid var(--line2);border-left:4px solid var(--accent);border-radius:12px;padding:14px 16px;min-width:0;transition:border-color .2s,transform .15s}
+#pe .ini-row:hover{border-color:var(--line);transform:translateY(-1px)}
+#pe .ini-row[data-est="Por iniciar"]{border-left-color:#66B6FF}#pe .ini-row[data-est="En curso"]{border-left-color:#3DD6FF}#pe .ini-row[data-est="En riesgo"]{border-left-color:#F0B64A}#pe .ini-row[data-est="Completada"]{border-left-color:#2FE29B}#pe .ini-row[data-est="Pausada"],#pe .ini-row[data-est="Cancelada"]{border-left-color:var(--ink3)}
+#pe .ini-row[data-est="Cancelada"] .ini-name{text-decoration:line-through;opacity:.6}
+#pe .ini-ring{width:64px;height:64px;flex:none}
+#pe .ini-rt-t{fill:var(--ink);font-size:15px;font-weight:700;font-family:inherit}
+#pe .ini-arc{transition:stroke-dasharray .5s ease;animation:iniring .9s ease-out both}
+@keyframes iniring{from{stroke-dasharray:0 var(--c)}}
+#pe .ini-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+#pe .ini-rtop{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#pe .ini-name{font-size:15px;font-weight:600;line-height:1.35;margin-right:4px}
+#pe .ini-rm{display:flex;align-items:center;gap:6px 16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2)}
+#pe .ini-obj{font-size:12.5px;color:var(--ink2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#pe .ini-obj b{color:var(--ink3);font-weight:600;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;margin-right:4px}
+#pe .ini-obj.nt{color:var(--ink3)}
+#pe .ini-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+#pe .ini-tag{display:inline-flex;gap:6px;align-items:center;padding:3px 10px;border-radius:999px;font-size:11.5px;background:var(--neu-bg);color:var(--neu-fg)}
+#pe .ini-tag b{font-weight:600;color:var(--brand);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase}
+@media(max-width:560px){#pe .ini-row{gap:12px;padding:12px}#pe .ini-ring{width:52px;height:52px}}
+@media(prefers-reduced-motion:reduce){#pe .ini-arc{animation:none;transition:none}}
 @media print{#pe .ini-btn,#pe .ini-x{display:none}}
 </style>
 </head>
@@ -1583,7 +1602,7 @@ window.WK_PDF_PLAN = async (cap) => {
 </script>
 <script>
 /* ===== Iniciativas de Marketing: captura directa (campos, indicadores e iniciativas) ===== */
-const INI = { editK: new Set(), board: null, version: 0, puede: false, editadoEn: '', editadoPor: '', dirty: false, cargando: false, cargado: false, f: { q: '', est: '' }, delArm: '' };
+const INI = { editK: new Set(), editI: new Set(), board: null, version: 0, puede: false, editadoEn: '', editadoPor: '', dirty: false, cargando: false, cargado: false, f: { q: '', est: '' }, delArm: '' };
 const INI_EST = ['Por iniciar','En curso','En riesgo','Pausada','Completada','Cancelada'];
 const INI_PRI = ['Alta','Media','Baja'];
 const INI_TIPOS = [['texto','Texto'],['numero','Número'],['fecha','Fecha'],['lista','Lista de opciones'],['porcentaje','Porcentaje']];
@@ -1600,7 +1619,7 @@ async function iniCargar(){
     if(!r.ok || !d.ok) throw new Error(d.error || 'No se pudo cargar');
     INI.board = { campos: d.live.campos || [], indicadores: d.live.indicadores || [], iniciativas: d.live.iniciativas || [] };
     INI.version = d.live.version || 0; INI.editadoEn = d.live.editadoEn || ''; INI.editadoPor = d.live.editadoPor || '';
-    INI.puede = !!(d.yo && d.yo.puedeEditar); INI.cargado = true; INI.dirty = false; INI.editK.clear();
+    INI.puede = !!(d.yo && d.yo.puedeEditar); INI.cargado = true; INI.dirty = false; INI.editK.clear(); INI.editI.clear();
   }catch(e){ INI.error = String(e.message || e); }
   INI.cargando = false; iniRender(true);
 }
@@ -1617,6 +1636,38 @@ function iniPct(k){ // cumplimiento vs meta (0..1+) o null
   return a / m;
 }
 const iniTono = p => p == null ? '' : p >= 1 ? 'g' : p >= .8 ? 'a' : 'r';
+
+
+/* ---- Vista de lista: anillo de avance + datos clave ---- */
+const INI_COL = { 'Por iniciar': '#66B6FF', 'En curso': '#3DD6FF', 'En riesgo': '#F0B64A', 'Pausada': '#8F98AD', 'Completada': '#2FE29B', 'Cancelada': '#8F98AD' };
+function iniAnillo(x){
+  const r = 26, c = 2 * Math.PI * r, pct = Math.max(0, Math.min(100, Number(x.avance) || 0)), col = INI_COL[x.estatus] || '#66B6FF';
+  return '<svg class="ini-ring" viewBox="0 0 64 64" role="img" aria-label="Avance ' + pct + '%"><circle cx="32" cy="32" r="' + r + '" fill="none" stroke="var(--line2)" stroke-width="7"/>' +
+    '<circle class="ini-arc" cx="32" cy="32" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="7" stroke-linecap="round" transform="rotate(-90 32 32)" stroke-dasharray="' + (c * pct / 100).toFixed(1) + ' ' + c.toFixed(1) + '" style="--c:' + c.toFixed(1) + '"/>' +
+    '<text x="32" y="37" text-anchor="middle" class="ini-rt-t">' + Math.round(pct) + '%</text></svg>';
+}
+function iniFechaCorta(f){ if(!/^\d{4}-\d{2}-\d{2}$/.test(f || '')) return ''; const [y, m, d] = f.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: y === new Date().getFullYear() ? undefined : 'numeric' }).replace('.', ''); }
+function iniPlazo(x){ // {txt, cls}
+  if(x.estatus === 'Completada') return { txt: '✓ Completada', cls: 'g' };
+  if(x.estatus === 'Cancelada') return { txt: 'Cancelada', cls: 'n' };
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(x.fin || '')) return null;
+  const [y, m, d] = x.fin.split('-').map(Number), hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const dif = Math.round((new Date(y, m - 1, d) - hoy) / 86400000);
+  if(dif < 0) return { txt: 'Vencida hace ' + (-dif) + (dif === -1 ? ' día' : ' días'), cls: 'r' };
+  if(dif === 0) return { txt: 'Vence hoy', cls: 'a' };
+  return { txt: 'Faltan ' + dif + (dif === 1 ? ' día' : ' días'), cls: dif <= 7 ? 'a' : 'n' };
+}
+function iniFila(x, cf, ed){
+  const pl = iniPlazo(x), ini = iniFechaCorta(x.inicio), fin = iniFechaCorta(x.fin);
+  const rango = ini && fin ? ini + ' → ' + fin : fin ? 'Fin ' + fin : ini ? 'Inicio ' + ini : '';
+  const tags = cf.map(c => { const v = (x.extra || {})[c.id]; return (v === undefined || v === '') ? '' : '<span class="ini-tag"><b>' + esc(c.nombre) + '</b> ' + esc(v) + (c.tipo === 'porcentaje' ? '%' : '') + '</span>'; }).join('');
+  return '<article class="ini-row" data-rid="' + esc(x.id) + '" data-est="' + esc(x.estatus) + '">' + iniAnillo(x) +
+    '<div class="ini-main"><div class="ini-rtop"><span class="ini-name">' + esc(x.nombre || 'Sin nombre') + '</span><span class="ini-est ' + estCls(x.estatus) + '">' + esc(x.estatus) + '</span><span class="ini-pr ' + x.prioridad + '">● ' + x.prioridad + '</span></div>' +
+    '<div class="ini-rm">' + (x.responsable ? '<span>👤 ' + esc(x.responsable) + '</span>' : '') + (rango ? '<span>📅 ' + esc(rango) + '</span>' : '') + (pl ? '<span class="ini-chip ' + pl.cls + '">' + esc(pl.txt) + '</span>' : '') + '</div>' +
+    (x.objetivo ? '<div class="ini-obj"><b>Objetivo:</b> ' + esc(x.objetivo) + '</div>' : '') + (x.nota ? '<div class="ini-obj nt"><b>Nota:</b> ' + esc(x.nota) + '</div>' : '') +
+    (tags ? '<div class="ini-tags">' + tags + '</div>' : '') + '</div>' +
+    (ed ? '<button class="ini-x" data-ia="edit-i" data-id="' + esc(x.id) + '" title="Editar iniciativa">✏️</button>' : '') + '</article>';
+}
 
 function iniHtml(){
   const B = INI.board, ed = INI.puede;
@@ -1653,13 +1704,7 @@ function iniHtml(){
   const L = (t, inner) => '<label class="ini-l">' + t + inner + '</label>';
   const tarjeta = x => {
     const I = 'data-t="i" data-id="' + esc(x.id) + '"';
-    if(!ed){
-      const ext = cf.map(c => { const v = (x.extra || {})[c.id] ?? ''; return L(esc(c.nombre), '<span class="ini-v' + (v === '' ? ' mut' : '') + '">' + (v === '' ? '—' : esc(v) + (c.tipo === 'porcentaje' ? '%' : '')) + '</span>'); }).join('');
-      const dato = (t, v) => L(t, '<span class="ini-v' + (v ? '' : ' mut') + '">' + (v ? esc(v) : '—') + '</span>');
-      return '<article class="ini-card" data-rid="' + esc(x.id) + '" data-est="' + esc(x.estatus) + '"><div class="ini-ch"><div class="ini-ttl">' + esc(x.nombre || 'Sin nombre') + '</div><span class="ini-pr ' + x.prioridad + '">Prioridad ' + x.prioridad.toLowerCase() + '</span><span class="ini-est ' + estCls(x.estatus) + '">' + x.estatus + '</span></div>' +
-        '<div class="ini-fields">' + dato('Responsable', x.responsable) + dato('Inicio', x.inicio) + dato('Fin', x.fin) + L('Avance', '<span class="ini-av2"><span class="ini-bar"><i style="width:' + x.avance + '%"></i></span><span class="ini-v">' + iniFmt(x.avance) + '%</span></span>') + ext + '</div>' +
-        ((x.objetivo || x.nota) ? '<div class="ini-texts">' + (x.objetivo ? L('Objetivo', '<span class="ini-v">' + esc(x.objetivo) + '</span>') : '') + (x.nota ? L('Nota', '<span class="ini-v">' + esc(x.nota) + '</span>') : '') + '</div>' : '') + '</article>';
-    }
+    if(!(ed && INI.editI.has(x.id))) return iniFila(x, cf, ed); // lista (la vista normal)
     const ext = cf.map(c => {
       const v = (x.extra || {})[c.id] ?? '', D = 'data-t="x" data-id="' + esc(x.id) + '" data-c="' + esc(c.id) + '"';
       if(c.tipo === 'lista') return L(esc(c.nombre), '<select class="ini-sel" ' + D + '><option value="">—</option>' + (c.opciones || []).map(o => '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select>');
@@ -1669,6 +1714,7 @@ function iniHtml(){
       '<div class="ini-ch"><input class="ini-in" ' + I + ' data-f="nombre" value="' + esc(x.nombre) + '" placeholder="Nombre de la iniciativa">' +
       '<select class="ini-sel" ' + I + ' data-f="estatus" title="Estatus">' + INI_EST.map(p => '<option' + (x.estatus === p ? ' selected' : '') + '>' + p + '</option>').join('') + '</select>' +
       '<select class="ini-sel" ' + I + ' data-f="prioridad" title="Prioridad">' + INI_PRI.map(p => '<option value="' + p + '"' + (x.prioridad === p ? ' selected' : '') + '>Prioridad ' + p.toLowerCase() + '</option>').join('') + '</select>' +
+      '<button class="ini-x ok" data-ia="ok-i" data-id="' + esc(x.id) + '" title="Ver en la lista">✓ Listo</button>' +
       '<button class="ini-x" data-ia="del-i" data-id="' + esc(x.id) + '" title="Quitar iniciativa">' + (INI.delArm === x.id ? '¿Quitar?' : '✕') + '</button></div>' +
       '<div class="ini-fields">' + L('Responsable', '<input class="ini-in" ' + I + ' data-f="responsable" value="' + esc(x.responsable) + '">') +
       L('Inicio', '<input class="ini-in" type="date" ' + I + ' data-f="inicio" value="' + esc(x.inicio) + '">') + L('Fin', '<input class="ini-in" type="date" ' + I + ' data-f="fin" value="' + esc(x.fin) + '">') +
@@ -1684,9 +1730,9 @@ function iniHtml(){
   if(ed){
     const lista = cf.map(c => '<div class="ini-cf"><input class="ini-in" data-t="c" data-id="' + esc(c.id) + '" data-f="nombre" value="' + esc(c.nombre) + '" placeholder="Nombre del campo">' +
       '<select class="ini-sel" data-t="c" data-id="' + esc(c.id) + '" data-f="tipo">' + INI_TIPOS.map(t => '<option value="' + t[0] + '"' + (c.tipo === t[0] ? ' selected' : '') + '>' + t[1] + '</option>').join('') + '</select>' +
-      (c.tipo === 'lista' ? '<input class="ini-in" data-t="c" data-id="' + esc(c.id) + '" data-f="opciones" value="' + esc((c.opciones || []).join(', ')) + '" placeholder="Opciones separadas por coma">' : '<span class="meta" style="color:var(--ink3);font-size:12px">Aparece como columna en la tabla</span>') +
+      (c.tipo === 'lista' ? '<input class="ini-in" data-t="c" data-id="' + esc(c.id) + '" data-f="opciones" value="' + esc((c.opciones || []).join(', ')) + '" placeholder="Opciones separadas por coma">' : '<span class="meta" style="color:var(--ink3);font-size:12px">Se muestra en cada iniciativa</span>') +
       '<button class="ini-btn sm dng" data-ia="del-c" data-id="' + esc(c.id) + '">' + (INI.delArm === c.id ? '¿Quitar y borrar datos?' : '✕ Quitar') + '</button></div>').join('');
-    cCard = '<div class="card"><div class="ch"><h2>Campos a la medida</h2><span class="sub">Agrega columnas propias a la tabla de iniciativas (canal, presupuesto, KPI ligado, etc.)</span><button class="ini-btn sm" data-ia="add-c">➕ Agregar campo</button></div>' +
+    cCard = '<div class="card"><div class="ch"><h2>Campos a la medida</h2><span class="sub">Agrega datos propios a cada iniciativa (canal, presupuesto, KPI ligado, etc.)</span><button class="ini-btn sm" data-ia="add-c">➕ Agregar campo</button></div>' +
       (lista || '<div class="ini-empty">Sin campos adicionales. Los básicos (responsable, estatus, fechas, avance, objetivo y nota) ya vienen incluidos.</div>') + '</div>';
   }
   return top + sum + kCard + iCard + cCard;
@@ -1750,12 +1796,14 @@ document.addEventListener('click', async e => {
   if(a === 'add-k'){ const nid = iniId('k'); B.indicadores.push({ id: nid, nombre: '', unidad: '', actual: null, meta: null, previo: null, sentido: 'mayor', nota: '' }); INI.editK.add(nid); iniMarcar(); iniRender(true); return; }
   if(a === 'edit-k'){ INI.editK.add(id); iniRender(true); return; }
   if(a === 'ok-k'){ INI.editK.delete(id); iniRender(true); return; }
-  if(a === 'add-i'){ B.iniciativas.unshift({ id: iniId('i'), nombre: '', responsable: '', estatus: 'Por iniciar', prioridad: 'Media', inicio: '', fin: '', avance: 0, objetivo: '', nota: '', extra: {} }); INI.f = { q: '', est: '' }; iniMarcar(); iniRender(true); return; }
+  if(a === 'edit-i'){ INI.editI.add(id); iniRender(true); return; }
+  if(a === 'ok-i'){ INI.editI.delete(id); iniRender(true); return; }
+  if(a === 'add-i'){ const nid = iniId('i'); INI.editI.add(nid); B.iniciativas.unshift({ id: nid, nombre: '', responsable: '', estatus: 'Por iniciar', prioridad: 'Media', inicio: '', fin: '', avance: 0, objetivo: '', nota: '', extra: {} }); INI.f = { q: '', est: '' }; iniMarcar(); iniRender(true); return; }
   if(a === 'add-c'){ B.campos.push({ id: iniId('c'), nombre: 'Nuevo campo', tipo: 'texto', opciones: [] }); iniMarcar(); iniRender(true); return; }
   if(a === 'del-k' || a === 'del-i' || a === 'del-c'){
     if(INI.delArm !== id){ INI.delArm = id; iniRender(true); setTimeout(() => { if(INI.delArm === id){ INI.delArm = ''; iniRender(true); } }, 4000); return; }
     if(a === 'del-k'){ B.indicadores = B.indicadores.filter(x => x.id !== id); INI.editK.delete(id); }
-    if(a === 'del-i') B.iniciativas = B.iniciativas.filter(x => x.id !== id);
+    if(a === 'del-i'){ B.iniciativas = B.iniciativas.filter(x => x.id !== id); INI.editI.delete(id); }
     if(a === 'del-c'){ B.campos = B.campos.filter(x => x.id !== id); B.iniciativas.forEach(x => { if(x.extra) delete x.extra[id]; }); }
     INI.delArm = ''; INI.dirty = true; iniRender(true); return;
   }
@@ -1765,9 +1813,9 @@ document.addEventListener('click', async e => {
     try{
       const r = await fetch('/api/wbr-marketing-iniciativas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accion: 'guardar', version: INI.version, board: B }) });
       const d = await r.json().catch(() => ({}));
-      if(r.status === 409 && d.board){ INI.board = { campos: d.board.campos || [], indicadores: d.board.indicadores || [], iniciativas: d.board.iniciativas || [] }; INI.version = d.board.version || 0; INI.dirty = false; INI.editK.clear(); iniRender(true); toast(d.error || 'Se recargó la versión más reciente'); return; }
+      if(r.status === 409 && d.board){ INI.board = { campos: d.board.campos || [], indicadores: d.board.indicadores || [], iniciativas: d.board.iniciativas || [] }; INI.version = d.board.version || 0; INI.dirty = false; INI.editK.clear(); INI.editI.clear(); iniRender(true); toast(d.error || 'Se recargó la versión más reciente'); return; }
       if(!r.ok || !d.ok) throw new Error(d.error || ('HTTP ' + r.status));
-      INI.board = { campos: d.board.campos, indicadores: d.board.indicadores, iniciativas: d.board.iniciativas }; INI.version = d.board.version; INI.editadoEn = d.board.editadoEn; INI.editadoPor = d.board.editadoPor; INI.dirty = false; INI.editK.clear();
+      INI.board = { campos: d.board.campos, indicadores: d.board.indicadores, iniciativas: d.board.iniciativas }; INI.version = d.board.version; INI.editadoEn = d.board.editadoEn; INI.editadoPor = d.board.editadoPor; INI.dirty = false; INI.editK.clear(); INI.editI.clear();
       iniRender(true); toast('Iniciativas guardadas');
     }catch(err){ toast('No se pudo guardar: ' + (err.message || err)); iniRender(true); }
   }
