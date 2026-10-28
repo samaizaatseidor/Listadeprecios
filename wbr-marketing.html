@@ -312,15 +312,6 @@
 #pe .ini-in,#pe .ini-sel,#pe .ini-ta{width:100%;box-sizing:border-box;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:0 9px;font-size:12.5px;font-family:inherit}
 #pe .ini-ta{height:auto;min-height:32px;padding:6px 9px;resize:vertical}
 #pe .ini-in:focus,#pe .ini-sel:focus,#pe .ini-ta:focus{outline:none;border-color:var(--accent)}
-#pe .ini-x{position:absolute;top:6px;right:6px;border:0;background:transparent;color:var(--ink3);cursor:pointer;font-size:14px;padding:4px 7px;border-radius:6px}
-#pe .ini-x:hover{background:var(--neg-bg);color:var(--neg-fg)}
-#pe .ini-tw{overflow-x:auto;border:1px solid var(--line2);border-radius:10px}
-#pe .ini-t{border-collapse:collapse;width:100%;min-width:max-content}
-#pe .ini-t th{position:sticky;top:0;background:var(--bg);text-align:left;white-space:nowrap}
-#pe .ini-t td{text-align:left;vertical-align:top;white-space:normal;padding:6px 8px}
-#pe .ini-t th.cf{color:var(--brand)}
-#pe .ini-t td .ini-in,#pe .ini-t td .ini-sel{min-width:120px}
-#pe .ini-t td.w-nm{min-width:240px}#pe .ini-t td.w-tx{min-width:240px}#pe .ini-t td.w-sm{min-width:130px}#pe .ini-t td.w-av{min-width:150px}
 #pe .ini-est{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;background:var(--neu-bg);color:var(--neu-fg);white-space:nowrap}
 #pe .ini-est.e-curso{background:var(--pos-bg);color:var(--pos-fg)}#pe .ini-est.e-riesgo{background:#4A3A12;color:#F0B64A}#pe .ini-est.e-comp{background:#12402F;color:#2FE29B}#pe .ini-est.e-pausa,#pe .ini-est.e-canc{background:var(--neu-bg);color:var(--ink3)}
 #pe .ini-pr{font-size:11px;font-weight:700}#pe .ini-pr.Alta{color:#FF8A8A}#pe .ini-pr.Media{color:#F0B64A}#pe .ini-pr.Baja{color:var(--ink3)}
@@ -330,6 +321,31 @@
 #pe .ini-cf{display:grid;grid-template-columns:minmax(160px,1.2fr) 140px minmax(160px,2fr) auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line2)}
 #pe .ini-empty{color:var(--ink3);font-size:13px;padding:14px 4px}
 @media(max-width:760px){#pe .ini-cf{grid-template-columns:1fr}}
+#pe #iniBox,#pe #v-iniciativas{min-width:0;max-width:100%}
+#pe #iniBox{display:grid;gap:14px}
+#pe #iniBox .card{overflow:hidden}
+#pe #iniBox *{overflow-wrap:anywhere}
+#pe #iniBox .ch{gap:8px 14px}
+#pe #iniBox .ch .sub{flex:1 1 220px}
+#pe .ini-x{border:0;background:transparent;color:var(--ink3);cursor:pointer;font-size:13px;padding:6px 9px;border-radius:7px;font-family:inherit;flex:none}
+#pe .ini-x:hover{background:var(--neg-bg);color:var(--neg-fg)}
+#pe .ini-kh{display:flex;align-items:center;gap:6px}
+#pe .ini-kh .ini-in{font-weight:600;flex:1;min-width:0}
+#pe .ini-l{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+#pe .ini-l .ini-in,#pe .ini-l .ini-sel,#pe .ini-l .ini-ta{text-transform:none;letter-spacing:0;font-weight:400}
+#pe .ini-list{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,500px),1fr))}
+#pe .ini-card{background:var(--bg);border:1px solid var(--line2);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;border-left:4px solid var(--accent)}
+#pe .ini-card[data-est="En riesgo"]{border-left-color:#F0B64A}#pe .ini-card[data-est="Completada"]{border-left-color:#2FE29B}#pe .ini-card[data-est="Pausada"],#pe .ini-card[data-est="Cancelada"]{border-left-color:var(--ink3)}
+#pe .ini-ch{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#pe .ini-ch .ini-in{flex:1 1 220px;min-width:0;font-weight:600;font-size:14px;height:36px}
+#pe .ini-ch .ini-sel{flex:0 1 140px;width:auto;min-width:110px}
+#pe .ini-ttl{flex:1 1 220px;font-size:15px;font-weight:600;line-height:1.35}
+#pe .ini-fields{display:grid;gap:10px 12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+#pe .ini-texts{display:grid;gap:10px 12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+#pe .ini-v{font-size:13px;color:var(--ink);text-transform:none;letter-spacing:0;font-weight:400;min-height:18px;line-height:1.45}
+#pe .ini-v.mut{color:var(--ink3)}
+#pe .ini-av2{display:flex;align-items:center;gap:8px}#pe .ini-av2 .ini-in{width:80px;flex:none}#pe .ini-av2 .ini-bar{flex:1;min-width:40px}
+@media(max-width:760px){#pe .ini-list{grid-template-columns:1fr}}
 @media print{#pe .ini-btn,#pe .ini-x{display:none}}
 </style>
 </head>
@@ -1602,12 +1618,11 @@ function iniHtml(){
   const kp = B.indicadores.map(k => {
     const x = ed ? '<button class="ini-x" data-ia="del-k" data-id="' + esc(k.id) + '" title="Quitar indicador">' + (INI.delArm === k.id ? '¿Quitar?' : '✕') + '</button>' : '';
     if(!ed) return '<div class="ini-k" data-kid="' + esc(k.id) + '"><div class="nm">' + esc(k.nombre || 'Sin nombre') + '</div><div class="big" data-big>—</div><div class="meta" data-meta></div><div class="ini-bar"><i style="width:0%"></i></div>' + (k.nota ? '<div class="meta">' + esc(k.nota) + '</div>' : '') + '</div>';
-    return '<div class="ini-k" data-kid="' + esc(k.id) + '">' + x +
-      '<input class="ini-in" data-t="k" data-id="' + esc(k.id) + '" data-f="nombre" value="' + esc(k.nombre) + '" placeholder="Nombre del indicador" style="width:calc(100% - 52px);font-weight:600">' +
-      '<div class="ini-grid2"><div><div class="meta">Actual</div><input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="actual" data-n="1" value="' + (k.actual ?? '') + '"></div>' +
-      '<div><div class="meta">Meta</div><input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="meta" data-n="1" value="' + (k.meta ?? '') + '"></div>' +
-      '<div><div class="meta">Periodo anterior</div><input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="previo" data-n="1" value="' + (k.previo ?? '') + '"></div>' +
-      '<div><div class="meta">Unidad</div><input class="ini-in" data-t="k" data-id="' + esc(k.id) + '" data-f="unidad" value="' + esc(k.unidad) + '" placeholder="%, USD, #…"></div></div>' +
+    return '<div class="ini-k" data-kid="' + esc(k.id) + '"><div class="ini-kh"><input class="ini-in" data-t="k" data-id="' + esc(k.id) + '" data-f="nombre" value="' + esc(k.nombre) + '" placeholder="Nombre del indicador">' + x + '</div>' +
+      '<div class="ini-grid2"><label class="ini-l">Actual<input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="actual" data-n="1" value="' + (k.actual ?? '') + '"></label>' +
+      '<label class="ini-l">Meta<input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="meta" data-n="1" value="' + (k.meta ?? '') + '"></label>' +
+      '<label class="ini-l">Periodo anterior<input class="ini-in" type="number" step="any" data-t="k" data-id="' + esc(k.id) + '" data-f="previo" data-n="1" value="' + (k.previo ?? '') + '"></label>' +
+      '<label class="ini-l">Unidad<input class="ini-in" data-t="k" data-id="' + esc(k.id) + '" data-f="unidad" value="' + esc(k.unidad) + '" placeholder="%, USD, #…"></label></div>' +
       '<select class="ini-sel" data-t="k" data-id="' + esc(k.id) + '" data-f="sentido"><option value="mayor"' + (k.sentido !== 'menor' ? ' selected' : '') + '>Mayor es mejor</option><option value="menor"' + (k.sentido === 'menor' ? ' selected' : '') + '>Menor es mejor</option></select>' +
       '<input class="ini-in" data-t="k" data-id="' + esc(k.id) + '" data-f="nota" value="' + esc(k.nota) + '" placeholder="Nota (opcional)">' +
       '<div class="big" data-big>—</div><div class="meta" data-meta></div><div class="ini-bar"><i style="width:0%"></i></div></div>';
@@ -1617,31 +1632,36 @@ function iniHtml(){
 
   const flt = '<div class="ini-flt"><input class="ini-in" id="iniQ" placeholder="Buscar iniciativa o responsable…" value="' + esc(INI.f.q) + '"><select class="ini-sel" id="iniEst"><option value="">Todos los estatus</option>' + INI_EST.map(e => '<option' + (INI.f.est === e ? ' selected' : '') + '>' + e + '</option>').join('') + '</select></div>';
   const cf = B.campos;
-  const head = '<tr><th>Iniciativa</th><th>Responsable</th><th>Prioridad</th><th>Estatus</th><th>Inicio</th><th>Fin</th><th>Avance</th><th>Objetivo</th><th>Nota</th>' + cf.map(c => '<th class="cf">' + esc(c.nombre) + '</th>').join('') + (ed ? '<th></th>' : '') + '</tr>';
   const q = INI.f.q.trim().toLowerCase();
   const filas = B.iniciativas.filter(x => (!INI.f.est || x.estatus === INI.f.est) && (!q || (x.nombre + ' ' + x.responsable).toLowerCase().includes(q)));
-  const inp = (x, f, tipo, cls, ph) => '<input class="ini-in" type="' + (tipo || 'text') + '" data-t="i" data-id="' + esc(x.id) + '" data-f="' + f + '" value="' + esc(x[f]) + '"' + (ph ? ' placeholder="' + ph + '"' : '') + '>';
-  const rows = filas.map(x => {
+  const L = (t, inner) => '<label class="ini-l">' + t + inner + '</label>';
+  const tarjeta = x => {
     const I = 'data-t="i" data-id="' + esc(x.id) + '"';
-    const extra = cf.map(c => {
-      const v = (x.extra || {})[c.id] ?? '';
-      if(!ed) return '<td>' + (c.tipo === 'porcentaje' && v !== '' ? esc(v) + '%' : esc(v) || '—') + '</td>';
-      const base = 'class="ini-in" data-t="x" data-id="' + esc(x.id) + '" data-c="' + esc(c.id) + '"';
-      if(c.tipo === 'lista') return '<td class="w-sm"><select class="ini-sel" data-t="x" data-id="' + esc(x.id) + '" data-c="' + esc(c.id) + '"><option value="">—</option>' + (c.opciones || []).map(o => '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select></td>';
-      return '<td class="w-sm"><input ' + base + ' type="' + (c.tipo === 'numero' || c.tipo === 'porcentaje' ? 'number' : c.tipo === 'fecha' ? 'date' : 'text') + '" step="any" value="' + esc(v) + '"></td>';
+    if(!ed){
+      const ext = cf.map(c => { const v = (x.extra || {})[c.id] ?? ''; return L(esc(c.nombre), '<span class="ini-v' + (v === '' ? ' mut' : '') + '">' + (v === '' ? '—' : esc(v) + (c.tipo === 'porcentaje' ? '%' : '')) + '</span>'); }).join('');
+      const dato = (t, v) => L(t, '<span class="ini-v' + (v ? '' : ' mut') + '">' + (v ? esc(v) : '—') + '</span>');
+      return '<article class="ini-card" data-rid="' + esc(x.id) + '" data-est="' + esc(x.estatus) + '"><div class="ini-ch"><div class="ini-ttl">' + esc(x.nombre || 'Sin nombre') + '</div><span class="ini-pr ' + x.prioridad + '">Prioridad ' + x.prioridad.toLowerCase() + '</span><span class="ini-est ' + estCls(x.estatus) + '">' + x.estatus + '</span></div>' +
+        '<div class="ini-fields">' + dato('Responsable', x.responsable) + dato('Inicio', x.inicio) + dato('Fin', x.fin) + L('Avance', '<span class="ini-av2"><span class="ini-bar"><i style="width:' + x.avance + '%"></i></span><span class="ini-v">' + iniFmt(x.avance) + '%</span></span>') + ext + '</div>' +
+        ((x.objetivo || x.nota) ? '<div class="ini-texts">' + (x.objetivo ? L('Objetivo', '<span class="ini-v">' + esc(x.objetivo) + '</span>') : '') + (x.nota ? L('Nota', '<span class="ini-v">' + esc(x.nota) + '</span>') : '') + '</div>' : '') + '</article>';
+    }
+    const ext = cf.map(c => {
+      const v = (x.extra || {})[c.id] ?? '', D = 'data-t="x" data-id="' + esc(x.id) + '" data-c="' + esc(c.id) + '"';
+      if(c.tipo === 'lista') return L(esc(c.nombre), '<select class="ini-sel" ' + D + '><option value="">—</option>' + (c.opciones || []).map(o => '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select>');
+      return L(esc(c.nombre) + (c.tipo === 'porcentaje' ? ' (%)' : ''), '<input class="ini-in" ' + D + ' type="' + (c.tipo === 'numero' || c.tipo === 'porcentaje' ? 'number' : c.tipo === 'fecha' ? 'date' : 'text') + '" step="any" value="' + esc(v) + '">');
     }).join('');
-    if(!ed) return '<tr><td class="w-nm"><b>' + esc(x.nombre || 'Sin nombre') + '</b></td><td>' + esc(x.responsable) + '</td><td><span class="ini-pr ' + x.prioridad + '">' + x.prioridad + '</span></td><td><span class="ini-est ' + estCls(x.estatus) + '">' + x.estatus + '</span></td><td>' + esc(x.inicio) + '</td><td>' + esc(x.fin) + '</td><td class="w-av"><div class="ini-av"><div class="ini-bar"><i style="width:' + x.avance + '%"></i></div><span>' + iniFmt(x.avance) + '%</span></div></td><td class="w-tx">' + esc(x.objetivo) + '</td><td class="w-tx">' + esc(x.nota) + '</td>' + extra + '</tr>';
-    return '<tr data-rid="' + esc(x.id) + '"><td class="w-nm">' + inp(x, 'nombre', 'text', '', 'Nombre de la iniciativa') + '</td><td class="w-sm">' + inp(x, 'responsable', 'text', '', 'Responsable') + '</td>' +
-      '<td class="w-sm"><select class="ini-sel" ' + I + ' data-f="prioridad">' + INI_PRI.map(p => '<option' + (x.prioridad === p ? ' selected' : '') + '>' + p + '</option>').join('') + '</select></td>' +
-      '<td class="w-sm"><select class="ini-sel" ' + I + ' data-f="estatus">' + INI_EST.map(p => '<option' + (x.estatus === p ? ' selected' : '') + '>' + p + '</option>').join('') + '</select></td>' +
-      '<td class="w-sm">' + inp(x, 'inicio', 'date') + '</td><td class="w-sm">' + inp(x, 'fin', 'date') + '</td>' +
-      '<td class="w-av"><div class="ini-av"><input class="ini-in" type="number" min="0" max="100" step="5" ' + I + ' data-f="avance" data-n="1" value="' + x.avance + '" style="width:72px"><span>%</span></div></td>' +
-      '<td class="w-tx"><textarea class="ini-ta" rows="2" ' + I + ' data-f="objetivo" placeholder="¿Qué queremos lograr?">' + esc(x.objetivo) + '</textarea></td>' +
-      '<td class="w-tx"><textarea class="ini-ta" rows="2" ' + I + ' data-f="nota" placeholder="Notas, bloqueos, siguientes pasos">' + esc(x.nota) + '</textarea></td>' + extra +
-      '<td><button class="ini-btn sm dng" data-ia="del-i" data-id="' + esc(x.id) + '">' + (INI.delArm === x.id ? '¿Quitar?' : '✕') + '</button></td></tr>';
-  }).join('');
+    return '<article class="ini-card" data-rid="' + esc(x.id) + '" data-est="' + esc(x.estatus) + '">' +
+      '<div class="ini-ch"><input class="ini-in" ' + I + ' data-f="nombre" value="' + esc(x.nombre) + '" placeholder="Nombre de la iniciativa">' +
+      '<select class="ini-sel" ' + I + ' data-f="estatus" title="Estatus">' + INI_EST.map(p => '<option' + (x.estatus === p ? ' selected' : '') + '>' + p + '</option>').join('') + '</select>' +
+      '<select class="ini-sel" ' + I + ' data-f="prioridad" title="Prioridad">' + INI_PRI.map(p => '<option value="' + p + '"' + (x.prioridad === p ? ' selected' : '') + '>Prioridad ' + p.toLowerCase() + '</option>').join('') + '</select>' +
+      '<button class="ini-x" data-ia="del-i" data-id="' + esc(x.id) + '" title="Quitar iniciativa">' + (INI.delArm === x.id ? '¿Quitar?' : '✕') + '</button></div>' +
+      '<div class="ini-fields">' + L('Responsable', '<input class="ini-in" ' + I + ' data-f="responsable" value="' + esc(x.responsable) + '">') +
+      L('Inicio', '<input class="ini-in" type="date" ' + I + ' data-f="inicio" value="' + esc(x.inicio) + '">') + L('Fin', '<input class="ini-in" type="date" ' + I + ' data-f="fin" value="' + esc(x.fin) + '">') +
+      L('Avance (%)', '<span class="ini-av2"><input class="ini-in" type="number" min="0" max="100" step="5" ' + I + ' data-f="avance" data-n="1" value="' + x.avance + '"><span class="ini-bar"><i style="width:' + x.avance + '%"></i></span></span>') + ext + '</div>' +
+      '<div class="ini-texts">' + L('Objetivo', '<textarea class="ini-ta" rows="3" ' + I + ' data-f="objetivo" placeholder="¿Qué queremos lograr?">' + esc(x.objetivo) + '</textarea>') +
+      L('Nota', '<textarea class="ini-ta" rows="3" ' + I + ' data-f="nota" placeholder="Notas, bloqueos, siguientes pasos">' + esc(x.nota) + '</textarea>') + '</div></article>';
+  };
   const iCard = '<div class="card"><div class="ch"><h2>Iniciativas</h2><span class="sub">' + B.iniciativas.length + ' registradas' + (filas.length !== B.iniciativas.length ? ' · mostrando ' + filas.length : '') + '</span>' + (ed ? '<button class="ini-btn sm" data-ia="add-i">➕ Agregar iniciativa</button>' : '') + '</div>' +
-    (B.iniciativas.length ? flt + '<div class="ini-tw"><table class="ini-t"><thead>' + head + '</thead><tbody>' + (rows || '<tr><td colspan="' + (9 + cf.length + (ed ? 1 : 0)) + '"><div class="ini-empty">Ninguna iniciativa coincide con el filtro.</div></td></tr>') + '</tbody></table></div>'
+    (B.iniciativas.length ? flt + (filas.length ? '<div class="ini-list">' + filas.map(tarjeta).join('') + '</div>' : '<div class="ini-empty">Ninguna iniciativa coincide con el filtro.</div>')
       : '<div class="ini-empty">' + (ed ? 'Aún no hay iniciativas. Agrega la primera con “Agregar iniciativa”.' : 'Aún no hay iniciativas registradas.') + '</div>') + '</div>';
 
   let cCard = '';
@@ -1676,7 +1696,7 @@ function iniDerivados(){
   if(s) s.innerHTML = [[L.length, 'Iniciativas'], [cnt('En curso'), 'En curso'], [cnt('En riesgo'), 'En riesgo'], [cnt('Completada'), 'Completadas'], [venc, 'Vencidas'], [prom + '%', 'Avance promedio']].map(a => '<div class="ini-s"><b>' + a[0] + '</b><span>' + a[1] + '</span></div>').join('');
   const dd = document.getElementById('iniDirty'); if(dd) dd.innerHTML = INI.dirty ? '<span class="ini-pill warn">● Cambios sin guardar</span>' : '';
   const g = document.getElementById('iniGuardar'); if(g) g.disabled = !INI.dirty;
-  document.querySelectorAll('#iniBox tr[data-rid]').forEach(tr => { const x = L.find(y => y.id === tr.dataset.rid); if(x) tr.dataset.est = x.estatus; });
+  document.querySelectorAll('#iniBox .ini-card[data-rid]').forEach(tr => { const x = L.find(y => y.id === tr.dataset.rid); if(x){ tr.dataset.est = x.estatus; const bi = tr.querySelector('.ini-bar i'); if(bi) bi.style.width = x.avance + '%'; } });
 }
 function iniMarcar(){ INI.dirty = true; INI.delArm = ''; iniDerivados(); }
 
