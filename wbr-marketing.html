@@ -549,7 +549,7 @@
         <div><dt>Año</dt><dd>Del 1 de enero a la fecha de corte. No tiene comparación porque el export solo trae cierres del año en curso.</dd></div>
         <div><dt>Growth Engine</dt><dd>B1 (D16, D15 Cloud B1) · B1 → Grow (oportunidades con “B1 to Grow” en el nombre) · Grow (D4 ERP Public, D3 ByD) · RISE (D2 ERP Private) · SuccessFactors (D8 HXM/SFSF) · AMS (D20, D31) · LOB / COEs (el resto de entornos).</dd></div>
         <div><dt>Motor</dt><dd>New Names (clientes nuevos) o Installed Base (clientes existentes: upsell, cross-sell y AMS).</dd></div>
-        <div><dt>Fuente</dt><dd>SAP (SAP, SAP Event) · Marketing / Gen Dem (página web, Paid Ads, Outreach, webinars y eventos) · Sales Outbound (Comercial, contacto directo, recomendación) · BX / Installed Base (cliente existente, BX, operaciones) · COEs (intercompañía, alianzas y partners).</dd></div>
+        <div><dt>Fuente</dt><dd>SAP (SAP) · Marketing / Gen Dem (página web, Paid Ads, Outreach, webinars y eventos, incl. SAP Event) · Sales Outbound (Comercial, contacto directo, recomendación) · BX / Installed Base (cliente existente, BX, operaciones) · COEs (intercompañía, alianzas y partners).</dd></div>
       </dl>
     </div>
   </div>
@@ -603,7 +603,7 @@ const OPEN_ST = ['F - Sales Qualified Lead','E - Pre-Sales','D - Proposal','C - 
 const ST_SHORT = {'F - Sales Qualified Lead':'F · SQL','E - Pre-Sales':'E · Pre-Sales','D - Proposal':'D · Proposal','C - Negotiation':'C · Negotiation','B - Contracting':'B · Contracting'};
 const ENG_MAP = {'D16-B1':'B1','D15-CLOUD B1-HUAWEY':'B1','D4_ERP Public':'Grow (S/4 Public)','D3-BYD':'Grow (S/4 Public)','D2-ERP_PRIVATE':'RISE','D8-HXM Y SFSF':'SuccessFactors','D20-AMS-Soporte':'AMS','D31-AMS SFSF':'AMS'};
 const ENGINES = ['B1','B1 → Grow','Grow (S/4 Public)','RISE','SuccessFactors','LOB / COEs','AMS'];
-const SRC_MAP = {'SAP':'SAP','SAP Event':'SAP','Página web':'Marketing / Gen Dem','Paid Ads':'Marketing / Gen Dem','Outreach':'Marketing / Gen Dem','Webinar':'Marketing / Gen Dem','SEIDOR Events':'Marketing / Gen Dem','Comercial':'Sales Outbound','Contacto Directo Cliente':'Sales Outbound','Recomendación':'Sales Outbound','Cliente existente':'BX / Installed Base','BX':'BX / Installed Base','Operaciones':'BX / Installed Base','Intercompañía':'COEs','Alianzas + Partners + ASUG':'COEs','United Vars':'COEs','TELMEX':'COEs'};
+const SRC_MAP = {'SAP':'SAP','SAP Event':'Marketing / Gen Dem','Página web':'Marketing / Gen Dem','Paid Ads':'Marketing / Gen Dem','Outreach':'Marketing / Gen Dem','Webinar':'Marketing / Gen Dem','SEIDOR Events':'Marketing / Gen Dem','Comercial':'Sales Outbound','Contacto Directo Cliente':'Sales Outbound','Recomendación':'Sales Outbound','Cliente existente':'BX / Installed Base','BX':'BX / Installed Base','Operaciones':'BX / Installed Base','Intercompañía':'COEs','Alianzas + Partners + ASUG':'COEs','United Vars':'COEs','TELMEX':'COEs'};
 const SOURCES = ['Sales Outbound','BX / Installed Base','SAP','Marketing / Gen Dem','COEs'];
 const SRC_VAR = {'Sales Outbound':'--s1','BX / Installed Base':'--s2','SAP':'--s3','Marketing / Gen Dem':'--s4','COEs':'--s5'};
 const MOTORS = ['New Names','Installed Base'];
