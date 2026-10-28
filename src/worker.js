@@ -398,7 +398,6 @@ const PAGINAS_REGISTRO = {
   'wbr-cta': 'WBR — Call to Action',
   'wbr-anuncios': 'WBR — Anuncios',
   'wbr-marketing': 'WBR — Marketing',
-  'wbr-mkt-test': 'WBR — MKT Test (diseño)',
   'wbr-ejecutivo': 'WBR — Centro de Mando',
   'wbr-vop': 'WBR — Tablero VOP',
   'bx-base-instalada': 'Business Experience — Base Instalada',
@@ -473,7 +472,7 @@ const RUTAS_PERMISO = {
   '/api/wbr-bx': { modo:'datos', paginas:['wbr-bx'] },
   '/api/wbr-anuncios': { modo:'datos', paginas:['wbr-anuncios'] },
   '/api/wbr-cta': { modo:'datos', paginas:['wbr-cta'] },
-  '/api/wbr-marketing': { modo:'datos', paginas:['wbr-marketing','wbr-mkt-test'], escritura:['wbr-marketing'] },
+  '/api/wbr-marketing': { modo:'datos', paginas:['wbr-marketing'], escritura:['wbr-marketing'] },
   '/api/wbr-resumen': { modo:'ia', paginas:['wbr-ejecutivo'] }, // resumen ejecutivo de Delfos para el Centro de Mando
   '/api/wbr-ejecutivo': { modo:'datos', paginas:['wbr-ejecutivo'] }, // vista de solo lectura; el permiso de esta página cubre el resumen de todos los tableros
   '/api/wbr-marketing-insight': { modo:'ia', paginas:['wbr-marketing'] },
