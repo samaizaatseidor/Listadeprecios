@@ -375,6 +375,13 @@
 #pe .ini-tag b{font-weight:600;color:var(--brand);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase}
 @media(max-width:560px){#pe .ini-row{gap:12px;padding:12px}#pe .ini-ring{width:52px;height:52px}}
 @media(prefers-reduced-motion:reduce){#pe .ini-arc{animation:none;transition:none}}
+#pe .ini-opt{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;padding:8px 10px;border:1px dashed var(--line);border-radius:10px}
+#pe .ini-optt{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-right:6px}
+#pe .ini-optn{font-size:12px;color:var(--ink3)}
+#pe .ini-chk{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;border:1px solid var(--line);font-size:12px;cursor:pointer;color:var(--ink2);user-select:none}
+#pe .ini-chk input{accent-color:#66B6FF;margin:0}
+#pe .ini-chk.on{background:var(--pos-bg);border-color:var(--accent);color:var(--pos-fg)}
+#pe .ini-btn.on{border-color:var(--accent);color:var(--brand);background:var(--pos-bg)}
 @media print{#pe .ini-btn,#pe .ini-x{display:none}}
 </style>
 </head>
@@ -1602,7 +1609,7 @@ window.WK_PDF_PLAN = async (cap) => {
 </script>
 <script>
 /* ===== Iniciativas de Marketing: captura directa (campos, indicadores e iniciativas) ===== */
-const INI = { editK: new Set(), editI: new Set(), board: null, version: 0, puede: false, editadoEn: '', editadoPor: '', dirty: false, cargando: false, cargado: false, f: { q: '', est: '' }, delArm: '' };
+const INI = { editK: new Set(), editI: new Set(), verCampos: false, board: null, version: 0, puede: false, editadoEn: '', editadoPor: '', dirty: false, cargando: false, cargado: false, f: { q: '', est: '' }, delArm: '' };
 const INI_EST = ['Por iniciar','En curso','En riesgo','Pausada','Completada','Cancelada'];
 const INI_PRI = ['Alta','Media','Baja'];
 const INI_TIPOS = [['texto','Texto'],['numero','Número'],['fecha','Fecha'],['lista','Lista de opciones'],['porcentaje','Porcentaje']];
@@ -1619,7 +1626,7 @@ async function iniCargar(){
     if(!r.ok || !d.ok) throw new Error(d.error || 'No se pudo cargar');
     INI.board = { campos: d.live.campos || [], indicadores: d.live.indicadores || [], iniciativas: d.live.iniciativas || [] };
     INI.version = d.live.version || 0; INI.editadoEn = d.live.editadoEn || ''; INI.editadoPor = d.live.editadoPor || '';
-    INI.puede = !!(d.yo && d.yo.puedeEditar); INI.cargado = true; INI.dirty = false; INI.editK.clear(); INI.editI.clear();
+    iniNormal(INI.board); INI.puede = !!(d.yo && d.yo.puedeEditar); INI.cargado = true; INI.dirty = false; INI.editK.clear(); INI.editI.clear(); INI.verCampos = false;
   }catch(e){ INI.error = String(e.message || e); }
   INI.cargando = false; iniRender(true);
 }
@@ -1630,6 +1637,15 @@ function iniRender(forzar){
   if(INI.error && !INI.cargado){ box.innerHTML = '<div class="card"><div class="ini-empty">No se pudieron cargar las iniciativas: ' + esc(INI.error) + ' <button class="ini-btn sm" data-ia="reintentar">Reintentar</button></div></div>'; box.dataset.pintado = '1'; return; }
   const sy = window.scrollY; box.innerHTML = iniHtml(); box.dataset.pintado = '1'; iniDerivados(); window.scrollTo(0, sy);
 }
+/* Cada iniciativa elige cuáles de los campos opcionales usa (x.campos = ids). Si aún no lo tenía definido, usa los que ya traen valor. */
+function iniNormal(B){
+  const ids = new Set((B.campos || []).map(c => c.id));
+  (B.iniciativas || []).forEach(x => {
+    x.extra = x.extra || {};
+    x.campos = Array.isArray(x.campos) ? x.campos.filter(id => ids.has(id)) : Object.keys(x.extra).filter(k => ids.has(k) && x.extra[k] !== '' && x.extra[k] != null);
+  });
+}
+const iniUsa = (x, c) => (x.campos || []).includes(c.id);
 function iniPct(k){ // cumplimiento vs meta (0..1+) o null
   const a = iniNum(k.actual), m = iniNum(k.meta); if(a == null || m == null || m === 0) return null;
   if(k.sentido === 'menor') return a <= 0 ? 1 : m / a;
@@ -1660,7 +1676,7 @@ function iniPlazo(x){ // {txt, cls}
 function iniFila(x, cf, ed){
   const pl = iniPlazo(x), ini = iniFechaCorta(x.inicio), fin = iniFechaCorta(x.fin);
   const rango = ini && fin ? ini + ' → ' + fin : fin ? 'Fin ' + fin : ini ? 'Inicio ' + ini : '';
-  const tags = cf.map(c => { const v = (x.extra || {})[c.id]; return (v === undefined || v === '') ? '' : '<span class="ini-tag"><b>' + esc(c.nombre) + '</b> ' + esc(v) + (c.tipo === 'porcentaje' ? '%' : '') + '</span>'; }).join('');
+  const tags = cf.filter(c => iniUsa(x, c)).map(c => { const v = (x.extra || {})[c.id]; return (v === undefined || v === '') ? '' : '<span class="ini-tag"><b>' + esc(c.nombre) + '</b> ' + esc(v) + (c.tipo === 'porcentaje' ? '%' : '') + '</span>'; }).join('');
   return '<article class="ini-row" data-rid="' + esc(x.id) + '" data-est="' + esc(x.estatus) + '">' + iniAnillo(x) +
     '<div class="ini-main"><div class="ini-rtop"><span class="ini-name">' + esc(x.nombre || 'Sin nombre') + '</span><span class="ini-est ' + estCls(x.estatus) + '">' + esc(x.estatus) + '</span><span class="ini-pr ' + x.prioridad + '">● ' + x.prioridad + '</span></div>' +
     '<div class="ini-rm">' + (x.responsable ? '<span>👤 ' + esc(x.responsable) + '</span>' : '') + (rango ? '<span>📅 ' + esc(rango) + '</span>' : '') + (pl ? '<span class="ini-chip ' + pl.cls + '">' + esc(pl.txt) + '</span>' : '') + '</div>' +
@@ -1705,7 +1721,7 @@ function iniHtml(){
   const tarjeta = x => {
     const I = 'data-t="i" data-id="' + esc(x.id) + '"';
     if(!(ed && INI.editI.has(x.id))) return iniFila(x, cf, ed); // lista (la vista normal)
-    const ext = cf.map(c => {
+    const ext = cf.filter(c => iniUsa(x, c)).map(c => {
       const v = (x.extra || {})[c.id] ?? '', D = 'data-t="x" data-id="' + esc(x.id) + '" data-c="' + esc(c.id) + '"';
       if(c.tipo === 'lista') return L(esc(c.nombre), '<select class="ini-sel" ' + D + '><option value="">—</option>' + (c.opciones || []).map(o => '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select>');
       return L(esc(c.nombre) + (c.tipo === 'porcentaje' ? ' (%)' : ''), '<input class="ini-in" ' + D + ' type="' + (c.tipo === 'numero' || c.tipo === 'porcentaje' ? 'number' : c.tipo === 'fecha' ? 'date' : 'text') + '" step="any" value="' + esc(v) + '">');
@@ -1719,20 +1735,21 @@ function iniHtml(){
       '<div class="ini-fields">' + L('Responsable', '<input class="ini-in" ' + I + ' data-f="responsable" value="' + esc(x.responsable) + '">') +
       L('Inicio', '<input class="ini-in" type="date" ' + I + ' data-f="inicio" value="' + esc(x.inicio) + '">') + L('Fin', '<input class="ini-in" type="date" ' + I + ' data-f="fin" value="' + esc(x.fin) + '">') +
       L('Avance (%)', '<span class="ini-av2"><input class="ini-in" type="number" min="0" max="100" step="5" ' + I + ' data-f="avance" data-n="1" value="' + x.avance + '"><span class="ini-bar"><i style="width:' + x.avance + '%"></i></span></span>') + ext + '</div>' +
+      '<div class="ini-opt"><span class="ini-optt">Campos opcionales de esta iniciativa</span>' + (cf.length ? cf.map(c => '<label class="ini-chk' + (iniUsa(x, c) ? ' on' : '') + '"><input type="checkbox" data-t="cx" data-id="' + esc(x.id) + '" data-c="' + esc(c.id) + '"' + (iniUsa(x, c) ? ' checked' : '') + '> ' + esc(c.nombre) + '</label>').join('') : '<span class="ini-optn">Aún no hay campos. Créalos con “⚙️ Campos a la medida”.</span>') + '</div>' +
       '<div class="ini-texts">' + L('Objetivo', '<textarea class="ini-ta" rows="3" ' + I + ' data-f="objetivo" placeholder="¿Qué queremos lograr?">' + esc(x.objetivo) + '</textarea>') +
       L('Nota', '<textarea class="ini-ta" rows="3" ' + I + ' data-f="nota" placeholder="Notas, bloqueos, siguientes pasos">' + esc(x.nota) + '</textarea>') + '</div></article>';
   };
-  const iCard = '<div class="card"><div class="ch"><h2>Iniciativas</h2><span class="sub">' + B.iniciativas.length + ' registradas' + (filas.length !== B.iniciativas.length ? ' · mostrando ' + filas.length : '') + '</span>' + (ed ? '<button class="ini-btn sm" data-ia="add-i">➕ Agregar iniciativa</button>' : '') + '</div>' +
+  const iCard = '<div class="card"><div class="ch"><h2>Iniciativas</h2><span class="sub">' + B.iniciativas.length + ' registradas' + (filas.length !== B.iniciativas.length ? ' · mostrando ' + filas.length : '') + '</span>' + (ed ? '<button class="ini-btn sm' + (INI.verCampos ? ' on' : '') + '" data-ia="ver-c">⚙️ Campos a la medida</button><button class="ini-btn sm" data-ia="add-i">➕ Agregar iniciativa</button>' : '') + '</div>' +
     (B.iniciativas.length ? flt + (filas.length ? '<div class="ini-list">' + filas.map(tarjeta).join('') + '</div>' : '<div class="ini-empty">Ninguna iniciativa coincide con el filtro.</div>')
       : '<div class="ini-empty">' + (ed ? 'Aún no hay iniciativas. Agrega la primera con “Agregar iniciativa”.' : 'Aún no hay iniciativas registradas.') + '</div>') + '</div>';
 
   let cCard = '';
-  if(ed){
+  if(ed && INI.verCampos){
     const lista = cf.map(c => '<div class="ini-cf"><input class="ini-in" data-t="c" data-id="' + esc(c.id) + '" data-f="nombre" value="' + esc(c.nombre) + '" placeholder="Nombre del campo">' +
       '<select class="ini-sel" data-t="c" data-id="' + esc(c.id) + '" data-f="tipo">' + INI_TIPOS.map(t => '<option value="' + t[0] + '"' + (c.tipo === t[0] ? ' selected' : '') + '>' + t[1] + '</option>').join('') + '</select>' +
-      (c.tipo === 'lista' ? '<input class="ini-in" data-t="c" data-id="' + esc(c.id) + '" data-f="opciones" value="' + esc((c.opciones || []).join(', ')) + '" placeholder="Opciones separadas por coma">' : '<span class="meta" style="color:var(--ink3);font-size:12px">Se muestra en cada iniciativa</span>') +
+      (c.tipo === 'lista' ? '<input class="ini-in" data-t="c" data-id="' + esc(c.id) + '" data-f="opciones" value="' + esc((c.opciones || []).join(', ')) + '" placeholder="Opciones separadas por coma">' : '<span class="meta" style="color:var(--ink3);font-size:12px">Opcional: cada iniciativa decide si lo usa</span>') +
       '<button class="ini-btn sm dng" data-ia="del-c" data-id="' + esc(c.id) + '">' + (INI.delArm === c.id ? '¿Quitar y borrar datos?' : '✕ Quitar') + '</button></div>').join('');
-    cCard = '<div class="card"><div class="ch"><h2>Campos a la medida</h2><span class="sub">Agrega datos propios a cada iniciativa (canal, presupuesto, KPI ligado, etc.)</span><button class="ini-btn sm" data-ia="add-c">➕ Agregar campo</button></div>' +
+    cCard = '<div class="card"><div class="ch"><h2>Campos a la medida</h2><span class="sub">Defínelos aquí una vez; en cada iniciativa eliges cuáles aplican (canal, presupuesto, KPI ligado, etc.)</span><button class="ini-btn sm" data-ia="add-c">➕ Agregar campo</button><button class="ini-btn sm" data-ia="ver-c">✓ Cerrar</button></div>' +
       (lista || '<div class="ini-empty">Sin campos adicionales. Los básicos (responsable, estatus, fechas, avance, objetivo y nota) ya vienen incluidos.</div>') + '</div>';
   }
   return top + sum + kCard + iCard + cCard;
@@ -1774,6 +1791,7 @@ function iniMarcar(){ INI.dirty = true; INI.delArm = ''; iniDerivados(); }
 function iniBuscar(t, id){ const B = INI.board; return (t === 'k' ? B.indicadores : t === 'c' ? B.campos : B.iniciativas).find(x => x.id === id); }
 function iniCampo(e){
   const el = e.target; if(!el.dataset || !el.dataset.t || !INI.puede) return false;
+  if(el.dataset.t === 'cx'){ const o = iniBuscar('i', el.dataset.id); if(!o) return false; o.campos = o.campos || []; const i = o.campos.indexOf(el.dataset.c); if(el.checked && i < 0) o.campos.push(el.dataset.c); if(!el.checked && i >= 0) o.campos.splice(i, 1); return 'estructura'; }
   const o = iniBuscar(el.dataset.t === 'x' ? 'i' : el.dataset.t, el.dataset.id); if(!o) return false;
   if(el.dataset.t === 'x'){ o.extra = o.extra || {}; o.extra[el.dataset.c] = el.value; return 'x'; }
   const f = el.dataset.f;
@@ -1782,7 +1800,7 @@ function iniCampo(e){
   else o[f] = el.value;
   return el.dataset.t === 'c' && f === 'tipo' ? 'estructura' : true;
 }
-document.addEventListener('input', e => { if(!e.target.closest || !e.target.closest('#iniBox')) return;
+document.addEventListener('input', e => { if(!e.target.closest || !e.target.closest('#iniBox') || e.target.type === 'checkbox') return;
   if(e.target.id === 'iniQ'){ INI.f.q = e.target.value; clearTimeout(INI._tq); INI._tq = setTimeout(() => { const pos = e.target.selectionStart; iniRender(true); const q = document.getElementById('iniQ'); if(q){ q.focus(); try{ q.setSelectionRange(pos, pos); }catch(_){} } }, 250); return; }
   const r = iniCampo(e); if(r) iniMarcar(); });
 document.addEventListener('change', e => { if(!e.target.closest || !e.target.closest('#iniBox')) return;
@@ -1796,6 +1814,7 @@ document.addEventListener('click', async e => {
   if(a === 'add-k'){ const nid = iniId('k'); B.indicadores.push({ id: nid, nombre: '', unidad: '', actual: null, meta: null, previo: null, sentido: 'mayor', nota: '' }); INI.editK.add(nid); iniMarcar(); iniRender(true); return; }
   if(a === 'edit-k'){ INI.editK.add(id); iniRender(true); return; }
   if(a === 'ok-k'){ INI.editK.delete(id); iniRender(true); return; }
+  if(a === 'ver-c'){ INI.verCampos = !INI.verCampos; iniRender(true); return; }
   if(a === 'edit-i'){ INI.editI.add(id); iniRender(true); return; }
   if(a === 'ok-i'){ INI.editI.delete(id); iniRender(true); return; }
   if(a === 'add-i'){ const nid = iniId('i'); INI.editI.add(nid); B.iniciativas.unshift({ id: nid, nombre: '', responsable: '', estatus: 'Por iniciar', prioridad: 'Media', inicio: '', fin: '', avance: 0, objetivo: '', nota: '', extra: {} }); INI.f = { q: '', est: '' }; iniMarcar(); iniRender(true); return; }
@@ -1804,7 +1823,7 @@ document.addEventListener('click', async e => {
     if(INI.delArm !== id){ INI.delArm = id; iniRender(true); setTimeout(() => { if(INI.delArm === id){ INI.delArm = ''; iniRender(true); } }, 4000); return; }
     if(a === 'del-k'){ B.indicadores = B.indicadores.filter(x => x.id !== id); INI.editK.delete(id); }
     if(a === 'del-i'){ B.iniciativas = B.iniciativas.filter(x => x.id !== id); INI.editI.delete(id); }
-    if(a === 'del-c'){ B.campos = B.campos.filter(x => x.id !== id); B.iniciativas.forEach(x => { if(x.extra) delete x.extra[id]; }); }
+    if(a === 'del-c'){ B.campos = B.campos.filter(x => x.id !== id); B.iniciativas.forEach(x => { if(x.extra) delete x.extra[id]; x.campos = (x.campos || []).filter(k => k !== id); }); }
     INI.delArm = ''; INI.dirty = true; iniRender(true); return;
   }
   if(a === 'descartar'){ if(!INI.dirty) return; INI.cargado = false; INI.board = null; await iniCargar(); toast('Cambios descartados'); return; }
@@ -1813,9 +1832,9 @@ document.addEventListener('click', async e => {
     try{
       const r = await fetch('/api/wbr-marketing-iniciativas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accion: 'guardar', version: INI.version, board: B }) });
       const d = await r.json().catch(() => ({}));
-      if(r.status === 409 && d.board){ INI.board = { campos: d.board.campos || [], indicadores: d.board.indicadores || [], iniciativas: d.board.iniciativas || [] }; INI.version = d.board.version || 0; INI.dirty = false; INI.editK.clear(); INI.editI.clear(); iniRender(true); toast(d.error || 'Se recargó la versión más reciente'); return; }
+      if(r.status === 409 && d.board){ INI.board = { campos: d.board.campos || [], indicadores: d.board.indicadores || [], iniciativas: d.board.iniciativas || [] }; iniNormal(INI.board); INI.version = d.board.version || 0; INI.dirty = false; INI.editK.clear(); INI.editI.clear(); INI.verCampos = false; iniRender(true); toast(d.error || 'Se recargó la versión más reciente'); return; }
       if(!r.ok || !d.ok) throw new Error(d.error || ('HTTP ' + r.status));
-      INI.board = { campos: d.board.campos, indicadores: d.board.indicadores, iniciativas: d.board.iniciativas }; INI.version = d.board.version; INI.editadoEn = d.board.editadoEn; INI.editadoPor = d.board.editadoPor; INI.dirty = false; INI.editK.clear(); INI.editI.clear();
+      INI.board = { campos: d.board.campos, indicadores: d.board.indicadores, iniciativas: d.board.iniciativas }; iniNormal(INI.board); INI.version = d.board.version; INI.editadoEn = d.board.editadoEn; INI.editadoPor = d.board.editadoPor; INI.dirty = false; INI.editK.clear(); INI.editI.clear(); INI.verCampos = false;
       iniRender(true); toast('Iniciativas guardadas');
     }catch(err){ toast('No se pudo guardar: ' + (err.message || err)); iniRender(true); }
   }

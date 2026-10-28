@@ -826,10 +826,11 @@ function miLimpiar(b){
       const extra = {}; const ex = x && x.extra && typeof x.extra === 'object' ? x.extra : {};
       Object.keys(ex).forEach(k => { if (ids.has(k)) extra[k] = fcsTxt(ex[k], 300); });
       const av = numN(x && x.avance);
+      const sel = Array.isArray(x && x.campos) ? Array.from(new Set(x.campos.map(k => String(k)).filter(k => ids.has(k)))) : Object.keys(extra).filter(k => extra[k] !== '');
       return { id: ctId(x && x.id, 'i', i), nombre: fcsTxt(x && x.nombre, 140), responsable: fcsTxt(x && x.responsable, 80),
         estatus: ctSel(x && x.estatus, MI_ESTATUS, 'Por iniciar'), prioridad: ctSel(x && x.prioridad, MI_PRIORIDAD, 'Media'),
         inicio: ctFecha(x && x.inicio), fin: ctFecha(x && x.fin), avance: av == null ? 0 : Math.max(0, Math.min(100, av)),
-        objetivo: fcsTxt(x && x.objetivo, 500), nota: fcsTxt(x && x.nota, 800), extra };
+        objetivo: fcsTxt(x && x.objetivo, 500), nota: fcsTxt(x && x.nota, 800), campos: sel, extra };
     })
   };
 }
