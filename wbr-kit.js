@@ -872,7 +872,7 @@ WK.fx = function(root){
 var fxTimer = null;
 function iniciarFx(){
   document.body.classList.add('wk-dark');
-  if('IntersectionObserver' in window) io = new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ revelar(e.target); io.unobserve(e.target); } }); }, { threshold:.12 });
+  if('IntersectionObserver' in window) io = new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ revelar(e.target); io.unobserve(e.target); } }); }, { threshold:0, rootMargin:'0px 0px -6% 0px' });
   document.addEventListener('mouseover', mostrarTip); document.addEventListener('mousemove', function(e){ mostrarTip(e); inclinar(e); }, { passive:true });
   document.addEventListener('mouseleave', function(){ if(tipEl) tipEl.classList.remove('on'); });
   document.addEventListener('input', function(e){ var t = e.target; if(t && t.getAttribute && t.getAttribute('data-wi')) wiRender(t.getAttribute('data-wi'), document); });
