@@ -678,7 +678,15 @@ async function fcsManejar(request, env, url){
       }
     } catch (e) { /* si falla la carga inicial, la página funciona igual vacía */ }
     const rawH = await env.PM_KV.get('fcs_hist');
-    return json({ ok:true, live, historial: rawH ? JSON.parse(rawH) : [], config: fcfg, yo, catalogos:{ estatus:FCS_ESTATUS, lobs:FCS_LOBS, meses:FCS_MESES, planes:FCS_PLANES } });
+    let histOut = rawH ? JSON.parse(rawH) : [], liveOut = live, cfgOut = fcfg;
+    // Un AE solo ve su propio tablero: el resto de tableros, historial y correos no salen del servidor
+    const soloPropio = puedeAe && !esOps;
+    if (soloPropio) {
+      liveOut = (miAe && live[miAe]) ? { [miAe]: live[miAe] } : {};
+      histOut = histOut.filter(h => miAe && h.ae === miAe);
+      cfgOut = { aes: fcfg.aes.filter(a => miAe && a.slug === miAe).map(a => ({ slug: a.slug, nombre: a.nombre, email: '' })) };
+    }
+    return json({ ok:true, live: liveOut, historial: histOut, config: cfgOut, yo: { ...yo, soloPropio }, catalogos:{ estatus:FCS_ESTATUS, lobs:FCS_LOBS, meses:FCS_MESES, planes:FCS_PLANES } });
   }
   if (request.method !== 'POST') return json({ ok:false, error:'Método no permitido' }, 405);
   let body; try { body = await request.json(); } catch (e) { return json({ ok:false, error:'JSON inválido' }, 400); }

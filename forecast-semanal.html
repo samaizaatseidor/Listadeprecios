@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="/wbr-kit.js?v=20261010s"></script>
 <style>
   :root{
@@ -441,7 +442,8 @@ async function cargar(){
     const r = await fetch('/api/forecast-semanal'); const j = await r.json();
     if(!r.ok || !j.ok) throw new Error(j.error || 'Sin acceso');
     D = j; B = {}; dirty = {};
-    if(!window.__fsInit){ window.__fsInit = true; const h = location.hash.replace('#',''); if(h && AEs().some(a => a.slug === h)) vista = h; }
+    if(D.yo.soloPropio){ if(!D.yo.ae){ sb.innerHTML = '<div class="fs-warn">Tu correo aún no está asignado a un tablero. Pide a Sales Ops que lo asigne en ⚙️ Responsables.</div>'; return; } vista = D.yo.ae; }
+    if(!window.__fsInit){ window.__fsInit = true; const h = location.hash.replace('#',''); if(!D.yo.soloPropio && h && AEs().some(a => a.slug === h)) vista = h; }
     sb.innerHTML = ''; pintar();
   }catch(e){ sb.innerHTML = '<div class="fs-warn">No se pudo cargar el Forecast Semanal: ' + esc(e.message) + '</div>'; }
 }
@@ -590,7 +592,7 @@ function refrescar(raiz, b, qi, prev){
 
 /* ---------- vistas ---------- */
 function barra(){
-  const tabs = ['<button class="fs-tab' + (vista === 'overview' ? ' on' : '') + '" data-v="overview"><span class="av">∑</span>Overview segmento</button>'].concat(AEs().map(a => {
+  const tabs = (D.yo.soloPropio ? [] : ['<button class="fs-tab' + (vista === 'overview' ? ' on' : '') + '" data-v="overview"><span class="av">∑</span>Overview segmento</button>']).concat(AEs().map(a => {
     const live = D.live[a.slug], okSem = live && live.semana === SEM;
     return '<button class="fs-tab' + (vista === a.slug ? ' on' : '') + '" data-v="' + a.slug + '"><span class="av" data-av="' + a.slug + '">' + esc(iniciales(a.nombre)) + '</span>' + esc(a.nombre.split(' ')[0]) + '<span class="dot ' + (okSem ? 'ok' : (live && live.reportadoEn ? 'pend' : '')) + '" title="' + (okSem ? 'Reportó esta semana' : 'Sin reportar esta semana') + '"></span></button>';
   })).join('');
@@ -600,6 +602,7 @@ function avatares(){
   document.querySelectorAll('[data-av]').forEach(el => { const s = el.getAttribute('data-av'); [ '.png', '.jpg' ].forEach(ext => { const im = new Image(); im.onload = () => { if(!el.querySelector('img')){ el.textContent = ''; el.appendChild(im); } }; im.src = '/assets/owners/' + s + ext; }); });
 }
 function permisoTexto(){
+  if(D.yo.soloPropio) return '<span class="fs-pill ok">✏️ Eres ' + esc(nombreAe(D.yo.ae)) + ' — ves y editas solo tu tablero</span>';
   if(puedeOps()) return '<span class="fs-pill ok">🛠️ Sales Ops — puedes editar todos los tableros</span>';
   if(D.yo.ae) return '<span class="fs-pill ok">✏️ Eres ' + esc(nombreAe(D.yo.ae)) + ' — editas solo tu tablero (celdas amarillas)</span>';
   return '<span class="fs-pill">👁️ Solo lectura</span>';
@@ -674,7 +677,7 @@ function pintar(conservar){
   // retrato del encabezado
   document.body.classList.toggle('fs-ov', vista === 'overview');
   if(window.WK && WK.ownerSet){
-    if(vista === 'overview' || snap) WK.ownerSet(WK.OWNERS.forecastequipo);
+    if(vista === 'overview' || (snap && !D.yo.soloPropio)) WK.ownerSet(WK.OWNERS.forecastequipo);
     else { const o = WK.OWNERS[vista]; WK.ownerSet({ etiqueta:'Dueño del tablero · Forecast Semanal', equipo:[{ nombre: nombreAe(vista), cargo:'Account Executive', foto: (o && o.foto) || ('/assets/owners/' + vista + '.png') }] }); }
   }
   if(conservar) window.scrollTo(0, y);
@@ -696,58 +699,172 @@ function ctxExport(){
   if(snap){ return { b: Object.assign({ _ae: snap.ae }, snap.board), qi: qDe(snap.semana), sem: snap.semana, nombre: nombreAe(snap.ae).replace(/\s+/g,'_'), conAe: false }; }
   return { b: boardDe(vista), qi: qDe(SEM), sem: SEM, nombre: nombreAe(vista).replace(/\s+/g,'_'), conAe: false };
 }
-function exportarExcel(){
-  if(typeof XLSX === 'undefined'){ toast('No se pudo cargar la librería de Excel', true); return; }
-  const c = ctxExport(), v = calc(c.b, c.qi.meses), M = c.qi.meses, wb = XLSX.utils.book_new();
-  const dealsTxt = c.b.deals || [];
-  const fmt = (ws, celdas, z) => celdas.forEach(a => { if(ws[a]) ws[a].z = z; });
-  const anchos = (ws, w) => { ws['!cols'] = w.map(x => ({ wch: x })); };
-  const titulo = (c.conAe ? 'FORECAST SEMANAL — OVERVIEW SEGMENTO' : 'FORECAST SEMANAL — ' + c.nombre.replace(/_/g,' ').toUpperCase());
-  // 1) CUOTA AÑO  (B2 título · F2 semana · fila 7 encabezado · filas 8-11 datos)
-  const a1 = [[],[ '', titulo, '', '', 'SEMANA', c.sem ],[ '', 'Montos en miles de USD (K).' ],[],[ '', 'CUOTA DEL AÑO — ¿DÓNDE ESTOY?' ],[],
-    [ '', 'CONCEPTO', 'SW', 'SERVICIOS', 'TOTAL' ],
-    [ '', 'Cuota Anual', v['a.sw'], v['a.sv'], v['a.t'] ], [ '', 'Cerrado YTD', v['y.sw'], v['y.sv'], v['y.t'] ],
-    [ '', '% Avance', v['p.sw'], v['p.sv'], v['p.t'] ], [ '', 'GAP 2026', v['g.sw'], v['g.sv'], v['g.t'] ]];
-  const w1 = XLSX.utils.aoa_to_sheet(a1); fmt(w1, ['C8','D8','E8','C9','D9','E9','C11','D11','E11'], '#,##0.0'); fmt(w1, ['C10','D10','E10'], '0.0%'); anchos(w1, [3,30,14,14,14,12]);
-  XLSX.utils.book_append_sheet(wb, w1, 'CUOTA AÑO');
-  // 2) FORECAST CQ  (fila 6 grupos · fila 7 encabezado · fila 8 cuotas · filas 9-14)
-  const f = (pre) => ['sw','sv','t','m0','m1','m2'].map(k => v[pre + '.' + k]);
-  const a2 = [[],[ '', 'FOTO DEL TRIMESTRE ACTUAL — Q' + c.qi.q + ' ' + c.qi.anio ],[ '', c.conAe ? 'Overview del segmento' : c.nombre.replace(/_/g,' ') ],[],[],
-    [ '', '', 'Q GENERAL', '', '', 'MENSUAL' ], [ '', 'CONCEPTO', 'SW', 'SERVICIOS', 'TOTAL', M[0], M[1], M[2] ],
-    [ '', 'Cuota del Q', ...f('qc') ], [ '', 'Won en el Q', ...f('qw') ], [ '', 'VC (Commit + Probable)', ...f('qv') ], [ '', 'Forecast (Won + VC)', ...f('qf') ],
-    [ '', 'Alcance vs Cuota', ...f('qa') ], [ '', 'Pipeline (VC + Top Upside + Upside)', ...f('qp') ], [ '', 'Cobertura (Pipeline vs Cuota)', ...f('qb') ]];
-  const w2 = XLSX.utils.aoa_to_sheet(a2);
-  ['C','D','E','F','G','H'].forEach(L => { [8,9,10,11,13].forEach(r => { if(w2[L+r]) w2[L+r].z = '#,##0.0'; }); if(w2[L+12]) w2[L+12].z = '0%'; if(w2[L+14]) w2[L+14].z = '0.00"x"'; });
-  anchos(w2, [3,36,13,13,13,13,13,13]);
-  XLSX.utils.book_append_sheet(wb, w2, 'FORECAST CQ');
-  // 3) TOP DEALS  (fila 7 encabezado · datos desde la fila 8 · B..L como el formato; el AE va en M solo en el Overview)
-  const enc = [ '', 'ID HUBSPOT', 'CUENTA', 'LOB', 'SW', 'SERVICIOS', 'TOTAL', 'ESTATUS', 'MES', 'PLAN A | B', 'LOB', 'NEXT STEPS' ].concat(c.conAe ? ['AE'] : []);
-  const a3 = [[],[ '', 'TOP DEALS — LOS QUE CIERRAN EL GAP' ],[ '', 'Montos en miles de USD (K). Plan A Probable = Compromiso · Plan B Top Upside = Cobertura del probable · Upside = Resto.' ],[],[],
-    [ '', 'TOTAL', '', v['dtot.sw'], v['dtot.sv'], v['dtot.t'] ], enc ]
-    .concat(dealsTxt.map(d => [ '', d.id || '', d.cuenta || '', d.lob || '', +d.sw || 0, +d.sv || 0, totalDeal(d), d.estatus || '', d.mes || '', d.plan || '', !!d.enLob, d.next || '' ].concat(c.conAe ? [ nombreAe(d._ae) ] : [])));
-  const w3 = XLSX.utils.aoa_to_sheet(a3);
-  for(let r = 6; r <= 7 + dealsTxt.length; r++) ['E','F','G'].forEach(L => { if(w3[L + r]) w3[L + r].z = '#,##0.0'; });
-  anchos(w3, [3,16,34,10,11,11,11,30,12,11,7,60,20]);
-  XLSX.utils.book_append_sheet(wb, w3, 'TOP DEALS');
-  // 4) LOB  (fila 4 encabezado · filas 5-7)
-  const L = LOBS.map(l => l);
-  const a4 = [[],[ '', 'POR LOB — VENDIDO Y POR VENDER' ],[],[ '', 'CONCEPTO', ...L.map(x => x.toUpperCase()), 'TOTAL' ],
-    [ '', 'Vendido (Cerrado)', ...L.map(l => v['lv.' + l]), v['lv.t'] ], [ '', 'Por vender (VC+BC+Pipe)', ...L.map(l => v['lp.' + l]), v['lp.t'] ], [ '', 'Total', ...L.map(l => v['lt.' + l]), v['lt.t'] ],
-    [], [ '', 'Si un deal no tiene LOB asignado en la pestaña TOP DEALS, no aparece aquí.' ]];
-  const w4 = XLSX.utils.aoa_to_sheet(a4);
-  ['C','D','E','F','G','H'].forEach(x => [5,6,7].forEach(r => { if(w4[x + r]) w4[x + r].z = '#,##0.0'; })); anchos(w4, [3,28,12,12,12,12,12,12]);
-  XLSX.utils.book_append_sheet(wb, w4, 'LOB');
-  // 5) EQUIPO (solo Overview)
+async function exportarExcel(){
+  if(typeof ExcelJS === 'undefined'){ toast('No se pudo cargar la librería de Excel. Revisa tu conexión y vuelve a intentar.', true); return; }
+  const c = ctxExport(), v = calc(c.b, c.qi.meses), M = c.qi.meses, deals = c.b.deals || [];
+  const wb = new ExcelJS.Workbook(); wb.creator = 'Portal Presales · SEIDOR México'; wb.created = new Date();
+  const NAVY='FF0E1E3F', BLUE='FF1E5BB8', CYAN='FF33B4DD', CYANL='FFE3F4FB', ICE='FFEAF1FB', GREY='FFF3F6FA', LINE='FFD8E2EE', WHITE='FFFFFFFF', INK='FF16223A', MUTE='FF5E6B82';
+  const SEM = { g:{ bg:'FFE1F4E9', fg:'FF17703E' }, a:{ bg:'FFFBF1DE', fg:'FF8A6414' }, r:{ bg:'FFFBE7E7', fg:'FF9A2E2E' } };
+  const FONT = 'Calibri';
+  const K = '"$"#,##0.0;[Red]-"$"#,##0.0;"–"', PCT = '0.0%', MULT = '0.00"x"';
+  const quien = c.conAe ? 'Overview del segmento' : c.nombre.replace(/_/g,' ');
+  const meta = (c.conAe ? 'Suma de los ' + c.boards.length + ' tableros' : quien) + '  ·  Q' + c.qi.q + ' ' + c.qi.anio + '  ·  Semana del corte ' + fFecha(c.sem) + '  ·  Montos en miles de USD';
+  const fill = rgb => ({ type:'pattern', pattern:'solid', fgColor:{ argb: rgb } });
+  const bord = (rgb, st) => ({ style: st || 'thin', color:{ argb: rgb || LINE } });
+  const caja = rgb => ({ top:bord(rgb), left:bord(rgb), bottom:bord(rgb), right:bord(rgb) });
+  const nuevaHoja = (nombre, color, anchos) => { const ws = wb.addWorksheet(nombre, { views:[{ showGridLines:false, zoomScale:100 }], properties:{ tabColor:{ argb: color || BLUE } }, pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0, paperSize:9, margins:{ left:.4, right:.4, top:.5, bottom:.5, header:.3, footer:.3 } } });
+    ws.columns = anchos.map(w => ({ width: w })); return ws; };
+  const banda = (ws, titulo, sub, ultima) => { // filas 2-3: banner navy con línea cian
+    ws.mergeCells(2, 2, 2, ultima); ws.mergeCells(3, 2, 3, ultima);
+    for(let col = 2; col <= ultima; col++){ ws.getCell(2, col).fill = fill(NAVY); ws.getCell(3, col).fill = fill(NAVY); ws.getCell(3, col).border = { bottom: bord(CYAN, 'thick') }; }
+    const t = ws.getCell(2,2); t.value = titulo; t.font = { name:FONT, size:18, bold:true, color:{ argb: WHITE } }; t.alignment = { vertical:'middle', indent:1 };
+    const u = ws.getCell(3,2); u.value = sub; u.font = { name:FONT, size:10.5, color:{ argb:'FF8FE6FF' } }; u.alignment = { vertical:'middle', indent:1 };
+    ws.getRow(1).height = 8; ws.getRow(2).height = 34; ws.getRow(3).height = 22;
+  };
+  const cab = (ws, fila, col0, textos, opts) => { textos.forEach((tx, i) => { const x = ws.getCell(fila, col0 + i); x.value = tx; x.fill = fill((opts && opts.color) || NAVY); x.font = { name:FONT, size:10.5, bold:true, color:{ argb: WHITE } };
+    x.alignment = { vertical:'middle', horizontal: i === 0 ? 'left' : 'center', wrapText:true, indent: i === 0 ? 1 : 0 }; x.border = { bottom: bord(CYAN, 'medium') }; }); ws.getRow(fila).height = 24; };
+  const num = (cell, valor, fmt, o) => { o = o || {}; cell.value = (o.f ? { formula: o.f, result: valor } : valor); cell.numFmt = fmt; cell.alignment = { horizontal:'right', vertical:'middle', indent:1 };
+    cell.font = { name:FONT, size:11, bold: !!o.bold, color:{ argb: o.color || INK } }; cell.fill = fill(o.bg || WHITE); cell.border = { bottom: bord(LINE) }; };
+  const lbl = (cell, texto, o) => { o = o || {}; cell.value = texto; cell.font = { name:FONT, size:11, bold: o.bold !== false, color:{ argb: o.color || NAVY } }; cell.fill = fill(o.bg || GREY); cell.alignment = { vertical:'middle', indent:1 }; cell.border = { bottom: bord(LINE) }; };
+  const sem = (p) => SEM[semaforo(p)];
+  const barra = (p) => '█'.repeat(Math.max(0, Math.min(20, Math.round(p * 20)))) + '░'.repeat(20 - Math.max(0, Math.min(20, Math.round(p * 20))));
+  const tarjeta = (ws, fila, col0, ancho, etiqueta, valor, fmt, sub, tono, barraP) => { // tarjeta KPI: 4 filas
+    const c1 = col0, c2 = col0 + ancho - 1;
+    if(c2 > c1) for(let r = 0; r < 4; r++) ws.mergeCells(fila + r, c1, fila + r, c2);
+    for(let r = 0; r < 4; r++) for(let col = c1; col <= c2; col++){ const x = ws.getCell(fila + r, col); x.fill = fill(tono ? tono.bg : GREY); x.border = { left: col === c1 ? bord(tono ? tono.fg : BLUE, 'thick') : undefined, right: col === c2 ? bord(LINE) : undefined, top: r === 0 ? bord(LINE) : undefined, bottom: r === 3 ? bord(LINE) : undefined }; }
+    const a = ws.getCell(fila, c1); a.value = etiqueta.toUpperCase(); a.font = { name:FONT, size:9, bold:true, color:{ argb: MUTE } }; a.alignment = { indent:1, vertical:'bottom' };
+    const b = ws.getCell(fila + 1, c1); b.value = valor; b.numFmt = fmt; b.font = { name:FONT, size:22, bold:true, color:{ argb: tono ? tono.fg : NAVY } }; b.alignment = { horizontal:'left', indent:1, vertical:'middle' };
+    const d = ws.getCell(fila + 2, c1); d.value = sub; d.font = { name:FONT, size:9.5, color:{ argb: MUTE } }; d.alignment = { indent:1, vertical:'top' };
+    if(barraP != null){ const e = ws.getCell(fila + 3, c1); e.value = barra(barraP); e.font = { name:'Consolas', size:9, color:{ argb: tono ? tono.fg : BLUE } }; e.alignment = { indent:1, vertical:'middle' }; }
+    ws.getRow(fila + 1).height = 34;
+  };
+  const pie = (ws, fila, ultima) => { ws.mergeCells(fila, 2, fila, ultima); const x = ws.getCell(fila, 2); x.value = 'Generado desde el Portal Presales · SEIDOR México · ' + new Date().toLocaleString('es-MX') + (D.yo && D.yo.email ? ' · ' + D.yo.email : ''); x.font = { name:FONT, size:8.5, italic:true, color:{ argb:'FF8A97AC' } }; x.alignment = { indent:1 }; };
+  const imp = (ws, ult) => { ws.headerFooter.oddFooter = '&L&8Portal Presales · SEIDOR México&R&8Página &P de &N'; ws.pageSetup.printArea = undefined; };
+
+  /* ===== 0 · PORTADA ===== */
+  const wp = nuevaHoja('RESUMEN', NAVY, [2, 22, 22, 22, 22, 22, 22]);
+  banda(wp, 'Forecast Semanal — ' + (c.conAe ? 'Overview del segmento' : quien), meta, 7);
+  wp.mergeCells(5, 2, 5, 7); const t5 = wp.getCell(5,2); t5.value = 'LO QUE IMPORTA ESTA SEMANA'; t5.font = { name:FONT, size:11, bold:true, color:{ argb: BLUE } }; wp.getRow(5).height = 22;
+  tarjeta(wp, 6, 2, 2, 'Avance vs cuota anual', v['p.t'], PCT, 'Cerrado YTD $' + v['y.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K de $' + v['a.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K', sem(v['p.t']), v['p.t']);
+  tarjeta(wp, 6, 4, 2, 'Forecast del Q (Won + VC)', v['qf.t'], K, 'Won $' + v['qw.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K · VC $' + v['qv.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K', null, null);
+  tarjeta(wp, 6, 6, 2, 'Alcance vs cuota del Q', v['qa.t'], PCT, 'Cuota del Q $' + v['qc.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K', sem(v['qa.t']), v['qa.t']);
+  tarjeta(wp, 11, 2, 2, 'Cobertura de pipeline', v['qb.t'], MULT, 'Pipeline $' + v['qp.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K (VC + Upside)', null, Math.min(1, v['qb.t'] / 3));
+  tarjeta(wp, 11, 4, 2, 'GAP 2026', v['g.t'], K, 'Lo que falta para la cuota anual', v['g.t'] > 0 ? SEM.a : SEM.g, null);
+  tarjeta(wp, 11, 6, 2, 'Deals en Top deals', deals.length, '0', 'Pipeline total $' + v['dtot.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K', null, null);
+  wp.mergeCells(16, 2, 16, 7); const t16 = wp.getCell(16,2); t16.value = 'CONTENIDO DEL ARCHIVO'; t16.font = { name:FONT, size:11, bold:true, color:{ argb: BLUE } };
+  [['CUOTA AÑO','Cuota anual, cerrado YTD, % de avance y GAP'],['FORECAST CQ','Foto del trimestre: Won, VC, forecast, alcance y cobertura (Q general y mensual)'],['TOP DEALS','Detalle por oportunidad con estatus, mes, plan y next steps'],['LOB','Vendido y por vender por línea de oferta']].concat(c.conAe ? [['EQUIPO','Comparativo por AE']] : []).forEach((x, i) => {
+    const r = 17 + i; wp.mergeCells(r, 3, r, 7); lbl(wp.getCell(r,2), x[0], { bg: ICE }); const d = wp.getCell(r,3); d.value = x[1]; d.font = { name:FONT, size:10.5, color:{ argb: INK } }; d.alignment = { indent:1, vertical:'middle' }; d.border = { bottom: bord(LINE) }; wp.getRow(r).height = 20; });
+  wp.mergeCells(23, 2, 23, 7); const t23 = wp.getCell(23,2); t23.value = 'Estatus: Won = ganado · VC = Commit + Probable (Plan A) · Top Upside = Plan B · Upside = resto. Pipeline = VC + Upside. Cobertura = Pipeline ÷ cuota.'; t23.font = { name:FONT, size:9.5, italic:true, color:{ argb: MUTE } }; t23.alignment = { wrapText:true, indent:1, vertical:'top' }; wp.getRow(23).height = 30;
+  pie(wp, 25, 7);
+
+  /* ===== 1 · CUOTA AÑO (misma celdas que el formato original: C8:D9) ===== */
+  const w1 = nuevaHoja('CUOTA AÑO', BLUE, [2, 32, 18, 18, 18, 2]);
+  banda(w1, 'CUOTA DEL AÑO — ¿DÓNDE ESTOY?', meta, 5);
+  w1.mergeCells(5, 2, 5, 5); w1.getCell(5,2).value = 'Avance vs cuota anual · montos en miles de USD'; w1.getCell(5,2).font = { name:FONT, size:10.5, italic:true, color:{ argb: MUTE } };
+  cab(w1, 7, 2, ['CONCEPTO','SW','SERVICIOS','TOTAL']);
+  const cuotaF = [['Cuota Anual','a'],['Cerrado YTD','y']];
+  cuotaF.forEach((x, i) => { const r = 8 + i; lbl(w1.getCell(r,2), x[0]); num(w1.getCell(r,3), v[x[1]+'.sw'], K); num(w1.getCell(r,4), v[x[1]+'.sv'], K); num(w1.getCell(r,5), v[x[1]+'.t'], K, { bold:true, bg: ICE, f: 'C' + r + '+D' + r }); w1.getRow(r).height = 22; });
+  lbl(w1.getCell(10,2), '% Avance', { bg: ICE });
+  [['C','sw'],['D','sv'],['E','t']].forEach(([L,k]) => { const p = v['p.'+k], z = sem(p); num(w1.getCell(L+'10'), p, PCT, { bold:true, bg: z.bg, color: z.fg, f: 'IFERROR(' + L + '9/' + L + '8,0)' }); });
+  lbl(w1.getCell(11,2), 'GAP 2026'); [['C','sw'],['D','sv'],['E','t']].forEach(([L,k]) => num(w1.getCell(L+'11'), v['g.'+k], K, { bold: k === 't', f: L + '8-' + L + '9' }));
+  w1.getRow(10).height = 24; w1.getRow(11).height = 22;
+  tarjeta(w1, 13, 2, 1, 'Avance vs cuota anual', v['p.t'], PCT, 'Cerrado YTD vs cuota', sem(v['p.t']), v['p.t']);
+  tarjeta(w1, 13, 3, 2, 'Cerrado YTD', v['y.t'], K, 'SW + Servicios', null, null);
+  tarjeta(w1, 13, 5, 1, 'GAP 2026', v['g.t'], K, 'Por cerrar', v['g.t'] > 0 ? SEM.a : SEM.g, null);
+  pie(w1, 18, 5);
+
+  /* ===== 2 · FORECAST CQ (cuotas en C8:D8 y F8:H8) ===== */
+  const w2 = nuevaHoja('FORECAST CQ', BLUE, [2, 40, 14, 14, 14, 14, 14, 14, 2]);
+  banda(w2, 'FOTO DEL TRIMESTRE — Q' + c.qi.q + ' ' + c.qi.anio, meta, 8);
+  w2.mergeCells(5, 2, 5, 8); w2.getCell(5,2).value = 'El GAP y cómo lo cubro. Compromiso por mes = Cerrado + VC.'; w2.getCell(5,2).font = { name:FONT, size:10.5, italic:true, color:{ argb: MUTE } };
+  w2.mergeCells(6, 3, 6, 5); w2.mergeCells(6, 6, 6, 8);
+  const g1 = w2.getCell(6,3); g1.value = 'Q GENERAL'; g1.fill = fill(BLUE); g1.font = { name:FONT, size:10.5, bold:true, color:{ argb: WHITE } }; g1.alignment = { horizontal:'center', vertical:'middle' };
+  const g2 = w2.getCell(6,6); g2.value = 'MENSUAL'; g2.fill = fill('FF1B8FB5'); g2.font = { name:FONT, size:10.5, bold:true, color:{ argb: WHITE } }; g2.alignment = { horizontal:'center', vertical:'middle' };
+  for(let col = 3; col <= 8; col++) w2.getCell(6,col).fill = fill(col <= 5 ? BLUE : 'FF1B8FB5'); w2.getRow(6).height = 22;
+  cab(w2, 7, 2, ['CONCEPTO','SW','SERVICIOS','TOTAL', M[0], M[1], M[2]]);
+  ['F','G','H'].forEach(L => { w2.getCell(L+'7').fill = fill('FF1B8FB5'); });
+  const cols = ['sw','sv','t','m0','m1','m2'], LET = ['C','D','E','F','G','H'];
+  const filaQ = (r, etiqueta, pre, fmt, o) => { o = o || {}; lbl(w2.getCell(r,2), etiqueta, { bg: o.bg || GREY, color: o.fg || NAVY });
+    cols.forEach((k, i) => { const val = v[pre + '.' + k], L = LET[i]; const z = o.sem ? sem(val) : null;
+      num(w2.getCell(L + r), val, fmt, { bold: !!o.bold || k === 't', bg: z ? z.bg : (o.bg || (k === 't' ? ICE : WHITE)), color: z ? z.fg : (o.fg || INK), f: o.f && o.f(L) }); }); w2.getRow(r).height = 22; };
+  filaQ(8, 'Cuota del Q', 'qc', K, { bold:true, bg:'FFFFFFCC' }); w2.getCell('E8').value = { formula:'C8+D8', result: v['qc.t'] };
+  filaQ(9, 'Won en el Q', 'qw', K, { }); w2.getCell('E9').value = { formula:'C9+D9', result: v['qw.t'] };
+  filaQ(10, 'VC (Commit + Probable)', 'qv', K, { }); w2.getCell('E10').value = { formula:'C10+D10', result: v['qv.t'] };
+  filaQ(11, 'Forecast (Won + VC)', 'qf', K, { bold:true, bg: BLUE, fg: WHITE, f: L => L + '9+' + L + '10' });
+  filaQ(12, 'Alcance vs Cuota', 'qa', '0%', { sem:true, f: L => 'IFERROR(' + L + '11/' + L + '8,0)' });
+  filaQ(13, 'Pipeline (VC + Top Upside + Upside)', 'qp', K, { }); w2.getCell('E13').value = { formula:'C13+D13', result: v['qp.t'] };
+  filaQ(14, 'Cobertura (Pipeline vs Cuota)', 'qb', MULT, { f: L => 'IFERROR(' + L + '13/' + L + '8,0)' });
+  tarjeta(w2, 16, 2, 1, 'Forecast del Q', v['qf.t'], K, 'Won ' + '$' + v['qw.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K + VC $' + v['qv.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K', null, null);
+  tarjeta(w2, 16, 3, 3, 'Alcance vs cuota del Q', v['qa.t'], '0%', 'Forecast ÷ cuota', sem(v['qa.t']), v['qa.t']);
+  tarjeta(w2, 16, 6, 3, 'Cobertura de pipeline', v['qb.t'], MULT, 'Pipeline ÷ cuota (meta ≥ 3x)', v['qb.t'] >= 3 ? SEM.g : v['qb.t'] >= 2 ? SEM.a : SEM.r, Math.min(1, v['qb.t'] / 3));
+  pie(w2, 21, 8);
+
+  /* ===== 3 · TOP DEALS (B..L desde la fila 8, como el formato original) ===== */
+  const anch = [2, 15, 36, 10, 11, 12, 12, 26, 12, 11, 8, 54].concat(c.conAe ? [20] : []);
+  const w3 = nuevaHoja('TOP DEALS', BLUE, anch); const ult3 = c.conAe ? 13 : 12;
+  banda(w3, 'TOP DEALS — LOS QUE CIERRAN EL GAP', meta, ult3);
+  w3.mergeCells(5, 2, 5, ult3); w3.getCell(5,2).value = 'Plan A Probable = Compromiso · Plan B Top Upside = Cobertura del probable · Upside = Resto.'; w3.getCell(5,2).font = { name:FONT, size:10.5, italic:true, color:{ argb: MUTE } };
+  const ini = 8, fin = ini + Math.max(deals.length, 1) - 1;
+  cab(w3, 7, 2, ['ID HUBSPOT','CUENTA','LOB','SW','SERVICIOS','TOTAL','ESTATUS','MES','PLAN A | B','LOB','NEXT STEPS'].concat(c.conAe ? ['AE'] : []));
+  const ESTC = { 'Won':['FFDDF0FF','FF0F5E9C'], [VC]:['FFE1F4E9','FF17703E'], 'Top Upside =Plan B':['FFFBF1DE','FF8A6414'], 'Upside':['FFEEF2F8','FF5E6B82'] };
+  deals.forEach((d, i) => { const r = ini + i, zebra = i % 2 ? GREY : WHITE;
+    const t = (col, val, o) => { o = o || {}; const x = w3.getCell(r, col); x.value = val; x.font = { name:FONT, size:10.5, bold: !!o.bold, color:{ argb: o.color || INK } }; x.fill = fill(o.bg || zebra); x.border = { bottom: bord(LINE) };
+      x.alignment = { vertical:'top', wrapText: o.wrap !== false, horizontal: o.h || 'left', indent: o.h ? 0 : 0 }; return x; };
+    t(2, String(d.id || ''), { }); t(3, d.cuenta || '', { bold:true, color: NAVY }); t(4, d.lob || '', { h:'center' });
+    num(w3.getCell(r,5), +d.sw || 0, K); num(w3.getCell(r,6), +d.sv || 0, K); num(w3.getCell(r,7), totalDeal(d), K, { bold:true, bg: ICE, f: 'E' + r + '+F' + r });
+    [5,6,7].forEach(col => { w3.getCell(r,col).alignment = { horizontal:'right', vertical:'top', indent:1 }; if(col < 7) w3.getCell(r,col).fill = fill(zebra); });
+    const ec = ESTC[d.estatus] || ['FFEEF2F8','FF5E6B82']; t(8, ETQ_EST[d.estatus] || d.estatus || '', { bg: ec[0], color: ec[1], bold:true, h:'center' });
+    t(9, d.mes || '', { h:'center' }); t(10, d.plan || '', { h:'center' });
+    const ck = t(11, !!d.enLob, { h:'center', wrap:false }); ck.numFmt = '"✓";;"–"'; ck.value = d.enLob ? true : false; ck.font = { name:FONT, size:11, bold:true, color:{ argb: d.enLob ? 'FF17703E' : 'FFB0BACB' } };
+    t(12, d.next || '', { color: MUTE }); if(c.conAe) t(13, nombreAe(d._ae), { h:'center', bold:true, color: BLUE }); });
+  if(!deals.length){ w3.mergeCells(8, 2, 8, ult3); const x = w3.getCell(8,2); x.value = 'Sin deals capturados.'; x.font = { name:FONT, italic:true, color:{ argb: MUTE } }; x.alignment = { indent:1 }; }
+  // fila de totales (fila 6, SUBTOTAL: respeta los filtros), como el formato original
+  w3.getRow(6).height = 24; ['B','C','D','E','F','G','H','I','J','K','L'].concat(c.conAe ? ['M'] : []).forEach(L => { const x = w3.getCell(L + '6'); x.fill = fill(ICE); x.border = { top: bord(BLUE, 'medium') }; });
+  const tt = w3.getCell('C6'); tt.value = 'TOTAL'; tt.font = { name:FONT, size:11, bold:true, color:{ argb: NAVY } }; tt.alignment = { indent:1, vertical:'middle' };
+  [['E','sw'],['F','sv'],['G','t']].forEach(([L,k]) => { const x = w3.getCell(L + '6'); x.value = { formula: 'SUBTOTAL(9,' + L + ini + ':' + L + fin + ')', result: v['dtot.' + k] }; x.numFmt = K; x.font = { name:FONT, size:11, bold:true, color:{ argb: NAVY } }; x.alignment = { horizontal:'right', vertical:'middle', indent:1 }; });
+  w3.views = [{ showGridLines:false, state:'frozen', ySplit:7, xSplit:3, topLeftCell:'D8' }];
+  w3.autoFilter = { from:{ row:7, column:2 }, to:{ row:fin, column: ult3 } };
+  pie(w3, fin + 2, ult3);
+
+  /* ===== 4 · LOB (encabezado en la fila 4) ===== */
+  const w4 = nuevaHoja('LOB', BLUE, [2, 30, 14, 14, 14, 14, 14, 16, 2]);
+  w4.mergeCells(2, 2, 2, 8); w4.mergeCells(3, 2, 3, 8);
+  for(let col = 2; col <= 8; col++){ w4.getCell(2,col).fill = fill(NAVY); w4.getCell(3,col).fill = fill(NAVY); w4.getCell(3,col).border = { bottom: bord(CYAN, 'thick') }; }
+  w4.getCell(2,2).value = 'POR LOB — VENDIDO Y POR VENDER'; w4.getCell(2,2).font = { name:FONT, size:18, bold:true, color:{ argb: WHITE } }; w4.getCell(2,2).alignment = { vertical:'middle', indent:1 };
+  w4.getCell(3,2).value = meta; w4.getCell(3,2).font = { name:FONT, size:10.5, color:{ argb:'FF8FE6FF' } }; w4.getCell(3,2).alignment = { vertical:'middle', indent:1 }; w4.getRow(1).height = 8; w4.getRow(2).height = 34; w4.getRow(3).height = 22;
+  cab(w4, 4, 2, ['CONCEPTO'].concat(LOBS.map(l => l.toUpperCase())).concat(['TOTAL']));
+  const filaL = (r, etiqueta, pre, o) => { o = o || {}; lbl(w4.getCell(r,2), etiqueta, { bg: o.bg || GREY, color: o.fg || NAVY });
+    LOBS.forEach((l, i) => num(w4.getCell(r, 3 + i), v[pre + '.' + l], K, { bg: o.bg || WHITE, color: o.fg || INK, bold: !!o.bold }));
+    num(w4.getCell(r, 8), v[pre + '.t'], K, { bold:true, bg: o.bg || ICE, color: o.fg || INK, f: 'SUM(C' + r + ':G' + r + ')' }); w4.getRow(r).height = 22; };
+  filaL(5, 'Vendido (Cerrado)', 'lv'); filaL(6, 'Por vender (VC + BC + Pipe)', 'lp'); filaL(7, 'Total', 'lt', { bold:true, bg: BLUE, fg: WHITE });
+  ['C','D','E','F','G'].forEach(L => { w4.getCell(L + '7').value = { formula: L + '5+' + L + '6', result: v['lt.' + LOBS[['C','D','E','F','G'].indexOf(L)]] }; });
+  w4.mergeCells(9, 2, 9, 8); const n9 = w4.getCell(9,2); n9.value = 'Si un deal no tiene LOB asignado en la pestaña TOP DEALS, no aparece aquí — asígnalo.'; n9.font = { name:FONT, size:9.5, italic:true, color:{ argb: MUTE } }; n9.alignment = { indent:1 };
+  // mezcla visual por LOB
+  cab(w4, 11, 2, ['MEZCLA POR LOB','Vendido','Por vender','% del total','','','']);
+  const totL = v['lt.t'] || 1;
+  LOBS.forEach((l, i) => { const r = 12 + i; lbl(w4.getCell(r,2), l.toUpperCase()); num(w4.getCell(r,3), v['lv.' + l], K); num(w4.getCell(r,4), v['lp.' + l], K); num(w4.getCell(r,5), v['lt.' + l] / totL, '0%', { bold:true, bg: ICE });
+    w4.mergeCells(r, 6, r, 8); const b = w4.getCell(r,6); b.value = barra(v['lt.' + l] / totL); b.font = { name:'Consolas', size:10, color:{ argb: BLUE } }; b.alignment = { indent:1, vertical:'middle' }; b.border = { bottom: bord(LINE) }; w4.getRow(r).height = 20; });
+  pie(w4, 18, 8);
+
+  /* ===== 5 · EQUIPO (solo Overview) ===== */
   if(c.conAe){
-    const filas = c.boards.map(b => { const x = calc(b, c.qi.meses), live = D.live[b._ae] || {};
-      return [ nombreAe(b._ae), x['a.t'], x['y.t'], x['p.t'], x['qc.t'], x['qf.t'], x['qa.t'], x['qb.t'], live.reportadoEn ? fFechaHora(live.reportadoEn) : 'Sin reporte' ]; });
-    const a5 = [[ 'AE', 'Cuota anual', 'Cerrado YTD', '% Avance', 'Cuota Q', 'Forecast Q', 'Alcance', 'Cobertura', 'Último reporte' ], ...filas,
-      [ 'SEGMENTO', v['a.t'], v['y.t'], v['p.t'], v['qc.t'], v['qf.t'], v['qa.t'], v['qb.t'], '' ]];
-    const w5 = XLSX.utils.aoa_to_sheet(a5);
-    for(let r = 2; r <= a5.length; r++){ ['B','C','E','F'].forEach(x => { if(w5[x + r]) w5[x + r].z = '#,##0.0'; }); if(w5['D' + r]) w5['D' + r].z = '0.0%'; if(w5['G' + r]) w5['G' + r].z = '0%'; if(w5['H' + r]) w5['H' + r].z = '0.00"x"'; }
-    anchos(w5, [22,13,13,11,11,12,11,11,24]); XLSX.utils.book_append_sheet(wb, w5, 'EQUIPO');
+    const w5 = nuevaHoja('EQUIPO', NAVY, [2, 26, 14, 14, 14, 14, 14, 13, 13, 24, 2]);
+    banda(w5, 'EQUIPO — AVANCE POR AE', meta, 10);
+    cab(w5, 5, 2, ['AE','Cuota anual','Cerrado YTD','% Avance','Cuota Q','Forecast Q','Alcance','Cobertura','Último reporte']);
+    c.boards.forEach((b, i) => { const x = calc(b, c.qi.meses), live = D.live[b._ae] || {}, r = 6 + i;
+      lbl(w5.getCell(r,2), nombreAe(b._ae), { bg: i % 2 ? GREY : WHITE });
+      num(w5.getCell(r,3), x['a.t'], K); num(w5.getCell(r,4), x['y.t'], K); const z1 = sem(x['p.t']); num(w5.getCell(r,5), x['p.t'], PCT, { bold:true, bg: z1.bg, color: z1.fg });
+      num(w5.getCell(r,6), x['qc.t'], K); num(w5.getCell(r,7), x['qf.t'], K, { bold:true }); const z2 = sem(x['qa.t']); num(w5.getCell(r,8), x['qa.t'], '0%', { bold:true, bg: z2.bg, color: z2.fg }); num(w5.getCell(r,9), x['qb.t'], MULT);
+      const u = w5.getCell(r,10); u.value = live.reportadoEn ? fFechaHora(live.reportadoEn) : 'Sin reporte'; u.font = { name:FONT, size:10.5, color:{ argb: live.reportadoEn ? 'FF17703E' : 'FF9A2E2E' }, bold:true }; u.alignment = { horizontal:'center', vertical:'middle' }; u.border = { bottom: bord(LINE) }; w5.getRow(r).height = 22; });
+    const rt = 6 + c.boards.length; lbl(w5.getCell(rt,2), 'SEGMENTO', { bg: BLUE, color: WHITE });
+    [['C','a.t',K],['D','y.t',K],['E','p.t',PCT],['F','qc.t',K],['G','qf.t',K],['H','qa.t','0%'],['I','qb.t',MULT]].forEach(([L,k,f]) => num(w5.getCell(L + rt), v[k], f, { bold:true, bg: BLUE, color: WHITE }));
+    w5.getCell('J' + rt).fill = fill(BLUE); w5.getRow(rt).height = 24;
+    w5.views = [{ showGridLines:false, state:'frozen', ySplit:5 }]; pie(w5, rt + 2, 10);
   }
-  XLSX.writeFile(wb, 'Forecast_Semanal_' + c.nombre + '_' + c.sem + '.xlsx');
+  // el resumen primero; "CUOTA AÑO / FORECAST CQ / TOP DEALS" conservan su nombre y celdas para poder volver a cargarlo
+  const buf = await wb.xlsx.writeBuffer();
+  const url = URL.createObjectURL(new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  const a = document.createElement('a'); a.href = url; a.download = 'Forecast_Semanal_' + c.nombre + '_' + c.sem + '.xlsx'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
   toast('Excel exportado');
 }
 
@@ -776,7 +893,7 @@ document.addEventListener('click', async e => {
   if(t.id === 'fsAddDeal'){ boardDe(vista).deals.push({ id:'', cuenta:'', lob:'', sw:0, sv:0, estatus:'', mes:'', plan:'', enLob:false, next:'' }); dirty[vista] = true; pintar(true); return; }
   if(t.dataset.del !== undefined){ if(!confirm('¿Quitar este deal del tablero?')) return; boardDe(vista).deals.splice(+t.dataset.del, 1); dirty[vista] = true; pintar(true); return; }
   if(t.dataset.modo){ editando = t.dataset.modo === 'editar'; pintar(true); return; }
-  if(t.id === 'fsExport'){ exportarExcel(); return; }
+  if(t.id === 'fsExport'){ await exportarExcel(); return; }
   if(t.id === 'fsGuardar'){ await guardar(vista); return; }
   if(t.id === 'fsReportar'){ await reportar(vista); return; }
   if(t.id === 'fsVolver'){ snap = null; pintar(); return; }
