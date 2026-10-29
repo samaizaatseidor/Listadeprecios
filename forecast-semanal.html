@@ -183,6 +183,18 @@
   .fs-toast{position:fixed; left:50%; bottom:28px; transform:translateX(-50%); background:#17A06A; color:#fff; padding:11px 20px; border-radius:99px; font-size:13px; font-weight:600; z-index:9999; box-shadow:0 10px 30px rgba(0,0,0,.4); max-width:90vw;}
   .fs-toast.err{background:#C2304F;}
   @media (max-width:900px){ .fs-chart{height:170px;} }
+  .fs-deals{table-layout:fixed; width:100%;} .fs-tw:has(.fs-deals){overflow-x:hidden;}
+  .fs-deals th{white-space:normal; padding:8px 4px; font-size:10.5px; letter-spacing:.2px;}
+  .fs-deals td{padding:5px 4px; overflow-wrap:anywhere; word-break:break-word;}
+  .fs-deals .fs-in{min-width:0; padding:5px 4px; font-size:12px;}
+  .fs-deals select.fs-in{text-overflow:ellipsis;}
+  .fs-deals .fs-tag{white-space:normal; display:inline-block; text-align:left; line-height:1.3;}
+  .fs-deals .fs-chk{margin:0;}
+  .fs-seg{display:inline-flex; border:1px solid rgba(255,255,255,.18); border-radius:10px; overflow:hidden;}
+  .fs-seg button{font:600 12.5px Poppins,sans-serif; padding:8px 14px; border:none; background:rgba(255,255,255,.05); color:#A5B4CE; cursor:pointer;}
+  .fs-seg button.on{background:linear-gradient(135deg,#1E5BB8,#2E8FE0); color:#fff;}
+  .fs-foot{margin:26px 0 8px; padding:16px 18px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; border:1px solid rgba(255,255,255,.1); border-radius:14px; background:rgba(255,255,255,.04);}
+  .fs-foot span{font-size:12.5px; color:#A5B4CE;}
 </style>
 </head>
 <body data-wk-owner="forecastequipo">
@@ -326,7 +338,8 @@ let D = null;            // respuesta del servidor
 let B = {};              // tableros en edición (copia de trabajo por AE)
 let dirty = {};          // slug → true si hay cambios sin guardar
 let vista = 'overview';  // 'overview' | slug
-let snap = null;         // reporte histórico que se está viendo (solo lectura)
+let snap = null;
+let editando = false;   // modo Visualizar / Editar (por defecto, Visualizar)         // reporte histórico que se está viendo (solo lectura)
 let corte = 'actual';    // corte del overview: 'actual' o semana ISO
 let SEM = lunesDe(new Date());
 let ordenDeals = null;
@@ -498,34 +511,37 @@ function bloqueQ(ed, qi){
   '<div class="wk-card"><div class="wk-card-head"><div><h3>Compromiso por mes vs cuota</h3><p>Won, VC y Upside por mes · línea roja = cuota mensual</p></div></div><div class="fs-chart" id="fsChart"></div><div class="fs-lg"><span><i style="background:#0F5E9C"></i>Won</span><span><i style="background:#1F8A4C"></i>VC (Plan A)</span><span><i style="background:#9DD6EC"></i>Upside / Plan B</span></div></div></div>';
 }
 
-function selectOpts(lista, val, vacioLbl){ return '<option value="">' + (vacioLbl||'—') + '</option>' + lista.map(o => '<option value="' + esc(o) + '"' + (o === val ? ' selected' : '') + '>' + esc(o) + '</option>').join(''); }
+const ETQ_EST = { [VC]:'VC · Plan A', 'Top Upside =Plan B':'Top Upside · Plan B' };
+function selectOpts(lista, val, vacioLbl){ return '<option value="">' + (vacioLbl||'—') + '</option>' + lista.map(o => '<option value="' + esc(o) + '"' + (o === val ? ' selected' : '') + ' title="' + esc(o) + '">' + esc(ETQ_EST[o] || o) + '</option>').join(''); }
 function idLinks(id){ const ids = String(id||'').match(/\d{6,}/g) || []; return ids.map(x => '<a href="https://app.hubspot.com/contacts/6740520/record/0-3/' + x + '" target="_blank" rel="noopener" title="Abrir en HubSpot">↗</a>').join(' '); }
 
 function bloqueDeals(b, ed, conAe){
   const e = ed || {}, ae = e.ae, ds = b.deals || [], tn = e.plano ? '' : 'ae';
   const filas = ds.map((d,i) => {
     if(ae) return '<tr data-i="' + i + '">' +
-      '<td class="ae"><input class="fs-in t" data-d="id" value="' + esc(d.id) + '" placeholder="ID HubSpot" style="min-width:110px"></td>' +
-      '<td class="ae"><input class="fs-in t" data-d="cuenta" value="' + esc(d.cuenta) + '" placeholder="Cuenta — oportunidad" style="min-width:210px"></td>' +
-      '<td class="ae"><select class="fs-in t" data-d="lob" style="min-width:130px">' + selectOpts(LOBS, d.lob, 'Sin LOB') + '</select></td>' +
+      '<td class="ae"><input class="fs-in t" data-d="id" value="' + esc(d.id) + '" placeholder="ID HubSpot"></td>' +
+      '<td class="ae"><textarea class="fs-in t" data-d="cuenta" rows="2" placeholder="Cuenta — oportunidad">' + esc(d.cuenta) + '</textarea></td>' +
+      '<td class="ae"><select class="fs-in t" data-d="lob">' + selectOpts(LOBS, d.lob, 'Sin LOB') + '</select></td>' +
       '<td class="ae"><input class="fs-in" data-d="sw" value="' + (d.sw||'') + '" inputmode="decimal" placeholder="0"></td>' +
       '<td class="ae"><input class="fs-in" data-d="sv" value="' + (d.sv||'') + '" inputmode="decimal" placeholder="0"></td>' +
       '<td class="calc">' + cv('dt.' + i) + '</td>' +
-      '<td class="ae"><select class="fs-in t" data-d="estatus" style="min-width:250px">' + selectOpts(ESTATUS, d.estatus) + '</select></td>' +
-      '<td class="ae"><select class="fs-in t" data-d="mes" style="min-width:115px">' + selectOpts(MESES, d.mes) + '</select></td>' +
-      '<td class="ae"><select class="fs-in t" data-d="plan" style="min-width:95px">' + selectOpts(PLANES, d.plan) + '</select></td>' +
+      '<td class="ae"><select class="fs-in t" data-d="estatus">' + selectOpts(ESTATUS, d.estatus) + '</select></td>' +
+      '<td class="ae"><select class="fs-in t" data-d="mes">' + selectOpts(MESES, d.mes) + '</select></td>' +
+      '<td class="ae"><select class="fs-in t" data-d="plan">' + selectOpts(PLANES, d.plan) + '</select></td>' +
       '<td class="ae" style="text-align:center"><input type="checkbox" class="fs-chk" data-d="enLob"' + (d.enLob ? ' checked' : '') + ' title="Casilla LOB del Excel (informativa)"></td>' +
-      '<td class="ae"><textarea class="fs-in t" data-d="next" rows="2" placeholder="Next steps" style="min-width:280px">' + esc(d.next) + '</textarea></td>' +
+      '<td class="ae"><textarea class="fs-in t" data-d="next" rows="2" placeholder="Next steps">' + esc(d.next) + '</textarea></td>' +
       '<td class="l"><button class="fs-x" data-del="' + i + '" title="Quitar deal">✕</button></td></tr>';
     return '<tr>' + (conAe ? '<td class="l"><span class="fs-tag">' + esc(nombreAe(d._ae)) + '</span></td>' : '') +
       '<td class="' + tn + ' l">' + esc(d.id) + ' ' + idLinks(d.id) + '</td><td class="' + tn + ' l">' + esc(d.cuenta) + '</td><td class="' + tn + ' l">' + esc(d.lob || '—') + '</td>' +
-      '<td class="' + tn + '">' + numK(d.sw) + '</td><td class="' + tn + '">' + numK(d.sv) + '</td><td class="calc">' + numK(totalDeal(d)) + '</td><td class="' + tn + ' l">' + tagEst(d.estatus) + '</td><td class="' + tn + ' l">' + esc(d.mes || '—') + '</td><td class="' + tn + ' l">' + esc(d.plan || '—') + '</td><td class="' + tn + '" style="text-align:center">' + (d.enLob ? '✓' : '') + '</td><td class="' + tn + ' l" style="min-width:260px;white-space:pre-wrap;font-size:12px">' + esc(d.next) + '</td></tr>';
+      '<td class="' + tn + '">' + numK(d.sw) + '</td><td class="' + tn + '">' + numK(d.sv) + '</td><td class="calc">' + numK(totalDeal(d)) + '</td><td class="' + tn + ' l">' + tagEst(d.estatus) + '</td><td class="' + tn + ' l">' + esc(d.mes || '—') + '</td><td class="' + tn + ' l">' + esc(d.plan || '—') + '</td><td class="' + tn + '" style="text-align:center">' + (d.enLob ? '✓' : '') + '</td><td class="' + tn + ' l" style="white-space:pre-wrap;font-size:12px">' + esc(d.next) + '</td></tr>';
   }).join('');
+  const anchos = conAe ? [9,8,15,6,6,6,6,14,7,6,4,13] : (ae ? [8,15,7,6,6,6,13,9,7,5,16,2] : [10,17,7,6,6,6,15,8,7,5,13]);
+  const colgroup = '<colgroup>' + anchos.map(w => '<col style="width:' + w + '%">').join('') + '</colgroup>';
   const encabezado = (conAe ? '<th class="l">AE</th>' : '') + '<th class="l">ID HubSpot</th><th class="l">Cuenta</th><th class="l">LOB</th><th>SW</th><th>Servicios</th><th>Total</th><th class="l">Estatus</th><th class="l">Mes</th><th class="l">Plan A | B</th><th>En LOB ✓</th><th class="l">Next steps</th>' + (ae ? '<th></th>' : '');
   const nCols = (conAe ? 1 : 0) + 4;
   return '<div class="wk-band"><h2>3 · Top deals — los que cierran el GAP</h2><span>Detalle por oportunidad</span></div>' +
   '<div id="fsAvisoLob"></div>' +
-  '<div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr>' + encabezado + '</tr></thead><tbody>' + (filas || '<tr><td colspan="12" class="l" style="color:#7D8FAE;padding:18px">Sin deals capturados.</td></tr>') +
+  '<div class="wk-card"><div class="fs-tw"><table class="fs-t fs-deals">' + colgroup + '<thead><tr>' + encabezado + '</tr></thead><tbody>' + (filas || '<tr><td colspan="12" class="l" style="color:#7D8FAE;padding:18px">Sin deals capturados.</td></tr>') +
   '<tr class="tot">' + (conAe ? '<td></td>' : '') + '<td class="l" colspan="3">TOTAL</td><td>' + cv('dtot.sw') + '</td><td>' + cv('dtot.sv') + '</td><td>' + cv('dtot.t') + '</td><td colspan="' + (ae ? 6 : 5) + '"></td></tr></tbody></table></div>' +
   (ae ? '<div style="margin-top:12px"><button class="fs-btn" id="fsAddDeal">➕ Agregar deal</button></div>' : '') +
   '<p class="fs-note"><b>Plan A</b> Probable = Compromiso (monto) · <b>Plan B</b> Top Upside = Cobertura del probable · <b>Upside</b> = Resto. Montos en miles de USD.</p></div>';
@@ -622,26 +638,34 @@ function pintar(conservar){
     html += bloqueDeals(agg, { plano: true }, true);
     html += bloqueLob();
     html += historialHtml(null);
+    html += pieExportar();
     root.innerHTML = html;
     refrescar(root, agg, qiOv, pv);
   } else if(snap) {
     const e = snap, qiS = qDe(e.semana), b = Object.assign({ _ae: e.ae }, e.board);
     html += '<div class="fs-snap"><span>🕘 Reporte histórico de <b>' + esc(nombreAe(e.ae)) + '</b> · semana del ' + fFecha(e.semana) + ' · reportado el <b>' + fFechaHora(e.reportadoEn) + '</b> por ' + esc(e.reportadoPor) + ' (solo lectura)</span><button class="fs-btn" id="fsVolver">← Volver al tablero actual</button></div>';
     html += bloqueCuota({ b, plano: true }) + bloqueQ({ b, plano: true }, qiS) + bloqueDeals(b, { plano: true }, false) + bloqueLob();
+    html += pieExportar();
     root.innerHTML = html; refrescar(root, b, qiS, null);
   } else {
     const slug = vista, b = boardDe(slug), live = D.live[slug] || {};
-    const ed = { ae: puedeAe(slug), ops: puedeOps(), b };
+    const puedeEd = puedeAe(slug) || puedeOps();
+    const edOn = puedeEd && editando;
+    const ed = edOn ? { ae: puedeAe(slug), ops: puedeOps(), b } : { b, plano: true };
     const rep = live.reportadoEn ? '<span class="fs-pill ' + (live.semana === SEM ? 'ok' : 'warn') + '">' + (live.semana === SEM ? '✓' : '⏳') + ' Reportado el ' + fFechaHora(live.reportadoEn) + ' por ' + esc(live.reportadoPor) + ' · semana del ' + fFecha(live.semana) + '</span>' : '<span class="fs-pill warn">⏳ Aún sin reportar</span>';
     const vacioB = !b.deals.length && !b.cuota.swAnual && !b.cuota.svAnual;
     html += '<div class="fs-info">' + permisoTexto() + rep + (live.editadoEn ? '<span class="fs-pill">Última edición ' + fFechaHora(live.editadoEn) + '</span>' : '') + '<span id="fsDirty"></span></div>';
-    if(ed.ae || ed.ops){
-      html += '<div class="fs-info"><button class="fs-btn pri" id="fsGuardar">💾 Guardar cambios</button><button class="fs-btn ok" id="fsReportar">📣 Reportar forecast de la semana</button><label class="fs-btn" for="fsXls" style="margin:0">⬆️ Cargar Excel del formato</label><input type="file" id="fsXls" accept=".xlsx,.xls" style="display:none">' +
-        (slug === 'fernanda' && vacioB && puedeOps() ? '<button class="fs-btn" id="fsSeed">Cargar corte inicial de Fer (Excel 26/10)</button>' : '') + '</div>';
-    } else if(!D.yo.ae && !puedeOps()) {
+    if(puedeEd){
+      html += '<div class="fs-info"><div class="fs-seg"><button data-modo="ver" class="' + (edOn ? '' : 'on') + '">👁️ Visualizar</button><button data-modo="editar" class="' + (edOn ? 'on' : '') + '">✏️ Editar</button></div>' +
+        (edOn || dirty[slug] ? '<button class="fs-btn pri" id="fsGuardar">💾 Guardar cambios</button>' : '') +
+        (puedeOps() ? '<button class="fs-btn ok" id="fsReportar">📣 Reportar forecast de la semana</button>' : '') +
+        (edOn ? '<label class="fs-btn" for="fsXls" style="margin:0">⬆️ Cargar Excel del formato</label><input type="file" id="fsXls" accept=".xlsx,.xls" style="display:none">' : '') +
+        (edOn && slug === 'fernanda' && vacioB && puedeOps() ? '<button class="fs-btn" id="fsSeed">Cargar corte inicial de Fer (Excel 26/10)</button>' : '') + '</div>';
+    } else {
       html += '<div class="fs-warn">No puedes editar este tablero. Si eres AE, pide a Sales Ops que asigne tu correo en ⚙️ Responsables y que tu rol tenga permiso de edición de AE.</div>';
     }
-    html += leyenda() + bloqueCuota(ed) + bloqueQ(ed, qi) + bloqueDeals(b, ed, false) + bloqueLob() + historialHtml(slug);
+    html += (edOn ? leyenda() : '') + bloqueCuota(ed) + bloqueQ(ed, qi) + bloqueDeals(b, ed, false) + bloqueLob() + historialHtml(slug);
+    html += pieExportar();
     root.innerHTML = html;
     refrescar(root, b, qi, (() => { if(!prevSem) return null; const pb = boardsAl(prevSem).find(x => x._ae === slug); return calc(pb, qDe(prevSem).meses); })());
     marcarDirty();
@@ -654,6 +678,77 @@ function pintar(conservar){
     else { const o = WK.OWNERS[vista]; WK.ownerSet({ etiqueta:'Dueño del tablero · Forecast Semanal', equipo:[{ nombre: nombreAe(vista), cargo:'Account Executive', foto: (o && o.foto) || ('/assets/owners/' + vista + '.png') }] }); }
   }
   if(conservar) window.scrollTo(0, y);
+}
+
+
+/* ---------- Exportar a Excel (mismo formato del Excel de Fer: 4 pestañas, se puede volver a cargar) ---------- */
+function pieExportar(){
+  return '<div class="fs-foot"><button class="fs-btn pri" id="fsExport">⬇️ Exportar a Excel</button><span>Descarga lo que estás viendo en el formato del Excel de Forecast (Cuota año · Forecast CQ · Top deals · LOB). ' + (vista === 'overview' ? 'En el Overview incluye también la pestaña EQUIPO. ' : '') + 'Montos en miles de USD.</span></div>';
+}
+function ctxExport(){
+  if(vista === 'overview'){
+    const boards = corte === 'actual' ? AEs().map(a => liveDe(a.slug)) : boardsAl(corte);
+    const sem = corte === 'actual' ? SEM : corte, agg = sumar(boards);
+    const orden = ['Won', VC, 'Top Upside =Plan B', 'Upside'];
+    agg.deals.sort((x,y) => (orden.indexOf(x.estatus) - orden.indexOf(y.estatus)) || (totalDeal(y) - totalDeal(x)));
+    return { b: agg, qi: qDe(sem), sem, nombre: 'Overview', conAe: true, boards };
+  }
+  if(snap){ return { b: Object.assign({ _ae: snap.ae }, snap.board), qi: qDe(snap.semana), sem: snap.semana, nombre: nombreAe(snap.ae).replace(/\s+/g,'_'), conAe: false }; }
+  return { b: boardDe(vista), qi: qDe(SEM), sem: SEM, nombre: nombreAe(vista).replace(/\s+/g,'_'), conAe: false };
+}
+function exportarExcel(){
+  if(typeof XLSX === 'undefined'){ toast('No se pudo cargar la librería de Excel', true); return; }
+  const c = ctxExport(), v = calc(c.b, c.qi.meses), M = c.qi.meses, wb = XLSX.utils.book_new();
+  const dealsTxt = c.b.deals || [];
+  const fmt = (ws, celdas, z) => celdas.forEach(a => { if(ws[a]) ws[a].z = z; });
+  const anchos = (ws, w) => { ws['!cols'] = w.map(x => ({ wch: x })); };
+  const titulo = (c.conAe ? 'FORECAST SEMANAL — OVERVIEW SEGMENTO' : 'FORECAST SEMANAL — ' + c.nombre.replace(/_/g,' ').toUpperCase());
+  // 1) CUOTA AÑO  (B2 título · F2 semana · fila 7 encabezado · filas 8-11 datos)
+  const a1 = [[],[ '', titulo, '', '', 'SEMANA', c.sem ],[ '', 'Montos en miles de USD (K).' ],[],[ '', 'CUOTA DEL AÑO — ¿DÓNDE ESTOY?' ],[],
+    [ '', 'CONCEPTO', 'SW', 'SERVICIOS', 'TOTAL' ],
+    [ '', 'Cuota Anual', v['a.sw'], v['a.sv'], v['a.t'] ], [ '', 'Cerrado YTD', v['y.sw'], v['y.sv'], v['y.t'] ],
+    [ '', '% Avance', v['p.sw'], v['p.sv'], v['p.t'] ], [ '', 'GAP 2026', v['g.sw'], v['g.sv'], v['g.t'] ]];
+  const w1 = XLSX.utils.aoa_to_sheet(a1); fmt(w1, ['C8','D8','E8','C9','D9','E9','C11','D11','E11'], '#,##0.0'); fmt(w1, ['C10','D10','E10'], '0.0%'); anchos(w1, [3,30,14,14,14,12]);
+  XLSX.utils.book_append_sheet(wb, w1, 'CUOTA AÑO');
+  // 2) FORECAST CQ  (fila 6 grupos · fila 7 encabezado · fila 8 cuotas · filas 9-14)
+  const f = (pre) => ['sw','sv','t','m0','m1','m2'].map(k => v[pre + '.' + k]);
+  const a2 = [[],[ '', 'FOTO DEL TRIMESTRE ACTUAL — Q' + c.qi.q + ' ' + c.qi.anio ],[ '', c.conAe ? 'Overview del segmento' : c.nombre.replace(/_/g,' ') ],[],[],
+    [ '', '', 'Q GENERAL', '', '', 'MENSUAL' ], [ '', 'CONCEPTO', 'SW', 'SERVICIOS', 'TOTAL', M[0], M[1], M[2] ],
+    [ '', 'Cuota del Q', ...f('qc') ], [ '', 'Won en el Q', ...f('qw') ], [ '', 'VC (Commit + Probable)', ...f('qv') ], [ '', 'Forecast (Won + VC)', ...f('qf') ],
+    [ '', 'Alcance vs Cuota', ...f('qa') ], [ '', 'Pipeline (VC + Top Upside + Upside)', ...f('qp') ], [ '', 'Cobertura (Pipeline vs Cuota)', ...f('qb') ]];
+  const w2 = XLSX.utils.aoa_to_sheet(a2);
+  ['C','D','E','F','G','H'].forEach(L => { [8,9,10,11,13].forEach(r => { if(w2[L+r]) w2[L+r].z = '#,##0.0'; }); if(w2[L+12]) w2[L+12].z = '0%'; if(w2[L+14]) w2[L+14].z = '0.00"x"'; });
+  anchos(w2, [3,36,13,13,13,13,13,13]);
+  XLSX.utils.book_append_sheet(wb, w2, 'FORECAST CQ');
+  // 3) TOP DEALS  (fila 7 encabezado · datos desde la fila 8 · B..L como el formato; el AE va en M solo en el Overview)
+  const enc = [ '', 'ID HUBSPOT', 'CUENTA', 'LOB', 'SW', 'SERVICIOS', 'TOTAL', 'ESTATUS', 'MES', 'PLAN A | B', 'LOB', 'NEXT STEPS' ].concat(c.conAe ? ['AE'] : []);
+  const a3 = [[],[ '', 'TOP DEALS — LOS QUE CIERRAN EL GAP' ],[ '', 'Montos en miles de USD (K). Plan A Probable = Compromiso · Plan B Top Upside = Cobertura del probable · Upside = Resto.' ],[],[],
+    [ '', 'TOTAL', '', v['dtot.sw'], v['dtot.sv'], v['dtot.t'] ], enc ]
+    .concat(dealsTxt.map(d => [ '', d.id || '', d.cuenta || '', d.lob || '', +d.sw || 0, +d.sv || 0, totalDeal(d), d.estatus || '', d.mes || '', d.plan || '', !!d.enLob, d.next || '' ].concat(c.conAe ? [ nombreAe(d._ae) ] : [])));
+  const w3 = XLSX.utils.aoa_to_sheet(a3);
+  for(let r = 6; r <= 7 + dealsTxt.length; r++) ['E','F','G'].forEach(L => { if(w3[L + r]) w3[L + r].z = '#,##0.0'; });
+  anchos(w3, [3,16,34,10,11,11,11,30,12,11,7,60,20]);
+  XLSX.utils.book_append_sheet(wb, w3, 'TOP DEALS');
+  // 4) LOB  (fila 4 encabezado · filas 5-7)
+  const L = LOBS.map(l => l);
+  const a4 = [[],[ '', 'POR LOB — VENDIDO Y POR VENDER' ],[],[ '', 'CONCEPTO', ...L.map(x => x.toUpperCase()), 'TOTAL' ],
+    [ '', 'Vendido (Cerrado)', ...L.map(l => v['lv.' + l]), v['lv.t'] ], [ '', 'Por vender (VC+BC+Pipe)', ...L.map(l => v['lp.' + l]), v['lp.t'] ], [ '', 'Total', ...L.map(l => v['lt.' + l]), v['lt.t'] ],
+    [], [ '', 'Si un deal no tiene LOB asignado en la pestaña TOP DEALS, no aparece aquí.' ]];
+  const w4 = XLSX.utils.aoa_to_sheet(a4);
+  ['C','D','E','F','G','H'].forEach(x => [5,6,7].forEach(r => { if(w4[x + r]) w4[x + r].z = '#,##0.0'; })); anchos(w4, [3,28,12,12,12,12,12,12]);
+  XLSX.utils.book_append_sheet(wb, w4, 'LOB');
+  // 5) EQUIPO (solo Overview)
+  if(c.conAe){
+    const filas = c.boards.map(b => { const x = calc(b, c.qi.meses), live = D.live[b._ae] || {};
+      return [ nombreAe(b._ae), x['a.t'], x['y.t'], x['p.t'], x['qc.t'], x['qf.t'], x['qa.t'], x['qb.t'], live.reportadoEn ? fFechaHora(live.reportadoEn) : 'Sin reporte' ]; });
+    const a5 = [[ 'AE', 'Cuota anual', 'Cerrado YTD', '% Avance', 'Cuota Q', 'Forecast Q', 'Alcance', 'Cobertura', 'Último reporte' ], ...filas,
+      [ 'SEGMENTO', v['a.t'], v['y.t'], v['p.t'], v['qc.t'], v['qf.t'], v['qa.t'], v['qb.t'], '' ]];
+    const w5 = XLSX.utils.aoa_to_sheet(a5);
+    for(let r = 2; r <= a5.length; r++){ ['B','C','E','F'].forEach(x => { if(w5[x + r]) w5[x + r].z = '#,##0.0'; }); if(w5['D' + r]) w5['D' + r].z = '0.0%'; if(w5['G' + r]) w5['G' + r].z = '0%'; if(w5['H' + r]) w5['H' + r].z = '0.00"x"'; }
+    anchos(w5, [22,13,13,11,11,12,11,11,24]); XLSX.utils.book_append_sheet(wb, w5, 'EQUIPO');
+  }
+  XLSX.writeFile(wb, 'Forecast_Semanal_' + c.nombre + '_' + c.sem + '.xlsx');
+  toast('Excel exportado');
 }
 
 function historialHtml(slug){
@@ -677,9 +772,11 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('click', async e => {
   const t = e.target.closest('button,tr.fs-row-click'); if(!t || !D) return;
-  if(t.dataset.v && !t.dataset.snap){ snap = null; vista = t.dataset.v; history.replaceState(null, '', vista === 'overview' ? location.pathname : '#' + vista); pintar(); window.scrollTo(0,0); return; }
+  if(t.dataset.v && !t.dataset.snap){ snap = null; editando = false; vista = t.dataset.v; history.replaceState(null, '', vista === 'overview' ? location.pathname : '#' + vista); pintar(); window.scrollTo(0,0); return; }
   if(t.id === 'fsAddDeal'){ boardDe(vista).deals.push({ id:'', cuenta:'', lob:'', sw:0, sv:0, estatus:'', mes:'', plan:'', enLob:false, next:'' }); dirty[vista] = true; pintar(true); return; }
   if(t.dataset.del !== undefined){ if(!confirm('¿Quitar este deal del tablero?')) return; boardDe(vista).deals.splice(+t.dataset.del, 1); dirty[vista] = true; pintar(true); return; }
+  if(t.dataset.modo){ editando = t.dataset.modo === 'editar'; pintar(true); return; }
+  if(t.id === 'fsExport'){ exportarExcel(); return; }
   if(t.id === 'fsGuardar'){ await guardar(vista); return; }
   if(t.id === 'fsReportar'){ await reportar(vista); return; }
   if(t.id === 'fsVolver'){ snap = null; pintar(); return; }

@@ -707,6 +707,7 @@ async function fcsManejar(request, env, url){
   }
 
   if (accion === 'reportar') {
+    if (!esOps) return json({ ok:false, error:'Solo Sales Ops (o un Administrador) puede reportar el forecast semanal. Tú puedes guardar tus cambios.' }, 403);
     const semana = /^\d{4}-\d{2}-\d{2}$/.test(String(body.semana || '')) ? body.semana : ahora.slice(0, 10);
     if (!actual.deals.length && !actual.cuota.swAnual && !actual.cuota.svAnual) return json({ ok:false, error:'El tablero está vacío; captura o carga datos antes de reportar.' }, 400);
     live[slug] = { ...actual, semana, reportadoEn: ahora, reportadoPor: email || 'desconocido' };
