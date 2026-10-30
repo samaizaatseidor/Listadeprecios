@@ -773,8 +773,8 @@ const norm = x => String(x || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ
 function mapLob(sol){ // devuelve LOB, o '' si hay que preguntar
   const n = norm(sol); if(!n.trim()) return '';
   if(/\berp\b/.test(n)) return 'Rise';
-  const ask = /\bams\b|analytic|infra|d14|desarrollo|\bb1\b|business one|bolsa/.test(n);
-  const set = new Set(); if(/\bhcm\b|sfsf|ssff|successfactors|\bsf\b/.test(n)) set.add('SFSF'); if(/\bcrm\b|\bcx\b/.test(n)) set.add('LOB');
+  const ask = /\bams\b|analytic|infra|d14|desarrollo|bolsa/.test(n);
+  const set = new Set(); if(/\bhcm\b|sfsf|ssff|successfactors|\bsf\b/.test(n)) set.add('SFSF'); if(/\bcrm\b|\bcx\b/.test(n)) set.add('LOB'); if(/\bb1\b|business one/.test(n)) set.add('B1');
   return (!ask && set.size === 1) ? [...set][0] : '';
 }
 function mapEstatus(d){
