@@ -195,6 +195,7 @@
   .fs-deals tr.fs-frow th{padding:4px 3px; background:rgba(8,16,34,.96); text-transform:none; letter-spacing:0;}
   .fs-frow input,.fs-frow select{width:100%; min-width:0; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); color:#E6EEFB; border-radius:5px; padding:4px 4px; font-size:11px; font-family:inherit;}
   .fs-frow select option{background:#0E1A34; color:#E6EEFB;}
+  .fs-lostbox{margin-top:22px; border-top:1px dashed rgba(255,92,92,.45); padding-top:12px;} .fs-losthd{font-weight:700; color:#FF8C8C; font-size:13px; margin-bottom:6px;} .fs-losthd span{font-weight:400; color:#9FB2D3; font-size:12px; margin-left:8px;} .fs-lostt{opacity:.8;} .fs-lostt thead th{background:rgba(60,20,28,.55);}
   .fs-fcount{margin-top:10px; font-size:12px; color:#9FB2D3;} .fs-fcount a{color:#3DD6FF;}
   .fs-seg{display:inline-flex; border:1px solid rgba(255,255,255,.18); border-radius:10px; overflow:hidden;}
   .fs-seg button{font:600 12.5px Poppins,sans-serif; padding:8px 14px; border:none; background:rgba(255,255,255,.05); color:#A5B4CE; cursor:pointer;}
@@ -525,7 +526,7 @@ function idLinks(id){ const ids = String(id||'').match(/\d{6,}/g) || []; return 
 
 function bloqueDeals(b, ed, conAe){
   const e = ed || {}, ae = e.ae, ds = b.deals || [], tn = e.plano ? '' : 'ae';
-  const filas = ds.map((d,i) => {
+  const fila = (d,i) => {
     if(ae) return '<tr class="fs-dr" data-i="' + i + '">' +
       '<td class="ae"><input class="fs-in t" data-d="id" value="' + esc(d.id) + '" placeholder="ID HubSpot"></td>' +
       '<td class="ae"><textarea class="fs-in t" data-d="cuenta" rows="2" placeholder="Cuenta — oportunidad">' + esc(d.cuenta) + '</textarea></td>' +
@@ -542,7 +543,10 @@ function bloqueDeals(b, ed, conAe){
     return '<tr class="fs-dr">' + (conAe ? '<td class="l"><span class="fs-tag">' + esc(nombreAe(d._ae)) + '</span></td>' : '') +
       '<td class="' + tn + ' l">' + esc(d.id) + ' ' + idLinks(d.id) + '</td><td class="' + tn + ' l">' + esc(d.cuenta) + '</td><td class="' + tn + ' l">' + esc(d.lob || '—') + '</td>' +
       '<td class="' + tn + '">' + numK(d.sw) + '</td><td class="' + tn + '">' + numK(d.sv) + '</td><td class="calc">' + numK(totalDeal(d)) + '</td><td class="' + tn + ' l">' + tagEst(d.estatus) + '</td><td class="' + tn + ' l">' + esc(d.mes || '—') + '</td><td class="' + tn + ' l">' + esc(d.plan || '—') + '</td><td class="' + tn + '" style="text-align:center">' + (d.enLob ? '✓' : '') + '</td><td class="' + tn + ' l" style="white-space:pre-wrap;font-size:12px">' + esc(d.next) + '</td></tr>';
-  }).join('');
+  };
+  const filas = ds.map((d,i) => d.estatus === 'Perdida' ? '' : fila(d,i)).join('');
+  const perdidas = ds.map((d,i) => d.estatus === 'Perdida' ? fila(d,i) : '').join('');
+  const nPerd = ds.filter(d => d.estatus === 'Perdida').length;
   const anchos = conAe ? [9,8,15,6,6,6,6,14,7,6,4,13] : (ae ? [8,15,7,6,6,6,13,9,7,5,16,2] : [10,17,7,6,6,6,15,8,7,5,13]);
   const colgroup = '<colgroup>' + anchos.map(w => '<col style="width:' + w + '%">').join('') + '</colgroup>';
   const encabezado = (conAe ? '<th class="l">AE</th>' : '') + '<th class="l">ID HubSpot</th><th class="l">Cuenta</th><th class="l">LOB</th><th>SW</th><th>Servicios</th><th>Total</th><th class="l">Estatus</th><th class="l">Mes</th><th class="l">Plan A | B</th><th>En LOB ✓</th><th class="l">Next steps</th>' + (ae ? '<th></th>' : '');
@@ -552,6 +556,7 @@ function bloqueDeals(b, ed, conAe){
   '<div class="wk-card"><div class="fs-tw"><table class="fs-t fs-deals">' + colgroup + '<thead><tr>' + encabezado + '</tr></thead><tbody>' + (filas || '<tr><td colspan="12" class="l" style="color:#7D8FAE;padding:18px">Sin deals capturados.</td></tr>') +
   '<tr class="tot">' + (conAe ? '<td></td>' : '') + '<td class="l" colspan="3">TOTAL</td><td>' + cv('dtot.sw') + '</td><td>' + cv('dtot.sv') + '</td><td>' + cv('dtot.t') + '</td><td colspan="' + (ae ? 6 : 5) + '"></td></tr></tbody></table></div>' +
   (ae ? '<div style="margin-top:12px"><button class="fs-btn" id="fsAddDeal">➕ Agregar deal</button></div>' : '') +
+  (nPerd ? '<div class="fs-lostbox"><div class="fs-losthd">🔴 Oportunidades perdidas <span>' + nPerd + ' · no cuentan en el forecast, Plan A/B, totales ni LOB</span></div><div class="fs-tw"><table class="fs-t fs-deals fs-lostt">' + colgroup + '<thead><tr>' + encabezado + '</tr></thead><tbody>' + perdidas + '</tbody></table></div></div>' : '') +
   '<p class="fs-note"><b>Plan A</b> Probable = Compromiso (monto) · <b>Plan B</b> Top Upside = Cobertura del probable · <b>Upside</b> = Resto. Montos en miles de USD.</p></div>';
 }
 
@@ -704,7 +709,7 @@ function dvCelda(td){
   const t = td.textContent.replace(/\s+/g,' ').trim(); return t || '—';
 }
 function dealsVista(){
-  const tb = document.querySelector('table.fs-deals'); if(!tb) return;
+  const tb = document.querySelector('table.fs-deals:not(.fs-lostt)'); if(!tb) return;
   const ths = [...tb.querySelectorAll('thead tr:first-child th')], tbody = tb.tBodies[0];
   const rows = [...tbody.querySelectorAll('tr.fs-dr')]; if(!rows.length) return;
   rows.forEach((r,i) => { if(r.dataset.o == null) r.dataset.o = i; });
@@ -940,11 +945,12 @@ function marcarDirty(){ const el = document.getElementById('fsDirty'); if(el) el
 function ponerRuta(obj, ruta, val){ const p = ruta.split('.'); let o = obj; for(let i = 0; i < p.length - 1; i++) o = o[p[i]]; o[p[p.length-1]] = val; }
 document.addEventListener('input', e => {
   const t = e.target; if(!D || snap || vista === 'overview') return;
-  const slug = vista, b = boardDe(slug);
+  const slug = vista, b = boardDe(slug); let antes;
   if(t.dataset.f){ ponerRuta(b, t.dataset.f, parseNum(t.value)); }
-  else if(t.dataset.d){ const i = +t.closest('tr').dataset.i, k = t.dataset.d; b.deals[i][k] = (k === 'sw' || k === 'sv') ? parseNum(t.value) : (k === 'enLob' ? t.checked : t.value); }
+  else if(t.dataset.d){ const i = +t.closest('tr').dataset.i, k = t.dataset.d; antes = b.deals[i].estatus; b.deals[i][k] = (k === 'sw' || k === 'sv') ? parseNum(t.value) : (k === 'enLob' ? t.checked : t.value); }
   else return;
   dirty[slug] = true; marcarDirty();
+  if(t.dataset.d === 'estatus' && ((antes === 'Perdida') !== (t.value === 'Perdida'))){ pintar(true); return; }
   const prevSem = semanasHist().find(x => x < SEM), pb = prevSem ? boardsAl(prevSem).find(x => x._ae === slug) : null;
   refrescar(document.getElementById('content'), b, qDe(SEM), pb ? calc(pb, qDe(prevSem).meses) : null);
 });
