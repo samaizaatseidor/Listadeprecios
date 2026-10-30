@@ -160,7 +160,7 @@
   .fs-in.t{text-align:left;} .fs-t select.fs-in{cursor:pointer;} textarea.fs-in{resize:vertical; min-height:34px; line-height:1.35; font-weight:500; font-size:12px;}
   .fs-t .v{display:inline-block; padding:5px 6px; color:#fff; font-weight:600;}
   .fs-tag{display:inline-block; padding:2px 9px; border-radius:99px; font-size:11px; font-weight:700; white-space:nowrap; background:rgba(255,255,255,.08); color:#CFE0FA;}
-  .fs-tag.won{background:rgba(61,160,255,.2); color:#8FD0FF;} .fs-tag.vc{background:rgba(47,226,155,.14); color:#4CE8AB;} .fs-tag.top{background:rgba(255,200,87,.15); color:#FFD479;} .fs-tag.up{background:rgba(255,255,255,.08); color:#A5B4CE;}
+  .fs-tag.won{background:rgba(61,160,255,.2); color:#8FD0FF;} .fs-tag.vc{background:rgba(47,226,155,.14); color:#4CE8AB;} .fs-tag.top{background:rgba(255,200,87,.15); color:#FFD479;} .fs-tag.up{background:rgba(255,255,255,.08); color:#A5B4CE;} .fs-tag.lost{background:rgba(255,92,92,.18); color:#FF8C8C;}
   .fs-x{border:none; background:none; color:#FF8CA2; cursor:pointer; font-size:15px; padding:2px 6px; border-radius:6px;} .fs-x:hover{background:rgba(255,92,122,.18);}
   .fs-one>.wk-card{margin-bottom:18px;}
   body.fs-ov .wk-owner-multi .wk-owner-cap{display:none;}
@@ -335,7 +335,7 @@
 const esc = WK.esc;
 const VC = 'VC= Commited+ Probable Plan A';
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const ESTATUS = ['Won', VC, 'Top Upside =Plan B', 'Upside'];
+const ESTATUS = ['Won', VC, 'Top Upside =Plan B', 'Upside', 'Perdida'];
 const LOBS = ['B1','Grow','Rise','SFSF','LOB'];
 const PLANES = ['Plan A','Plan B'];
 const p2 = n => String(n).padStart(2,'0');
@@ -386,17 +386,18 @@ function calc(b, meses){
   cols.forEach(k => { v['qf.'+k] = v['qw.'+k] + v['qv.'+k]; v['qa.'+k] = div(v['qf.'+k], v['qc.'+k]); v['qb.'+k] = div(v['qp.'+k], v['qc.'+k]); });
   // 3) Top deals
   ds.forEach((d,i) => v['dt.'+i] = totalDeal(d));
-  v['dtot.sw'] = ds.reduce((a,d) => a + (+d.sw||0), 0); v['dtot.sv'] = ds.reduce((a,d) => a + (+d.sv||0), 0); v['dtot.t'] = v['dtot.sw'] + v['dtot.sv'];
+  const act = ds.filter(d => d.estatus !== 'Perdida');
+  v['dtot.sw'] = act.reduce((a,d) => a + (+d.sw||0), 0); v['dtot.sv'] = act.reduce((a,d) => a + (+d.sv||0), 0); v['dtot.t'] = v['dtot.sw'] + v['dtot.sv'];
   // 4) LOB
   const lobDe = d => LOBS.find(l => l.toLowerCase() === String(d.lob||'').toLowerCase());
   let tv = 0, tp = 0;
   LOBS.forEach(l => {
-    const mias = ds.filter(d => lobDe(d) === l), vend = mias.filter(won).reduce((a,d) => a + totalDeal(d), 0), todo = mias.reduce((a,d) => a + totalDeal(d), 0);
+    const mias = act.filter(d => lobDe(d) === l), vend = mias.filter(won).reduce((a,d) => a + totalDeal(d), 0), todo = mias.reduce((a,d) => a + totalDeal(d), 0);
     v['lv.'+l] = vend; v['lp.'+l] = todo - vend; v['lt.'+l] = todo; tv += vend; tp += todo - vend;
   });
   v['lv.t'] = tv; v['lp.t'] = tp; v['lt.t'] = tv + tp;
-  v['sinlob.n'] = ds.filter(d => !lobDe(d) && totalDeal(d)).length;
-  v['sinlob.t'] = ds.filter(d => !lobDe(d)).reduce((a,d) => a + totalDeal(d), 0);
+  v['sinlob.n'] = act.filter(d => !lobDe(d) && totalDeal(d)).length;
+  v['sinlob.t'] = act.filter(d => !lobDe(d)).reduce((a,d) => a + totalDeal(d), 0);
   return v;
 }
 function fmtClave(k, n){
@@ -484,7 +485,7 @@ function celda(path, val, tipo, editable, clase){
   if(editable) return '<td class="' + clase + '"><input class="fs-in" data-f="' + path + '" value="' + (val ? String(Math.round(val*1000)/1000) : '') + '" inputmode="decimal" placeholder="0"></td>';
   return '<td class="' + clase + '"><span class="v">' + numK(val) + '</span></td>';
 }
-function tagEst(e){ const c = e === 'Won' ? 'won' : e === VC ? 'vc' : e === 'Top Upside =Plan B' ? 'top' : 'up'; return e ? '<span class="fs-tag ' + c + '">' + esc(e === VC ? 'VC · Commit + Probable (Plan A)' : e) + '</span>' : ''; }
+function tagEst(e){ const c = e === 'Won' ? 'won' : e === VC ? 'vc' : e === 'Top Upside =Plan B' ? 'top' : e === 'Perdida' ? 'lost' : 'up'; return e ? '<span class="fs-tag ' + c + '">' + esc(e === VC ? 'VC · Commit + Probable (Plan A)' : e) + '</span>' : ''; }
 function kpi(label, keyV, sub, opts){
   opts = opts || {};
   return '<div class="fs-kpi" ' + (opts.sem ? 'data-sem="' + opts.sem + '"' : '') + '><div class="l">' + label + '</div><div class="v">' + cv(keyV) + (opts.delta ? '<span class="fs-delta" data-delta="' + opts.delta + '"></span>' : '') + '</div><div class="s">' + sub + '</div>' + (opts.bar ? '<div class="fs-prog"><i data-bar="' + opts.bar + '"></i></div>' : '') + '</div>';
@@ -641,7 +642,7 @@ function pintar(conservar){
       '<tr class="tot"><td class="l">SEGMENTO</td><td>' + numK(va['a.t']) + '</td><td>' + numK(va['y.t']) + '</td><td>' + pct(va['p.t']) + '</td><td>' + numK(va['qc.t']) + '</td><td>' + numK(va['qf.t']) + '</td><td>' + pct(va['qa.t']) + '</td><td>' + mult(va['qb.t']) + '</td><td></td></tr></tbody></table></div></div>';
     html += bloqueCuota({ b: agg, plano: true });
     html += bloqueQ({ b: agg, plano: true }, qiOv);
-    const orden = ['Won', VC, 'Top Upside =Plan B', 'Upside'];
+    const orden = ['Won', VC, 'Top Upside =Plan B', 'Upside', 'Perdida'];
     agg.deals.sort((x,y) => (orden.indexOf(x.estatus) - orden.indexOf(y.estatus)) || (totalDeal(y) - totalDeal(x)));
     html += bloqueDeals(agg, { plano: true }, true);
     html += bloqueLob();
@@ -749,7 +750,7 @@ function ctxExport(){
   if(vista === 'overview'){
     const boards = corte === 'actual' ? AEs().map(a => liveDe(a.slug)) : boardsAl(corte);
     const sem = corte === 'actual' ? SEM : corte, agg = sumar(boards);
-    const orden = ['Won', VC, 'Top Upside =Plan B', 'Upside'];
+    const orden = ['Won', VC, 'Top Upside =Plan B', 'Upside', 'Perdida'];
     agg.deals.sort((x,y) => (orden.indexOf(x.estatus) - orden.indexOf(y.estatus)) || (totalDeal(y) - totalDeal(x)));
     return { b: agg, qi: qDe(sem), sem, nombre: 'Overview', conAe: true, boards };
   }
@@ -863,7 +864,7 @@ async function exportarExcel(){
   w3.mergeCells(5, 2, 5, ult3); w3.getCell(5,2).value = 'Plan A Probable = Compromiso · Plan B Top Upside = Cobertura del probable · Upside = Resto.'; w3.getCell(5,2).font = { name:FONT, size:10.5, italic:true, color:{ argb: MUTE } };
   const ini = 8, fin = ini + Math.max(deals.length, 1) - 1;
   cab(w3, 7, 2, ['ID HUBSPOT','CUENTA','LOB','SW','SERVICIOS','TOTAL','ESTATUS','MES','PLAN A | B','LOB','NEXT STEPS'].concat(c.conAe ? ['AE'] : []));
-  const ESTC = { 'Won':['FFDDF0FF','FF0F5E9C'], [VC]:['FFE1F4E9','FF17703E'], 'Top Upside =Plan B':['FFFBF1DE','FF8A6414'], 'Upside':['FFEEF2F8','FF5E6B82'] };
+  const ESTC = { 'Won':['FFDDF0FF','FF0F5E9C'], [VC]:['FFE1F4E9','FF17703E'], 'Top Upside =Plan B':['FFFBF1DE','FF8A6414'], 'Upside':['FFEEF2F8','FF5E6B82'], 'Perdida':['FFFBE3E3','FFB23A3A'] };
   deals.forEach((d, i) => { const r = ini + i, zebra = i % 2 ? GREY : WHITE;
     const t = (col, val, o) => { o = o || {}; const x = w3.getCell(r, col); x.value = val; x.font = { name:FONT, size:10.5, bold: !!o.bold, color:{ argb: o.color || INK } }; x.fill = fill(o.bg || zebra); x.border = { bottom: bord(LINE) };
       x.alignment = { vertical:'top', wrapText: o.wrap !== false, horizontal: o.h || 'left', indent: o.h ? 0 : 0 }; return x; };
@@ -875,10 +876,10 @@ async function exportarExcel(){
     const ck = t(11, !!d.enLob, { h:'center', wrap:false }); ck.numFmt = '"✓";;"–"'; ck.value = d.enLob ? true : false; ck.font = { name:FONT, size:11, bold:true, color:{ argb: d.enLob ? 'FF17703E' : 'FFB0BACB' } };
     t(12, d.next || '', { color: MUTE }); if(c.conAe) t(13, nombreAe(d._ae), { h:'center', bold:true, color: BLUE }); });
   if(!deals.length){ w3.mergeCells(8, 2, 8, ult3); const x = w3.getCell(8,2); x.value = 'Sin deals capturados.'; x.font = { name:FONT, italic:true, color:{ argb: MUTE } }; x.alignment = { indent:1 }; }
-  // fila de totales (fila 6, SUBTOTAL: respeta los filtros), como el formato original
+  // fila de totales (fila 6, excluye deals Perdida), como el formato original
   w3.getRow(6).height = 24; ['B','C','D','E','F','G','H','I','J','K','L'].concat(c.conAe ? ['M'] : []).forEach(L => { const x = w3.getCell(L + '6'); x.fill = fill(ICE); x.border = { top: bord(BLUE, 'medium') }; });
   const tt = w3.getCell('C6'); tt.value = 'TOTAL'; tt.font = { name:FONT, size:11, bold:true, color:{ argb: NAVY } }; tt.alignment = { indent:1, vertical:'middle' };
-  [['E','sw'],['F','sv'],['G','t']].forEach(([L,k]) => { const x = w3.getCell(L + '6'); x.value = { formula: 'SUBTOTAL(9,' + L + ini + ':' + L + fin + ')', result: v['dtot.' + k] }; x.numFmt = K; x.font = { name:FONT, size:11, bold:true, color:{ argb: NAVY } }; x.alignment = { horizontal:'right', vertical:'middle', indent:1 }; });
+  [['E','sw'],['F','sv'],['G','t']].forEach(([L,k]) => { const x = w3.getCell(L + '6'); x.value = { formula: 'SUMIFS(' + L + ini + ':' + L + fin + ',H' + ini + ':H' + fin + ',"<>Perdida")', result: v['dtot.' + k] }; x.numFmt = K; x.font = { name:FONT, size:11, bold:true, color:{ argb: NAVY } }; x.alignment = { horizontal:'right', vertical:'middle', indent:1 }; });
   w3.views = [{ showGridLines:false, state:'frozen', ySplit:7, xSplit:3, topLeftCell:'D8' }];
   w3.autoFilter = { from:{ row:7, column:2 }, to:{ row:fin, column: ult3 } };
   pie(w3, fin + 2, ult3);
@@ -967,7 +968,7 @@ document.addEventListener('change', async e => {
 
 /* ---------- carga del Excel del formato (Cuota año · Forecast CQ · Top deals) ---------- */
 function canon(lista, v){ const s = String(v||'').trim().toLowerCase(); return lista.find(x => x.toLowerCase() === s) || ''; }
-function estCanon(v){ const s = String(v||'').toLowerCase(); if(!s) return ''; if(/won|ganad|cerrad/.test(s)) return 'Won'; if(/top\s*upside|plan\s*b/.test(s)) return 'Top Upside =Plan B'; if(/upside/.test(s)) return 'Upside'; if(/vc|commit|probable|plan\s*a/.test(s)) return VC; return ''; }
+function estCanon(v){ const s = String(v||'').toLowerCase(); if(!s) return ''; if(/perdid|lost/.test(s)) return 'Perdida'; if(/won|ganad|cerrad/.test(s)) return 'Won'; if(/top\s*upside|plan\s*b/.test(s)) return 'Top Upside =Plan B'; if(/upside/.test(s)) return 'Upside'; if(/perdid|lost/.test(s)) return 'Perdida'; if(/vc|commit|probable|plan\s*a/.test(s)) return VC; return ''; }
 async function leerExcel(file){
   try{
     const wb = XLSX.read(await file.arrayBuffer(), { type:'array', cellDates:true });

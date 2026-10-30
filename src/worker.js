@@ -606,7 +606,7 @@ async function refrescarSeidorHome(env){
 //  - Sales Ops / Admin (permiso 'completo' en forecast-semanal): todo, en cualquier tablero.
 //  - AE (permiso 'completo' en forecast-semanal-ae + correo asignado a su tablero): SOLO las celdas amarillas
 //    de su propio tablero (Cerrado YTD y Top Deals). Cuotas y todo lo demás lo edita Sales Ops.
-const FCS_ESTATUS = ['Won','VC= Commited+ Probable Plan A','Top Upside =Plan B','Upside'];
+const FCS_ESTATUS = ['Won','VC= Commited+ Probable Plan A','Top Upside =Plan B','Upside','Perdida'];
 const FCS_LOBS = ['B1','Grow','Rise','SFSF','LOB'];
 const FCS_MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const FCS_PLANES = ['Plan A','Plan B'];
