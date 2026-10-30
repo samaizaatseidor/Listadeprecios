@@ -485,7 +485,7 @@ function celda(path, val, tipo, editable, clase){
   if(editable) return '<td class="' + clase + '"><input class="fs-in" data-f="' + path + '" value="' + (val ? String(Math.round(val*1000)/1000) : '') + '" inputmode="decimal" placeholder="0"></td>';
   return '<td class="' + clase + '"><span class="v">' + numK(val) + '</span></td>';
 }
-function tagEst(e){ const c = e === 'Won' ? 'won' : e === VC ? 'vc' : e === 'Top Upside =Plan B' ? 'top' : e === 'Perdida' ? 'lost' : 'up'; return e ? '<span class="fs-tag ' + c + '">' + esc(e === VC ? 'VC · Commit + Probable (Plan A)' : e) + '</span>' : ''; }
+function tagEst(e){ const c = e === 'Won' ? 'won' : e === VC ? 'vc' : e === 'Top Upside =Plan B' ? 'top' : e === 'Perdida' ? 'lost' : 'up'; return e ? '<span class="fs-tag ' + c + '" data-est="' + esc(e) + '">' + esc(e === VC ? 'VC · Commit + Probable (Plan A)' : e) + '</span>' : ''; }
 function kpi(label, keyV, sub, opts){
   opts = opts || {};
   return '<div class="fs-kpi" ' + (opts.sem ? 'data-sem="' + opts.sem + '"' : '') + '><div class="l">' + label + '</div><div class="v">' + cv(keyV) + (opts.delta ? '<span class="fs-delta" data-delta="' + opts.delta + '"></span>' : '') + '</div><div class="s">' + sub + '</div>' + (opts.bar ? '<div class="fs-prog"><i data-bar="' + opts.bar + '"></i></div>' : '') + '</div>';
@@ -696,8 +696,10 @@ function pintar(conservar){
 const DV = { sort: null, dir: 1, f: {} };
 const DV_SEL = ['AE','LOB','ESTATUS','MES','PLAN A | B','EN LOB ✓'], DV_TXT = ['ID HUBSPOT','CUENTA','NEXT STEPS'], DV_NUM = ['SW','SERVICIOS','TOTAL'];
 function dvCelda(td){
+  const es = td.querySelector('[data-est]'); if(es) return es.dataset.est;
   const el = td.querySelector('select,textarea,input:not([type=checkbox])'), ck = td.querySelector('input[type=checkbox]');
   if(ck) return ck.checked ? '✓' : '—';
+  if(el && el.dataset.d === 'estatus') return el.value || '—';
   if(el) return el.tagName === 'SELECT' ? (el.selectedOptions[0] ? el.selectedOptions[0].text : '') : el.value;
   const t = td.textContent.replace(/\s+/g,' ').trim(); return t || '—';
 }
@@ -712,8 +714,9 @@ function dealsVista(){
   if(!tb.querySelector('tr.fs-frow')){
     const fr = document.createElement('tr'); fr.className = 'fs-frow';
     fr.innerHTML = names.map((n,c) => {
-      if(DV_SEL.includes(n)){ const u = [...new Set(rows.map(r => val(r,c)))].sort((a,b) => a.localeCompare(b,'es'));
-        return '<th><select data-fk="' + esc(n) + '"><option value="">Todos</option>' + u.map(v => '<option' + (DV.f[n] === v ? ' selected' : '') + '>' + esc(v) + '</option>').join('') + '</select></th>'; }
+      if(DV_SEL.includes(n)){ const cat = ({ 'ESTATUS':ESTATUS, 'LOB':LOBS, 'MES':MESES, 'PLAN A | B':PLANES })[n];
+        const u = [...new Set((cat || []).concat(rows.map(r => val(r,c))))].filter(v => v !== '—'); if(!cat) u.sort((a,b) => a.localeCompare(b,'es'));
+        return '<th><select data-fk="' + esc(n) + '"><option value="">Todos</option>' + u.map(v => '<option value="' + esc(v) + '"' + (DV.f[n] === v ? ' selected' : '') + '>' + esc(n === 'ESTATUS' ? (ETQ_EST[v] || v) : v) + '</option>').join('') + (cat ? '<option value="—"' + (DV.f[n] === '—' ? ' selected' : '') + '>(Sin definir)</option>' : '') + '</select></th>'; }
       if(DV_TXT.includes(n)) return '<th><input data-fk="' + esc(n) + '" placeholder="Filtrar…" value="' + esc(DV.f[n] || '') + '"></th>';
       return '<th></th>'; }).join('');
     tb.querySelector('thead').appendChild(fr);
