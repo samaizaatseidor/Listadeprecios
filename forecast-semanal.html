@@ -191,6 +191,11 @@
   .fs-deals select.fs-in{text-overflow:ellipsis;}
   .fs-deals .fs-tag{white-space:normal; display:inline-block; text-align:left; line-height:1.3;}
   .fs-deals .fs-chk{margin:0;}
+  .fs-deals th.fs-sortable{cursor:pointer; user-select:none;} .fs-deals th.fs-sortable:hover{color:#fff;}
+  .fs-deals tr.fs-frow th{padding:4px 3px; background:rgba(8,16,34,.96); text-transform:none; letter-spacing:0;}
+  .fs-frow input,.fs-frow select{width:100%; min-width:0; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); color:#E6EEFB; border-radius:5px; padding:4px 4px; font-size:11px; font-family:inherit;}
+  .fs-frow select option{background:#0E1A34; color:#E6EEFB;}
+  .fs-fcount{margin-top:10px; font-size:12px; color:#9FB2D3;} .fs-fcount a{color:#3DD6FF;}
   .fs-seg{display:inline-flex; border:1px solid rgba(255,255,255,.18); border-radius:10px; overflow:hidden;}
   .fs-seg button{font:600 12.5px Poppins,sans-serif; padding:8px 14px; border:none; background:rgba(255,255,255,.05); color:#A5B4CE; cursor:pointer;}
   .fs-seg button.on{background:linear-gradient(135deg,#1E5BB8,#2E8FE0); color:#fff;}
@@ -520,7 +525,7 @@ function idLinks(id){ const ids = String(id||'').match(/\d{6,}/g) || []; return 
 function bloqueDeals(b, ed, conAe){
   const e = ed || {}, ae = e.ae, ds = b.deals || [], tn = e.plano ? '' : 'ae';
   const filas = ds.map((d,i) => {
-    if(ae) return '<tr data-i="' + i + '">' +
+    if(ae) return '<tr class="fs-dr" data-i="' + i + '">' +
       '<td class="ae"><input class="fs-in t" data-d="id" value="' + esc(d.id) + '" placeholder="ID HubSpot"></td>' +
       '<td class="ae"><textarea class="fs-in t" data-d="cuenta" rows="2" placeholder="Cuenta — oportunidad">' + esc(d.cuenta) + '</textarea></td>' +
       '<td class="ae"><select class="fs-in t" data-d="lob">' + selectOpts(LOBS, d.lob, 'Sin LOB') + '</select></td>' +
@@ -533,7 +538,7 @@ function bloqueDeals(b, ed, conAe){
       '<td class="ae" style="text-align:center"><input type="checkbox" class="fs-chk" data-d="enLob"' + (d.enLob ? ' checked' : '') + ' title="Casilla LOB del Excel (informativa)"></td>' +
       '<td class="ae"><textarea class="fs-in t" data-d="next" rows="2" placeholder="Next steps">' + esc(d.next) + '</textarea></td>' +
       '<td class="l"><button class="fs-x" data-del="' + i + '" title="Quitar deal">✕</button></td></tr>';
-    return '<tr>' + (conAe ? '<td class="l"><span class="fs-tag">' + esc(nombreAe(d._ae)) + '</span></td>' : '') +
+    return '<tr class="fs-dr">' + (conAe ? '<td class="l"><span class="fs-tag">' + esc(nombreAe(d._ae)) + '</span></td>' : '') +
       '<td class="' + tn + ' l">' + esc(d.id) + ' ' + idLinks(d.id) + '</td><td class="' + tn + ' l">' + esc(d.cuenta) + '</td><td class="' + tn + ' l">' + esc(d.lob || '—') + '</td>' +
       '<td class="' + tn + '">' + numK(d.sw) + '</td><td class="' + tn + '">' + numK(d.sv) + '</td><td class="calc">' + numK(totalDeal(d)) + '</td><td class="' + tn + ' l">' + tagEst(d.estatus) + '</td><td class="' + tn + ' l">' + esc(d.mes || '—') + '</td><td class="' + tn + ' l">' + esc(d.plan || '—') + '</td><td class="' + tn + '" style="text-align:center">' + (d.enLob ? '✓' : '') + '</td><td class="' + tn + ' l" style="white-space:pre-wrap;font-size:12px">' + esc(d.next) + '</td></tr>';
   }).join('');
@@ -674,6 +679,7 @@ function pintar(conservar){
     marcarDirty();
   }
   avatares();
+  dealsVista();
   // retrato del encabezado
   document.body.classList.toggle('fs-ov', vista === 'overview');
   if(window.WK && WK.ownerSet){
@@ -683,6 +689,57 @@ function pintar(conservar){
   if(conservar) window.scrollTo(0, y);
 }
 
+
+
+/* ---------- Top deals: ordenar y filtrar como en Excel (solo vista, no cambia los datos) ---------- */
+const DV = { sort: null, dir: 1, f: {} };
+const DV_SEL = ['AE','LOB','ESTATUS','MES','PLAN A | B','EN LOB ✓'], DV_TXT = ['ID HUBSPOT','CUENTA','NEXT STEPS'], DV_NUM = ['SW','SERVICIOS','TOTAL'];
+function dvCelda(td){
+  const el = td.querySelector('select,textarea,input:not([type=checkbox])'), ck = td.querySelector('input[type=checkbox]');
+  if(ck) return ck.checked ? '✓' : '—';
+  if(el) return el.tagName === 'SELECT' ? (el.selectedOptions[0] ? el.selectedOptions[0].text : '') : el.value;
+  const t = td.textContent.replace(/\s+/g,' ').trim(); return t || '—';
+}
+function dealsVista(){
+  const tb = document.querySelector('table.fs-deals'); if(!tb) return;
+  const ths = [...tb.querySelectorAll('thead tr:first-child th')], tbody = tb.tBodies[0];
+  const rows = [...tbody.querySelectorAll('tr.fs-dr')]; if(!rows.length) return;
+  rows.forEach((r,i) => { if(r.dataset.o == null) r.dataset.o = i; });
+  const names = ths.map(th => th.dataset.k || (th.dataset.k = th.textContent.replace(/[▲▼]/g,'').trim().toUpperCase()));
+  const val = (r, c) => dvCelda(r.children[c]);
+  // fila de filtros (se reconstruye en cada pintado)
+  if(!tb.querySelector('tr.fs-frow')){
+    const fr = document.createElement('tr'); fr.className = 'fs-frow';
+    fr.innerHTML = names.map((n,c) => {
+      if(DV_SEL.includes(n)){ const u = [...new Set(rows.map(r => val(r,c)))].sort((a,b) => a.localeCompare(b,'es'));
+        return '<th><select data-fk="' + esc(n) + '"><option value="">Todos</option>' + u.map(v => '<option' + (DV.f[n] === v ? ' selected' : '') + '>' + esc(v) + '</option>').join('') + '</select></th>'; }
+      if(DV_TXT.includes(n)) return '<th><input data-fk="' + esc(n) + '" placeholder="Filtrar…" value="' + esc(DV.f[n] || '') + '"></th>';
+      return '<th></th>'; }).join('');
+    tb.querySelector('thead').appendChild(fr);
+  }
+  ths.forEach((th,c) => { const n = names[c]; th.classList.toggle('fs-sortable', DV_SEL.includes(n) || DV_TXT.includes(n) || DV_NUM.includes(n));
+    th.textContent = th.textContent.replace(/[▲▼]/g,'').trim(); if(DV.sort === n) th.textContent += DV.dir > 0 ? ' ▲' : ' ▼'; });
+  const num = x => { const m = String(x).replace(/[$,\s]/g,''); return m === '—' || m === '' ? -Infinity : (+m || 0); };
+  const ci = DV.sort ? names.indexOf(DV.sort) : -1;
+  rows.sort((a,b) => { if(ci >= 0){ const x = val(a,ci), y = val(b,ci); const d = DV_NUM.includes(DV.sort) ? num(x) - num(y) : x.localeCompare(y,'es',{numeric:true}); if(d) return d * DV.dir; } return a.dataset.o - b.dataset.o; });
+  const tot = tbody.querySelector('tr.tot');
+  let vis = 0;
+  rows.forEach(r => { tbody.insertBefore(r, tot);
+    const ok = Object.keys(DV.f).every(n => { const f = DV.f[n]; if(!f) return true; const c = names.indexOf(n); if(c < 0) return true; const v = val(r,c);
+      return DV_SEL.includes(n) ? v === f : v.toLowerCase().includes(f.toLowerCase()); });
+    r.style.display = ok ? '' : 'none'; if(ok) vis++; });
+  let nota = tb.closest('.wk-card').querySelector('.fs-fcount');
+  const activos = Object.keys(DV.f).filter(n => DV.f[n]).length;
+  if(!nota){ nota = document.createElement('div'); nota.className = 'fs-fcount'; tb.closest('.fs-tw').after(nota); }
+  nota.innerHTML = (activos || DV.sort) ? 'Mostrando <b>' + vis + '</b> de ' + rows.length + ' deals' + (activos ? ' · <a href="#" data-fclear>Quitar filtros</a>' : '') : '';
+}
+document.addEventListener('click', e => {
+  const th = e.target.closest && e.target.closest('table.fs-deals th.fs-sortable');
+  if(th && !th.closest('tr.fs-frow')){ const n = th.dataset.k; if(DV.sort === n){ if(DV.dir > 0) DV.dir = -1; else DV.sort = null; } else { DV.sort = n; DV.dir = 1; } dealsVista(); return; }
+  if(e.target.dataset && e.target.dataset.fclear != null){ e.preventDefault(); DV.f = {}; DV.sort = null; document.querySelectorAll('tr.fs-frow').forEach(r => r.remove()); dealsVista(); }
+});
+document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.fk; if(!k || e.target.tagName === 'SELECT') return; DV.f[k] = e.target.value; dealsVista(); });
+document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.fk; if(!k || e.target.tagName !== 'SELECT') return; DV.f[k] = e.target.value; dealsVista(); });
 
 /* ---------- Exportar a Excel (mismo formato del Excel de Fer: 4 pestañas, se puede volver a cargar) ---------- */
 function pieExportar(){
