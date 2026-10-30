@@ -204,6 +204,8 @@
   .fs-mtw td:not(:nth-child(5)){text-align:left;}
   .fs-mtw select{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18); color:#E6EEFB; border-radius:6px; padding:4px; font-size:12px; max-width:130px;} .fs-mtw select.need{border-color:#FFB020; background:rgba(255,176,32,.18);} .fs-mtw option{background:#0E1A34;}
   .fs-orig{font-size:10.5px; color:#7D8FAE; margin-top:2px; max-width:150px;} .fs-capp{color:#FFD479; font-size:12.5px; margin-bottom:8px; min-height:0;} .fs-mtw tr.pend td{background:rgba(255,176,32,.05);}
+  .fs-caps{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;} .fs-cap{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:8px 14px; display:flex; flex-direction:column; min-width:110px;} .fs-cap b{font-size:20px;} .fs-cap span{font-size:11px; color:#9FB2D3;} .fs-cap.nue b{color:#8FD0FF;} .fs-cap.act b{color:#FFD479;} .fs-cap.omi b{color:#FF8C8C;}
+  .fs-mbtn button:disabled{opacity:.45; cursor:not-allowed;}
   .fs-mbtn{display:flex; justify-content:flex-end; gap:10px; margin-top:14px;}
   .fs-fcount{margin-top:10px; font-size:12px; color:#9FB2D3;} .fs-fcount a{color:#3DD6FF;}
   .fs-seg{display:inline-flex; border:1px solid rgba(255,255,255,.18); border-radius:10px; overflow:hidden;}
@@ -820,18 +822,23 @@ function capturaPreview(extra){
         '<td style="text-align:right">' + numK(k) + (f.d.moneda !== 'USD' ? '<div class="fs-orig">' + esc(f.d.moneda) + ' ' + f.d.valor.toLocaleString('en-US') + '</div>' : '') + '</td>' +
         '<td style="font-size:11.5px;color:#9FB2D3">' + (nuevo ? (f.d.id ? '' : 'sin ID: se agrega como nuevo') : esc(cam.join(' · '))) + '</td></tr>';
     }).join('');
-    const np = filas.filter(pend).length; document.getElementById('fsCapPend').innerHTML = np ? '⚠️ ' + np + ' fila(s) necesitan que elijas LOB o SW/Servicios antes de aplicarse.' : '';
+    const np = filas.filter(pend).length;
+    const marcadas = [...document.querySelectorAll('#fsCapBody [data-cap]:checked')].map(x => +x.dataset.cap), aplic = filas.filter(f => marcadas.includes(f.n) && !pend(f));
+    const nNue = aplic.filter(f => !f.o).length, nAct = aplic.filter(f => f.o).length, nSin = filas.filter(f => f.o && !pend(f) && !marcadas.includes(f.n)).length, nOmi = filas.length - aplic.length - nSin;
+    document.getElementById('fsCapRes').innerHTML = '<div class="fs-cap"><b>' + filas.length + '</b><span>filas leídas de la imagen</span></div><div class="fs-cap nue"><b>' + nNue + '</b><span>se crearán</span></div><div class="fs-cap act"><b>' + nAct + '</b><span>se actualizarán</span></div><div class="fs-cap"><b>' + nSin + '</b><span>sin cambios</span></div>' + (nOmi > 0 ? '<div class="fs-cap omi"><b>' + nOmi + '</b><span>no se aplicarán' + (np ? ' (' + np + ' por definir)' : '') + '</span></div>' : '');
+    document.getElementById('fsCapOk').textContent = 'Aplicar ' + (nNue + nAct) + ' cambio(s) a mi tablero'; document.getElementById('fsCapOk').disabled = !(nNue + nAct);
+    document.getElementById('fsCapPend').innerHTML = np ? '⚠️ ' + np + ' fila(s) necesitan que elijas LOB o SW/Servicios antes de poder aplicarse.' : '';
   }
   modal.innerHTML = '<div class="fs-mbox"><h3>📷 Esto leyó Delfos de tu captura</h3><p class="fs-mp">Revisa antes de aplicar. Solo se crean o actualizan deals (nunca se borra nada). Plan A|B, Next steps y el check "En LOB" se conservan. Después presiona <b>Guardar cambios</b>.</p>' +
     (sinId ? '<div class="fs-warn" style="margin-bottom:10px">' + sinId + ' fila(s) sin ID de registro: se agregarían como nuevas. Agrega la columna <b>ID de registro</b> a tu vista de HubSpot para poder actualizar deals existentes.</div>' : '') +
     (hayMx ? '<div class="fs-mctl"><label>Tipo de cambio MXN→USD <input id="fsCapTc" type="number" step="0.01" value="18" style="width:70px"></label></div>' : '') +
-    '<div id="fsCapPend" class="fs-capp"></div><div class="fs-mtw"><table class="fs-t"><thead><tr><th></th><th class="l">Acción</th><th class="l">ID</th><th class="l">Cuenta</th><th class="l">LOB</th><th class="l">Estatus</th><th class="l">Mes</th><th class="l">Categoría</th><th>Monto (K USD)</th><th class="l">Cambios</th></tr></thead><tbody id="fsCapBody"></tbody></table></div>' +
+    '<div id="fsCapRes" class="fs-caps"></div><div id="fsCapPend" class="fs-capp"></div><div class="fs-mtw"><table class="fs-t"><thead><tr><th></th><th class="l">Acción</th><th class="l">ID</th><th class="l">Cuenta</th><th class="l">LOB</th><th class="l">Estatus</th><th class="l">Mes</th><th class="l">Categoría</th><th>Monto (K USD)</th><th class="l">Cambios</th></tr></thead><tbody id="fsCapBody"></tbody></table></div>' +
     '<div class="fs-mbtn"><button class="fs-btn" id="fsCapNo">Cancelar</button><button class="fs-btn pri" id="fsCapOk">Aplicar a mi tablero</button></div></div>';
   document.body.appendChild(modal); pintarTabla();
   modal.addEventListener('change', e => { const t = e.target;
     if(t.dataset.capl !== undefined){ const f = filas[+t.dataset.capl]; f.lob = t.value; f.sel = undefined; pintarTabla(); }
     else if(t.dataset.capc !== undefined){ const f = filas[+t.dataset.capc]; f.cat = t.value; f.sel = undefined; pintarTabla(); }
-    else if(t.dataset.cap !== undefined){ filas[+t.dataset.cap].sel = t.checked; } });
+    else if(t.dataset.cap !== undefined){ filas[+t.dataset.cap].sel = t.checked; pintarTabla(); } });
   modal.addEventListener('input', e => { if(e.target.id === 'fsCapTc'){ const mark = {}; modal.querySelectorAll('[data-cap]').forEach(c => mark[c.dataset.cap] = c.checked); filas.forEach(f => f.sel = mark[f.n]); pintarTabla(); } });
   modal.querySelector('#fsCapNo').onclick = () => modal.remove();
   modal.querySelector('#fsCapOk').onclick = () => {
