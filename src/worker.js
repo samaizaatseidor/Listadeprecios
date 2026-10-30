@@ -474,6 +474,7 @@ const RUTAS_PERMISO = {
   '/api/wbr-cta': { modo:'datos', paginas:['wbr-cta'] },
   '/api/wbr-marketing': { modo:'datos', paginas:['wbr-marketing'], escritura:['wbr-marketing'] },
   '/api/wbr-marketing-iniciativas': { modo:'datos', paginas:['wbr-marketing'], escritura:['wbr-marketing'] },
+  '/api/forecast-captura': { modo:'ia', paginas:['forecast-semanal','forecast-semanal-ae'] }, // lee una captura de la tabla de deals de HubSpot con Delfos (no guarda nada)
   '/api/wbr-resumen': { modo:'ia', paginas:['wbr-ejecutivo'] }, // resumen ejecutivo de Delfos para el Centro de Mando
   '/api/wbr-ejecutivo': { modo:'datos', paginas:['wbr-ejecutivo'] }, // vista de solo lectura; el permiso de esta página cubre el resumen de todos los tableros
   '/api/wbr-marketing-insight': { modo:'ia', paginas:['wbr-marketing'] },
@@ -2526,6 +2527,55 @@ ${JSON.stringify(checklist || [])}`;
 
     if (url.pathname === '/api/wbr-cultura-talento') { return ctManejar(request, env, url); }
     if (url.pathname === '/api/wbr-marketing-iniciativas') { return miManejar(request, env); }
+    if (url.pathname === '/api/forecast-captura' && request.method === 'POST') {
+      const JH = { 'Content-Type': 'application/json' };
+      const j = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: JH });
+      const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
+      if (!email) return j({ ok: false, error: 'No se pudo identificar al usuario.' }, 403);
+      const token = await getDelfosToken(env);
+      if (!token) return j({ ok: false, error: 'Falta configurar DELFOS_API_TOKEN' }, 500);
+      let form; try { form = await request.formData(); } catch (e) { return j({ ok: false, error: 'Solicitud inválida' }, 400); }
+      const imagen = form.get('imagen');
+      if (!imagen || typeof imagen === 'string') return j({ ok: false, error: 'Falta la captura de pantalla.' }, 400);
+      if (imagen.size > 8 * 1024 * 1024) return j({ ok: false, error: 'La imagen pesa más de 8 MB.' }, 413);
+      const cfgRoles = await getRolesConfig(env);
+      if (!esAdmin(email, cfgRoles)) {
+        const kRl = 'fcap_rl_' + email + '_' + new Date().toISOString().slice(0, 13);
+        const usados = parseInt(await env.PM_KV.get(kRl) || '0', 10) || 0;
+        if (usados >= 20) return j({ ok: false, error: 'Llegaste al límite de capturas por hora. Intenta más tarde.' }, 429);
+        await env.PM_KV.put(kRl, String(usados + 1), { expirationTtl: 3700 });
+      }
+      const sessionId = crypto.randomUUID();
+      let fileRef;
+      try { fileRef = await delfosUploadFile(token, sessionId, email, imagen); } catch (e) { return j({ ok: false, error: 'No se pudo subir la imagen: ' + String(e.message || e) }, 502); }
+      const prompt = [
+        'La imagen adjunta es una captura de la tabla de negocios (deals) de HubSpot. Extrae CADA fila visible y responde SOLO con un arreglo JSON válido, sin texto antes ni después ni bloques de código.',
+        'Formato de cada elemento: {"id":"", "cuenta":"", "monto":0, "etapa":"", "cierre":"", "propietario":""}',
+        '- "id": el Record ID / ID del registro del deal (solo dígitos) si está visible; si no, "".',
+        '- "cuenta": el nombre del negocio/deal tal como aparece (incluye la empresa si viene en el nombre).',
+        '- "monto": número sin símbolos ni separadores de miles, en la moneda mostrada; 0 si no se ve.',
+        '- "etapa": la etapa del negocio (Deal stage) tal como aparece; "" si no se ve.',
+        '- "cierre": fecha de cierre estimada en formato AAAA-MM-DD si es legible; "" si no.',
+        '- "propietario": propietario del negocio si se ve; "" si no.',
+        'No inventes filas ni valores. Si una celda no es legible, déjala vacía o en 0. Respeta el orden de la tabla.'
+      ].join('\n');
+      let texto;
+      try { texto = await delfosGetCompletion(token, { sessionId, username: email, text: prompt, fileRefs: [fileRef], useOnlineSearch: false }); }
+      catch (e) { return j({ ok: false, error: String(e.message || e) }, 502); }
+      const a = texto.indexOf('['), b = texto.lastIndexOf(']');
+      let arr = null; if (a >= 0 && b > a) { try { arr = JSON.parse(texto.slice(a, b + 1)); } catch (e) { arr = null; } }
+      if (!Array.isArray(arr)) return j({ ok: false, error: 'No pude leer la tabla de la captura. Intenta con una imagen más nítida y que incluya los encabezados.' }, 422);
+      const deals = arr.slice(0, 60).map(x => ({
+        id: String((x && x.id) || '').replace(/\D/g, '').slice(0, 20),
+        cuenta: String((x && x.cuenta) || '').trim().slice(0, 200),
+        monto: Math.round((Number(String((x && x.monto) || 0).replace(/[^0-9.\-]/g, '')) || 0) * 100) / 100,
+        etapa: String((x && x.etapa) || '').trim().slice(0, 80),
+        cierre: /^\d{4}-\d{2}-\d{2}$/.test(String((x && x.cierre) || '')) ? x.cierre : '',
+        propietario: String((x && x.propietario) || '').trim().slice(0, 80)
+      })).filter(d => d.id || d.cuenta);
+      return j({ ok: true, deals });
+    }
+
     if (url.pathname === '/api/forecast-semanal') {
       return fcsManejar(request, env, url);
     }

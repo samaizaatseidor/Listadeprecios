@@ -196,6 +196,13 @@
   .fs-frow input,.fs-frow select{width:100%; min-width:0; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); color:#E6EEFB; border-radius:5px; padding:4px 4px; font-size:11px; font-family:inherit;}
   .fs-frow select option{background:#0E1A34; color:#E6EEFB;}
   .fs-lostbox{margin-top:22px; border-top:1px dashed rgba(255,92,92,.45); padding-top:12px;} .fs-losthd{font-weight:700; color:#FF8C8C; font-size:13px; margin-bottom:6px;} .fs-losthd span{font-weight:400; color:#9FB2D3; font-size:12px; margin-left:8px;} .fs-lostt{opacity:.8;} .fs-lostt thead th{background:rgba(60,20,28,.55);}
+  .fs-modal{position:fixed; inset:0; background:rgba(3,8,20,.78); z-index:9998; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .fs-modal>.fs-mbox{background:#0E1A34; border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:22px; width:1000px !important; max-width:100% !important; box-sizing:border-box; max-height:90vh; display:flex; flex-direction:column; color:#E6EEFB;}
+  .fs-mbox h3{margin:0 0 6px; font-size:18px;} .fs-mp{margin:0 0 12px; color:#9FB2D3; font-size:13px;}
+  .fs-mctl{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; font-size:12.5px; color:#9FB2D3;} .fs-mctl select,.fs-mctl input{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18); color:#E6EEFB; border-radius:6px; padding:4px 6px; margin-left:4px;}
+  .fs-mctl option{background:#0E1A34;} .fs-mtw{overflow:auto; border:1px solid rgba(255,255,255,.08); border-radius:10px;} .fs-mtw td{padding:7px 8px; font-size:12.5px; vertical-align:top;}
+  .fs-mtw td:not(:nth-child(5)){text-align:left;}
+  .fs-mbtn{display:flex; justify-content:flex-end; gap:10px; margin-top:14px;}
   .fs-fcount{margin-top:10px; font-size:12px; color:#9FB2D3;} .fs-fcount a{color:#3DD6FF;}
   .fs-seg{display:inline-flex; border:1px solid rgba(255,255,255,.18); border-radius:10px; overflow:hidden;}
   .fs-seg button{font:600 12.5px Poppins,sans-serif; padding:8px 14px; border:none; background:rgba(255,255,255,.05); color:#A5B4CE; cursor:pointer;}
@@ -673,6 +680,7 @@ function pintar(conservar){
       html += '<div class="fs-info"><div class="fs-seg"><button data-modo="ver" class="' + (edOn ? '' : 'on') + '">👁️ Visualizar</button><button data-modo="editar" class="' + (edOn ? 'on' : '') + '">✏️ Editar</button></div>' +
         (edOn || dirty[slug] ? '<button class="fs-btn pri" id="fsGuardar">💾 Guardar cambios</button>' : '') +
         (puedeOps() ? '<button class="fs-btn ok" id="fsReportar">📣 Reportar forecast de la semana</button>' : '') +
+        (edOn ? '<label class="fs-btn" for="fsImg" style="margin:0" title="Sube o pega (Ctrl+V) una captura de tu tabla de deals de HubSpot">📷 Cargar captura de HubSpot</label><input type="file" id="fsImg" accept="image/*" style="display:none">' : '') +
         (edOn ? '<label class="fs-btn" for="fsXls" style="margin:0">⬆️ Cargar Excel del formato</label><input type="file" id="fsXls" accept=".xlsx,.xls" style="display:none">' : '') +
         (edOn && slug === 'fernanda' && vacioB && puedeOps() ? '<button class="fs-btn" id="fsSeed">Cargar corte inicial de Fer (Excel 26/10)</button>' : '') + '</div>';
     } else {
@@ -749,6 +757,68 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.fk; if(!k || e.target.tagName === 'SELECT') return; DV.f[k] = e.target.value; dealsVista(); });
 document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.fk; if(!k || e.target.tagName !== 'SELECT') return; DV.f[k] = e.target.value; dealsVista(); });
+
+
+/* ---------- Captura de HubSpot → Delfos lee la tabla → vista previa → crear/actualizar deals ---------- */
+document.addEventListener('paste', e => {
+  if(!D || snap || vista === 'overview' || !editando || document.getElementById('fsCapModal')) return;
+  const it = [...(e.clipboardData && e.clipboardData.items || [])].find(x => x.type && x.type.startsWith('image/'));
+  if(it){ e.preventDefault(); leerCaptura(it.getAsFile()); }
+});
+const mesDe = iso => iso ? MESES[+iso.slice(5,7) - 1] || '' : '';
+async function leerCaptura(file){
+  if(!file) return;
+  const cargando = document.createElement('div'); cargando.className = 'fs-toast'; cargando.textContent = '🔎 Delfos está leyendo tu captura… (puede tardar ~20 s)'; document.body.appendChild(cargando);
+  try{
+    const fd = new FormData(); fd.append('imagen', file, file.name || 'captura.png');
+    const r = await fetch('/api/forecast-captura', { method:'POST', body: fd }); const j = await r.json().catch(() => ({}));
+    if(!r.ok || !j.ok) throw new Error(j.error || 'No se pudo leer la captura.');
+    if(!j.deals.length) throw new Error('No encontré deals en la captura.');
+    capturaPreview(j.deals);
+  }catch(err){ toast(err.message || String(err), true); }
+  finally{ cargando.remove(); }
+}
+function capturaPreview(extra){
+  const b = boardDe(vista), prev = document.getElementById('fsCapModal'); if(prev) prev.remove();
+  const modal = document.createElement('div'); modal.id = 'fsCapModal'; modal.className = 'fs-modal';
+  const estDe = d => { const e = estCanon(d.etapa); return e; };
+  function calcular(){
+    const mon = document.getElementById('fsCapMon').value, tc = parseFloat(document.getElementById('fsCapTc').value) || 1;
+    return extra.map((d, n) => {
+      const k = Math.round((mon === 'MXN' ? d.monto / tc : d.monto) / 100) / 10; // miles de USD, 1 decimal
+      const ex = d.id ? b.deals.findIndex(x => String(x.id) === d.id) : -1;
+      return { n, d, k, ex, mes: mesDe(d.cierre), est: estDe(d) };
+    });
+  }
+  function pintarTabla(){
+    const filas = calcular();
+    document.getElementById('fsCapBody').innerHTML = filas.map(f => {
+      const nuevo = f.ex < 0, o = nuevo ? null : b.deals[f.ex], cam = [];
+      if(!nuevo){ if(f.k && f.k !== totalDeal(o)) cam.push('monto ' + numK(totalDeal(o)) + ' → ' + numK(f.k)); if(f.mes && f.mes !== o.mes) cam.push('mes ' + (o.mes || '—') + ' → ' + f.mes); if(f.est && f.est !== o.estatus) cam.push('estatus → ' + (ETQ_EST[f.est] || f.est)); if(f.d.cuenta && f.d.cuenta !== o.cuenta) cam.push('nombre'); }
+      const sin = !nuevo && !cam.length;
+      return '<tr><td><input type="checkbox" data-cap="' + f.n + '"' + (sin ? '' : ' checked') + (sin ? ' disabled' : '') + '></td><td><span class="fs-tag ' + (nuevo ? 'won' : (sin ? 'up' : 'top')) + '">' + (nuevo ? 'Nuevo' : (sin ? 'Sin cambios' : 'Actualiza')) + '</span></td><td>' + esc(f.d.id || '—') + '</td><td>' + esc(f.d.cuenta) + '</td><td style="text-align:right">' + numK(f.k) + '</td><td>' + esc(f.d.etapa || '—') + '</td><td>' + esc(f.mes || '—') + '</td><td style="font-size:11.5px;color:#9FB2D3">' + (nuevo ? (f.d.id ? '' : 'sin ID: se agrega como nuevo') : esc(cam.join(' · '))) + '</td></tr>';
+    }).join('');
+  }
+  modal.innerHTML = '<div class="fs-mbox"><h3>📷 Esto leyó Delfos de tu captura</h3><p class="fs-mp">Revisa antes de aplicar. Solo se crean o actualizan deals (nunca se borra nada). Lo que no viene en HubSpot (LOB, Plan A|B, Next steps) se conserva. Después presiona <b>Guardar cambios</b>.</p>' +
+    '<div class="fs-mctl"><label>Moneda de la captura <select id="fsCapMon"><option value="USD">USD</option><option value="MXN">MXN</option></select></label><label id="fsCapTcL" style="display:none">Tipo de cambio <input id="fsCapTc" type="number" step="0.01" value="18" style="width:70px"></label><label>El monto va en <select id="fsCapDest"><option value="sv">Servicios</option><option value="sw">SW</option></select></label></div>' +
+    '<div class="fs-mtw"><table class="fs-t"><thead><tr><th></th><th class="l">Acción</th><th class="l">ID</th><th class="l">Cuenta</th><th>Monto (K USD)</th><th class="l">Etapa HubSpot</th><th class="l">Mes cierre</th><th class="l">Cambios</th></tr></thead><tbody id="fsCapBody"></tbody></table></div>' +
+    '<div class="fs-mbtn"><button class="fs-btn" id="fsCapNo">Cancelar</button><button class="fs-btn pri" id="fsCapOk">Aplicar a mi tablero</button></div></div>';
+  document.body.appendChild(modal);
+  modal.querySelector('#fsCapTc').insertAdjacentHTML('afterend', '');
+  pintarTabla();
+  modal.addEventListener('change', e => { if(e.target.id === 'fsCapMon'){ document.getElementById('fsCapTcL').style.display = e.target.value === 'MXN' ? '' : 'none'; pintarTabla(); } });
+  modal.addEventListener('input', e => { if(e.target.id === 'fsCapTc') pintarTabla(); });
+  modal.querySelector('#fsCapNo').onclick = () => modal.remove();
+  modal.querySelector('#fsCapOk').onclick = () => {
+    const dest = document.getElementById('fsCapDest').value, sel = [...modal.querySelectorAll('[data-cap]:checked')].map(x => +x.dataset.cap), filas = calcular();
+    let nuevos = 0, act = 0;
+    filas.filter(f => sel.includes(f.n)).forEach(f => {
+      if(f.ex < 0){ b.deals.push({ id: f.d.id, cuenta: f.d.cuenta, lob:'', sw: dest === 'sw' ? f.k : 0, sv: dest === 'sv' ? f.k : 0, estatus: f.est, mes: f.mes, plan:'', enLob:false, next:'' }); nuevos++; }
+      else { const o = b.deals[f.ex]; if(f.d.cuenta) o.cuenta = f.d.cuenta; if(f.k){ o.sw = dest === 'sw' ? f.k : 0; o.sv = dest === 'sv' ? f.k : 0; } if(f.mes) o.mes = f.mes; if(f.est) o.estatus = f.est; act++; }
+    });
+    modal.remove(); if(nuevos || act){ dirty[vista] = true; pintar(true); toast('Listo: ' + nuevos + ' nuevo(s), ' + act + ' actualizado(s). Presiona Guardar cambios.'); }
+  };
+}
 
 /* ---------- Exportar a Excel (mismo formato del Excel de Fer: 4 pestañas, se puede volver a cargar) ---------- */
 function pieExportar(){
@@ -972,6 +1042,7 @@ document.addEventListener('change', async e => {
   const t = e.target;
   if(t.id === 'fsSem'){ if(t.value){ SEM = lunesDe(new Date(t.value + 'T12:00:00')); pintar(true); } }
   else if(t.id === 'fsCorte'){ corte = t.value; pintar(true); }
+  else if(t.id === 'fsImg' && t.files[0]){ await leerCaptura(t.files[0]); t.value = ''; }
   else if(t.id === 'fsXls' && t.files[0]){ await leerExcel(t.files[0]); t.value = ''; }
 });
 
