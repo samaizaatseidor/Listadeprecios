@@ -2548,16 +2548,20 @@ ${JSON.stringify(checklist || [])}`;
       const sessionId = crypto.randomUUID();
       let fileRef;
       try { fileRef = await delfosUploadFile(token, sessionId, email, imagen); } catch (e) { return j({ ok: false, error: 'No se pudo subir la imagen: ' + String(e.message || e) }, 502); }
+      const hoy = new Date(Date.now() - 6 * 3600 * 1000).toISOString().slice(0, 10);
       const prompt = [
         'La imagen adjunta es una captura de la tabla de negocios (deals) de HubSpot. Extrae CADA fila visible y responde SOLO con un arreglo JSON válido, sin texto antes ni después ni bloques de código.',
-        'Formato de cada elemento: {"id":"", "cuenta":"", "monto":0, "etapa":"", "cierre":"", "propietario":""}',
-        '- "id": el Record ID / ID del registro del deal (solo dígitos) si está visible; si no, "".',
-        '- "cuenta": el nombre del negocio/deal tal como aparece (incluye la empresa si viene en el nombre).',
-        '- "monto": número sin símbolos ni separadores de miles, en la moneda mostrada; 0 si no se ve.',
-        '- "etapa": la etapa del negocio (Deal stage) tal como aparece; "" si no se ve.',
-        '- "cierre": fecha de cierre estimada en formato AAAA-MM-DD si es legible; "" si no.',
-        '- "propietario": propietario del negocio si se ve; "" si no.',
-        'No inventes filas ni valores. Si una celda no es legible, déjala vacía o en 0. Respeta el orden de la tabla.'
+        'Formato de cada elemento: {"id":"", "cuenta":"", "solucion":"", "fcst":"", "etapa":"", "descripcion":"", "cierre":"", "valor":0, "moneda":""}',
+        'Columnas de la captura y a qué campo corresponden (los encabezados pueden estar en otro orden):',
+        '- "id": columna "ID de registro" (solo dígitos).',
+        '- "cuenta": columna "Nombre del negocio", completo tal como aparece.',
+        '- "solucion": columna "MX_Soluciones Requeridas", texto completo tal como aparece (puede traer varias soluciones separadas por coma).',
+        '- "fcst": columna "MX_FCST_TEAM" tal como aparece (por ejemplo "1. Commited", "2. Probable", "3. Top Upside", "4. Upside").',
+        '- "etapa": columna "Etapa del negocio" tal como aparece (por ejemplo "A - Closed-Ganado", "E - Pre-Sales").',
+        '- "descripcion": columna "MX_Descripción General" tal como aparece (por ejemplo "Servicios", "Bolsa de horas", "Licencias").',
+        '- "cierre": columna "Fecha de cierre" en formato AAAA-MM-DD. Hoy es ' + hoy + ' (zona horaria de México): "Hoy" = esa fecha, "Mañana" = el día siguiente. Si no es legible, "".',
+        '- "valor": número de la columna "Valor" sin símbolos ni separadores de miles (conserva los decimales); "moneda": el código que acompaña al valor (USD, MXN, etc.).',
+        'Si una columna no aparece en la captura, deja sus campos vacíos o en 0. No inventes filas ni valores. Respeta el orden de la tabla.'
       ].join('\n');
       let texto;
       try { texto = await delfosGetCompletion(token, { sessionId, username: email, text: prompt, fileRefs: [fileRef], useOnlineSearch: false }); }
@@ -2565,13 +2569,13 @@ ${JSON.stringify(checklist || [])}`;
       const a = texto.indexOf('['), b = texto.lastIndexOf(']');
       let arr = null; if (a >= 0 && b > a) { try { arr = JSON.parse(texto.slice(a, b + 1)); } catch (e) { arr = null; } }
       if (!Array.isArray(arr)) return j({ ok: false, error: 'No pude leer la tabla de la captura. Intenta con una imagen más nítida y que incluya los encabezados.' }, 422);
-      const deals = arr.slice(0, 60).map(x => ({
-        id: String((x && x.id) || '').replace(/\D/g, '').slice(0, 20),
-        cuenta: String((x && x.cuenta) || '').trim().slice(0, 200),
-        monto: Math.round((Number(String((x && x.monto) || 0).replace(/[^0-9.\-]/g, '')) || 0) * 100) / 100,
-        etapa: String((x && x.etapa) || '').trim().slice(0, 80),
-        cierre: /^\d{4}-\d{2}-\d{2}$/.test(String((x && x.cierre) || '')) ? x.cierre : '',
-        propietario: String((x && x.propietario) || '').trim().slice(0, 80)
+      const S = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+      const deals = arr.slice(0, 80).map(x => ({
+        id: S(x && x.id, 30).replace(/\D/g, ''),
+        cuenta: S(x && x.cuenta, 200), solucion: S(x && x.solucion, 200), fcst: S(x && x.fcst, 60), etapa: S(x && x.etapa, 80), descripcion: S(x && x.descripcion, 80),
+        cierre: /^\d{4}-\d{2}-\d{2}$/.test(S(x && x.cierre, 10)) ? S(x.cierre, 10) : '',
+        valor: Math.round((Number(String((x && x.valor) || 0).replace(/[^0-9.\-]/g, '')) || 0) * 100) / 100,
+        moneda: S(x && x.moneda, 5).toUpperCase() || 'USD'
       })).filter(d => d.id || d.cuenta);
       return j({ ok: true, deals });
     }
