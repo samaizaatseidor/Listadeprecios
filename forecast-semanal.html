@@ -348,6 +348,7 @@ const esc = WK.esc;
 const VC = 'VC= Commited+ Probable Plan A';
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const ESTATUS = ['Won', VC, 'Top Upside =Plan B', 'Upside', 'Perdida'];
+const planDe = e => (e === 'Won' || e === VC) ? 'Plan A' : (e === 'Top Upside =Plan B' ? 'Plan B' : '');
 const LOBS = ['B1','Grow','Rise','SFSF','LOB'];
 const PLANES = ['Plan A','Plan B'];
 const p2 = n => String(n).padStart(2,'0');
@@ -812,7 +813,7 @@ function capturaPreview(extra){
   function pintarTabla(){
     document.getElementById('fsCapBody').innerHTML = filas.map(f => {
       const nuevo = !f.o, k = kDe(f), cam = [];
-      if(f.o){ const o = f.o; if(k && k !== totalDeal(o)) cam.push('monto ' + numK(totalDeal(o)) + ' → ' + numK(k)); if(f.mes && f.mes !== o.mes) cam.push('mes ' + (o.mes || '—') + ' → ' + f.mes); if(f.est && f.est !== o.estatus) cam.push('estatus → ' + (ETQ_EST[f.est] || f.est)); if(f.lob && f.lob !== o.lob) cam.push('LOB → ' + f.lob); if(f.d.cuenta && f.d.cuenta !== o.cuenta) cam.push('nombre'); }
+      if(f.o){ const o = f.o; if(k && k !== totalDeal(o)) cam.push('monto ' + numK(totalDeal(o)) + ' → ' + numK(k)); if(f.mes && f.mes !== o.mes) cam.push('mes ' + (o.mes || '—') + ' → ' + f.mes); if(f.est && f.est !== o.estatus) cam.push('estatus → ' + (ETQ_EST[f.est] || f.est) + (planDe(f.est) ? ' (' + planDe(f.est) + ')' : '')); if(f.lob && f.lob !== o.lob) cam.push('LOB → ' + f.lob); if(f.d.cuenta && f.d.cuenta !== o.cuenta) cam.push('nombre'); }
       const sin = f.o && !cam.length && !pend(f), bloq = pend(f);
       const ck = f.sel === undefined ? (!sin && !bloq) : f.sel && !bloq;
       return '<tr class="' + (bloq ? 'pend' : '') + '"><td><input type="checkbox" data-cap="' + f.n + '"' + (ck ? ' checked' : '') + (bloq || sin ? ' disabled' : '') + '></td><td><span class="fs-tag ' + (nuevo ? 'won' : (sin ? 'up' : 'top')) + '">' + (nuevo ? 'Nuevo' : (sin ? 'Sin cambios' : 'Actualiza')) + '</span></td><td>' + esc(f.d.id || '—') + '</td><td>' + esc(f.d.cuenta) + '</td>' +
@@ -845,8 +846,8 @@ function capturaPreview(extra){
     const sel = [...modal.querySelectorAll('[data-cap]:checked')].map(x => +x.dataset.cap);
     let nuevos = 0, act = 0;
     filas.filter(f => sel.includes(f.n) && !pend(f)).forEach(f => { const k = kDe(f), sw = f.cat === 'sw' ? k : 0, sv = f.cat === 'sv' ? k : 0;
-      if(!f.o){ b.deals.push({ id: f.d.id, cuenta: f.d.cuenta, lob: f.lob, sw, sv, estatus: f.est, mes: f.mes, plan:'', enLob:false, next:'' }); nuevos++; }
-      else { const o = f.o; if(f.d.cuenta) o.cuenta = f.d.cuenta; o.lob = f.lob; if(k){ o.sw = sw; o.sv = sv; } if(f.mes) o.mes = f.mes; if(f.est) o.estatus = f.est; act++; } });
+      if(!f.o){ b.deals.push({ id: f.d.id, cuenta: f.d.cuenta, lob: f.lob, sw, sv, estatus: f.est, mes: f.mes, plan: planDe(f.est), enLob:false, next:'' }); nuevos++; }
+      else { const o = f.o; if(f.d.cuenta) o.cuenta = f.d.cuenta; o.lob = f.lob; if(k){ o.sw = sw; o.sv = sv; } if(f.mes) o.mes = f.mes; if(f.est){ o.estatus = f.est; o.plan = planDe(f.est); } act++; } });
     modal.remove(); if(nuevos || act){ dirty[vista] = true; pintar(true); toast('Listo: ' + nuevos + ' nuevo(s), ' + act + ' actualizado(s). Presiona Guardar cambios.'); }
   };
 }
@@ -1050,6 +1051,7 @@ document.addEventListener('input', e => {
   if(t.dataset.f){ ponerRuta(b, t.dataset.f, parseNum(t.value)); }
   else if(t.dataset.d){ const i = +t.closest('tr').dataset.i, k = t.dataset.d; antes = b.deals[i].estatus; b.deals[i][k] = (k === 'sw' || k === 'sv') ? parseNum(t.value) : (k === 'enLob' ? t.checked : t.value); }
   else return;
+  if(t.dataset.d === 'estatus' && t.value !== 'Perdida'){ const tr = t.closest('tr'), pl = planDe(t.value); b.deals[+tr.dataset.i].plan = pl; const sp = tr.querySelector('[data-d=plan]'); if(sp) sp.value = pl; }
   dirty[slug] = true; marcarDirty();
   if(t.dataset.d === 'estatus' && ((antes === 'Perdida') !== (t.value === 'Perdida'))){ pintar(true); return; }
   const prevSem = semanasHist().find(x => x < SEM), pb = prevSem ? boardsAl(prevSem).find(x => x._ae === slug) : null;
