@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>WBR — Tablero VOP · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
+<script src="/data.js"></script>
+<style>
+  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
+  header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+  input[type=file]{display:none;}
+  .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
+  .vop-err{background:rgba(255,92,122,.14); color:#FF9DB0; border:1px solid rgba(255,92,122,.4); border-radius:14px; padding:14px 18px; margin:0 0 18px; font-size:14px;}
+
+  /* ===== Tablero VOP — estilo dashboard oscuro (kit v2) ===== */
+  .vp-root{display:block;}
+  .vp-cap{font-size:11.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--wk-greyl); font-weight:700;}
+  .vp-dealcard{display:flex; justify-content:space-between; align-items:flex-end; gap:28px; flex-wrap:wrap; margin-bottom:22px; background:radial-gradient(90% 140% at 100% 0%,rgba(61,214,255,.20),transparent 60%),radial-gradient(70% 120% at 0% 100%,rgba(139,124,255,.18),transparent 60%),linear-gradient(150deg,rgba(255,255,255,.075),rgba(255,255,255,.025))!important;}
+  .vp-dealcard>div:first-child{flex:1 1 100%; min-width:0;} .vp-title{margin:8px 0 6px; font-size:clamp(24px,2vw,36px); font-weight:800; letter-spacing:-1px; line-height:1.08; color:#fff; text-shadow:0 0 40px rgba(61,214,255,.30);}
+  .vp-title span{color:var(--wk-cyan);}
+  .vp-subt{font-size:16px; color:var(--wk-grey); max-width:900px; line-height:1.5;}
+  .vp-dealr{display:flex; gap:18px; align-items:flex-end; flex-wrap:wrap; flex:1 1 100%; justify-content:space-between;}
+  .vp-file{font-size:13.5px; color:var(--wk-grey); text-align:right; line-height:1.6;}
+  .vp-file b{color:#fff;}
+  .vp-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  button.wk-chip{font-family:Poppins,"Segoe UI",sans-serif;}
+  .vp-chip{padding:9px 18px; font-size:14px;}
+  .vp-chip.sm{padding:7px 14px; font-size:13px;}
+  .vp-ico{min-width:38px; justify-content:center; padding:7px 0; font-size:18px; line-height:1;}
+  .vp-chip.g.on{background:linear-gradient(135deg,#0E9F6E,#2FE29B); color:#03140D; box-shadow:0 6px 22px rgba(47,226,155,.35);}
+  .vp-chip.a.on{background:linear-gradient(135deg,#D99A1C,#FFC857); color:#2A1A00; box-shadow:0 6px 22px rgba(255,200,87,.35);}
+  .vp-chip.r.on{background:linear-gradient(135deg,#E0314F,#FF5C7A); color:#2D0510; box-shadow:0 6px 22px rgba(255,92,122,.35);}
+  .vp-chip.accent{background:linear-gradient(135deg,#1E5BB8,#3DD6FF); color:#04101F; border-color:transparent; box-shadow:0 6px 22px rgba(61,214,255,.30);}
+  .vp-chip.accent:hover{color:#04101F; filter:brightness(1.1);}
+
+  .vp-sticky{position:sticky; top:10px; z-index:30; margin:0 0 6px;}
+  .vp-ctl{display:flex; gap:12px 30px; flex-wrap:wrap; align-items:center; padding:14px 24px; border-radius:22px; background:rgba(6,11,26,.96); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.13); box-shadow:0 20px 56px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08);}
+  .vp-ctl .vp-cap{margin-bottom:7px;}
+  .vp-ctlr{margin-left:auto; display:flex; gap:22px; align-items:center;}
+  .vp-bigv{font-size:26px; font-weight:800; color:#fff; letter-spacing:-.8px; line-height:1.1; font-variant-numeric:tabular-nums;}
+  .vp-bigv.c{color:var(--wk-cyan); text-shadow:0 0 22px rgba(61,214,255,.45);}
+  .vp-chips{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 4px; padding:0 4px;}
+  .vp-chips .wk-chip{padding:7px 18px; font-size:13.5px;}
+  .vp-in{font:700 15px Poppins,"Segoe UI",sans-serif; color:#fff; background:rgba(255,255,255,.07); border:1px solid var(--wk-line); border-radius:11px; padding:8px 10px; width:88px; text-align:right; outline:none; font-variant-numeric:tabular-nums;}
+  .vp-in:focus{border-color:var(--wk-cyan); box-shadow:0 0 0 3px rgba(61,214,255,.18);}
+  .vp-in.w{width:100%;}
+  .vp-in.s{text-align:center; padding:7px 4px; font-size:15px;}
+  .vp-range{-webkit-appearance:none; appearance:none; width:clamp(110px,11vw,190px); height:10px; border-radius:99px; background:linear-gradient(90deg,var(--wk-cyan) var(--p,50%),rgba(255,255,255,.14) var(--p,50%)); outline:none; cursor:pointer;}
+  .vp-range::-webkit-slider-thumb{-webkit-appearance:none; width:26px; height:26px; border-radius:50%; background:#fff; border:4px solid var(--wk-cyan); box-shadow:0 0 18px rgba(61,214,255,.7); cursor:grab;}
+  .vp-range::-moz-range-thumb{width:20px; height:20px; border-radius:50%; background:#fff; border:4px solid var(--wk-cyan);}
+  .vp-pill{display:inline-flex; align-items:center; gap:7px; padding:6px 15px; border-radius:99px; font-size:13.5px; font-weight:700; white-space:nowrap;}
+  .vp-pill:before{content:""; width:8px; height:8px; border-radius:50%; background:currentColor;}
+  .vp-pill.sm{padding:3px 11px; font-size:12px;}
+  .vp-pill.lv0{background:rgba(47,226,155,.16); color:#4CE8AB;} .vp-pill.lv1{background:rgba(255,200,87,.16); color:#FFD479;} .vp-pill.lv2{background:rgba(255,154,77,.17); color:#FFB27A;} .vp-pill.lv3{background:rgba(255,92,122,.17); color:#FF8CA2;} .vp-pill.vi{background:rgba(139,124,255,.20); color:#B5AAFF;} .vp-pill.gr{background:rgba(255,255,255,.09); color:#CFE0FA;}
+
+  .vp-g{display:grid; gap:22px; align-items:start; margin-bottom:22px;}
+  .vp-g.c31{grid-template-columns:minmax(0,2.3fr) minmax(0,1fr);} .vp-g.c11{grid-template-columns:minmax(0,1fr) minmax(0,1fr);} .vp-g.c32{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);}
+  .vp-g>.wk-card,.vp-stack>.wk-card{margin-bottom:0;} .vp-stack{display:grid; gap:22px; align-content:start;}
+  .vp-g.stretch{align-items:stretch;}
+  @media(max-width:1100px){.vp-g.c11,.vp-g.c32,.vp-g.c31{grid-template-columns:1fr;}}
+  .wk-band{scroll-margin-top:150px;} .wk-card{scroll-margin-top:150px;}
+  .vp-card1{margin-bottom:22px;}
+  .vp-hero-grid .wk-hero-val{font-size:50px; white-space:nowrap;} .vp-hero-grid .wk-hero.vp-long .wk-hero-val{font-size:40px;}
+  .vp-hero-grid .wk-hero{min-height:230px;}
+  .vp-src{font-size:12.5px; color:rgba(255,255,255,.62); margin-top:10px; line-height:1.4;}
+  .vp-note{font-size:14px; color:var(--wk-grey); line-height:1.6; margin-top:14px;}
+  .vp-note b{color:#fff;}
+  .vp-soft{font-size:14.5px; line-height:1.55; padding:13px 16px; border-radius:14px; background:rgba(255,255,255,.06); border:1px solid var(--wk-line); color:#E3ECFA; margin-top:14px;}
+  .vp-soft.vi{background:rgba(139,124,255,.14); border-color:rgba(139,124,255,.45); color:#D5CFFF;}
+  .vp-legend{display:flex; gap:20px; flex-wrap:wrap; font-size:13.5px; color:var(--wk-grey); margin:10px 0 16px;}
+  .vp-legend i{display:inline-block; width:12px; height:12px; border-radius:4px; margin-right:7px; vertical-align:-1px;}
+  .vp-chart{width:100%; height:auto; display:block;}
+  .vp-chart text{font:600 12px Poppins,"Segoe UI",sans-serif; fill:#8FA3C6;} .vp-chart .val{fill:#F2F7FF; font-weight:700; font-size:13px;} .vp-chart .big{font-size:13px;} .vp-chart .dim{fill:#6E82A6; font-size:12px;} .vp-chart .cap2{font:700 11.5px Poppins,sans-serif; letter-spacing:1.2px; fill:#7D8FAE;}
+  .vp-chart .grid{stroke:rgba(255,255,255,.09); stroke-dasharray:3 4;} .vp-chart .axis{stroke:rgba(255,255,255,.22);} .vp-chart .conn{stroke:rgba(255,255,255,.28); stroke-dasharray:3 3;} .vp-chart .meta{stroke:#FFC857; stroke-width:1.8; stroke-dasharray:6 5;}
+  .vp-metrics{display:grid; gap:16px;}
+  .vp-metric{padding:14px 18px; border-radius:16px; background:rgba(255,255,255,.05); border:1px solid var(--wk-line);}
+  .vp-metric b{display:block; font-size:30px; font-weight:800; color:#fff; letter-spacing:-.7px; margin:3px 0 1px; font-variant-numeric:tabular-nums;}
+  .vp-metric b.vi{color:#B5AAFF;} .vp-metric b.cy{color:var(--wk-cyan);} .vp-metric b.gr{color:#4CE8AB;} .vp-metric b.rd{color:#FF8CA2;}
+  .vp-metric span{font-size:13px; color:var(--wk-grey);}
+
+  /* mapa de aprobación por precio */
+  .vp-map{position:relative; margin:46px 0 14px;}
+  .vp-zones{display:flex; height:38px; border-radius:99px; overflow:hidden; box-shadow:0 0 0 1px rgba(255,255,255,.12);}
+  .vp-zones>div{display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; color:rgba(0,0,0,.72); white-space:nowrap; overflow:hidden; transition:width .5s ease; cursor:default;}
+  .vp-zones>div.z0{background:linear-gradient(90deg,#5A1424,#8F1F39); color:#FFC2CE;} .vp-zones>div.z3{background:linear-gradient(90deg,#E0314F,#FF5C7A);} .vp-zones>div.z2{background:linear-gradient(90deg,#F2812F,#FFA05A);} .vp-zones>div.z1{background:linear-gradient(90deg,#E6B02E,#FFD479);} .vp-zones>div.z4{background:linear-gradient(90deg,#14B87A,#47E8A8);}
+  .vp-pin{position:absolute; top:-40px; transform:translateX(-50%); transition:left .5s cubic-bezier(.2,.8,.2,1); text-align:center; pointer-events:none;}
+  .vp-pin b{display:block; background:#fff; color:#06101F; border-radius:99px; padding:3px 12px; font-size:13.5px; font-weight:800; white-space:nowrap; box-shadow:0 0 22px rgba(255,255,255,.55);}
+  .vp-pin:after{content:""; display:block; width:3px; height:48px; margin:0 auto; background:#fff; box-shadow:0 0 14px rgba(255,255,255,.9);}
+
+  /* riesgo */
+  .vp-drv{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px 16px; align-items:center; padding:12px 0; border-top:1px solid var(--wk-line);}
+  .vp-drv:first-child{border-top:0;} .vp-drv .nm{font-size:15px; line-height:1.4; color:#E3ECFA;} .vp-drv .nm small{color:var(--wk-greyl); font-size:12.5px; margin-left:6px;}
+  .vp-hm{display:grid; grid-template-columns:150px repeat(4,minmax(0,1fr)); gap:10px; align-items:stretch;}
+  .vp-hm .rl{align-self:center; font-size:14.5px; font-weight:600; color:#E3ECFA;} .vp-hm .ch{text-align:center; align-self:end;}
+  .vp-cell{--c:47,226,155; text-align:center; padding:16px 6px; border-radius:16px; background:rgba(var(--c),.13); border:2px solid rgba(var(--c),.45); animation:wkpop .5s ease both; animation-delay:calc(var(--bi,0)*45ms); animation-play-state:paused; transition:transform .2s,box-shadow .2s; cursor:default;}
+  .wk-vis .vp-cell{animation-play-state:running;} .vp-cell:hover{transform:translateY(-3px) scale(1.03); box-shadow:0 0 30px rgba(var(--c),.45);}
+  .vp-cell .t{font-size:26px; font-weight:800; color:rgb(var(--c)); letter-spacing:-.6px; font-variant-numeric:tabular-nums;} .vp-cell .e{font-size:14px; color:#E3ECFA; margin-top:2px;} .vp-cell .g{font-size:12.5px; font-weight:700; color:rgb(var(--c)); margin-top:4px;}
+  .vp-cell.sel{border-color:#fff; box-shadow:0 0 0 2px rgba(255,255,255,.25),0 0 34px rgba(var(--c),.55);}
+  /* hitos */
+  .vp-months{display:grid; grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:12px; margin:6px 0 10px;}
+  .vp-mo{border:1px solid var(--wk-line); background:rgba(255,255,255,.04); border-radius:16px; padding:11px 9px; text-align:center;}
+  .vp-mo .am{font-size:13px; color:var(--wk-grey); margin:6px 0 8px; font-variant-numeric:tabular-nums;} .vp-mo .vp-row{justify-content:center; gap:6px;}
+  .vp-field .vp-cap{margin-bottom:6px;}
+  .vp-empty{text-align:center; padding:70px 24px!important;} .vp-empty .ic{font-size:64px; line-height:1; margin-bottom:12px;} .vp-empty h2{font-size:30px; color:#fff; margin:0 0 10px; font-weight:800;} .vp-empty p{max-width:680px; margin:0 auto 22px; font-size:16px; line-height:1.6; color:var(--wk-grey);}
+  .vp-empty label{display:inline-block; cursor:pointer;}
+  .vp-pol{font-size:13px; color:var(--wk-greyl); margin-top:10px; line-height:1.55;}
+  .onlyprint{display:none;}
+  .vp-nw td.wk-num{white-space:nowrap;} .vp-nw td{padding:11px 12px!important;}
+  .vp-wi .wk-wi-out{justify-items:stretch;} .vp-wi .wk-stat-row{grid-template-columns:repeat(2,minmax(0,1fr));} .vp-wi .wk-gauge{margin:0 auto;}
+  .vp-wi .wk-wi{grid-template-columns:minmax(280px,1fr) minmax(300px,1.1fr);} .vp-wi .wk-gauge{max-width:300px;}
+  @page{size:A4; margin:10mm;}
+  @media print{
+    nav.topnav, header, #statusBox, .noprint{display:none !important;}
+    .onlyprint{display:block !important; margin-bottom:16px; font-size:12.5px; line-height:1.6; color:#CFE0FA;}
+    body.wk-dark{background:#060C1B!important; background-attachment:scroll!important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    *{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .wk-main{zoom:1!important; padding:0!important;}
+    .wk-card,.wk-hero{break-inside:avoid; box-shadow:none!important; backdrop-filter:none!important;}
+    .wk-rv{opacity:1!important; transform:none!important;}
+    .wk-arc,.wk-line,.wk-areafill,.wk-seg,.wk-colbar,.wk-pt,.wk-bullet-fill,.wk-rank-row .t i,.wk-bar>i,.vp-cell{animation:none!important;}
+    .vp-sticky{position:static;}
+  }
+</style>
+</head>
+<body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){}
+})();
+</script>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html" class="active">Tablero VOP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<header>
+  <div>
+    <h1>📊 Tablero VOP — Economía del deal</h1>
+    <p>Carga la hoja de estimación (proyecto, T&amp;M, rollout) o la calculadora AMS y revisa márgenes, aprobación, flujo de caja y riesgo</p>
+  </div>
+  <label class="upload-label" for="fileInput">⬆️ Cargar hoja de estimación o AMS</label>
+  <input type="file" id="fileInput" accept=".xlsx,.xls">
+</header>
+
+<main class="wk-main">
+  <div id="statusBox"></div>
+  <div id="vopMount"></div>
+</main>
+<script>
+// ---- Lectura de hojas ----
+function vopCell(ws, a){ const c = ws && ws[a]; return c ? c.v : null; }
+function vopNum(x){ return (typeof x === 'number' && isFinite(x)) ? x : 0; }
+function vopRows(ws){ return XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true }); }
+function vopFecha(v){
+  const f = (window.WK && WK.fecha) ? WK.fecha(v) : null;
+  return f || (v ? String(v) : '');
+}
+function parsearVOPProyecto(wb, fname){
+  const me = wb.Sheets['Modelo Económico'], dp = wb.Sheets['Datos Proyecto'], pl = wb.Sheets['Plan de Proyecto'], eq = wb.Sheets['Equipo Consultoría'];
+  if(!me || !dp || !pl || !eq) throw new Error('Faltan pestañas de la hoja de estimación (Modelo Económico, Datos Proyecto, Plan de Proyecto, Equipo Consultoría).');
+  const cb = vopNum(vopCell(me, 'C13'));
+  if(!cb) throw new Error('La hoja no trae costo del proyecto (Modelo Económico C13).');
+  const cols = ['F','G','H','J','K'];
+  const G = { pm: cols.map(c => vopNum(vopCell(me, c + '39'))), fu: cols.map(c => vopNum(vopCell(me, c + '40'))), te: cols.map(c => vopNum(vopCell(me, c + '41'))) };
+  const jt = vopNum(vopCell(me, 'L42')) || [].concat(G.pm, G.fu, G.te).reduce((a,b)=>a+b, 0);
+  const R = vopRows(pl);
+  const JM = { pm: [0], fu: [0], te: [0] }, CM = [0];
+  let nMax = 0;
+  for(let b = 0; b < 5; b++){
+    const start = 8 + 31 * b;
+    for(let i = 0; i < 30; i++){
+      const row = R[start + 1 + i]; if(!row) continue;
+      const rate = vopNum(row[3]); if(!rate) continue;
+      const eg = String(vopCell(eq, 'G' + (7 + i)) || '');
+      const g = /gerencia/i.test(eg) ? 'pm' : /t[eé]cnic/i.test(eg) ? 'te' : 'fu';
+      for(let w = 1; w <= 156; w++){
+        const v = vopNum(row[4 + w]); if(!v) continue;
+        const m = Math.ceil(w / 4);
+        while(CM.length <= m){ CM.push(0); JM.pm.push(0); JM.fu.push(0); JM.te.push(0); }
+        JM[g][m] += v; CM[m] += v * rate; if(m > nMax) nMax = m;
+      }
+    }
+  }
+  if(!nMax) throw new Error('El Plan de Proyecto no trae jornadas por semana.');
+  const sumCM = CM.reduce((a,b)=>a+b, 0);
+  const k = sumCM > 0 ? cb / sumCM : 1;
+  for(let m = 0; m < CM.length; m++) CM[m] *= k;
+  const cp = String(vopCell(dp, 'B6') || '');
+  const pp = cp.split(/\s+\+\s+/);
+  const p10 = vopNum(vopCell(me, 'G10')), p11 = vopNum(vopCell(me, 'G11'));
+  return { cb, jt, G, JM, CM, n: nMax, gar: vopNum(vopCell(dp, 'B22')), cliente: pp[0] || cp, producto: pp.slice(1).join(' + '), id: vopCell(dp, 'B7') || '', desc: vopCell(dp, 'E4') || '', gc: vopCell(dp, 'B4') || '', gn: vopCell(dp, 'B5') || '', tc: (p10 && p11) ? p11 / p10 : 0, acv: vopNum(vopCell(me, 'C19')), tcv: vopNum(vopCell(me, 'C20')), ccf: (vopCell(me, 'C21') == null ? 0.10 : vopNum(vopCell(me, 'C21'))) * 100, dealFromSheet: (vopNum(vopCell(me, 'C19')) + vopNum(vopCell(me, 'C20'))) > 0, file: fname };
+}
+function parsearVOPAMS(wb, fname){
+  const rc = wb.Sheets['1. Recursos'], rs = wb.Sheets['3. Resumen'], ad = wb.Sheets['2. Costos adicionales'];
+  if(!rc || !rs) throw new Error('Faltan pestañas de la calculadora AMS (1. Recursos, 3. Resumen).');
+  const R = vopRows(rc), res = [];
+  for(let r = 7; r <= 21; r++){
+    const row = R[r]; if(!row) continue;
+    const rate = vopNum(row[3]), hm = vopNum(row[4]), meses = vopNum(row[5]);
+    if(rate > 0 && hm > 0 && meses > 0) res.push({ mod: row[1] || '', role: row[2] || '', rate, hm, meses });
+  }
+  if(!res.length) throw new Error('La hoja AMS no trae recursos.');
+  const recursos = res.reduce((a,r) => a + r.rate * r.hm * r.meses, 0);
+  const extra = ad ? vopNum(vopCell(ad, 'G23')) : 0;
+  const vig = vopNum(vopCell(rs, 'D10')) || 12;
+  const hrs = res.reduce((a,r) => a + r.hm * r.meses, 0);
+  const pmH = res.filter(r => /^pm$/i.test(String(r.mod)) || /gerente|project manager/i.test(r.role)).reduce((a,r) => a + r.hm, 0);
+  return { cb: recursos + extra, recursos, extra, res, vig, hrs, hm: res.reduce((a,r) => a + r.hm, 0), pmH, oh: vopNum(vopCell(rs, 'D14')), ct: vopNum(vopCell(rs, 'D15')), util: vopNum(vopCell(rs, 'D16')) || 0.10, cliente: vopCell(rs, 'D6') || '', proyecto: vopCell(rs, 'D7') || '', resp: vopCell(rs, 'D8') || '', fecha: vopFecha(vopCell(rs, 'D9')), tc: vopNum(vopCell(rs, 'H29')) || 17.2, precioHoja: vopNum(vopCell(rs, 'E28')), file: fname };
+}
+
+// ---- Formatos (USD, igual que la hoja) ----
+const money = (n) => (n < 0 ? '-$' : '$') + Math.round(Math.abs(n)).toLocaleString('en-US');
+const short = (n) => { const a = Math.abs(n); const t = a >= 1e6 ? (a / 1e6).toFixed(a >= 1e7 ? 0 : 1) + 'M' : a >= 1e3 ? Math.round(a / 1e3) + 'K' : String(Math.round(a)); return (n < 0 ? '-$' : '$') + t; };
+const pc = (n) => (n * 100).toFixed(1) + '%';
+const tp = (x) => Math.round(x * 100) + '%';
+const esc = (s) => WK.esc(s);
+
+// Niveles de aprobación Deal Desk
+const LV = [
+  { tag: 'Sin aprobación', short: 'Sin aprob.', tone: 'green', rgb: '47,226,155' },
+  { tag: 'Nivel 1', short: 'Nivel 1', tone: 'amber', rgb: '255,200,87' },
+  { tag: 'Nivel 2', short: 'Nivel 2', tone: 'amber', rgb: '255,154,77' },
+  { tag: 'Nivel 3', short: 'Nivel 3', tone: 'red', rgb: '255,92,122' }
+];
+const RISK_DEF = [
+  ['Claridad de alcance (DDA, supuestos abiertos)', 0.20, 'Costo'],
+  ['Experiencia de SEIDOR en este tipo de proyecto', 0.15, 'Costo'],
+  ['Complejidad técnica (integraciones, desarrollos)', 0.20, 'Costo'],
+  ['Dependencia de terceros e integrados', 0.10, 'Costo'],
+  ['Madurez del cliente y patrocinio', 0.10, 'Costo'],
+  ['Condiciones comerciales (boletas, pago diferido)', 0.10, 'Alerta'],
+  ['Disponibilidad de recursos', 0.15, 'Alerta']
+];
+
+class Component {
+  constructor() {
+    this.data = {};
+    this.state = { mode: 'proj', tgt: { proj: 35, ams: 10 }, dev: 0, dso: 1, deal: { acv: 0, tcv: 0, ccf: 10 }, risk: [1, 1, 1, 1, 1, 1, 1], pct: { proj: [], ams: [] }, fte: '', ebm: { on: false, pct: 5 }, hp: 0 };
+    this.onChange = null;
+  }
+  load(type, data) {
+    this.data[type] = data;
+    const s = this.state;
+    if (type === 'proj') {
+      const n = data.n;
+      s.pct.proj = [20].concat(new Array(n).fill(80 / n), [0, 0]); s.tgt.proj = 35;
+      s.deal = { acv: data.acv || 0, tcv: data.tcv || 0, ccf: data.ccf };
+    } else {
+      const v = data.vig;
+      s.pct.ams = [20].concat(new Array(v).fill(80 / v)); s.tgt.ams = Math.round(data.util * 1000) / 10;
+    }
+    if (type === 'ams') s.hp = 0;
+    s.mode = type; s.dev = 0; s.risk = [1, 1, 1, 1, 1, 1, 1];
+  }
+  has() { return !!(this.data.proj || this.data.ams); }
+  setState(o, full) { Object.assign(this.state, o); if (this.onChange) this.onChange(!!full); }
+  lim() { return this.state.mode === 'proj' ? [15, 60] : [0, 40]; }
+  setTgt(v) {
+    if (isNaN(v)) return;
+    const l = this.lim(), o = Object.assign({}, this.state.tgt); o[this.state.mode] = Math.max(l[0], Math.min(l[1], v));
+    this.setState(this.state.mode === 'ams' ? { tgt: o, hp: 0 } : { tgt: o });
+  }
+  setPct(k, v) {
+    const s = this.state, arr = s.pct[s.mode].slice(); arr[k] = Math.max(0, Math.min(100, v));
+    const o = Object.assign({}, s.pct); o[s.mode] = arr; this.setState({ pct: o });
+  }
+  setPctArr(arr) { const s = this.state, o = Object.assign({}, s.pct); o[s.mode] = arr.slice(); this.setState({ pct: o }); }
+  setHp(v) { this.setState({ hp: isNaN(v) || v <= 0 ? 0 : v }); }
+  setEbm(o) { const e = Object.assign({}, this.state.ebm, o); e.pct = isNaN(e.pct) ? 0 : Math.max(0, Math.min(50, e.pct)); this.setState({ ebm: e }); }
+  setDeal(k, v) { const o = Object.assign({}, this.state.deal || { acv: 0, tcv: 0, ccf: 10 }); o[k] = isNaN(v) ? 0 : Math.max(0, v); this.setState({ deal: o }); }
+
+  // Todos los cálculos económicos del deal (idénticos al tablero original); devuelve números listos para dibujar
+  calc() {
+    const s = this.state;
+    const isAms = s.mode === 'ams', isProj = !isAms;
+    const PD = this.data.proj, AD = this.data.ams, DD = isAms ? AD : PD;
+    const TC = DD.tc || 17.2;
+    const devs = [0, 0.1, 0.2, 0.3];
+    const dsos = [1, 2, 3];
+
+    // ---- modelo por tipo de deal ----
+    const SV = 0.03, SO = 0.01, SG = 0.187, SD = 0, TOT = SV + SO + SG + SD;
+    const OH = isAms ? 0.227 : 0, CT = isAms ? AD.ct : 0, HRS = isAms ? AD.hrs : 0, vigA = isAms ? AD.vig : 0, nP = isAms ? 0 : PD.n;
+    const Cb = DD.cb;
+    const cargoRate = isAms ? OH : TOT;
+    const tg = s.tgt[s.mode] / 100;
+    const priceOf = (u, cb) => (isAms ? cb * (1 + OH) * (1 + CT) / (1 - u) : cb / (1 - u));
+    // AMS: si capturas el precio por hora, el precio sale de ahí y la utilidad se deriva
+    const hpOn = isAms && s.hp > 0 && HRS > 0;
+    const P = hpOn ? s.hp * HRS : priceOf(tg, Cb);
+    const tgDer = hpOn ? 1 - Cb * (1 + OH) * (1 + CT) / P : tg;
+    // EBM: comisión (% sobre el precio de venta) que reduce el ingreso reconocido; los márgenes se miden sobre ese ingreso
+    const ebmOn = !!(s.ebm && s.ebm.on && s.ebm.pct > 0), e = ebmOn ? s.ebm.pct / 100 : 0, k = 1 - e;
+    const ebmAmt = P * e, Rv = P * k;
+    const d = devs[s.dev], Cd = Cb * (1 + d);
+    const brutoPre = P - Cd;
+    const bruto = Rv - Cd;
+    const variables = isProj ? Cd * SV : 0, ovh = isProj ? Cd * SO : 0, ga = isProj ? Cd * SG : 0;
+    const cargo = Cd * cargoRate;
+    const directo = bruto - variables, oper = directo - ovh;
+    const ebit = bruto - cargo;
+
+    // ---- riesgo ----
+    const R = RISK_DEF;
+    let score = 0, cscore = 0, cw = 0;
+    R.forEach((r, i) => {
+      score += r[1] * (s.risk[i] / 2) * 100;
+      if (r[2] === 'Costo') { cscore += r[1] * (s.risk[i] / 2) * 100; cw += r[1]; }
+    });
+    cscore = cscore / cw;
+    const rrate = cscore < 30 ? 0.03 : cscore < 60 ? 0.06 : 0.10;
+    const band = score < 30 ? 'Bajo' : score < 60 ? 'Medio' : 'Alto';
+    const fileRate = CT * (1 + OH);
+    const cont = isAms ? CT * Cb * (1 + OH) : rrate * Cb;
+    const contRate = isAms ? fileRate : rrate;
+    const ebitAdj = ebit - cont, brutoAdj = bruto - cont;
+    const alertMsgs = [];
+    if (s.risk[5] === 2) alertMsgs.push('Condiciones comerciales en Alto: revisa boletas de garantía, pago diferido y el flujo de caja.');
+    if (s.risk[6] === 2) alertMsgs.push('Recursos en Alto: revisa la carga de capacidad.');
+    if (band === 'Alto') alertMsgs.push('Calificación general Alta: escalar la revisión del deal.');
+    const riskCmp = isAms
+      ? (fileRate >= rrate ? 'La contingencia de la hoja (' + pc(fileRate) + ' del costo) cubre lo que sugiere el riesgo (' + pc(rrate) + ').' : 'La contingencia de la hoja (' + pc(fileRate) + ' del costo) es menor a la sugerida por el riesgo (' + pc(rrate) + '). Diferencia: ' + money((rrate - fileRate) * Cb) + '.')
+      : 'La contingencia sale solo de los criterios de tipo Costo y se resta del EBIT.';
+
+    // ---- niveles de aprobación ----
+    const T = isAms ? [0.40, 0.35, 0.30] : [0.35, 0.30, 0.25];
+    const lvOf = (b) => (b >= T[0] ? 0 : b >= T[1] ? 1 : b >= T[2] ? 2 : 3);
+    const bp = Math.round((bruto / Rv) * 1000) / 1000;
+    const li = lvOf(bp), L = LV[li];
+    const msgs = ['Margen bruto en o sobre ' + tp(T[0]) + ': no requiere aprobación.', 'Margen bruto entre ' + tp(T[1]) + ' y ' + tp(T[0]) + ': requiere aprobación de Nivel 1.', 'Margen bruto entre ' + tp(T[2]) + ' y ' + tp(T[1]) + ': requiere aprobación de Nivel 2.', 'Margen bruto menor a ' + tp(T[2]) + ': requiere aprobación de Nivel 3.'];
+    const policy = 'Política Deal Desk' + (isAms ? ' AMS' : '') + ' sobre margen bruto (' + (ebmOn ? 'ingreso reconocido' : 'precio') + ' − costo directo): ≥ ' + tp(T[0]) + ' sin aprobación · ' + tp(T[1]) + '–' + tp(T[0]) + ' Nivel 1 · ' + tp(T[2]) + '–' + tp(T[1]) + ' Nivel 2 · < ' + tp(T[2]) + ' Nivel 3.';
+    const sem = { label: li === 0 ? 'Sin aprobación' : L.tag + ' de aprobación', msg: msgs[li] + (ebitAdj < 0 ? ' El EBIT ajustado por riesgo es negativo.' : '') };
+
+    const pAt = (x) => Cd / ((1 - x) * k);
+    const curLow = li < 3 ? T[li] : null;
+    const cushAmt = curLow ? P - pAt(curLow) : 0;
+    const eqPrice = Cd * (1 + cargoRate) / k;
+    const crow = (idx, rule, price) => ({ idx, tag: LV[idx].tag, rule, price, delta: P - price >= 0 ? 'Bajar ' + money(P - price) + ' (' + pc((P - price) / P) + ')' : 'Subir ' + money(price - P) });
+    const cush = {
+      rows: [
+        crow(0, 'Bruto ≥ ' + tp(T[0]), pAt(T[0])),
+        crow(1, 'Bruto ≥ ' + tp(T[1]), pAt(T[1])),
+        crow(2, 'Bruto ≥ ' + tp(T[2]), pAt(T[2])),
+        { idx: -1, tag: 'Equilibrio', rule: 'EBIT = 0 (costo × ' + (1 + cargoRate).toFixed(3) + (ebmOn ? ' ÷ ' + k.toFixed(3) : '') + ')', price: eqPrice, delta: 'Bajar ' + money(P - eqPrice) + ' (' + pc((P - eqPrice) / P) + ')' }
+      ],
+      msg: li === 3 ? 'Estás en Nivel 3. Sube el precio a ' + money(pAt(T[2])) + ' (+' + money(pAt(T[2]) - P) + ') para llegar a Nivel 2.' : (cushAmt < 1 ? 'Estás justo en el límite de ' + L.tag.toLowerCase() + ': cualquier descuento pasa a ' + LV[li + 1].tag + '.' : 'Puedes bajar ' + money(cushAmt) + ' (' + pc(cushAmt / P) + ') y seguir en ' + L.tag + '.')
+    };
+
+    // ---- escalera de márgenes ----
+    const lrow = (label, how, v, total, den) => ({ label, how, amt: total ? money(v) : '− ' + money(Math.abs(v)), pct: pc((total ? v : Math.abs(v)) / (den || Rv)), total });
+    const ebmLadder = ebmOn ? [lrow('Comisión EBM', pc(e) + ' del precio de venta (' + money(P) + ')', ebmAmt, false, P), lrow('Ingreso reconocido', 'Precio − comisión EBM (% del precio de venta)', Rv, true, P)] : [];
+    const ladder = ebmLadder.concat(isProj ? [
+      lrow('Costo del proyecto', 'Consultoría + 3ros + provisiones + viáticos', Cd, false),
+      lrow('Margen bruto', (ebmOn ? 'Ingreso reconocido' : 'Precio') + ' − costo del proyecto', bruto, true),
+      lrow('Comisión y costos variables', '3.0% del costo: comisión AE, preventa', variables, false),
+      lrow('Margen directo', 'Bruto − variables', directo, true),
+      lrow('Overhead de delivery', '1.0% del costo: bench, PMO, práctica', ovh, false),
+      lrow('Margen operativo', 'Directo − overhead de delivery', oper, true),
+      lrow('G&A corporativo', '18.7% del costo: finanzas, RRHH, TI', ga, false),
+      lrow('EBITDA / EBIT', 'Operativo − G&A (D&A = 0%)', ebit, true)
+    ] : [
+      lrow('Costo directo', 'Recursos de horas + costos adicionales', Cd, false),
+      lrow('Margen bruto', (ebmOn ? 'Ingreso reconocido' : 'Precio') + ' − costo directo', bruto, true),
+      lrow('Cargo de finanzas', pc(OH) + ' del costo directo', cargo, false),
+      lrow('EBITDA / EBIT', 'Bruto − cargo de finanzas (antes de contingencia)', ebit, true),
+      lrow('Contingencia', pc(CT) + ' sobre costo + overhead', cont, false),
+      lrow('Utilidad (EBIT ajustado)', 'EBIT − contingencia; coincide con la hoja AMS', ebitAdj, true)
+    ]);
+    const cargoNote = isProj
+      ? 'Cargo de finanzas: 22.7% del costo = ' + money(Cd * TOT) + ' (variables 3 · overhead de delivery 1 · G&A 18.7 · D&A 0). Con D&A en 0, EBITDA y EBIT son una sola línea.'
+      : 'Cargo completo de finanzas en AMS: ' + pc(OH) + ' del costo directo = ' + money(cargo) + '. EBITDA y EBIT son una sola línea.';
+
+    // ---- cascada (pasos con su rango para dibujar) ----
+    const wfEbm = ebmOn ? [['EBM', 'Comisión EBM', 'ded', ebmAmt, Rv, P, pc(e) + ' del precio de venta'], ['Ingreso', 'Ingreso reconocido', 'tot', Rv, 0, Rv, 'Precio − comisión EBM']] : [];
+    const wf = (isProj ? [
+      ['Precio', 'Precio de venta', 'tot', P, 0, P, 'Costo ÷ (1 − margen objetivo)'],
+      ...wfEbm,
+      ['Costo', 'Costo del proyecto', 'ded', Cd, Rv - Cd, Rv, 'Consultoría + 3ros + provisiones + viáticos'],
+      ['Bruto', 'Margen bruto', 'tot', bruto, 0, bruto, (ebmOn ? 'Ingreso reconocido' : 'Precio') + ' − costo del proyecto'],
+      ['Variables', 'Comisión y costos variables', 'ded', variables, directo, bruto, '3.0% del costo'],
+      ['Directo', 'Margen directo', 'tot', directo, 0, directo, 'Bruto − variables'],
+      ['Overhead', 'Overhead de delivery', 'ded', ovh, oper, directo, '1.0% del costo'],
+      ['Operativo', 'Margen operativo', 'tot', oper, 0, oper, 'Directo − overhead'],
+      ['G&A', 'G&A corporativo', 'ded', ga, ebit, oper, '18.7% del costo'],
+      ['EBIT', 'EBITDA / EBIT', 'fin', ebit, 0, ebit, 'Operativo − G&A (D&A = 0%)']
+    ] : [
+      ['Precio', 'Precio de venta', 'tot', P, 0, P, 'Costo operativo ÷ (1 − utilidad)'],
+      ...wfEbm,
+      ['Costo', 'Costo directo', 'ded', Cd, Rv - Cd, Rv, 'Recursos de horas + costos adicionales'],
+      ['Bruto', 'Margen bruto', 'tot', bruto, 0, bruto, (ebmOn ? 'Ingreso reconocido' : 'Precio') + ' − costo directo'],
+      ['Cargo fin.', 'Cargo de finanzas', 'ded', cargo, ebit, bruto, pc(OH) + ' del costo directo'],
+      ['EBIT', 'EBITDA / EBIT', 'tot', ebit, 0, ebit, 'Bruto − cargo de finanzas'],
+      ['Conting.', 'Contingencia', 'ded', cont, ebitAdj, ebit, pc(CT) + ' sobre costo + overhead'],
+      ['Utilidad', 'Utilidad (EBIT ajustado)', 'fin', ebitAdj, 0, ebitAdj, 'EBIT − contingencia']
+    ]).map((a, i) => ({ label: a[0], name: a[1], kind: a[2], v: a[3], lo: a[4], hi: a[5], how: a[6], den: (ebmOn && i < 3) ? P : Rv }));
+
+    // tarifa de lista del sitio de precios (data.js): AMS por hora; proyecto por jornada (categoría Implementación)
+    const lista = (() => {
+      try {
+        const sv = (typeof INDIVIDUAL_SERVICES !== 'undefined' ? INDIVIDUAL_SERVICES : []).filter((x) => x.category === (isProj ? 'Implementación' : 'AMS'));
+        if (!sv.length) return null;
+        const rs = sv.map((x) => x.rate), avg = rs.reduce((q, v) => q + v, 0) / rs.length;
+        return { avg, min: Math.min(...rs), max: Math.max(...rs), upd: typeof LAST_UPDATED !== 'undefined' ? LAST_UPDATED : '' };
+      } catch (e) { return null; }
+    })();
+    const listNote = (eff, unit) => {
+      if (!lista) return 'Tarifa de lista (sitio de precios): no disponible.';
+      const dif = eff / lista.avg - 1;
+      return 'Tarifa de lista (sitio de precios' + (lista.upd ? ', ' + lista.upd : '') + '): promedio ' + money(lista.avg) + ' ' + unit + ' (rango ' + money(lista.min) + ' a ' + money(lista.max) + '). Tu tarifa efectiva está ' + pc(Math.abs(dif)) + (dif < 0 ? ' por debajo' : ' por encima') + ' del promedio de lista.';
+    };
+    const rate = isProj
+      ? { title: 'Tarifa efectiva por jornada', sub: 'Precio ÷ ' + PD.jt + ' jornadas vendidas.', eff: money(P / PD.jt), cost: money(Cd / PD.jt), mg: money((Rv - Cd) / PD.jt), effN: P / PD.jt, costN: Cd / PD.jt, mgN: (Rv - Cd) / PD.jt, note: listNote(P / PD.jt, 'por jornada (Implementación)'), listN: lista ? lista.avg : 0 }
+      : { title: 'Tarifa efectiva por hora', sub: 'Precio ÷ ' + Math.round(HRS) + ' horas del contrato (equivale a ' + money(P / HRS * 8) + ' por jornada).', eff: money(P / HRS), cost: money(Cd / HRS), mg: money((Rv - Cd) / HRS), effN: P / HRS, costN: Cd / HRS, mgN: (Rv - Cd) / HRS, note: listNote(P / HRS, 'por hora (AMS)') + ' La hoja AMS divide entre 600 horas fijas; aquí se usan las ' + Math.round(HRS) + ' reales del detalle de recursos.', listN: lista ? lista.avg : 0 };
+
+    // ---- curvas para las gráficas de los tiles ----
+    const mgPts = isProj ? [20, 25, 30, 35, 40, 45, 50, 55] : [0, 5, 10, 15, 20, 25, 30, 35];
+    const priceCurve = { vals: mgPts.map((m) => priceOf(m / 100, Cb)), labels: mgPts.map((m) => m + '%') };
+    const ebitAdjOf = (dv) => { const c2 = Cb * (1 + dv); return (Rv - c2 - c2 * cargoRate - cont) / Rv; };
+    const devCurve = { vals: devs.map(ebitAdjOf), labels: devs.map((dv) => dv === 0 ? 'Base' : '+' + Math.round(dv * 100) + '%') };
+
+    // ---- costo mensual esperado ----
+    const G = isProj ? PD.G : { pm: [], fu: [], te: [] };
+    const JM = isProj ? PD.JM : { pm: [], fu: [], te: [] };
+    const CM = isProj ? PD.CM : [];
+    const jm = { pm: [], fu: [], te: [] };
+    ['pm', 'fu', 'te'].forEach((g) => { for (let k = 0; k <= nP; k++) jm[g][k] = (JM[g][k] || 0) * (1 + d); });
+    const vig = isAms ? vigA : nP;
+
+    // ---- flujo de caja ----
+    const pctArr = s.pct[s.mode];
+    const hm = pctArr.length;
+    const dm = dsos[s.dso];
+    const N = hm + dm;
+    const cost = new Array(N).fill(0);
+    if (isProj) { for (let k = 1; k <= nP; k++) cost[k] = (CM[k] || 0) * (1 + d); }
+    else { for (let k = 1; k <= vigA; k++) cost[k] = Cd / vigA; }
+    const fact = new Array(N).fill(0), cob = new Array(N).fill(0);
+    pctArr.forEach((p, k) => { fact[k] = P * p / 100; cob[k + dm] += Rv * p / 100; });
+    const cumCob = [], cumCost = [];
+    let a1 = 0, a2 = 0;
+    for (let k = 0; k < N; k++) { a1 += cob[k]; a2 += cost[k]; cumCob[k] = a1; cumCost[k] = a2; }
+    const gapA = cumCob.map((v, k) => v - cumCost[k]);
+    let lastNeg = -1, minIdx = 0;
+    gapA.forEach((v, k) => { if (v < -1) lastNeg = k; if (v < gapA[minIdx]) minIdx = k; });
+    let peakCost = 0, peakCostK = 1;
+    for (let k = 0; k < N; k++) if (cost[k] > peakCost) { peakCost = cost[k]; peakCostK = k; }
+    const totalCost = cost.reduce((q, v) => q + v, 0);
+    const lastCostK = vig;
+    const cash = {
+      N, hm, dm, cob, cost, fact, cumCob, cumCost, gapA,
+      maxBar: Math.max(1, ...cob, ...cost), maxCum: Math.max(1, ...cumCob, ...cumCost),
+      peakCostTxt: money(peakCost) + ' / mes', costNote: 'Pico en M' + peakCostK + ' · total ' + money(totalCost),
+      peakAmt: -Math.min(0, ...gapA), peak: money(-Math.min(0, ...gapA)), peakAt: gapA[minIdx] < -1 ? 'En el mes ' + minIdx : 'Sin déficit',
+      be: lastNeg < 0 ? 'Sin déficit' : 'Mes ' + (lastNeg + 1),
+      cover: 'Al cierre del costo (M' + lastCostK + '): ' + (cumCost[lastCostK] > 0 ? pc(cumCob[lastCostK] / cumCost[lastCostK]) : '—') + ' cubierto',
+      final: money(gapA[N - 1]), finalAmt: gapA[N - 1]
+    };
+    const sumPct = pctArr.reduce((q, v) => q + v, 0);
+    const okSum = Math.abs(sumPct - 100) < 0.05;
+    const sched = { ok: okSum, msg: okSum ? 'Suma 100%' : 'Suma ' + sumPct.toFixed(1) + '% (debe ser 100%)' };
+    const months = pctArr.map((p, k) => ({ k, p, label: k === 0 ? (isProj ? 'Anticipo' : 'M0') : 'M' + k, val: Math.round(p * 10) / 10, amt: money(P * p / 100) }));
+    const mkArr = (fn) => { const arr = new Array(hm).fill(0); fn(arr); return arr; };
+    const wsum = (nP * (nP + 1)) / 2;
+    const presets = isProj ? [
+      ['Durante el proyecto: 20% + ' + nP, mkArr((x) => { x[0] = 20; for (let k = 1; k <= nP; k++) x[k] = 80 / nP; })],
+      ['Toda la ventana', mkArr((x) => { x[0] = 20; for (let k = 1; k < hm; k++) x[k] = 80 / (hm - 1); })],
+      ['Anticipo 30%', mkArr((x) => { x[0] = 30; for (let k = 1; k <= nP; k++) x[k] = 70 / nP; })],
+      ['Cargado al final', mkArr((x) => { x[0] = 20; for (let k = 1; k <= nP; k++) x[k] = 80 * k / wsum; })]
+    ] : [
+      ['20% anticipo + ' + vigA + ' vencidos', mkArr((x) => { x[0] = 20; for (let k = 1; k <= vigA; k++) x[k] = 80 / vigA; })],
+      ['Mensual vencido sin anticipo', mkArr((x) => { for (let k = 1; k <= vigA; k++) x[k] = 100 / vigA; })],
+      ['30% anticipo + ' + vigA + ' vencidos', mkArr((x) => { x[0] = 30; for (let k = 1; k <= vigA; k++) x[k] = 70 / vigA; })],
+      ['Mensual anticipado', mkArr((x) => { for (let k = 0; k < vigA; k++) x[k] = 100 / vigA; })]
+    ];
+    const hmMin = isProj ? nP + 1 : vigA + 1;
+    const cashEbm = ebmOn ? ' Los cobros se muestran netos de la comisión EBM (' + pc(e) + ').' : '';
+    const cashNote = (isProj
+      ? 'Si la hoja trae más meses, la ventana crece con + hasta 36. El costo mensual viene del Plan de Proyecto de la hoja (semanas × tarifa por rol); las facturas posteriores a M' + nP + ' solo suman entradas.'
+      : 'El costo mensual esperado es parejo durante los ' + vigA + ' meses de vigencia; la ventana crece con + hasta 36 si la facturación se extiende.') + cashEbm;
+
+    // ---- capacidad ----
+    const nM = Math.max(1, nP);
+    const fteM = []; for (let k = 1; k <= nP; k++) fteM[k] = { pm: jm.pm[k] / 20, fu: jm.fu[k] / 20, te: jm.te[k] / 20, jpm: jm.pm[k], jfu: jm.fu[k], jte: jm.te[k] };
+    const tot = (k) => fteM[k].pm + fteM[k].fu + fteM[k].te;
+    let peak = 0, sumF = 0, peakK = 1;
+    for (let k = 1; k <= nP; k++) { sumF += tot(k); if (tot(k) > peak) { peak = tot(k); peakK = k; } }
+    const fteAv = parseFloat(s.fte);
+    const hasFte = !isNaN(fteAv) && fteAv > 0;
+    const overM = [];
+    if (hasFte) for (let k = 1; k <= nP; k++) if (tot(k) > fteAv + 1e-9) overM.push(k);
+    const capO = {
+      nP, fteM, peak, avg: sumF / nM, peakK, hasFte, fteAv, overM,
+      msg: !hasFte ? 'Captura los FTE disponibles para ver si alcanzan. El pico es de ' + peak.toFixed(1) + ' FTE en el mes ' + peakK + '.' : (overM.length ? 'Se exceden los ' + fteAv + ' FTE disponibles en ' + overM.map((k) => 'M' + k).join(', ') + '.' : 'Los ' + fteAv + ' FTE disponibles cubren todos los meses.')
+    };
+    const AR = isAms ? AD.res.map((r) => [r.mod || '—', r.role, r.rate, r.hm]) : [];
+    const hs = AR.reduce((q, r) => q + r[3] * (1 + d), 0);
+    const amsO = {
+      hours: hs, fte: hs / 160, cost: Cd / Math.max(1, vigA), vig: vigA,
+      rows: AR.map((r) => ({ mod: r[0], role: r[1], h: r[3] * (1 + d), c: r[2] * r[3] * (1 + d) }))
+    };
+
+    // ---- chequeos ----
+    const sumJ = (arr) => arr.reduce((q, v) => q + v, 0);
+    const tj = (isProj ? sumJ(G.pm) + sumJ(G.fu) + sumJ(G.te) : 1) || 1;
+    const ph = (p) => (G.pm[p] || 0) + (G.fu[p] || 0) + (G.te[p] || 0);
+    const p1 = (v) => (v * 100).toFixed(1) + '%';
+    const chk = (label, v, lo2, hi2, fmt) => ({ label, value: fmt(v), range: fmt(lo2) + ' a ' + fmt(hi2), ok: v >= lo2 && v <= hi2 });
+    const flag = (label, value, range, ok) => ({ label, value, range, ok });
+    const checks = isProj ? [
+      chk('Gerencia sobre jornadas totales', sumJ(G.pm) / tj, 0.10, 0.18, p1),
+      chk('Técnica sobre jornadas totales', sumJ(G.te) / tj, 0.05, 0.25, p1),
+      chk('Realize sobre jornadas totales', ph(2) / tj, 0.45, 0.65, p1),
+      chk('Prepare + Explore sobre jornadas', (ph(0) + ph(1)) / tj, 0.15, 0.30, p1),
+      chk('Run (soporte) sobre jornadas', ph(4) / tj, 0.05, 0.15, p1),
+      flag('Periodo de garantía cotizado', PD.gar + ' meses', 'según política', PD.gar > 0)
+    ] : [
+      chk('PM sobre horas del equipo', AD.pmH / Math.max(1e-9, AD.hm), 0.05, 0.15, p1),
+      flag('Contingencia de la hoja vs. sugerida', pc(fileRate), 'sugerida ' + pc(rrate), fileRate >= rrate),
+      flag('Margen bruto vs. política Deal Desk AMS', pc(bruto / Rv), '≥ 30% para evitar Nivel 3', bruto / Rv >= 0.30),
+      flag('Costos adicionales capturados', money(AD.extra), 'licencias, terceros, viáticos', AD.extra > 0)
+    ];
+
+    const effort = isProj
+      ? [{ label: 'Gerencia', value: sumJ(G.pm), color: '#8B7CFF', unit: 'jornadas' }, { label: 'Funcional', value: sumJ(G.fu), color: '#3DD6FF', unit: 'jornadas' }, { label: 'Técnica', value: sumJ(G.te), color: '#2FE29B', unit: 'jornadas' }]
+      : amsO.rows.map((r) => ({ label: r.mod + ' · ' + r.role, value: r.c, unit: 'costo' }));
+    const drivers = R.map((r, i) => ({ i, name: r[0], w: Math.round(r[1] * 100) + '%', kind: r[2], sel: s.risk[i] }));
+    const risk = { score, band, contLabel: isAms ? 'Contingencia de la hoja' : 'Contingencia (solo Costo)', rate: pc(contRate), cont, bruto: brutoAdj / Rv, oper: ebitAdj / Rv, cmp: riskCmp, alerts: alertMsgs };
+
+    // ---- sensibilidad desviación × objetivo ----
+    const sOpts = isProj ? [0.25, 0.30, 0.35, 0.40] : [0.05, 0.10, 0.15, 0.20];
+    const sensCols = sOpts.map((o) => (isProj ? 'Obj. ' : 'Util. ') + Math.round(o * 100) + '%');
+    const sens = devs.map((dv, di) => ({
+      label: dv === 0 ? 'Según estimación' : (isProj ? 'Jornadas +' : 'Horas +') + Math.round(dv * 100) + '%',
+      cells: sOpts.map((mo, mi) => {
+        const Po = priceOf(mo, Cb);
+        const b = Math.round((1 - Cb * (1 + dv) / (Po * k)) * 1000) / 1000;
+        const op = b - cargoRate * Cb * (1 + dv) / (Po * k);
+        return { b, op, lv: lvOf(b), sel: (di === s.dev && Math.abs(mo * 100 - s.tgt[s.mode]) < 0.01), colName: sensCols[mi], rowName: dv === 0 ? 'Según estimación' : (isProj ? 'Jornadas +' : 'Horas +') + Math.round(dv * 100) + '%', price: Po };
+      })
+    }));
+
+    // ---- mix y deal completo ----
+    const mix = [
+      { label: 'SEIDOR propio (consultoría)', v: Rv },
+      { label: 'Integrados (margen 0)', v: 0 },
+      { label: 'Terceros', v: 0 }
+    ];
+    const dl = s.deal || { acv: 0, tcv: 0, ccf: 10 };
+    const tcvEff = dl.tcv > 0 ? dl.tcv : dl.acv * 3;
+    const ccfAmt = tcvEff * (dl.ccf / 100);
+    const revT = Rv + ccfAmt;
+    const deal = {
+      src: (PD && PD.dealFromSheet) ? 'DE LA HOJA' : (tcvEff > 0 ? 'CAPTURADO' : 'SIN SUSCRIPCIÓN'),
+      acvIn: dl.acv || '', tcvIn: dl.tcv || '', ccfIn: dl.ccf,
+      tcv: tcvEff > 0 ? money(tcvEff) : '—', ccf: tcvEff > 0 ? money(ccfAmt) : '—',
+      mg: (revT - Cd) / revT, hasSub: tcvEff > 0,
+      note: tcvEff > 0 ? 'Margen = (' + (ebmOn ? 'ingreso reconocido' : 'precio') + ' + CCF − costo) ÷ (' + (ebmOn ? 'ingreso reconocido' : 'precio') + ' + CCF)' + (dl.tcv > 0 ? '.' : '. TCV estimado como ACV × 3 años.') : 'La hoja no trae ACV ni TCV; con suscripción en cero el margen del deal es el de servicios.'
+    };
+
+    const upper = (x) => String(x || '').toUpperCase();
+    const head = isProj
+      ? { a: upper(PD.cliente), b: PD.producto ? '+ ' + upper(PD.producto) : '', sub: PD.desc || '', file: PD.file, ids: [PD.id, PD.gn, PD.gc].filter(Boolean).join(' · ') }
+      : { a: upper(AD.cliente), b: AD.proyecto ? '· ' + upper(AD.proyecto) : '', sub: 'AMS SAP · ' + AD.vig + ' meses de vigencia' + (AD.fecha ? ' · propuesta del ' + AD.fecha : ''), file: AD.file, ids: AD.resp ? 'Responsable: ' + AD.resp : '' };
+    const assump = isProj
+      ? 'Cargo de finanzas sobre costo: variables 3% · overhead 1% · G&A 18.7% · D&A 0% (suma 22.7%) · niveles de Deal Desk sobre margen bruto · contingencia 3 / 6 / 10% según criterios de Costo y rangos de chequeo provisionales · costo mensual tomado del Plan de Proyecto de la hoja · riesgo en Medio por defecto, sin calificar · hitos 20% de anticipo y mensuales parejos, editables.'
+      : (hpOn ? 'Precio fijado por hora: ' + money(s.hp) + ' × ' + Math.round(HRS) + ' horas = ' + money(P) + ' (utilidad resultante ' + pc(tgDer) + ') · ' : '') + 'Overhead ' + pc(OH) + ' del costo directo (cargo completo de finanzas, igual para cualquier deal) y contingencia ' + pc(CT) + ' sobre costo + overhead, tomada de la hoja AMS · Deal Desk AMS sobre margen bruto: 30 / 35 / 40% · apertura del cargo pendiente, por eso margen directo y operativo no se muestran · costo mensual parejo en 12 meses · facturación mensual vencida con 20% de anticipo · riesgo en Medio por defecto, sin calificar.';
+
+    const ebmAssump = ebmOn ? ' · EBM: comisión de ' + pc(e) + ' sobre el precio de venta (' + money(ebmAmt) + '); el ingreso reconocido baja a ' + money(Rv) + ' y los márgenes, EBIT y niveles de Deal Desk se miden sobre ese ingreso. El margen objetivo es antes de EBM; cobros netos de la comisión.' : '';
+    return {
+      s, isAms, isProj, PD, AD, TC, devs, T, lvOf, li, L, sem, policy, head, assump: assump + ebmAssump,
+      e, k, ebmOn, ebmAmt, Rv, brutoPre, dl: ebmOn ? 'del ingreso' : 'del precio',
+      P, Cb, Cd, d, bruto, variables, ovh, ga, cargo, directo, oper, ebit, ebitAdj, brutoAdj, cont, HRS, OH, CT, vigA, nP, cargoRate, eqPrice, pAt, cushAmt, cush,
+      ladder, cargoNote, wf, effort, rate, priceCurve, devCurve, CM, cash, sched, months, presets, hmMin, cashNote, cap: capO, ams: amsO, checks, drivers, risk, sens, sensCols, mix, deal,
+      hpOn, hpVal: isAms && HRS > 0 ? Math.round(P / HRS * 100) / 100 : 0,
+      tgtVal: hpOn ? Math.round(tgDer * 1000) / 10 : s.tgt[s.mode], lim: this.lim(),
+      tgtLabel: (isProj ? 'Margen bruto objetivo' : 'Utilidad objetivo sobre precio') + (ebmOn ? ' (antes de EBM)' : ''),
+      devLabel: isProj ? 'Desviación de jornadas' : 'Desviación de horas',
+      monthsTxt: hm + ' meses'
+    };
+  }
+}
+
+// ---- Motor de render: HTML → DOM por diferencias (no se pierde el foco ni se reinician las animaciones) ----
+const logic = new Component();
+const mountEl = () => document.getElementById('vopMount');
+let handlers = [];
+const on = (ev, fn) => { handlers.push(fn); return ' data-e-' + ev + '="' + (handlers.length - 1) + '"'; };
+const A = (s) => esc(s); // atributo seguro
+
+const KIT_CLS = ['wk-rv', 'wk-vis', 'tilt'];
+function sync(x, y) {
+  const isSl = x.hasAttribute && x.hasAttribute('data-wi');
+  const kitEl = x.classList && (x.classList.contains('wk-rv') || x.classList.contains('wk-hero'));
+  // quitar atributos que ya no están
+  Array.from(x.attributes).forEach((a) => {
+    if (y.hasAttribute(a.name)) return;
+    if (a.name === 'style' && (isSl || kitEl)) return;
+    if (a.name === 'class') return;
+    x.removeAttribute(a.name);
+  });
+  Array.from(y.attributes).forEach((a) => {
+    if (a.name === 'class') {
+      const keep = KIT_CLS.filter((c) => x.classList.contains(c));
+      const nv = (a.value + ' ' + keep.join(' ')).trim();
+      if (x.getAttribute('class') !== nv) x.setAttribute('class', nv);
+      return;
+    }
+    if (a.name === 'style' && (isSl || kitEl)) return;
+    if (a.name === 'value' && isSl) return;
+    if (x.getAttribute(a.name) !== a.value) x.setAttribute(a.name, a.value);
+  });
+  if (!y.hasAttribute('class') && x.hasAttribute('class')) {
+    const keep = KIT_CLS.filter((c) => x.classList.contains(c)).join(' ');
+    if (keep) x.setAttribute('class', keep); else x.removeAttribute('class');
+  }
+  if (x.nodeName === 'INPUT' && !isSl && y.hasAttribute('value') && x.value !== y.getAttribute('value')) x.value = y.getAttribute('value');
+}
+function patchChildren(a, b) {
+  const ac = Array.from(a.childNodes), bc = Array.from(b.childNodes);
+  const n = Math.max(ac.length, bc.length);
+  for (let i = 0; i < n; i++) {
+    const x = ac[i], y = bc[i];
+    if (!y) { a.removeChild(x); continue; }
+    if (!x) { a.appendChild(y); continue; }
+    if (x.nodeType !== y.nodeType || x.nodeName !== y.nodeName) { a.replaceChild(y, x); continue; }
+    if (x.nodeType !== 1) { if (x.nodeValue !== y.nodeValue) x.nodeValue = y.nodeValue; continue; }
+    if (x.hasAttribute('data-sortable')) { // tablas ordenables: se reemplazan solo si cambian los datos
+      const sig = y.outerHTML;
+      if (x._sig !== sig) { y._sig = sig; a.replaceChild(y, x); }
+      continue;
+    }
+    sync(x, y);
+    if (x.hasAttribute('data-keep') || x.hasAttribute('data-wo')) continue;
+    patchChildren(x, y);
+  }
+}
+function paint(full) {
+  const m = mountEl(); if (!m) return;
+  handlers = [];
+  const t = document.createElement('template');
+  t.innerHTML = view();
+  if (full) m.innerHTML = '';
+  patchChildren(m, t.content);
+  // tablas nuevas: recordar su firma
+  m.querySelectorAll('table[data-sortable]').forEach((tb) => { if (!tb._sig) tb._sig = tb.outerHTML; });
+  // simuladores what-if: recalcular con los valores vigentes
+  const sl = m.querySelector('input[data-wi]');
+  if (sl) sl.dispatchEvent(new Event('input', { bubbles: true }));
+  if (full && WK.observarSecciones) WK.observarSecciones();
+}
+logic.onChange = paint;
+['click', 'change', 'input'].forEach((ev) => {
+  document.addEventListener(ev, (e) => {
+    const m = mountEl(); if (!m) return;
+    const el = e.target.closest ? e.target.closest('[data-e-' + ev + ']') : null;
+    if (!el || !m.contains(el)) return;
+    const fn = handlers[+el.getAttribute('data-e-' + ev)]; if (fn) fn(e, el);
+  });
+});
+
+// ---- Piezas de la vista ----
+const pill = (idx, text, sm) => '<span class="vp-pill' + (sm ? ' sm' : '') + ' lv' + idx + '">' + esc(text != null ? text : LV[idx].tag) + '</span>';
+function heroT(o) {
+  let h = WK.hero(o);
+  if (String(o.value).length > 9) h = h.replace('class="wk-hero ', 'class="wk-hero vp-long ');
+  return h;
+}
+const src = (t) => '<div class="vp-src">' + esc(t) + '</div>';
+const barT = (frac, tone, tip) => '<div data-tip="' + A(tip) + '">' + WK.bar(Math.max(0, Math.min(1, frac)), tone) + '</div>';
+const grad = (id, c, o2) => '<linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + c + '"/><stop offset="1" stop-color="' + c + '" stop-opacity="' + (o2 == null ? 0.4 : o2) + '"/></linearGradient>';
+const C_CY = '#3DD6FF', C_VI = '#8B7CFF', C_GR = '#2FE29B', C_RD = '#FF5C7A', C_AM = '#FFC857';
+
+function viewEmpty() {
+  return '<section class="wk-card vp-empty"><div class="ic">📊</div><h2>Sube una hoja para empezar</h2>' +
+    '<p>Funciona con la hoja de estimación de proyecto (Modelo Económico + Plan de Proyecto) y con la Calculadora AMS. El archivo se procesa en tu navegador; no se guarda ni se envía a ningún servidor.</p>' +
+    '<label class="wk-chip vp-chip accent" for="fileInput">⬆️ Cargar hoja de estimación o AMS</label></section>';
+}
+
+function dealCard(V) {
+  const h = V.head;
+  const modes = [['proj', 'Proyecto · T&M · Rollout'], ['ams', 'AMS']].filter((p) => logic.data[p[0]]);
+  const mb = modes.map((p) => '<button class="wk-chip vp-chip' + (V.s.mode === p[0] ? ' on' : '') + '" type="button"' + on('click', () => { if (logic.state.mode !== p[0]) logic.setState({ mode: p[0] }, true); }) + '>' + esc(p[1]) + '</button>').join('');
+  return '<section class="wk-card vp-dealcard">' +
+    '<div><div class="vp-cap">WBR › Tablero VOP</div><h2 class="vp-title">' + esc(h.a) + ' <span>' + esc(h.b) + '</span></h2><div class="vp-subt">' + esc(h.sub) + '</div></div>' +
+    '<div class="vp-dealr"><div class="noprint"><div class="vp-cap" style="margin-bottom:8px">Tipo de deal</div><div class="vp-row">' + mb + '</div></div>' +
+    '<div class="vp-file">Hoja cargada: <b>' + esc(h.file) + '</b><br>' + esc(h.ids) + '</div>' +
+    '<button class="wk-chip vp-chip noprint" type="button"' + on('click', () => { const f = document.getElementById('fileInput'); if (f) f.click(); }) + '>Cargar otra hoja</button>' +
+    '<button class="wk-chip vp-chip accent noprint" type="button"' + on('click', exportPdf) + '>Exportar PDF</button></div></section>';
+}
+function exportPdf() {
+  const V = logic.calc();
+  try { document.title = 'VOP - ' + V.head.a + ' ' + V.head.b + ' - ' + WK.fecha(new Date()).split('/').reverse().join('-'); } catch (e) {}
+  setTimeout(() => { try { window.print(); } catch (e) {} }, 400);
+}
+
+const SECS = [['vp-resumen', 'Resumen'], ['vp-precio', 'Precio y márgenes'], ['vp-caja', 'Flujo de caja'], ['vp-cap', 'Capacidad'], ['vp-riesgo', 'Riesgo'], ['vp-mix', 'Mix y deal']];
+function controls(V) {
+  const s = V.s, lim = V.lim, tg = V.tgtVal;
+  const pctFill = ((tg - lim[0]) / (lim[1] - lim[0]) * 100).toFixed(1);
+  const devB = V.devs.map((o, i) => '<button class="wk-chip vp-chip sm' + (s.dev === i ? ' on' : '') + '" type="button"' + on('click', () => logic.setState({ dev: i })) + '>' + (o === 0 ? 'Base' : '+' + Math.round(o * 100) + '%') + '</button>').join('');
+  const dsoB = ['30 días', '60 días', '90 días'].map((l, i) => '<button class="wk-chip vp-chip sm' + (s.dso === i ? ' on' : '') + '" type="button"' + on('click', () => logic.setState({ dso: i })) + '>' + l + '</button>').join('');
+  return '<div class="vp-sticky noprint"><div class="vp-ctl">' +
+    '<div><div class="vp-cap">' + esc(V.tgtLabel) + ' (%)</div><div class="vp-row">' +
+      '<button class="wk-chip vp-ico" type="button" aria-label="Bajar un punto"' + on('click', () => logic.setTgt(logic.state.tgt[logic.state.mode] - 1)) + '>−</button>' +
+      '<input class="vp-range" type="range" min="' + lim[0] + '" max="' + lim[1] + '" step="0.5" value="' + tg + '" style="--p:' + pctFill + '%" aria-label="' + A(V.tgtLabel) + '"' + on('input', (e) => logic.setTgt(parseFloat(e.target.value))) + '>' +
+      '<button class="wk-chip vp-ico" type="button" aria-label="Subir un punto"' + on('click', () => logic.setTgt(logic.state.tgt[logic.state.mode] + 1)) + '>+</button>' +
+      '<input class="vp-in" type="number" step="0.5" value="' + tg + '" aria-label="' + A(V.tgtLabel) + '"' + on('change', (e) => logic.setTgt(parseFloat(e.target.value))) + '>' +
+    '</div></div>' +
+    '<div><div class="vp-cap">' + esc(V.devLabel) + '</div><div class="vp-row">' + devB + '</div></div>' +
+    (V.isAms ? '<div><div class="vp-cap">Precio por hora (USD)</div><div class="vp-row"><input class="vp-in" type="number" min="0" step="1" value="' + V.hpVal + '" aria-label="Precio por hora del consultor en dólares"' + on('change', (e) => logic.setHp(parseFloat(e.target.value))) + '>' + (V.hpOn ? '<button class="wk-chip vp-chip sm" type="button"' + on('click', () => logic.setHp(0)) + '>Usar utilidad objetivo</button>' : '') + '</div></div>' : '') +
+    '<div><div class="vp-cap">EBM (comisión sobre precio)</div><div class="vp-row"><button class="wk-chip vp-chip sm' + (s.ebm.on ? ' on' : '') + '" type="button"' + on('click', () => logic.setEbm({ on: !logic.state.ebm.on })) + '>' + (s.ebm.on ? 'Con EBM' : 'Sin EBM') + '</button>' +
+      '<input class="vp-in" type="number" min="0" max="50" step="0.5" value="' + s.ebm.pct + '"' + (s.ebm.on ? '' : ' disabled') + ' aria-label="Porcentaje de EBM sobre el precio de venta"' + on('change', (e) => logic.setEbm({ pct: parseFloat(e.target.value) })) + '><span class="vp-cap">%</span></div></div>' +
+    '<div><div class="vp-cap">Cobro a (DSO)</div><div class="vp-row">' + dsoB + '</div></div>' +
+    '<div class="vp-ctlr">' +
+      '<div style="text-align:right"><div class="vp-cap">Precio</div><div class="vp-bigv">' + money(V.P) + '</div></div>' +
+      '<div style="text-align:right"><div class="vp-cap">EBIT</div><div class="vp-bigv c">' + pc(V.ebit / V.Rv) + '</div></div>' +
+      pill(V.li, V.sem.label) +
+    '</div></div>';
+}
+function chipsRow() { return '<div class="vp-chips" data-keep>' + SECS.map((p) => '<a class="wk-chip" href="#' + p[0] + '" data-wk-chip="' + p[0] + '">' + esc(p[1]) + '</a>').join('') + '</div>'; }
+
+// ----- Resumen -----
+function heroes(V) {
+  const { P, Rv, Cd, bruto, directo, oper, ebit, ebitAdj, TC, li, T, isProj, d, PD, HRS, cushAmt, vigA } = V, dl = V.dl;
+  const lt = LV[li].tone, items = [];
+  const nivel = 'Nivel actual: ' + LV[li].tag;
+  items.push(heroT({ label: 'Precio de venta', ico: '💵', tono: 'cyan', value: money(P), sub: esc(V.ebmOn ? 'Reconocido ' + money(Rv) + ' · EBM −' + money(V.ebmAmt) : money(P * TC) + ' MXN'),
+    chart: WK.area(V.priceCurve.vals, { labels: V.priceCurve.labels, fmt: money, color: C_CY, nombre: 'Precio', h: 100 }) + src(isProj ? 'Costo ÷ (1 − margen objetivo) · eje: margen' : 'Costo operativo ÷ (1 − utilidad) · eje: utilidad') }));
+  items.push(heroT({ label: isProj ? 'Costo del proyecto' : 'Costo directo', ico: '🧾', tono: 'violet', value: money(Cd), sub: esc(isProj ? (d > 0 ? 'Base ' + money(V.Cb) + ' + ' + Math.round(d * 100) + '% jornadas' : PD.jt + ' jornadas') : (d > 0 ? 'Base ' + money(V.Cb) + ' + ' + Math.round(d * 100) + '% horas' : Math.round(HRS) + ' horas en ' + vigA + ' meses')),
+    chart: (isProj ? WK.area(V.CM.slice(1, V.nP + 1).map((v) => v * (1 + d)), { labels: V.CM.slice(1, V.nP + 1).map((v, i) => 'M' + (i + 1)), fmt: money, color: C_VI, nombre: 'Costo', h: 100 }) : barT(Cd / P, null, 'Costo directo\n' + money(Cd) + ' · ' + pc(Cd / P) + ' del precio')) + src(isProj ? 'Costo mensual esperado · de tu hoja (Modelo Económico)' : 'Recursos de horas (hoja 1)') }));
+  items.push(heroT({ label: 'Margen bruto', ico: '📈', tono: lt, value: money(bruto), sub: esc(pc(bruto / Rv) + ' ' + dl + (V.ebmOn ? ' · ' + pc(V.brutoPre / P) + ' antes de EBM' : '')),
+    chart: WK.gauge({ valor: bruto / Rv, max: 0.6, meta: T[0], tono: lt, texto: pc(bruto / Rv), label: 'meta sin aprobación ' + tp(T[0]), tip: 'Margen bruto\n' + pc(bruto / Rv) + ' ' + dl + (V.ebmOn ? '\nAntes de EBM: ' + pc(V.brutoPre / P) + ' del precio' : '') + '\n' + nivel + '\nSin aprobación desde ' + tp(T[0]) }) + src((V.ebmOn ? 'Ingreso reconocido − ' : 'Precio − ') + (isProj ? 'costo del proyecto' : 'costo directo')) }));
+  items.push(isProj
+    ? heroT({ label: 'Margen directo', ico: '🎯', tono: 'cyan', value: money(directo), sub: esc(pc(directo / Rv) + ' ' + dl), chart: WK.gauge({ valor: directo / Rv, max: 0.6, tono: 'cyan', texto: pc(directo / Rv), label: dl, tip: 'Margen directo\n' + money(directo) + ' · ' + pc(directo / Rv) + ' ' + dl }) + src('Bruto − comisión y costos variables') })
+    : heroT({ label: 'Precio promedio por hora', ico: '⏱️', tono: 'cyan', value: money(P / HRS), sub: esc(money(P / HRS * 8) + ' por jornada'), chart: WK.area(V.priceCurve.vals.map((x) => x / HRS), { labels: V.priceCurve.labels, fmt: money, color: C_CY, nombre: 'Precio por hora', h: 100 }) + src('Precio ÷ ' + Math.round(HRS) + ' horas · eje: utilidad') }));
+  items.push(isProj
+    ? heroT({ label: 'Margen operativo', ico: '⚙️', tono: 'violet', value: money(oper), sub: esc(pc(oper / Rv) + ' ' + dl), chart: WK.gauge({ valor: oper / Rv, max: 0.6, tono: 'violet', texto: pc(oper / Rv), label: dl, tip: 'Margen operativo\n' + money(oper) + ' · ' + pc(oper / Rv) + ' ' + dl }) + src('Directo − overhead de delivery') })
+    : heroT({ label: 'Margen operativo', ico: '⚙️', tono: 'violet', value: '—', sub: 'Pendiente', chart: barT(0, null, 'Pendiente\nFalta apertura de cargos para AMS') + src('Falta apertura de cargos para AMS') }));
+  items.push(heroT({ label: 'EBITDA / EBIT', ico: '🏦', tono: ebit >= 0 ? 'cyan' : 'red', value: money(ebit), sub: esc(pc(ebit / Rv) + ' ' + dl), chart: WK.gauge({ valor: Math.max(0, ebit / Rv), max: 0.6, tono: ebit >= 0 ? 'cyan' : 'red', texto: pc(ebit / Rv), label: dl, tip: 'EBITDA / EBIT\n' + money(ebit) + ' · ' + pc(ebit / Rv) + ' ' + dl }) + src(isProj ? 'Operativo − G&A (D&A = 0)' : 'Bruto − cargo de finanzas (' + pc(V.OH) + ' del costo)') }));
+  items.push(heroT({ label: 'EBIT ajustado por riesgo', ico: '🛡️', tono: ebitAdj >= 0 ? 'green' : 'red', value: money(ebitAdj), sub: esc(pc(ebitAdj / Rv) + ' ' + dl),
+    chart: WK.area(V.devCurve.vals, { labels: V.devCurve.labels, fmt: pc, color: ebitAdj >= 0 ? C_GR : C_RD, nombre: 'EBIT ajustado', h: 100 }) + src('EBIT − contingencia · curva: si el esfuerzo se desvía') }));
+  items.push(heroT({ label: 'Colchón en tu nivel', ico: '🪂', tono: lt, value: li === 3 ? '—' : money(cushAmt), sub: esc(li === 3 ? 'Ya en Nivel 3' : pc(cushAmt / P) + ' del precio'),
+    chart: WK.gauge({ valor: li === 3 ? 0 : cushAmt / P, max: 0.15, tono: lt, texto: li === 3 ? '—' : pc(cushAmt / P), label: 'descuento posible', tip: 'Colchón en ' + LV[li].tag + '\n' + (li === 3 ? 'Ya estás en el nivel más alto' : 'Puedes bajar ' + money(cushAmt) + ' (' + pc(cushAmt / P) + ') sin cambiar de nivel') }) + src('Descuento posible sin cambiar de nivel') }));
+  return '<div class="vp-hero-grid">' + WK.heroGrid(items) + '</div>';
+}
+function resumen(V) {
+  const C = V.cash;
+  const txt = V.sem.msg + '\nPrecio ' + money(V.P) + ' contra costo ' + money(V.Cd) + (V.ebmOn ? ' (con EBM de ' + pc(V.e) + ' = ' + money(V.ebmAmt) + ', ingreso reconocido ' + money(V.Rv) + ')' : '') + ': margen bruto ' + pc(V.bruto / V.Rv) + (V.ebmOn ? ' (' + pc(V.brutoPre / V.P) + ' antes de EBM)' : '') + ', EBIT ' + pc(V.ebit / V.Rv) + ' y EBIT ajustado por riesgo ' + pc(V.ebitAdj / V.Rv) + '. ' + V.cush.msg +
+    '\nEn caja, la exposición máxima es ' + C.peak + ' (' + C.peakAt.toLowerCase() + ') y ' + (C.be === 'Sin déficit' ? 'el cobro nunca queda por debajo del costo acumulado.' : 'el cobro alcanza al costo acumulado a partir del ' + C.be.toLowerCase() + '.');
+  return WK.band('vp-resumen', 'Resumen del deal', 'Economía de un vistazo') +
+    WK.callout('Lectura ejecutiva', esc(txt) + '<div class="vp-pol">' + esc(V.policy) + '</div>') +
+    '<div style="height:20px"></div>' + heroes(V);
+}
+
+// ----- Precio y márgenes -----
+function waterfallSvg(V) {
+  const steps = V.wf, n = steps.length, P = V.P;
+  const W = 760, H = 380, mL = 14, mR = 14, top = 34, mB = 62, base = H - mB, hgt = base - top;
+  const slot = (W - mL - mR) / n, bw = Math.min(62, slot * 0.7);
+  const sc = (v) => Math.max(0, v) / P * hgt;
+  let s = '<svg class="vp-chart wk-anim" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Cascada de precio a EBIT"><defs>' + grad('wfT', C_CY) + grad('wfD', C_VI) + grad('wfF', C_GR) + grad('wfN', C_RD) + '</defs>';
+  s += '<line class="axis" x1="' + mL + '" x2="' + (W - mR) + '" y1="' + base + '" y2="' + base + '"/>';
+  steps.forEach((st, i) => {
+    const cx = mL + i * slot + slot / 2, x = cx - bw / 2;
+    const y = base - sc(st.hi), h = Math.max(2, sc(st.hi) - sc(st.lo));
+    const fill = st.kind === 'tot' ? 'wfT' : st.kind === 'ded' ? 'wfD' : (st.v >= 0 ? 'wfF' : 'wfN');
+    const tip = st.name + '\n' + (st.kind === 'ded' ? '−' : '') + money(st.v) + ' · ' + pc(st.v / st.den) + (st.den === P && V.ebmOn ? ' del precio' : ' ' + V.dl) + '\n' + st.how;
+    if (i < n - 1) { const lvl = base - sc(st.kind === 'ded' ? st.lo : st.hi); s += '<line class="conn" x1="' + (x + bw) + '" x2="' + (cx + slot - bw / 2) + '" y1="' + lvl.toFixed(1) + '" y2="' + lvl.toFixed(1) + '"/>'; }
+    s += '<rect class="wk-colbar" style="--bi:' + i + '" data-tip="' + A(tip) + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="8" fill="url(#' + fill + ')"/>';
+    s += '<text class="val" x="' + cx.toFixed(1) + '" y="' + (y - 8).toFixed(1) + '" text-anchor="middle">' + (st.kind === 'ded' ? '−' : '') + short(st.v) + '</text>';
+    s += '<text class="big" x="' + cx.toFixed(1) + '" y="' + (base + 22) + '" text-anchor="middle" style="fill:#C9D8F0">' + esc(st.label) + '</text><text class="dim" x="' + cx.toFixed(1) + '" y="' + (base + 40) + '" text-anchor="middle">' + pc(st.v / st.den) + '</text>';
+  });
+  return s + '</svg>';
+}
+function approvalMap(V) {
+  const { P, eqPrice, pAt, T } = V;
+  let b = [eqPrice, pAt(T[2]), pAt(T[1]), pAt(T[0])]; b = b.map((x, i) => (i ? Math.max(x, b[i - 1]) : x));
+  const lo = Math.min(b[0], P) * 0.96, hi = Math.max(b[3] * 1.06, P * 1.05), span = hi - lo;
+  const zs = [
+    ['z0', 'Pérdida', lo, b[0], 'Por debajo de ' + money(b[0]) + ' el EBIT es negativo'],
+    ['z3', 'Nivel 3', b[0], b[1], 'Nivel 3\nDe ' + money(b[0]) + ' a ' + money(b[1]) + '\nMargen bruto menor a ' + tp(T[2])],
+    ['z2', 'Nivel 2', b[1], b[2], 'Nivel 2\nDe ' + money(b[1]) + ' a ' + money(b[2]) + '\nMargen bruto ' + tp(T[2]) + '–' + tp(T[1])],
+    ['z1', 'Nivel 1', b[2], b[3], 'Nivel 1\nDe ' + money(b[2]) + ' a ' + money(b[3]) + '\nMargen bruto ' + tp(T[1]) + '–' + tp(T[0])],
+    ['z4', 'Sin aprob.', b[3], hi, 'Sin aprobación\nDesde ' + money(b[3]) + '\nMargen bruto de ' + tp(T[0]) + ' o más']
+  ];
+  const zhtml = zs.map((z) => { const w = (z[3] - z[2]) / span * 100; return '<div class="' + z[0] + '" style="width:' + w.toFixed(2) + '%" data-tip="' + A(z[4]) + '">' + (w > 9 ? esc(z[1]) : '') + '</div>'; }).join('');
+  const pin = ((P - lo) / span * 100).toFixed(2);
+  return '<div class="vp-map"><div class="vp-pin" style="left:' + pin + '%"><b>' + money(P) + '</b></div><div class="vp-zones">' + zhtml + '</div></div>';
+}
+function precio(V) {
+  const ladderCols = [{ k: 'label', label: 'Concepto', tipo: 'strong' }, { k: 'how', label: 'Cómo se calcula', tipo: 'note' }, { k: 'amt', label: 'Monto', cls: 'wk-num' }, { k: 'pct', label: V.ebmOn ? '% del ingreso reconocido' : '% del precio', cls: 'wk-num' }];
+  const cascada = WK.card({ id: 'vp-cascada', ico: '💧', titulo: 'Cascada de precio a EBIT', sub: 'De cuánto vendes a cuánto te queda. Pasa el cursor sobre cada barra para ver el detalle.',
+    body: waterfallSvg(V) + '<div class="vp-legend"><span><i style="background:' + C_CY + '"></i>Subtotal</span><span><i style="background:' + C_VI + '"></i>Cargo que resta</span><span><i style="background:' + C_GR + '"></i>Resultado final</span></div><div class="vp-soft">Por cada $100 que cobras: ' + (V.ebmOn ? '<b>$' + (V.e * 100).toFixed(1) + '</b> se van en comisión EBM, ' : '') + '<b>$' + (V.Cd / V.P * 100).toFixed(1) + '</b> se van en costo' + (V.isProj ? ', <b>$' + ((V.variables + V.ovh + V.ga) / V.P * 100).toFixed(1) + '</b> en cargos de finanzas' : ', <b>$' + (V.cargo / V.P * 100).toFixed(1) + '</b> en cargo de finanzas') + ' y <b>$' + (V.ebit / V.P * 100).toFixed(1) + '</b> llegan a EBIT.</div>' });
+  const cushRows = V.cush.rows.map((r) => Object.assign({}, r, { tagh: r.idx >= 0 ? pill(r.idx, r.tag, true) : '<span class="vp-pill sm gr">Equilibrio</span>' }));
+  const colch = WK.card({ id: 'vp-colchon', ico: '🪂', titulo: 'Colchón de negociación', sub: 'Cuánto puedes bajar el precio antes de cambiar de nivel de aprobación.',
+    body: approvalMap(V) + '<div class="vp-nw">' + WK.table([{ k: 'tagh', label: 'Nivel', tipo: 'html' }, { k: 'rule', label: 'Regla', tipo: 'note' }, { k: 'price', label: 'Precio', tipo: 'usd' }, { k: 'delta', label: 'Cambio', cls: 'wk-num' }], cushRows) + '</div><div class="vp-soft">' + esc(V.cush.msg) + '</div>' });
+  const escalera = WK.card({ id: 'vp-escalera', ico: '🪜', titulo: 'Escalera de márgenes en cifras', sub: 'Cada cargo que resta y cada margen que queda, con su peso sobre el precio.',
+    body: '<div class="vp-nw">' + WK.table(ladderCols, V.ladder, { sinOrden: true, rowAttrs: (r) => r.total ? 'class="wk-on"' : '' }) + '</div><div class="vp-note">' + esc(V.cargoNote) + '</div>' });
+  const tarifa = WK.card({ id: 'vp-tarifa', ico: '🏷️', titulo: V.rate.title, sub: V.rate.sub, body: WK.stats([{ valor: V.rate.eff, label: 'Tarifa' }, { valor: V.rate.cost, label: 'Costo' }, { valor: V.rate.mg, label: 'Margen' }].concat(V.rate.listN ? [{ valor: money(V.rate.listN), label: 'Lista (prom.)' }] : [])) + '<div style="height:14px"></div>' + WK.columns(['Tarifa', 'Costo', 'Margen'].concat(V.rate.listN ? ['Lista (prom.)'] : []), [{ nombre: V.isProj ? 'USD por jornada' : 'USD por hora', valores: [V.rate.effN, V.rate.costN, Math.max(0, V.rate.mgN)].concat(V.rate.listN ? [V.rate.listN] : []), color: C_CY }], { fmt: money, h: 230, id: 'rt' }) + '<div class="vp-note">' + esc(V.rate.note) + '</div>' });
+  return WK.band('vp-precio', 'Precio y márgenes', 'Cascada, colchón y tarifa') +
+    '<div class="vp-g c32 stretch">' + cascada + colch + '</div><div class="vp-g c32">' + escalera + tarifa + '</div>' + negociacion(V);
+}
+function negociacion(V) {
+  const { P, Cd, cargoRate, T, lvOf, li, cushAmt, k } = V;
+  const wi = WK.whatif({ id: 'vopneg', sliders: [
+    { k: 'desc', label: 'Descuento sobre el precio', min: 0, max: 25, step: 0.5, val: 0, fmt: (v) => v.toFixed(1) + '%' },
+    { k: 'esf', label: V.isProj ? 'Jornadas adicionales sobre la estimación' : 'Horas adicionales sobre la estimación', min: 0, max: 40, step: 1, val: 0, fmt: (v) => '+' + v + '%' }
+  ], calc: (vals) => {
+    const net = P * (1 - vals.desc / 100), rec = net * k, c = Cd * (1 + vals.esf / 100), br = rec - c, m = br / rec, eb = br - c * cargoRate;
+    const lx = lvOf(Math.round(m * 1000) / 1000), tone = LV[lx].tone;
+    const msg = lx === li ? 'Sigues en <b>' + LV[li].tag + '</b>.' : (lx > li ? 'Pasas de <b>' + LV[li].tag + '</b> a <b>' + LV[lx].tag + '</b>.' : 'Subes de <b>' + LV[li].tag + '</b> a <b>' + LV[lx].tag + '</b>.');
+    return {
+      gauge: { valor: Math.max(0, m), max: 0.6, meta: T[0], tono: tone, texto: pc(m), label: 'margen bruto', tip: 'Margen bruto del escenario\n' + pc(m) + ' · ' + LV[lx].tag + '\nSin aprobación desde ' + tp(T[0]) },
+      stats: [{ valor: money(net), label: 'Precio final' }, { valor: pc(eb / rec), label: 'EBIT' }, { valor: LV[lx].tag, label: 'Nivel de aprobación' }, { valor: money(P - net), label: 'Descuento otorgado' }],
+      nota: msg + ' ' + (li === 3 ? 'Ya estás en el nivel más alto.' : 'Sin cambiar de nivel puedes dar hasta <b>' + pc(cushAmt / P) + '</b> (' + money(cushAmt) + ') con el esfuerzo estimado.')
+    };
+  } });
+  return WK.card({ id: 'vp-neg', ico: '🎚️', titulo: 'Simulador de negociación', sub: 'Mueve el descuento y el esfuerzo extra: ve el margen, el EBIT y el nivel de aprobación en vivo (no cambia el resto del tablero).', body: '<div class="vp-wi">' + wi + '</div>' });
+}
+
+// ----- Flujo de caja -----
+function cashSvg(V) {
+  const C = V.cash, N = C.N;
+  const W = 760, H = 484, mL = 60, mR = 14, p1t = 40, p1b = 220, p2t = 296, p2b = 430;
+  const step = (W - mL - mR) / N, cx = (k) => mL + k * step + step / 2;
+  const y1 = (v) => p1b - (v / C.maxBar) * (p1b - p1t - 8), y2 = (v) => p2b - (v / C.maxCum) * (p2b - p2t - 8);
+  const bw = Math.max(2, Math.min(20, step * 0.38)), every = N <= 14 ? 1 : N <= 26 ? 2 : 3;
+  let s = '<svg class="vp-chart wk-anim" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Cobrado y costo por mes, y acumulados"><defs>' + grad('csA', C_CY) + grad('csB', C_VI) + '</defs>';
+  s += '<text class="cap2" x="' + mL + '" y="22">POR MES</text><text class="cap2" x="' + mL + '" y="276">ACUMULADO</text>';
+  [[p1t + 8, C.maxBar, p1b, y1], [p2t + 8, C.maxCum, p2b, y2]].forEach((g) => {
+    s += '<line class="grid" x1="' + mL + '" x2="' + (W - mR) + '" y1="' + g[3](g[1]).toFixed(1) + '" y2="' + g[3](g[1]).toFixed(1) + '"/><text x="' + (mL - 8) + '" y="' + (g[3](g[1]) + 4).toFixed(1) + '" text-anchor="end">' + short(g[1]) + '</text>';
+    s += '<line class="grid" x1="' + mL + '" x2="' + (W - mR) + '" y1="' + g[3](g[1] / 2).toFixed(1) + '" y2="' + g[3](g[1] / 2).toFixed(1) + '"/><text x="' + (mL - 8) + '" y="' + (g[3](g[1] / 2) + 4).toFixed(1) + '" text-anchor="end">' + short(g[1] / 2) + '</text>';
+    s += '<line class="axis" x1="' + mL + '" x2="' + (W - mR) + '" y1="' + g[2] + '" y2="' + g[2] + '"/><text x="' + (mL - 8) + '" y="' + (g[2] + 4) + '" text-anchor="end">$0</text>';
+  });
+  for (let k = 0; k < N; k++) {
+    const hc = Math.max(0, p1b - y1(C.cob[k])), hk = Math.max(0, p1b - y1(C.cost[k]));
+    if (hc > 0.3) s += '<rect class="wk-colbar" style="--bi:' + k + '" x="' + (cx(k) - bw - 0.5).toFixed(1) + '" y="' + y1(C.cob[k]).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hc.toFixed(1) + '" rx="3" fill="url(#csA)"/>';
+    if (hk > 0.3) s += '<rect class="wk-colbar" style="--bi:' + k + '" x="' + (cx(k) + 0.5).toFixed(1) + '" y="' + y1(C.cost[k]).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hk.toFixed(1) + '" rx="3" fill="url(#csB)"/>';
+    if (k % every === 0) s += '<text class="big" x="' + cx(k).toFixed(1) + '" y="' + (H - 12) + '" text-anchor="middle">M' + k + '</text><text class="dim" x="' + cx(k).toFixed(1) + '" y="' + (p1b + 17) + '" text-anchor="middle">M' + k + '</text>';
+  }
+  const gap = C.cumCob.map((v, k) => cx(k).toFixed(1) + ',' + y2(v).toFixed(1)).join(' ') + ' ' + C.cumCost.map((v, k) => k).reverse().map((k) => cx(k).toFixed(1) + ',' + y2(C.cumCost[k]).toFixed(1)).join(' ');
+  const path = (arr) => 'M' + arr.map((v, k) => cx(k).toFixed(1) + ' ' + y2(v).toFixed(1)).join(' L');
+  s += '<polygon class="wk-areafill" points="' + gap + '" fill="' + C_VI + '" fill-opacity="0.2"/>';
+  s += '<path class="wk-line" pathLength="100" d="' + path(C.cumCost) + '" fill="none" stroke="' + C_VI + '" stroke-width="3" stroke-linejoin="round" style="filter:drop-shadow(0 0 5px ' + C_VI + ')"/>';
+  s += '<path class="wk-line" pathLength="100" d="' + path(C.cumCob) + '" fill="none" stroke="' + C_CY + '" stroke-width="3" stroke-linejoin="round" style="filter:drop-shadow(0 0 5px ' + C_CY + ')"/>';
+  for (let k = 0; k < N; k++) {
+    const cover = C.cumCost[k] > 0 ? pc(C.cumCob[k] / C.cumCost[k]) : '—';
+    const tip = 'Mes ' + k + '\nFacturado ' + money(C.fact[k]) + ' · Cobrado ' + money(C.cob[k]) + '\nCosto esperado ' + money(C.cost[k]) + '\nCobrado acum. ' + money(C.cumCob[k]) + ' · Costo acum. ' + money(C.cumCost[k]) + '\nBrecha ' + money(C.gapA[k]) + ' · Cobertura ' + cover;
+    s += '<rect class="wk-hit" x="' + (mL + k * step).toFixed(1) + '" y="26" width="' + step.toFixed(1) + '" height="' + (H - 52) + '" data-tip="' + A(tip) + '"/>';
+  }
+  return s + '</svg>';
+}
+function caja(V) {
+  const C = V.cash;
+  const presets = V.presets.map((p) => '<button class="wk-chip vp-chip sm" type="button"' + on('click', () => logic.setPctArr(p[1])) + '>' + esc(p[0]) + '</button>').join('');
+  const months = V.months.map((mo) => '<div class="vp-mo"><div class="vp-cap">' + esc(mo.label) + '</div>' +
+    '<input class="vp-in w s" type="number" min="0" max="100" step="0.5" value="' + mo.val + '" aria-label="Porcentaje del mes ' + mo.k + '"' + on('change', (e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) logic.setPct(mo.k, v); }) + '>' +
+    '<div class="am">' + mo.amt + '</div><div class="vp-row"><button class="wk-chip vp-ico" type="button" aria-label="Restar 5 puntos"' + on('click', () => logic.setPct(mo.k, mo.p - 5)) + '>−</button><button class="wk-chip vp-ico" type="button" aria-label="Sumar 5 puntos"' + on('click', () => logic.setPct(mo.k, mo.p + 5)) + '>+</button></div></div>').join('');
+  const hitos = WK.card({ id: 'vp-hitos', ico: '🧮', titulo: 'Hitos de facturación', sub: 'Tú decides los porcentajes por mes; compara lo que cobras contra lo que te cuesta cada mes.',
+    extra: '<span class="vp-pill ' + (V.sched.ok ? 'gr' : 'vi') + '">' + esc(V.sched.msg) + '</span>',
+    body: '<div class="vp-row noprint" style="margin-bottom:16px"><span class="vp-cap" style="margin-right:4px">Esquemas</span>' + presets +
+      '<span class="vp-cap" style="margin-left:18px">Ventana</span><button class="wk-chip vp-ico" type="button" aria-label="Quitar un mes"' + on('click', () => { const a = logic.state.pct[logic.state.mode]; if (a.length > V.hmMin) logic.setPctArr(a.slice(0, a.length - 1)); }) + '>−</button>' +
+      '<b style="min-width:88px;text-align:center;color:#fff;font-size:16px">' + esc(V.monthsTxt) + '</b><button class="wk-chip vp-ico" type="button" aria-label="Agregar un mes"' + on('click', () => { const a = logic.state.pct[logic.state.mode]; if (a.length < 36) logic.setPctArr(a.concat([0])); }) + '>+</button></div>' +
+      '<div class="vp-months">' + months + '</div><div class="vp-note" style="margin-top:4px">' + esc(V.cashNote) + '</div>' });
+  const metrics = '<div class="vp-metrics">' +
+    '<div class="vp-metric" data-tip="' + A('Costo esperado por mes\n' + C.costNote) + '"><div class="vp-cap">Costo esperado por mes</div><b class="vi">' + C.peakCostTxt + '</b><span>' + esc(C.costNote) + '</span></div>' +
+    '<div class="vp-metric" data-tip="' + A('Exposición máxima\nEl mayor hueco entre costo y cobro acumulados') + '"><div class="vp-cap">Exposición máxima</div><b class="vi">' + C.peak + '</b><span>' + esc(C.peakAt) + '</span></div>' +
+    '<div class="vp-metric"><div class="vp-cap">Cobro cubre el costo acumulado</div><b>' + esc(C.be) + '</b><span>' + esc(C.cover) + '</span></div>' +
+    '<div class="vp-metric"><div class="vp-cap">Caja final</div><b class="' + (C.finalAmt >= 0 ? 'cy' : 'rd') + '">' + C.final + '</b><span>Cobrado total − costo total</span></div></div>';
+  const chart = WK.card({ id: 'vp-flujo', ico: '💧', titulo: 'Cobrado contra costo, mes a mes', sub: 'Pasa el cursor sobre un mes para ver el detalle. La zona sombreada es la brecha entre costo y cobro acumulados.',
+    body: '<div class="vp-g c31" style="margin-bottom:0"><div>' + cashSvg(V) + '<div class="vp-legend"><span><i style="background:' + C_CY + '"></i>Cobrado (entra)</span><span><i style="background:' + C_VI + '"></i>Costo esperado (sale)</span><span>Zona sombreada = brecha entre costo y cobro acumulados</span></div></div>' + metrics + '</div>' });
+  return WK.band('vp-caja', 'Flujo de caja', 'Hitos, DSO y exposición') + hitos + '<div style="height:22px"></div>' + chart;
+}
+
+// ----- Capacidad -----
+function capSvg(V) {
+  const C = V.cap, nP = C.nP;
+  const W = 760, H = 400, mL = 52, mR = 14, top = 34, base = 342, ih = base - top;
+  const maxV = Math.max(C.peak, C.hasFte ? C.fteAv : 0, 0.1) * 1.15, y = (v) => base - v / maxV * ih;
+  const slot = (W - mL - mR) / Math.max(1, nP), bw = Math.min(64, slot * 0.64), every = slot >= 34 ? 1 : slot >= 18 ? 2 : 3;
+  let s = '<svg class="vp-chart wk-anim" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="FTE por mes por tipo de consultor"><defs>' + grad('cpA', C_VI) + grad('cpB', C_CY) + grad('cpC', C_GR) + '</defs>';
+  const raw = maxV / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), stp = [1, 2, 2.5, 5, 10].map((q) => q * mag).find((q) => q >= raw) || raw;
+  for (let g = 0; g * stp <= maxV + 1e-9; g++) { const v = g * stp, yy = y(v); s += '<line class="' + (g ? 'grid' : 'axis') + '" x1="' + mL + '" x2="' + (W - mR) + '" y1="' + yy.toFixed(1) + '" y2="' + yy.toFixed(1) + '"/><text x="' + (mL - 8) + '" y="' + (yy + 4).toFixed(1) + '" text-anchor="end">' + v.toFixed(1) + '</text>'; }
+  const G = [['pm', 'Gerencia', 'cpA', 'jpm'], ['fu', 'Funcional', 'cpB', 'jfu'], ['te', 'Técnica', 'cpC', 'jte']];
+  for (let k = 1; k <= nP; k++) {
+    const x = mL + (k - 1) * slot + (slot - bw) / 2, f = C.fteM[k], tot = f.pm + f.fu + f.te;
+    let acc = 0;
+    G.forEach((g, gi) => {
+      const v = f[g[0]];
+      if (v > 0.001) {
+        const tip = 'M' + k + ' · ' + g[1] + '\n' + v.toFixed(1) + ' FTE (' + Math.round(f[g[3]]) + ' jornadas)\nTotal del mes: ' + tot.toFixed(1) + ' FTE' + (C.hasFte && tot > C.fteAv + 1e-9 ? '\nExcede los ' + C.fteAv + ' FTE disponibles' : '');
+        s += '<rect class="wk-colbar" style="--bi:' + (k - 1) + '" data-tip="' + A(tip) + '" x="' + x.toFixed(1) + '" y="' + y(acc + v).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (v / maxV * ih).toFixed(1) + '" rx="' + (gi === 2 ? 6 : 1) + '" fill="url(#' + g[2] + ')"/>';
+      }
+      acc += v;
+    });
+    const over = C.hasFte && tot > C.fteAv + 1e-9;
+    if ((k - 1) % every === 0) s += '<text class="val" x="' + (x + bw / 2).toFixed(1) + '" y="' + (y(acc) - 7).toFixed(1) + '" text-anchor="middle"' + (over ? ' style="fill:#FF8CA2"' : '') + '>' + tot.toFixed(1) + '</text><text class="big" x="' + (x + bw / 2).toFixed(1) + '" y="' + (base + 22) + '" text-anchor="middle">M' + k + '</text>';
+  }
+  if (C.hasFte) s += '<line class="meta" x1="' + mL + '" x2="' + (W - mR) + '" y1="' + y(C.fteAv).toFixed(1) + '" y2="' + y(C.fteAv).toFixed(1) + '"/><text x="' + (W - mR) + '" y="' + (y(C.fteAv) - 7).toFixed(1) + '" text-anchor="end" style="fill:' + C_AM + '">Disponibles ' + C.fteAv + ' FTE</text>';
+  return s + '</svg>';
+}
+function capacidad(V) {
+  let left;
+  if (V.isProj) {
+    const C = V.cap;
+    left = WK.card({ id: 'vp-fte', ico: '👥', titulo: 'Capacidad del equipo', sub: 'FTE por mes que exige el proyecto. 1 FTE = 20 jornadas por mes.',
+      extra: '<div class="noprint vp-field"><div class="vp-cap">FTE disponibles</div><input class="vp-in" type="number" min="0" max="50" step="0.5" value="' + A(V.s.fte) + '" placeholder="FTE" aria-label="FTE disponibles para el proyecto"' + on('change', (e) => logic.setState({ fte: e.target.value })) + '></div>',
+      body: WK.stats([{ valor: C.peak.toFixed(1) + ' FTE', label: 'Pico (M' + C.peakK + ')' }, { valor: C.avg.toFixed(1) + ' FTE', label: 'Promedio' }]) + '<div style="height:14px"></div>' + capSvg(V) +
+        '<div class="vp-legend"><span><i style="background:' + C_VI + '"></i>Gerencia</span><span><i style="background:' + C_CY + '"></i>Funcional</span><span><i style="background:' + C_GR + '"></i>Técnica</span></div><div class="vp-soft' + (C.overM.length ? ' vi' : '') + '">' + esc(C.msg) + '</div>' });
+  } else {
+    const A2 = V.ams, maxH = Math.max(1, ...A2.rows.map((r) => r.h));
+    left = WK.card({ id: 'vp-fte', ico: '👥', titulo: 'Capacidad del equipo', sub: 'Horas por rol que exige el contrato. 1 FTE = 160 horas por mes (8 h × 20 días).',
+      body: WK.stats([{ valor: A2.hours.toFixed(1) + ' h', label: 'Horas por mes' }, { valor: A2.fte.toFixed(2), label: 'FTE equivalente' }, { valor: money(A2.cost), label: 'Costo mensual' }]) + '<div style="height:16px"></div>' +
+        WK.ranked(A2.rows.map((r) => ({ label: r.mod + ' · ' + r.role, value: r.h, tip: r.mod + ' · ' + r.role + '\n' + r.h.toFixed(1) + ' h por mes\n' + money(r.c) + ' de costo' })), { fmt: (v) => v.toFixed(1) + ' h', max: maxH }) + '<div style="height:16px"></div>' +
+        WK.table([{ k: 'mod', label: 'Módulo', tipo: 'strong' }, { k: 'role', label: 'Rol' }, { k: 'h', label: 'Horas', tipo: 'num' }, { k: 'c', label: 'Costo', tipo: 'usd' }], A2.rows) +
+        '<div class="vp-soft">El equipo cubre ' + A2.fte.toFixed(2) + ' FTE sobre ' + A2.vig + ' meses de vigencia.</div>' });
+  }
+  const rows = V.checks.map((c) => ({ label: c.label, value: c.value, range: 'Rango ' + c.range, st: WK.badge(c.ok ? 'En rango' : 'Revisar', c.ok ? 'green' : 'amber') }));
+  const right = WK.card({ id: 'vp-chk', ico: '✅', titulo: 'Chequeos de la estimación', sub: 'Rangos provisionales; los calibraremos con tu histórico.',
+    body: WK.table([{ k: 'label', label: 'Chequeo', tipo: 'strong' }, { k: 'value', label: 'Valor', cls: 'wk-num' }, { k: 'range', label: 'Rango', tipo: 'note' }, { k: 'st', label: 'Estado', tipo: 'html' }], rows) });
+  const ef = V.effort, efTot = ef.reduce((q, e) => q + e.value, 0);
+  const don = WK.card({ id: 'vp-esf', ico: '🍩', titulo: V.isProj ? 'Distribución del esfuerzo' : 'Distribución del costo por rol', sub: V.isProj ? 'Jornadas por tipo de consultor. Pasa el cursor para ver el detalle.' : 'Costo anual por módulo y rol. Pasa el cursor para ver el detalle.',
+    body: WK.donut(ef.map((e) => ({ label: e.label, value: e.value, color: e.color, tip: e.label + '\n' + (V.isProj ? Math.round(e.value).toLocaleString('en-US') + ' jornadas' : money(e.value)) + ' · ' + Math.round(e.value / (efTot || 1) * 100) + '%' })), { tamano: 'clamp(150px,13vw,215px)', centro: V.isProj ? Math.round(efTot).toLocaleString('en-US') : short(efTot), sub: V.isProj ? 'jornadas' : 'costo', fmt: (x) => V.isProj ? Math.round(x).toLocaleString('en-US') : money(x) }) });
+  return WK.band('vp-cap', 'Capacidad y salud de la estimación', V.isProj ? 'FTE por mes y chequeos' : 'Horas por rol y chequeos') + '<div class="vp-g c11">' + left + '<div class="vp-stack">' + right + don + '</div></div>';
+}
+
+// ----- Riesgo -----
+function riesgo(V) {
+  const lvN = ['Bajo', 'Medio', 'Alto'], cls = ['g', 'a', 'r'];
+  const drv = V.drivers.map((d) => '<div class="vp-drv"><div class="nm">' + esc(d.name) + ' <span class="vp-pill sm ' + (d.kind === 'Costo' ? 'gr' : 'vi') + '">' + d.kind + '</span><small>' + d.w + '</small></div><div class="vp-row" style="gap:6px">' +
+    lvN.map((l, i) => '<button class="wk-chip vp-chip sm ' + cls[i] + (d.sel === i ? ' on' : '') + '" type="button"' + on('click', () => { const x = logic.state.risk.slice(); x[d.i] = i; logic.setState({ risk: x }); }) + '>' + l + '</button>').join('') + '</div></div>').join('');
+  const R = V.risk, tone = R.band === 'Bajo' ? 'green' : R.band === 'Medio' ? 'amber' : 'red';
+  const left = WK.card({ id: 'vp-drivers', ico: '⚠️', titulo: 'Riesgo del deal', sub: 'Los criterios de tipo Costo mueven la contingencia. Los de tipo Alerta suben la calificación y avisan, pero no agregan costo.', body: drv });
+  const hero = WK.hero({ label: 'Calificación de riesgo · ' + R.band, ico: '🧭', tono: tone, value: money(R.cont), sub: esc(R.contLabel + ': ' + R.rate + ' del costo'),
+    chart: WK.gauge({ valor: R.score, max: 100, tono: tone, texto: Math.round(R.score) + '/100', label: 'riesgo ' + R.band.toLowerCase(), tip: 'Calificación general\n' + Math.round(R.score) + ' de 100 · ' + R.band + '\n< 30 bajo · 30–60 medio · > 60 alto' }) });
+  const eff = WK.card({ id: 'vp-efecto', ico: '🧮', titulo: 'Efecto en el margen', sub: 'Después de la contingencia.', body: WK.stats([{ valor: pc(R.bruto), label: 'Margen bruto ajustado' }, { valor: pc(R.oper), label: 'EBIT ajustado' }]) +
+    '<div class="vp-soft">' + esc(R.cmp) + '</div>' + (R.alerts.length ? '<div class="vp-soft vi">' + esc(R.alerts.join(' ')) + '</div>' : '') });
+  const hm = '<div class="vp-hm"><div></div>' + V.sensCols.map((h) => '<div class="vp-cap ch">' + esc(h) + '</div>').join('') + V.sens.map((row, ri) => '<div class="rl">' + esc(row.label) + '</div>' + row.cells.map((c, ci) => {
+    const tip = c.rowName + ' · ' + c.colName + '\nPrecio ' + money(c.price) + '\nMargen bruto ' + pc(c.b) + ' · EBIT ' + pc(c.op) + '\n' + LV[c.lv].tag + (c.sel ? '\n(escenario elegido arriba)' : '');
+    return '<div class="vp-cell' + (c.sel ? ' sel' : '') + '" style="--c:' + LV[c.lv].rgb + ';--bi:' + (ri * 4 + ci) + '" data-tip="' + A(tip) + '"><div class="t">' + pc(c.b) + '</div><div class="e">EBIT ' + pc(c.op) + '</div><div class="g">' + esc(LV[c.lv].short) + '</div></div>';
+  }).join('')).join('') + '</div>';
+  const sens = WK.card({ id: 'vp-sens', ico: '🔥', titulo: 'Sensibilidad: desviación × objetivo', sub: 'Precio fijo, el costo sube. Cada celda: margen bruto, EBIT y nivel de aprobación. Borde blanco = escenario elegido en la barra superior.', body: hm });
+  return WK.band('vp-riesgo', 'Riesgo y sensibilidad', 'Siete preguntas y qué pasa si el esfuerzo se desvía') + '<div class="vp-g c11">' + left + '<div class="vp-stack">' + hero + eff + '</div></div>' + sens;
+}
+
+// ----- Mix y deal completo -----
+function mix(V) {
+  const reparto = (V.isProj
+    ? [...(V.ebmOn ? [['Comisión EBM', V.ebmAmt, '#FF8CA2']] : []), ['Costo del proyecto', V.Cd, C_VI], ['Comisión y variables', V.variables, '#FFC857'], ['Overhead de delivery', V.ovh, '#FF9A4D'], ['G&A corporativo', V.ga, C_RD], ['EBIT', V.ebit, C_GR]]
+    : [...(V.ebmOn ? [['Comisión EBM', V.ebmAmt, '#FF8CA2']] : []), ['Costo directo', V.Cd, C_VI], ['Cargo de finanzas', V.cargo, '#FFC857'], ['Contingencia', V.cont, '#FF9A4D'], ['Utilidad (EBIT ajustado)', V.ebitAdj, C_GR]]).map((r) => ({ label: r[0], value: r[1], color: r[2], tip: r[0] + '\n' + money(r[1]) + ' · ' + pc(r[1] / V.P) + ' del precio' }));
+  const repCard = WK.card({ id: 'vp-reparto', ico: '🍩', titulo: 'A dónde se va el precio', sub: 'Costo, cargos y lo que te queda. Pasa el cursor sobre cada tramo.', body: WK.donut(reparto, { centro: short(V.P), sub: 'precio', fmt: money }) });
+  const mixCard = WK.card({ id: 'vp-mixc', ico: '🧩', titulo: 'Mix y pass-through', sub: 'El pass-through (integrados a margen 0) suma ingreso pero no margen y diluye el %.',
+    body: WK.ranked(V.mix.map((m, i) => ({ label: m.label, value: m.v, tono: i ? 'amber' : '', tip: m.label + '\n' + money(m.v) + ' · ' + pc(V.Rv ? m.v / V.Rv : 0) + ' ' + V.dl })), { fmt: money, max: V.Rv }) +
+      '<div style="height:16px"></div>' + WK.stats([{ valor: pc(V.bruto / V.Rv), label: 'Margen sobre servicios propios' }, { valor: pc(V.bruto / V.Rv), label: 'Margen total' }]) +
+      '<div class="vp-note">Con $30K de pass-through en $100K, un 35% propio se vería 24.5% total.</div>' });
+  if (!V.isProj) return WK.band('vp-mix', 'Mix y pass-through', 'De dónde viene el precio') + '<div class="vp-g c11">' + mixCard + repCard + '</div>';
+  const D = V.deal;
+  const field = (lab, val, step, mx, fn, aria) => '<div class="vp-field"><div class="vp-cap">' + lab + '</div><input class="vp-in w" type="number" min="0"' + (mx ? ' max="' + mx + '"' : '') + ' step="' + step + '" value="' + A(val) + '" aria-label="' + aria + '"' + on('change', (e) => logic.setDeal(fn, parseFloat(e.target.value))) + '></div>';
+  const dealCard = WK.card({ id: 'vp-deal', ico: '🤝', titulo: 'Margen del deal completo', sub: 'Servicios + CCF sobre TCV de suscripción. Toma ACV, TCV y CCF % de la hoja; puedes ajustarlos aquí.',
+    extra: '<span class="vp-pill gr">' + esc(D.src) + '</span>',
+    body: '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px">' + field('ACV (USD)', D.acvIn, 1000, 0, 'acv', 'ACV') + field('TCV (USD)', D.tcvIn, 1000, 0, 'tcv', 'TCV') + field('CCF %', D.ccfIn, 0.5, 100, 'ccf', 'CCF por ciento') + '</div>' +
+      WK.stats([{ valor: D.tcv, label: 'TCV usado' }, { valor: D.ccf, label: 'Monto CCF' }, { valor: pc(D.mg), label: 'Margen deal completo' }]) + '<div style="height:12px"></div>' +
+      WK.columns(['Servicios propios', 'Deal completo'], [{ nombre: 'Margen', valores: [Math.max(0, V.bruto / V.Rv * 100), Math.max(0, D.mg * 100)], color: C_CY, extra: [V.ebmOn ? 'Ingreso reconocido − costo ÷ ingreso reconocido' : 'Precio − costo ÷ precio', D.note] }], { fmt: (v) => Math.round(v) + '%', h: 250, id: 'dm' }) +
+      '<div class="vp-note">' + esc(D.note) + '</div>' });
+  return WK.band('vp-mix', 'Mix, pass-through y deal completo', 'Cómo cambia el margen al sumar la suscripción') + '<div class="vp-g c11"><div class="vp-stack">' + mixCard + repCard + '</div>' + dealCard + '</div>';
+}
+
+function view() {
+  if (!logic.has()) return '<div class="vp-root">' + viewEmpty() + '</div>';
+  const V = logic.calc();
+  const info = 'Evidencia VOP · ' + V.head.a + ' ' + V.head.b + ' · Hoja cargada: ' + V.head.file + ' · Generado el ' + WK.hora(new Date().toISOString()) + '. Parámetros: ' + (V.isAms ? 'utilidad sobre precio ' : 'margen bruto objetivo ') + V.tgtVal + '% · desviación ' + Math.round(V.d * 100) + '% · DSO ' + [30, 60, 90][V.s.dso] + ' días · precio ' + money(V.P) + (V.ebmOn ? ' · EBM ' + pc(V.e) + ' (ingreso reconocido ' + money(V.Rv) + ')' : '') + ' · nivel: ' + V.sem.label + '.';
+  return '<div class="vp-root">' + dealCard(V) + '<div class="onlyprint">' + esc(info) + '</div>' + controls(V) + chipsRow() + resumen(V) + precio(V) + caja(V) + capacidad(V) + riesgo(V) + mix(V) +
+    '<section class="wk-card" style="padding:18px 24px"><div class="vp-cap" style="margin-bottom:8px">Supuestos del modelo (a confirmar)</div><div class="vp-note" style="margin:0">' + esc(V.assump) + '</div></section></div>';
+}
+
+// ---- Carga de archivos ----
+(function () {
+  const status = document.getElementById('statusBox');
+  async function handleFile(f) {
+    if (!f) return;
+    status.innerHTML = '';
+    try {
+      if (typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería de Excel.');
+      const wb = XLSX.read(await f.arrayBuffer(), { type: 'array', cellDates: true });
+      let type, data;
+      if (wb.Sheets['Modelo Económico']) { type = 'proj'; data = parsearVOPProyecto(wb, f.name); }
+      else if (wb.Sheets['3. Resumen'] && wb.Sheets['1. Recursos']) { type = 'ams'; data = parsearVOPAMS(wb, f.name); }
+      else throw new Error('No reconozco el formato. Usa la hoja de estimación de proyecto o la Calculadora AMS.');
+      logic.load(type, data);
+      paint(true);
+      window.scrollTo(0, 0);
+    } catch (e) {
+      status.innerHTML = '<div class="vop-err">' + String(e.message || e).replace(/</g, '&lt;') + '</div>';
+    }
+    document.getElementById('fileInput').value = '';
+  }
+  window.handleFile = handleFile;
+  document.getElementById('fileInput').addEventListener('change', function () { handleFile(this.files[0]); });
+  paint(true);
+})();
+</script>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+<script src="/asistente.js?v=1" defer></script>
+</body>
+</html>

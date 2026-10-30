@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>WBR — Operaciones B1 · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
+<style>
+  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
+  header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+  .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
+  input[type=file]{display:none;}
+  .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+
+  
+  /* ====== Tablero Operaciones B1 — vestido con el formato WBR (solo CSS; el tablero no cambia) ====== */
+  main.b1{padding:20px 24px 64px;max-width:none;margin:0;}
+  main.b1 .b1tabs{position:sticky;top:0;z-index:30;display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 24px;margin:0 -24px 18px;background:rgba(6,12,27,.78);backdrop-filter:blur(8px);border-bottom:1px solid var(--wk-line);overflow:auto;}
+  main.b1 .nav{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;border:1px solid var(--wk-line);background:rgba(255,255,255,.05);color:#CFE0FA;font:600 12.5px Poppins,"Segoe UI",sans-serif;cursor:pointer;white-space:nowrap;transition:all .15s;}
+  main.b1 .nav:hover{border-color:var(--wk-cyan);color:#fff;box-shadow:0 0 18px rgba(61,214,255,.25);transform:translateY(-1px);}
+  main.b1 .nav.active{background:linear-gradient(135deg,#1E5BB8,#3DD6FF);border-color:transparent;color:#04101F;box-shadow:0 6px 22px rgba(61,214,255,.35);}
+  main.b1 .view{display:none;} main.b1 .view.active{display:block;animation:b1in .35s ease both;}
+  .b1-ctl{display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px;}
+  .b1-sel{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:8px 12px;font:500 12.5px Poppins,"Segoe UI",sans-serif;max-width:300px;cursor:pointer;outline:none;}
+  .b1-sel option{background:#0E1E3F;color:#fff;}
+  #b1Status:empty{display:none;} #b1Status{margin:0 0 14px;font-size:14px;}
+  main.b1 .badge.cy{background:rgba(61,214,255,.14);color:#8FE6FF;}
+  main.b1 .nav small{opacity:.7;font-weight:600;margin-left:2px;}
+  main.b1 .wk-callout{margin-bottom:16px;} main.b1 .wk-callout .txt{white-space:pre-line;}
+  main.b1 .wk-tools{margin-bottom:12px;}
+  @keyframes b1in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* KPIs */
+  main.b1 .kpis,main.b1 .monthcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:18px;} main.b1 .kpis .wk-kpi,main.b1 .monthcards .wk-kpi{border-top:0;}
+  main.b1 .card small{color:var(--wk-grey);font-size:12.5px;}
+
+  /* paneles */
+  main.b1 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:18px;margin-bottom:18px;}
+  main.b1 .panel{border-radius:16px;padding:20px 22px;background:linear-gradient(150deg,rgba(255,255,255,.075),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 22px 60px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);}
+  main.b1 .panel h2{margin:0 0 14px;font-size:19px;font-weight:700;color:#F2F7FF;}
+  main.b1 .title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 14px;}
+  main.b1 .title h2{margin:0;font-size:26px;font-weight:800;color:#fff;text-shadow:0 0 28px rgba(61,214,255,.35);}
+  main.b1 .title>span{font-size:11.5px;font-weight:700;color:#8FE6FF;background:rgba(61,214,255,.14);border-radius:99px;padding:3px 10px;}
+  main.b1 .line{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);color:#DDE8F8;font-size:14.5px;}
+  main.b1 .line:last-child{border-bottom:0;} main.b1 .line b{color:#fff;} main.b1 .line small{color:var(--wk-grey);font-size:12.5px;}
+  main.b1 .total{text-align:right;color:var(--wk-greyl);font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;}
+  main.b1 .total b{display:block;font-size:30px;font-weight:800;color:#fff;letter-spacing:-.5px;}
+
+  /* barras */
+  main.b1 .bar{height:10px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin:10px 0;}
+  main.b1 .bar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--wk-blue),var(--wk-cyan));box-shadow:0 0 18px rgba(61,214,255,.35);}
+
+  /* insignias de estado */
+  main.b1 .badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:700;white-space:nowrap;}
+  main.b1 .badge.on{background:rgba(47,226,155,.14);color:#4CE8AB;} main.b1 .badge.att{background:rgba(255,200,87,.15);color:#FFD479;}
+  main.b1 .badge.crit{background:rgba(255,92,122,.15);color:#FF8CA2;} main.b1 .badge.stop{background:rgba(255,255,255,.08);color:var(--wk-grey);}
+
+  /* buscador y filtros */
+  main.b1 .toolbar,main.b1 .monthtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  main.b1 .toolbar input,main.b1 .toolbar select{background:rgba(255,255,255,.06);border:1px solid var(--wk-line);color:#fff;border-radius:99px;padding:9px 16px;font:500 13px Poppins,"Segoe UI",sans-serif;outline:none;}
+  main.b1 .toolbar input::placeholder{color:var(--wk-greyl);} main.b1 .toolbar input:focus,main.b1 .toolbar select:focus{border-color:var(--wk-cyan);}
+  main.b1 .toolbar select option{background:#0E1E3F;color:#fff;}
+  main.b1 .monthtab{padding:6px 14px;border-radius:999px;border:1px solid var(--wk-line);background:rgba(255,255,255,.05);color:#CFE0FA;font:600 12.5px Poppins,"Segoe UI",sans-serif;cursor:pointer;text-transform:capitalize;transition:all .15s;}
+  main.b1 .monthtab:hover{border-color:var(--wk-cyan);color:#fff;}
+  main.b1 .monthtab.active{background:linear-gradient(135deg,#1E5BB8,#3DD6FF);border-color:transparent;color:#04101F;}
+
+  /* tablas */
+  main.b1 .wrap{overflow:auto;max-height:68vh;border:1px solid var(--wk-line);background:rgba(4,9,22,.35);border-radius:16px;}
+  main.b1 table{border-collapse:collapse;width:100%;font-size:14px;}
+  main.b1 th{position:sticky;top:0;z-index:2;background:rgba(14,26,52,.96);color:#9FB2D3;text-align:left;padding:13px 14px;font-size:11.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid var(--wk-line);}
+  main.b1 td{padding:12px 14px;color:#DDE8F8;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;}
+  main.b1 td b{color:#fff;} main.b1 td small{color:var(--wk-grey);}
+  main.b1 tbody tr:nth-child(even) td{background:rgba(255,255,255,.02);} main.b1 tbody tr:hover td{background:rgba(61,214,255,.09);}
+  main.b1 .prog{min-width:110px;} main.b1 .prog .bar{margin:6px 0 0;height:8px;}
+
+  /* tarjetas de Go Lives e Iniciativas */
+  main.b1 .items{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:18px;}
+  main.b1 .item{position:relative;overflow:hidden;border-radius:18px;padding:20px 22px;background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 16px 40px rgba(0,0,0,.4);transition:transform .2s,border-color .2s,box-shadow .2s;}
+  main.b1 .item:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--wk-cyan),transparent);}
+  main.b1 .item:hover{transform:translateY(-3px);border-color:var(--wk-cyan);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 22px 50px rgba(0,0,0,.5),0 0 40px -12px var(--wk-cyan);}
+  main.b1 .item h3{margin:0 0 8px;font-size:17px;font-weight:700;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+  main.b1 .item p{margin:8px 0 0;font-size:13.5px;color:var(--wk-grey);line-height:1.5;} main.b1 .item p b{color:#E3ECFA;}
+  main.b1 .foot{text-align:right;color:var(--wk-greyl);font-size:11.5px;margin-top:22px;padding-top:12px;border-top:1px solid var(--wk-line);}
+  @media(max-width:700px){main.b1 .grid2,main.b1 .items{grid-template-columns:1fr;} main.b1{padding:14px 14px 64px;} main.b1 .b1tabs{padding:10px 14px;margin:0 -14px 14px;}}
+</style>
+</head>
+<body data-wk-owner="mariajose">
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){}
+})();
+</script>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html" class="active">Dashboard Operaciones B1</a>
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div>
+    <h1>⚙️ Operaciones SAP Business One | Weekly Review</h1>
+    <p>Dashboard integrado para Dirección</p>
+    <div id="fechaRevisionBadge"></div>
+  <div class="b1-ctl">
+    <label class="upload-label" for="fileInput">⬆️ Subir corte de esta semana</label>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0]); this.value=''">
+    <select id="corteSel" class="b1-sel" title="Cortes guardados" onchange="verCorte(this.value)"></select>
+  </div>
+  </div>
+</header>
+
+<main class="wk-main b1">
+<div id="b1Status"></div>
+<nav class="b1tabs"><button class="nav active" data-v="exec">Resumen</button><button class="nav" data-v="projects">Proyectos</button><button class="nav" data-v="golives">Go Lives</button><button class="nav" data-v="risks">Riesgos</button><button class="nav" data-v="initiatives">Iniciativas</button><button class="nav" data-v="backlog">Backlog</button><button class="nav" data-v="acciones">Acciones</button><button class="nav" data-v="bitacora" id="navBit">Bitácora</button></nav>
+
+<section id="exec" class="view active"><div id="b1Msg"></div><div class="kpis" id="kpis"></div><div class="grid2"><div class="panel"><h2>Estado del portafolio</h2><div id="status"></div></div><div class="panel"><h2>Horas del portafolio activo</h2><div id="hours"></div></div></div><div class="grid2"><div class="panel"><h2>Excepciones prioritarias</h2><div id="exceptions"></div></div><div class="panel"><h2>Próximos hitos</h2><div id="milestones"></div></div></div></section>
+<section id="projects" class="view"><div class="title"><h2>Portafolio de proyectos</h2><span id="pc"></span></div><div class="toolbar"><input id="q" placeholder="Buscar cliente o proyecto"><select id="fs"><option value="">Todos los estados</option><option>On Track</option><option>Atención</option><option>Crítico</option><option>Detenido</option></select></div><div class="wrap"><table><thead><tr><th>Cliente</th><th>PM</th><th>Fase</th><th>Avance</th><th>Horas plan.</th><th>Horas cons.</th><th>Consumo</th><th>Estado</th><th>Go Live</th><th>Bloqueo</th><th>Próximo hito</th><th>Comentario</th></tr></thead><tbody id="pr"></tbody></table></div></section>
+<section id="golives" class="view"><div class="title"><h2>Go Lives 2026</h2></div><div class="items" id="gl"></div></section>
+<section id="risks" class="view"><div class="title"><h2>Riesgos y bloqueos</h2></div><div class="wrap"><table><thead><tr><th>Cliente</th><th>Tipo</th><th>Descripción</th><th>Impacto</th><th>Prioridad</th><th>Mitigación</th><th>Responsable</th><th>Compromiso</th><th>Estado</th></tr></thead><tbody id="rr"></tbody></table></div></section>
+<section id="initiatives" class="view"><div class="title"><h2>Qué estamos haciendo en la división</h2></div><div class="items" id="ii"></div></section>
+<section id="backlog" class="view"><div class="title"><h2>Backlog mensual de hitos</h2><div class="total">BACKLOG TOTAL<b id="bt"></b></div></div><div class="monthcards" id="bc"></div><div class="panel" style="margin-top:16px"><h2>Detalle por mes</h2><div class="monthtabs" id="tabs"></div><div class="line"><div><span id="bm" style="text-transform:capitalize;color:var(--muted)"></span><div class="value" id="bmt"></div></div><div class="total">HITOS<b id="bmc"></b></div></div><div class="wrap"><table><thead><tr><th>Cliente</th><th>Pedido</th><th>Fecha facturación</th><th>Hito</th><th>Neto</th></tr></thead><tbody id="br"></tbody></table></div></div></section><section id="acciones" class="view"><div id="accionesBox"></div></section>
+<section id="bitacora" class="view"><div id="bitacoraBox"></div></section>
+<div class="foot">Fuente: Plantilla_Dashboard_Operaciones_B1 1 (version 1).xlsx</div></main>
+<script>
+/* Datos de la plantilla del 22/10/2026: se muestran mientras no haya cortes guardados */
+const DATOS_INICIALES = {"p": [{"ID Proyecto": "D16-ALFACRONOS-MX", "Cliente": "Alfa Cronos", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Alejandro Valencia", "Fase": "UAT", "% Avance real": 0.391, "Horas planificadas": 916.0, "Horas consumidas": 577.0, "% Consumo horas": 0.6299126637554585, "Desviación horas": -339, "Eficiencia avance/consumo": 0.6207209705372617, "Fecha inicio": "2025-10-17 00:00:00", "Go Live planificado": "2027-01-01 00:00:00", "Go Live actual": "01/01/2027", "Estado reportado": "Atención", "Estado calculado": "Crítico", "Motivo / bloqueo": "Entrega de las LM", "Próximo hito": "Capacitación", "Fecha próximo hito": "26/11/2026", "Comentario ejecutivo": null, "Estado": "Crítico"}, {"ID Proyecto": "D16-AXMILAB-MX", "Cliente": "Axmilab", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Alejandro Valencia", "Fase": "Cutover", "% Avance real": 0.776, "Horas planificadas": 1054.0, "Horas consumidas": 662.0, "% Consumo horas": 0.6280834914611005, "Desviación horas": -392, "Eficiencia avance/consumo": 1.2355045317220545, "Fecha inicio": "2025-01-30 00:00:00", "Go Live planificado": "2026-11-01 00:00:00", "Go Live actual": "01/01/2027", "Estado reportado": "Atención", "Estado calculado": "On Track", "Motivo / bloqueo": "Actualización datos maestros", "Próximo hito": "CUTOVER", "Fecha próximo hito": "01/12/2026", "Comentario ejecutivo": null, "Estado": "On Track"}, {"ID Proyecto": "D16-ENOMEX-MX", "Cliente": "Enomex", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Ana Montes", "Fase": "Levantamiento / BBP", "% Avance real": 0.19, "Horas planificadas": 908.0, "Horas consumidas": 140.0, "% Consumo horas": 0.15418502202643172, "Desviación horas": -768, "Eficiencia avance/consumo": 1.2322857142857142, "Fecha inicio": "2025-11-01 00:00:00", "Go Live planificado": "2026-06-01 00:00:00", "Go Live actual": "03/01/2026", "Estado reportado": "Atención", "Estado calculado": "Crítico", "Motivo / bloqueo": "Cliente retoma proyecto", "Próximo hito": "BBP", "Fecha próximo hito": "01/11/2026", "Comentario ejecutivo": null, "Estado": "Crítico"}, {"ID Proyecto": "D16-ESTRADA-MX", "Cliente": "Grupo Estrada", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Ana Montes", "Fase": "CANCELADO", "% Avance real": 0.8, "Horas planificadas": 671.0, "Horas consumidas": 390.0, "% Consumo horas": 0.5812220566318927, "Desviación horas": -281, "Eficiencia avance/consumo": 1.3764102564102563, "Fecha inicio": null, "Go Live planificado": null, "Go Live actual": "", "Estado reportado": null, "Estado calculado": "Cancelado", "Motivo / bloqueo": null, "Próximo hito": null, "Fecha próximo hito": "", "Comentario ejecutivo": null, "Estado": "Cancelado"}, {"ID Proyecto": "D16-HITEC-MX", "Cliente": "HTECH", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Ana Montes", "Fase": "CANCELADO", "% Avance real": 0.4, "Horas planificadas": 599.0, "Horas consumidas": 10.0, "% Consumo horas": 0.01669449081803005, "Desviación horas": -589, "Eficiencia avance/consumo": 23.96, "Fecha inicio": null, "Go Live planificado": null, "Go Live actual": "", "Estado reportado": null, "Estado calculado": "Cancelado", "Motivo / bloqueo": null, "Próximo hito": null, "Fecha próximo hito": "", "Comentario ejecutivo": null, "Estado": "Cancelado"}, {"ID Proyecto": "D16-KRISHKA-MX", "Cliente": "KrishKa", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Ana Montes", "Fase": "CANCELADO", "% Avance real": 0.3, "Horas planificadas": 843.0, "Horas consumidas": 148.0, "% Consumo horas": 0.17556346381969157, "Desviación horas": -695, "Eficiencia avance/consumo": 1.7087837837837838, "Fecha inicio": null, "Go Live planificado": null, "Go Live actual": "", "Estado reportado": null, "Estado calculado": "Cancelado", "Motivo / bloqueo": null, "Próximo hito": null, "Fecha próximo hito": "", "Comentario ejecutivo": null, "Estado": "Cancelado"}, {"ID Proyecto": "D16-ORGACHEMICS-MX", "Cliente": "Orgachemics", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Alejandro Valencia", "Fase": "Estabilización", "% Avance real": 0.964, "Horas planificadas": 643.0, "Horas consumidas": 1046.0, "% Consumo horas": 1.6267496111975117, "Desviación horas": 403, "Eficiencia avance/consumo": 0.5925927342256214, "Fecha inicio": "2025-09-01 00:00:00", "Go Live planificado": "2026-06-01 00:00:00", "Go Live actual": "01/06/2026", "Estado reportado": "Atención", "Estado calculado": "Crítico", "Motivo / bloqueo": "Autonomio usuarios", "Próximo hito": "Cierre Proyecto", "Fecha próximo hito": "31/10/2026", "Comentario ejecutivo": null, "Estado": "Crítico"}, {"ID Proyecto": "D16-JARDON-MX", "Cliente": "Visual Jardon", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Alejandro Valencia", "Fase": "Levantamiento / BBP", "% Avance real": 0.228, "Horas planificadas": 650.0, "Horas consumidas": 192.0, "% Consumo horas": 0.2953846153846154, "Desviación horas": -458, "Eficiencia avance/consumo": 0.771875, "Fecha inicio": "2025-11-01 00:00:00", "Go Live planificado": "2026-06-01 00:00:00", "Go Live actual": "01/04/2027", "Estado reportado": "Crítico", "Estado calculado": "Atención", "Motivo / bloqueo": "Alcance Solución", "Próximo hito": "BBP", "Fecha próximo hito": "30/11/2026", "Comentario ejecutivo": "Se presentara Desarrollo control de cambios", "Estado": "Atención"}, {"ID Proyecto": "D16- SEIDOR-ESPAÑA", "Cliente": "Industrias RS Mexico", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Ana Montes", "Fase": "Estabilización", "% Avance real": 0.8, "Horas planificadas": 100.0, "Horas consumidas": 18.0, "% Consumo horas": 0.18, "Desviación horas": -82, "Eficiencia avance/consumo": 4.444444444444445, "Fecha inicio": "2023-12-01 00:00:00", "Go Live planificado": "2025-02-02 00:00:00", "Go Live actual": "02/02/2025", "Estado reportado": "Detenido", "Estado calculado": "Detenido", "Motivo / bloqueo": "Falta Balanza por parte cliente", "Próximo hito": "Cierre Proyecto", "Fecha próximo hito": "31/12/2026", "Comentario ejecutivo": null, "Estado": "Detenido"}, {"ID Proyecto": "D16-TORMAG-MX", "Cliente": "Tormag", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Alejandro Valencia", "Fase": "Levantamiento / BBP", "% Avance real": 0.09, "Horas planificadas": 300.0, "Horas consumidas": 26.0, "% Consumo horas": 0.08666666666666667, "Desviación horas": -274, "Eficiencia avance/consumo": 1.0384615384615383, "Fecha inicio": "2025-02-02 00:00:00", "Go Live planificado": "2025-08-08 00:00:00", "Go Live actual": "03/03/2027", "Estado reportado": "Detenido", "Estado calculado": "Detenido", "Motivo / bloqueo": "Cliente no responde", "Próximo hito": null, "Fecha próximo hito": "", "Comentario ejecutivo": null, "Estado": "Detenido"}, {"ID Proyecto": "D16-GRUPORYS-MX", "Cliente": "Grupo RYS", "Proyecto": "REIMPLEMENTACIÓN", "Project Manager": "Alejandro Valencia", "Fase": "Estabilización", "% Avance real": 0.05, "Horas planificadas": 600.0, "Horas consumidas": 28.0, "% Consumo horas": 0.04666666666666667, "Desviación horas": -572, "Eficiencia avance/consumo": 1.0714285714285714, "Fecha inicio": "2025-05-01 00:00:00", "Go Live planificado": "2026-01-01 00:00:00", "Go Live actual": "06/06/2027", "Estado reportado": "Detenido", "Estado calculado": "Detenido", "Motivo / bloqueo": null, "Próximo hito": null, "Fecha próximo hito": "", "Comentario ejecutivo": null, "Estado": "Detenido"}, {"ID Proyecto": "D16-IOSABRE-MX", "Cliente": "OISABRE", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Alejandro Valencia", "Fase": "Capacitación", "% Avance real": 0.721, "Horas planificadas": 712.0, "Horas consumidas": 337.0, "% Consumo horas": 0.47331460674157305, "Desviación horas": -375, "Eficiencia avance/consumo": 1.523299703264095, "Fecha inicio": "2025-08-12 00:00:00", "Go Live planificado": "2026-02-01 00:00:00", "Go Live actual": "01/12/2026", "Estado reportado": "Crítico", "Estado calculado": "On Track", "Motivo / bloqueo": "Servidor", "Próximo hito": "Capacitación", "Fecha próximo hito": "15/11/2026", "Comentario ejecutivo": null, "Estado": "On Track"}, {"ID Proyecto": "D16-AGRICOLAVALLE-MX", "Cliente": "AVL Fresh", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Ana Montes", "Fase": "Estabilización", "% Avance real": 0.9709, "Horas planificadas": 793.0, "Horas consumidas": 694.0, "% Consumo horas": 0.8751576292559899, "Desviación horas": -99, "Eficiencia avance/consumo": 1.109400144092219, "Fecha inicio": "2025-06-01 00:00:00", "Go Live planificado": "2026-03-01 00:00:00", "Go Live actual": "01/03/2026", "Estado reportado": "On Track", "Estado calculado": "Crítico", "Motivo / bloqueo": "sin pendientes Seidor", "Próximo hito": "Cierre Proyecto", "Fecha próximo hito": "31/12/2026", "Comentario ejecutivo": null, "Estado": "Crítico"}, {"ID Proyecto": "D16-ARROBACOMPUTERS-MX", "Cliente": "Arroba", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Ana Montes", "Fase": "Estabilización", "% Avance real": 0.931, "Horas planificadas": 1476.0, "Horas consumidas": 2690.0, "% Consumo horas": 1.8224932249322494, "Desviación horas": 1214, "Eficiencia avance/consumo": 0.5108386617100372, "Fecha inicio": "2025-07-01 00:00:00", "Go Live planificado": "2026-01-01 00:00:00", "Go Live actual": "01/04/2026", "Estado reportado": "Atención", "Estado calculado": "Crítico", "Motivo / bloqueo": "Pendientes de proyecto", "Próximo hito": "Cierre Proyecto", "Fecha próximo hito": "30/11/2026", "Comentario ejecutivo": null, "Estado": "Crítico"}, {"ID Proyecto": "D16-CMAR-MX", "Cliente": "CMAR", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Ana Montes", "Fase": "Estabilización", "% Avance real": 0.951, "Horas planificadas": 960.0, "Horas consumidas": 1253.0, "% Consumo horas": 1.3052083333333333, "Desviación horas": 293, "Eficiencia avance/consumo": 0.7286193136472466, "Fecha inicio": "2025-08-01 00:00:00", "Go Live planificado": "2026-01-01 00:00:00", "Go Live actual": "01/02/2026", "Estado reportado": "Atención", "Estado calculado": "Crítico", "Motivo / bloqueo": "Pendientes de proyecto", "Próximo hito": "Cierre Proyecto", "Fecha próximo hito": "31/12/2026", "Comentario ejecutivo": null, "Estado": "Crítico"}, {"ID Proyecto": "D16-UNSER-MX", "Cliente": "UNSER", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Ana Montes", "Fase": "Estabilización", "% Avance real": 0.965, "Horas planificadas": 884.0, "Horas consumidas": 1387.0, "% Consumo horas": 1.5690045248868778, "Desviación horas": 503, "Eficiencia avance/consumo": 0.6150396539293439, "Fecha inicio": "2025-07-01 00:00:00", "Go Live planificado": "2026-02-01 00:00:00", "Go Live actual": "01/03/2026", "Estado reportado": "Atención", "Estado calculado": "Crítico", "Motivo / bloqueo": "YUJU", "Próximo hito": "Cierre Proyecto", "Fecha próximo hito": "31/12/2026", "Comentario ejecutivo": null, "Estado": "Crítico"}, {"ID Proyecto": "D16-STOMEXICO-MX", "Cliente": "STO CORP", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Ana Montes", "Fase": "Estabilización", "% Avance real": 0.943, "Horas planificadas": 434.0, "Horas consumidas": 645.0, "% Consumo horas": 1.4861751152073732, "Desviación horas": 211, "Eficiencia avance/consumo": 0.6345147286821705, "Fecha inicio": "2025-08-11 00:00:00", "Go Live planificado": "2026-05-01 00:00:00", "Go Live actual": "01/12/2026", "Estado reportado": "Crítico", "Estado calculado": "Crítico", "Motivo / bloqueo": "Cliente entrego mal carga de saldos iniciales", "Próximo hito": "Cierre Proyecto", "Fecha próximo hito": "31/12/2026", "Comentario ejecutivo": null, "Estado": "Crítico"}, {"ID Proyecto": "D16-FERMIC-MX", "Cliente": "FERMIC", "Proyecto": "PRODUMEX", "Project Manager": "Ana Montes", "Fase": "Cutover", "% Avance real": 0.77, "Horas planificadas": 56.0, "Horas consumidas": 149.0, "% Consumo horas": 2.6607142857142856, "Desviación horas": 93, "Eficiencia avance/consumo": 0.28939597315436244, "Fecha inicio": "2025-07-01 00:00:00", "Go Live planificado": "2025-12-01 00:00:00", "Go Live actual": "01/12/2026", "Estado reportado": "Detenido", "Estado calculado": "Detenido", "Motivo / bloqueo": "No se cubre el requerimiento 100%", "Próximo hito": "Cierre Proyecto", "Fecha próximo hito": "30/10/2026", "Comentario ejecutivo": null, "Estado": "Detenido"}, {"ID Proyecto": "D16-FISCHER", "Cliente": "FISCHER", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Alejandro Valencia", "Fase": "Configuración", "% Avance real": 0.314, "Horas planificadas": 856.0, "Horas consumidas": 304.0, "% Consumo horas": 0.35514018691588783, "Desviación horas": -552, "Eficiencia avance/consumo": 0.8841578947368421, "Fecha inicio": "2026-08-01 00:00:00", "Go Live planificado": "2026-12-01 00:00:00", "Go Live actual": "01/01/2027", "Estado reportado": "On Track", "Estado calculado": "On Track", "Motivo / bloqueo": null, "Próximo hito": "UAT", "Fecha próximo hito": "15/11/2026", "Comentario ejecutivo": null, "Estado": "On Track"}, {"ID Proyecto": "D16-HLTrading-MX", "Cliente": "HL MANDO", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Alejandro Valencia", "Fase": "Levantamiento / BBP", "% Avance real": 0.212, "Horas planificadas": 880.0, "Horas consumidas": 92.0, "% Consumo horas": 0.10454545454545454, "Desviación horas": -788, "Eficiencia avance/consumo": 2.0278260869565217, "Fecha inicio": "2026-08-01 00:00:00", "Go Live planificado": "2027-02-01 00:00:00", "Go Live actual": "01/04/2027", "Estado reportado": "Atención", "Estado calculado": "On Track", "Motivo / bloqueo": "ALCANCE WMS", "Próximo hito": "Cierre BBP", "Fecha próximo hito": "15/11/2026", "Comentario ejecutivo": null, "Estado": "On Track"}, {"ID Proyecto": "D16-TAKLATI", "Cliente": "LookSport", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Ana Montes", "Fase": "Estabilización", "% Avance real": 0.9091, "Horas planificadas": 951.0, "Horas consumidas": 1505.0, "% Consumo horas": 1.5825446898002102, "Desviación horas": 554, "Eficiencia avance/consumo": 0.5744545514950167, "Fecha inicio": "2024-07-01 00:00:00", "Go Live planificado": "2025-07-01 00:00:00", "Go Live actual": "01/09/2025", "Estado reportado": "Crítico", "Estado calculado": "Crítico", "Motivo / bloqueo": "Carga Balanza", "Próximo hito": "Cierre Proyecto", "Fecha próximo hito": "31/12/2026", "Comentario ejecutivo": null, "Estado": "Crítico"}, {"ID Proyecto": "D16-ILSA", "Cliente": "ILSA", "Proyecto": "IMPLEMENTACIÓN", "Project Manager": "Alejandro Valencia", "Fase": "Estabilización", "% Avance real": 0.893, "Horas planificadas": 1199.0, "Horas consumidas": 3069.0, "% Consumo horas": 2.5596330275229358, "Desviación horas": 1870, "Eficiencia avance/consumo": 0.34887813620071684, "Fecha inicio": "2023-11-01 00:00:00", "Go Live planificado": "2025-06-05 00:00:00", "Go Live actual": "01/10/2025", "Estado reportado": "Atención", "Estado calculado": "Crítico", "Motivo / bloqueo": "Pendiente desarrollo servicios", "Próximo hito": "cierre proyecto", "Fecha próximo hito": "31/12/2026", "Comentario ejecutivo": null, "Estado": "Crítico"}], "g": [{"ID Go Live": "D16-ENOMEX-MX", "ID Proyecto": "Enomex", "Cliente": "Enomex", "Proyecto": "IMPLEMENTACIÓN", "Fecha planificada": "01/06/2026", "Fecha actual": "03/01/2026", "Tipo": "Reprogramado", "Estado": "Detenido", "% Preparación": 0.19, "Riesgo principal": "Cliente retoma proyecto", "Responsable": "Ana Montes", "Comentario": null}, {"ID Go Live": "D16-ORGACHEMICS-MX", "ID Proyecto": "Orgachemics", "Cliente": "Orgachemics", "Proyecto": "IMPLEMENTACIÓN", "Fecha planificada": "01/06/2026", "Fecha actual": "01/06/2026", "Tipo": "Realizado", "Estado": "Atención", "% Preparación": 0.964, "Riesgo principal": "Autonomio usuarios", "Responsable": "Alejandro Valencia", "Comentario": null}, {"ID Go Live": "D16-IOSABRE-MX", "ID Proyecto": "OISABRE", "Cliente": "OISABRE", "Proyecto": "IMPLEMENTACIÓN", "Fecha planificada": "01/02/2026", "Fecha actual": "01/12/2026", "Tipo": "Próximo", "Estado": "Crítico", "% Preparación": 0.721, "Riesgo principal": "Servidor", "Responsable": "Alejandro Valencia", "Comentario": null}, {"ID Go Live": "D16-AGRICOLAVALLE-MX", "ID Proyecto": "AVL Fresh", "Cliente": "AVL Fresh", "Proyecto": "IMPLEMENTACIÓN", "Fecha planificada": "01/03/2026", "Fecha actual": "01/03/2026", "Tipo": "Realizado", "Estado": "On Track", "% Preparación": 0.9709, "Riesgo principal": "sin pendientes Seidor", "Responsable": "Ana Montes", "Comentario": null}, {"ID Go Live": "D16-ARROBACOMPUTERS-MX", "ID Proyecto": "Arroba", "Cliente": "Arroba", "Proyecto": "IMPLEMENTACIÓN", "Fecha planificada": "01/01/2026", "Fecha actual": "01/04/2026", "Tipo": "Realizado", "Estado": "Atención", "% Preparación": 0.931, "Riesgo principal": "Pendientes de proyecto", "Responsable": "Ana Montes", "Comentario": null}, {"ID Go Live": "D16-CMAR-MX", "ID Proyecto": "CMAR", "Cliente": "CMAR", "Proyecto": "IMPLEMENTACIÓN", "Fecha planificada": "01/01/2026", "Fecha actual": "01/02/2026", "Tipo": "Realizado", "Estado": "Atención", "% Preparación": 0.951, "Riesgo principal": "Pendientes de proyecto", "Responsable": "Ana Montes", "Comentario": null}, {"ID Go Live": "D16-UNSER-MX", "ID Proyecto": "UNSER", "Cliente": "UNSER", "Proyecto": "IMPLEMENTACIÓN", "Fecha planificada": "01/02/2026", "Fecha actual": "01/03/2026", "Tipo": "Realizado", "Estado": "Atención", "% Preparación": 0.965, "Riesgo principal": "YUJU", "Responsable": "Ana Montes", "Comentario": null}, {"ID Go Live": "D16-STOMEXICO-MX", "ID Proyecto": "STO CORP", "Cliente": "STO CORP", "Proyecto": "IMPLEMENTACIÓN", "Fecha planificada": "01/05/2026", "Fecha actual": "01/12/2026", "Tipo": "Próximo", "Estado": "Crítico", "% Preparación": 0.943, "Riesgo principal": "Cliente entrego mal carga de saldos iniciales", "Responsable": "Ana Montes", "Comentario": null}, {"ID Go Live": "D16-FERMIC-MX", "ID Proyecto": "FERMIC", "Cliente": "FERMIC", "Proyecto": "IMPLEMENTACIÓN", "Fecha planificada": "01/12/2025", "Fecha actual": "01/12/2026", "Tipo": "Reprogramado", "Estado": "Detenido", "% Preparación": 0.77, "Riesgo principal": "No se cubre el requerimiento 100%", "Responsable": "Ana Montes", "Comentario": null}], "r": [{"ID Riesgo": "D16-ENOMEX-MX", "ID Proyecto": "Enomex", "Cliente": "Enomex", "Proyecto": "IMPLEMENTACIÓN", "Tipo": "Cliente", "Descripción": "Cliente retoma proyecto", "Impacto": "Facturación", "Probabilidad": null, "Prioridad": null, "Acción de mitigación": null, "Responsable": null, "Fecha compromiso": "", "Estado": null}, {"ID Riesgo": "D16-ORGACHEMICS-MX", "ID Proyecto": "Orgachemics", "Cliente": "Orgachemics", "Proyecto": "IMPLEMENTACIÓN", "Tipo": "Cliente", "Descripción": "Autonomio usuarios", "Impacto": "costo proyecto y cierre ", "Probabilidad": null, "Prioridad": null, "Acción de mitigación": null, "Responsable": null, "Fecha compromiso": "", "Estado": null}, {"ID Riesgo": "D16-AGRICOLAVALLE-MX", "ID Proyecto": "AVL Fresh", "Cliente": "AVL Fresh", "Proyecto": "IMPLEMENTACIÓN", "Tipo": "Cliente", "Descripción": "Balanza", "Impacto": "Cierre proyecto", "Probabilidad": null, "Prioridad": null, "Acción de mitigación": null, "Responsable": null, "Fecha compromiso": "", "Estado": null}, {"ID Riesgo": "D16-ARROBACOMPUTERS-MX", "ID Proyecto": "Arroba", "Cliente": "Arroba", "Proyecto": "IMPLEMENTACIÓN", "Tipo": "SEIDOR", "Descripción": "Pendientes de proyecto", "Impacto": "costo proyecto y cierre ", "Probabilidad": null, "Prioridad": null, "Acción de mitigación": null, "Responsable": null, "Fecha compromiso": "", "Estado": null}, {"ID Riesgo": "D16-CMAR-MX", "ID Proyecto": "CMAR", "Cliente": "CMAR", "Proyecto": "IMPLEMENTACIÓN", "Tipo": "Cliente", "Descripción": "Pendientes de proyecto", "Impacto": "Costo de proyecto", "Probabilidad": null, "Prioridad": null, "Acción de mitigación": null, "Responsable": null, "Fecha compromiso": "", "Estado": null}, {"ID Riesgo": "D16-UNSER-MX", "ID Proyecto": "UNSER", "Cliente": "UNSER", "Proyecto": "IMPLEMENTACIÓN", "Tipo": "Tercero", "Descripción": "YUJU", "Impacto": "Cierre proyecto", "Probabilidad": null, "Prioridad": null, "Acción de mitigación": null, "Responsable": null, "Fecha compromiso": "", "Estado": null}, {"ID Riesgo": "D16-STOMEXICO-MX", "ID Proyecto": "STO CORP", "Cliente": "STO CORP", "Proyecto": "IMPLEMENTACIÓN", "Tipo": "Cliente", "Descripción": "Cliente entrego mal carga de saldos iniciales", "Impacto": "Cierre proyecto", "Probabilidad": null, "Prioridad": null, "Acción de mitigación": null, "Responsable": null, "Fecha compromiso": "", "Estado": null}, {"ID Riesgo": "D16-TAKLATI", "ID Proyecto": "LookSport", "Cliente": "LookSport", "Proyecto": "IMPLEMENTACIÓN", "Tipo": "Cliente", "Descripción": "Carga Balanza", "Impacto": "Cierre proyecto", "Probabilidad": null, "Prioridad": null, "Acción de mitigación": null, "Responsable": null, "Fecha compromiso": "", "Estado": null}, {"ID Riesgo": "D16-ILSA", "ID Proyecto": "ILSA", "Cliente": "ILSA", "Proyecto": "IMPLEMENTACIÓN", "Tipo": "SEIDOR", "Descripción": "Pendiente desarrollo servicios", "Impacto": "costo proyecto y cierre ", "Probabilidad": null, "Prioridad": null, "Acción de mitigación": null, "Responsable": null, "Fecha compromiso": "", "Estado": null}, {"ID Riesgo": "D16-JARDON-MX", "ID Proyecto": "Visual Jardon", "Cliente": "Visual Jardon", "Proyecto": "IMPLEMENTACIÓN", "Tipo": "SEIDOR", "Descripción": "Alcance negocio", "Impacto": "costo del proyecto, retraso facturación", "Probabilidad": null, "Prioridad": null, "Acción de mitigación": null, "Responsable": null, "Fecha compromiso": "", "Estado": null}], "i": [{"ID": 1, "Categoría": "Mejora operacional", "Iniciativa": "Cerrar proyectos abiertos durante 2026", "Objetivo": "Desviación horas proyecto", "Entregable / resultado esperado": "Cierre proyecto", "Responsable": "Ana Montes", "Fecha inicio": "2026-09-01 00:00:00", "Fecha objetivo": "31/12/2026", "% Avance": 0.1, "Estado": "On Track", "Comentario ejecutivo": null}, {"ID": 2, "Categoría": "Evolución de la práctica", "Iniciativa": "Imputación Banca", "Objetivo": "Conocer tasa desocupación consultores", "Entregable / resultado esperado": "Imputación semanal de horas", "Responsable": "Ana Montes", "Fecha inicio": "2026-10-01 00:00:00", "Fecha objetivo": "30/11/2026", "% Avance": 0.6, "Estado": "Atención", "Comentario ejecutivo": null}, {"ID": 3, "Categoría": "Delivery", "Iniciativa": "Implementación IA", "Objetivo": "Disminuir tiempos de implementación", "Entregable / resultado esperado": "Creación de agentes", "Responsable": "Ana Montes", "Fecha inicio": "2026-10-01 00:00:00", "Fecha objetivo": "31/12/2026", "% Avance": 0.25, "Estado": "On Track", "Comentario ejecutivo": null}, {"ID": 4, "Categoría": "Equipo", "Iniciativa": "Asistencia presencial oficinas", "Objetivo": "Aumentar presencialidad y trabajo en equipo", "Entregable / resultado esperado": "Asistencia Oficina", "Responsable": "Ana Montes", "Fecha inicio": "2026-10-29 00:00:00", "Fecha objetivo": "31/12/2027", "% Avance": 0.25, "Estado": "On Track", "Comentario ejecutivo": null}], "b": [{"Cliente": "D16-SHACMAN-MX", "Pedido": "5000335772", "Fecha facturación": "01/09/2026", "Neto": 2400.0, "Hito": "Servicio de implementación produmex scan"}, {"Cliente": "D16-IOSABRE-MX", "Pedido": "5000335897", "Fecha facturación": "16/11/2026", "Neto": 6526.67, "Hito": "Servicio de reimplementación SAP B1  Capacitación"}, {"Cliente": "D16-IOSABRE-MX", "Pedido": "5000335897", "Fecha facturación": "07/12/2026", "Neto": 6526.67, "Hito": "Servicio de reimplementación SAP B1  Salida en vivo"}, {"Cliente": "D16-STOMEXICO-MX", "Pedido": "5000366711", "Fecha facturación": "31/12/2026", "Neto": 3715.0, "Hito": "Servicios de implementación SAP B1  Salida en productivo"}, {"Cliente": "D16-ALFACRONOS-MX", "Pedido": "5000378408", "Fecha facturación": "08/09/2026", "Neto": 6969.6, "Hito": "Servicios de Implementación"}, {"Cliente": "D16-TELMEX-BOSTON-MX", "Pedido": "5000381972", "Fecha facturación": "10/08/2026", "Neto": 2025.0, "Hito": "Bolsa de 40 horas BMG entrada 5000122864"}, {"Cliente": "D16-ENOMEX-MX", "Pedido": "5000382647", "Fecha facturación": "01/11/2026", "Neto": 5745.6, "Hito": "Servicios de Implementación Mes 5"}, {"Cliente": "D16-ENOMEX-MX", "Pedido": "5000382647", "Fecha facturación": "01/12/2026", "Neto": 5745.6, "Hito": "Servicios de Implementación Mes 6"}, {"Cliente": "D16-JARDON-MX", "Pedido": "5000382744", "Fecha facturación": "14/12/2026", "Neto": 13120.0, "Hito": "SERVICIOS DE IMPLEMENTACIÓN SAP BUSINESS  HITO 3"}, {"Cliente": "D16-ROSARITO-MX", "Pedido": "5000386001", "Fecha facturación": "09/12/2026", "Neto": 4324.324324324324, "Hito": "Timbres anuales 200,000 \"para 2027\""}, {"Cliente": "D16-GRUPORYS-MX", "Pedido": "5000394146", "Fecha facturación": "19/12/2026", "Neto": 4800.0, "Hito": "Servicios de consultoría SAP para  reimplementación \"Cuota 4\""}, {"Cliente": "D16-GRUPORYS-MX", "Pedido": "5000394146", "Fecha facturación": "19/11/2026", "Neto": 4800.0, "Hito": "Servicios de consultoría SAP para  reimplementación \"Cuota 3\""}, {"Cliente": "D16-BERSA-MX", "Pedido": "5000394962", "Fecha facturación": "22/02/2026", "Neto": 2508.0, "Hito": "Servicios de implementación portal de  proveedores y almacenes (Cuota 2: Inicio de pruebas)"}, {"Cliente": "D16-BERSA-MX", "Pedido": "5000394962", "Fecha facturación": "22/03/2026", "Neto": 2508.0, "Hito": "Servicios de implementación portal de  proveedores y almacenes (Cuota 3: Liberación)"}, {"Cliente": "D16-CARNESG-MX", "Pedido": "5000405177", "Fecha facturación": "20/11/2026", "Neto": 3665.0, "Hito": "Consultoría SAP B1 Proyecto Roll Out  (Cuota 2:Liberación)"}, {"Cliente": "D16-FISCHER-MX", "Pedido": "5000412477", "Fecha facturación": "06/11/2026", "Neto": 6600.0, "Hito": "Proyecto Implementación SAP Hito 4  Pruebas del modelo"}, {"Cliente": "D16-FISCHER-MX", "Pedido": "5000412477", "Fecha facturación": "06/12/2026", "Neto": 6600.0, "Hito": "Proyecto Implementación SAP Hito 5  Capacitación"}, {"Cliente": "D16-HL-MANDO-MX", "Pedido": "5000410329", "Fecha facturación": "17/12/2026", "Neto": 6600.0, "Hito": "SAP Implementation 2/6  (BBP's acceptance)"}, {"Cliente": "D16-AGROECOLOGIA-MX", "Pedido": "5000412480", "Fecha facturación": "01/12/2026", "Neto": 1750.0, "Hito": "Anexo B Portal de Proveedores Cuota 2:   Inicio de pruebas"}, {"Cliente": "D16-AGROECOLOGIA-MX", "Pedido": "5000412480", "Fecha facturación": "01/11/2026", "Neto": 1750.0, "Hito": "Anexo B Portal de Proveedores Cuota 3:  Liberación del portal"}, {"Cliente": "D16-RETECMA-MX", "Pedido": "5000418114", "Fecha facturación": "24/10/2026", "Neto": 4040.0, "Hito": "Consultoría por implementación de  actura electrónica 1 sociedad (Se contempla Carta Porte, Comercio exterior y factoraje)"}]};
+/* Tablero original: el código es el mismo; solo se envuelve en una función para poder repintarlo con cada corte */
+function renderTablero(D){
+const safe=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));const money=v=>new Intl.NumberFormat('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}).format(+v||0),n=v=>new Intl.NumberFormat('es-MX',{maximumFractionDigits:0}).format(+v||0),pct=v=>Math.round((+v||0)*100)+'%';const cls=s=>s==='On Track'?'on':s==='Atención'?'att':s==='Crítico'?'crit':'stop';document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav,.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.v).classList.add('active')});
+const active=D.p.filter(x=>String(x.Fase||'').toUpperCase()!=='CANCELADO'), cnt={};['On Track','Atención','Crítico','Detenido'].forEach(s=>cnt[s]=active.filter(x=>x.Estado===s).length);const hp=active.reduce((a,x)=>a+x['Horas planificadas'],0),hc=active.reduce((a,x)=>a+x['Horas consumidas'],0);document.getElementById('kpis').innerHTML=[['Proyectos activos',active.length,''],['On Track',cnt['On Track'],'green'],['En atención',cnt['Atención'],'amber'],['Críticos',cnt['Crítico'],'red'],['Detenidos',cnt['Detenido'],'gray'],['Go Lives realizados',D.g.filter(x=>x.Tipo==='Realizado').length,''],['Go Lives próximos',D.g.filter(x=>x.Tipo==='Próximo').length,'']].map(x=>`<div class="card ${x[2]}"><div class="lab">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');document.getElementById('status').innerHTML=Object.keys(cnt).map(s=>`<div class="line"><span><span class="badge ${cls(s)}">${s}</span></span><b>${cnt[s]}</b></div>`).join('');document.getElementById('hours').innerHTML=`<div class="line"><span>Consumidas</span><b>${n(hc)}</b></div><div class="line"><span>Planificadas</span><b>${n(hp)}</b></div><div class="bar"><span style="width:${Math.min(100,hc/hp*100)}%"></span></div><div class="line"><span>Consumo global</span><b>${hp?pct(hc/hp):'0%'}</b></div>`;document.getElementById('exceptions').innerHTML=active.filter(x=>['Crítico','Detenido'].includes(x.Estado)).slice(0,6).map(x=>`<div class="line"><span><b>${safe(x.Cliente)}</b><br><small>${safe(x['Motivo / bloqueo'])}</small></span><span class="badge ${cls(x.Estado)}">${x.Estado}</span></div>`).join('');document.getElementById('milestones').innerHTML=active.filter(x=>x['Próximo hito']).slice(0,6).map(x=>`<div class="line"><span><b>${safe(x.Cliente)}</b><br><small>${safe(x['Próximo hito'])}</small></span><span>${safe(x['Fecha próximo hito'])}</span></div>`).join('');
+function rp(){const q=document.getElementById('q').value.toLowerCase(),f=document.getElementById('fs').value,a=active.filter(x=>(!q||`${x.Cliente} ${x.Proyecto}`.toLowerCase().includes(q))&&(!f||x.Estado===f));document.getElementById('pc').textContent=a.length+' proyectos';document.getElementById('pr').innerHTML=a.map(x=>`<tr><td><b>${safe(x.Cliente)}</b></td><td>${safe(x['Project Manager'])}</td><td>${safe(x.Fase)}</td><td class="prog">${pct(x['% Avance real'])}<div class="bar"><span style="width:${Math.min(100,x['% Avance real']*100)}%"></span></div></td><td>${n(x['Horas planificadas'])}</td><td>${n(x['Horas consumidas'])}</td><td>${pct(x['% Consumo horas'])}</td><td><span class="badge ${cls(x.Estado)}">${x.Estado}</span></td><td>${safe(x['Go Live actual'])}</td><td>${safe(x['Motivo / bloqueo'])}</td><td>${safe(x['Próximo hito'])}<br><small>${safe(x['Fecha próximo hito'])}</small></td><td>${safe(x['Comentario ejecutivo'])}</td></tr>`).join('')}q.oninput=rp;fs.onchange=rp;rp();
+document.getElementById('gl').innerHTML=D.g.map(x=>`<div class="item"><h3>${safe(x.Cliente)} <span class="badge ${cls(x.Estado)}">${safe(x.Tipo)}</span></h3><p>${safe(x.Proyecto)} · Preparación <b>${pct(x['% Preparación'])}</b></p><div class="bar"><span style="width:${Math.min(100,x['% Preparación']*100)}%"></span></div><p><b>Riesgo:</b> ${safe(x['Riesgo principal'])}</p><p>Plan: ${safe(x['Fecha planificada'])} · Actual: ${safe(x['Fecha actual'])}</p></div>`).join('');document.getElementById('rr').innerHTML=D.r.map(x=>`<tr><td><b>${safe(x.Cliente)}</b></td><td>${safe(x.Tipo)}</td><td>${safe(x.Descripción)}</td><td>${safe(x.Impacto)}</td><td>${safe(x.Prioridad)}</td><td>${safe(x['Acción de mitigación'])}</td><td>${safe(x.Responsable)}</td><td>${safe(x['Fecha compromiso'])}</td><td>${safe(x.Estado)}</td></tr>`).join('');document.getElementById('ii').innerHTML=D.i.map(x=>`<div class="item"><h3>${safe(x.Iniciativa)} <span class="badge ${cls(x.Estado)}">${safe(x.Estado)}</span></h3><p><b>${safe(x.Categoría)}</b> · ${safe(x.Objetivo)}</p><div class="bar"><span style="width:${Math.min(100,x['% Avance']*100)}%"></span></div><p>Avance ${pct(x['% Avance'])} · Objetivo ${safe(x['Fecha objetivo'])}</p></div>`).join('');
+const key=d=>{const m=String(d).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?`${m[3]}-${m[2]}`:'Sin fecha'},label=k=>{if(k==='Sin fecha')return k;const[y,m]=k.split('-');return new Intl.DateTimeFormat('es-MX',{month:'long',year:'numeric'}).format(new Date(+y,+m-1,1))},sums={};D.b.forEach(x=>{const k=key(x['Fecha facturación']);sums[k]=(sums[k]||0)+x.Neto});const months=Object.keys(sums).sort(),grand=D.b.reduce((a,x)=>a+x.Neto,0);bt.textContent=money(grand);bc.innerHTML=months.map(k=>`<div class="card"><div class="lab" style="text-transform:capitalize">${label(k)}</div><div class="value">${money(sums[k])}</div><small>${D.b.filter(x=>key(x['Fecha facturación'])===k).length} hitos</small></div>`).join('');tabs.innerHTML=months.map(k=>`<button class="monthtab" data-k="${k}">${label(k)}</button>`).join('');let sel=months[0]||'';function rb(){document.querySelectorAll('.monthtab').forEach(b=>b.classList.toggle('active',b.dataset.k===sel));const a=D.b.filter(x=>key(x['Fecha facturación'])===sel);bm.textContent=label(sel);bmt.textContent=money(a.reduce((s,x)=>s+x.Neto,0));bmc.textContent=a.length;br.innerHTML=a.map(x=>`<tr><td><b>${safe(x.Cliente)}</b></td><td>${safe(x.Pedido)}</td><td>${safe(x['Fecha facturación'])}</td><td>${safe(x.Hito)}</td><td><b>${money(x.Neto)}</b></td></tr>`).join('')}tabs.onclick=e=>{const b=e.target.closest('.monthtab');if(b){sel=b.dataset.k;rb()}};rb();
+
+}
+</script>
+<script>
+/* Lector del Excel "Plantilla Dashboard Operaciones B1" → mismos datos que usa el tablero */
+function parsearB1(wb, XLSX){
+  var p2 = function(n){ return String(n).padStart(2,'0'); };
+  function fecha(v){
+    if(v == null || v === '') return '';
+    if(typeof v === 'number'){ var c = XLSX.SSF.parse_date_code(v); return c ? p2(c.d)+'/'+p2(c.m)+'/'+c.y : ''; }
+    if(Object.prototype.toString.call(v) === '[object Date]') return isNaN(v) ? '' : p2(v.getUTCDate())+'/'+p2(v.getUTCMonth()+1)+'/'+v.getUTCFullYear();
+    return String(v);
+  }
+  function filas(nombre, ancla, fechas){
+    var ws = wb.Sheets[nombre];
+    if(!ws) throw new Error('Falta la pestaña "' + nombre + '". No cambies los nombres de las pestañas.');
+    var m = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true });
+    var h = -1; for(var i=0;i<m.length;i++){ if(m[i] && String(m[i][0]).trim() === ancla){ h = i; break; } }
+    if(h < 0) throw new Error('En la pestaña "' + nombre + '" no encontré el encabezado "' + ancla + '". No cambies los encabezados.');
+    var cols = m[h], out = [];
+    for(var r=h+1; r<m.length; r++){
+      var f = m[r]; if(!f || f[0] == null || String(f[0]).trim() === '') continue;
+      if(!f.slice(1).some(function(c){ return c != null && String(c).trim() !== ''; })) continue; // fila con solo el consecutivo
+      var o = {};
+      cols.forEach(function(c, j){
+        if(c == null) return;
+        var v = f[j]; if(v === undefined || v === '') v = null;
+        if(fechas.indexOf(c) >= 0) v = fecha(v);
+        o[c] = v;
+      });
+      out.push(o);
+    }
+    return out;
+  }
+  var p = filas('Proyectos', 'ID Proyecto', ['Fecha inicio','Go Live planificado','Go Live actual','Fecha próximo hito']);
+  p.forEach(function(x){
+    var g = Number(x['Horas planificadas'])||0, c = Number(x['Horas consumidas'])||0, av = Number(x['% Avance real'])||0;
+    if(x['% Consumo horas'] == null) x['% Consumo horas'] = g ? c/g : 0;
+    if(x['Desviación horas'] == null) x['Desviación horas'] = c - g;
+    if(x['Eficiencia avance/consumo'] == null) x['Eficiencia avance/consumo'] = x['% Consumo horas'] ? av/x['% Consumo horas'] : 0;
+    if(x['Estado calculado'] == null){ // misma regla de la plantilla
+      var rep = x['Estado reportado'], cons = x['% Consumo horas'];
+      var gl = x['Go Live actual'] ? x['Go Live actual'].split('/') : null, glv = gl ? new Date(+gl[2], +gl[1]-1, +gl[0]) : null;
+      x['Estado calculado'] = rep === 'Detenido' ? 'Detenido' : ((av < cons-0.15 || (glv && glv < new Date())) ? 'Crítico' : ((av < cons-0.05 || cons > 0.9) ? 'Atención' : 'On Track'));
+    }
+    x['Estado'] = x['Estado calculado'] || x['Estado reportado'];
+  });
+  if(!p.length) throw new Error('La pestaña Proyectos viene sin proyectos.');
+  var g = filas('GoLives', 'ID Go Live', ['Fecha planificada','Fecha actual']);
+  var r = filas('Riesgos', 'ID Riesgo', ['Fecha compromiso']);
+  var i = filas('Iniciativas', 'ID', ['Fecha inicio','Fecha objetivo']);
+  var a = wb.Sheets['Acciones'] ? filas('Acciones', 'ID Acción', ['Fecha creación','Fecha compromiso','Última actualización']) : [];
+  var b = filas('Backlog', 'Cliente', ['Fecha facturación']);
+  b.forEach(function(x){ if(x.Pedido != null) x.Pedido = String(x.Pedido); x.Neto = Number(x.Neto)||0; });
+  // Resumen: fecha de actualización y mensajes
+  var rs = wb.Sheets['Resumen'], fechaRev = null, mensaje = '', decisiones = '';
+  if(rs){
+    var mm = XLSX.utils.sheet_to_json(rs, { header:1, defval:null, raw:true });
+    for(var k=0;k<mm.length;k++){
+      var fila = mm[k] || [], t = String(fila[0]||'').trim();
+      if(t === 'Fecha de actualización'){ var v = fila.slice(1).find(function(c){ return c != null && c !== ''; }); var s = fecha(v).split('/'); if(s.length === 3) fechaRev = new Date(Date.UTC(+s[2], +s[1]-1, +s[0], 12)).toISOString(); }
+      if(t === 'Mensaje ejecutivo de la semana' && mm[k+1]) mensaje = String(mm[k+1][0]||'').trim();
+      if(t === 'Decisiones / apoyo requerido de Directorio' && mm[k+1]) decisiones = String(mm[k+1][0]||'').trim();
+    }
+  }
+  if(/^Escribe aquí/i.test(mensaje)) mensaje = '';
+  if(/^1\.\s*2\.\s*3\.?$/.test(decisiones.replace(/\s+/g,''))) decisiones = '';
+  return { fechaRevision: fechaRev || new Date().toISOString(), D:{ p:p, g:g, r:r, i:i, b:b, a:a }, mensaje:mensaje, decisiones:decisiones };
+}
+</script>
+<script>
+let historial = [], visto = null;
+const esc = WK.esc;
+const fmtF = iso => new Date(iso).toLocaleDateString('es-MX', { timeZone:'UTC', day:'2-digit', month:'2-digit', year:'numeric' });
+
+/* Efectos WBR: se enganchan al tablero sin modificarlo (clases del kit) */
+function vestir(){
+  var tone={green:'wk-t-green',amber:'wk-t-amber',red:'wk-t-red'};
+  var irVista={'Proyectos activos':'projects','On Track':'projects','En atención':'projects','Críticos':'risks','Detenidos':'projects','Go Lives realizados':'golives','Go Lives próximos':'golives'};
+  document.querySelectorAll('#kpis .card').forEach(function(c){
+    var lb=c.querySelector('.lab'), v=lb && irVista[lb.textContent.trim()]; if(!v || c.dataset.irB1) return;
+    c.dataset.irB1='1'; c.setAttribute('role','button'); c.setAttribute('tabindex','0'); c.style.cursor='pointer';
+    var go=function(){ var t=document.querySelector('.nav[data-v="'+v+'"]'); if(t) t.click(); var el=document.getElementById(v); if(el){ setTimeout(function(){ try{ el.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){ el.scrollIntoView(); } },60); } };
+    c.addEventListener('click',go); c.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
+  });
+  document.querySelectorAll('.kpis .card,.monthcards .card').forEach(function(c){
+    c.classList.add('wk-kpi'); Object.keys(tone).forEach(function(t){ if(c.classList.contains(t)) c.classList.add(tone[t]); });
+    var l=c.querySelector('.lab'); if(l) l.classList.add('wk-kpi-label');
+    var v=c.querySelector('.value'); if(v) v.classList.add('wk-kpi-val');
+  });
+  document.querySelectorAll('.panel,.item').forEach(function(c){ c.classList.add('wk-card'); });
+  document.querySelectorAll('.bar').forEach(function(b){ b.classList.add('wk-bar'); });
+  document.querySelectorAll('main.b1 .wrap').forEach(function(w){ w.classList.add('wk-tablewrap'); });
+  document.querySelectorAll('main.b1 table').forEach(function(t){ t.classList.add('wk-table'); t.setAttribute('data-sortable',''); });
+  if(window.WK){ WK.sortable(document); if(WK.fx) WK.fx(document); }
+}
+
+
+/* ---------- Mensaje ejecutivo, Acciones y Bitácora ---------- */
+const fechaDe = s => { const m = String(s||'').match(/^(\d{2})\/(\d{2})\/(\d{4})$/); return m ? new Date(+m[3], +m[2]-1, +m[1]) : null; };
+function pintarMensajes(snap){
+  const m = String(snap.mensaje || '').trim(), d = String(snap.decisiones || '').trim();
+  const bloque = (ico, t, x) => '<div class="wk-callout"><div class="ico">' + ico + '</div><div style="flex:1"><h3>' + esc(t) + '</h3><div class="txt">' + esc(x) + '</div></div></div>';
+  document.getElementById('b1Msg').innerHTML = (m ? bloque('📌', 'Mensaje ejecutivo de la semana', m) : '') + (d ? bloque('🧭', 'Decisiones / apoyo requerido de Directorio', d) : '');
+}
+const BADGE_ACC = { 'Completada':'on', 'En curso':'cy', 'Bloqueada':'crit', 'No iniciada':'stop' };
+function pintarAcciones(acc){
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const filas = (acc || []).map(a => { const f = fechaDe(a['Fecha compromiso']), hecha = a['Estado'] === 'Completada'; return Object.assign({}, a, { _venc: !!(f && f < hoy && !hecha) }); });
+  const box = document.getElementById('accionesBox');
+  const kpi = (l, v, c) => '<div class="card ' + c + '"><div class="lab">' + l + '</div><div class="value">' + v + '</div></div>';
+  const n = e => filas.filter(a => a['Estado'] === e).length;
+  const tabla = filas.length ? WK.table([
+    { k:'id', label:'ID', tipo:'text' }, { k:'origen', label:'Origen', tipo:'tag' }, { k:'rel', label:'Relacionado', tipo:'text' }, { k:'accion', label:'Acción', tipo:'strong' },
+    { k:'resp', label:'Responsable', tipo:'text' }, { k:'creada', label:'Creación', tipo:'date' }, { k:'comp', label:'Compromiso', tipo:'date' }, { k:'prio', label:'Prioridad', tipo:'tag' },
+    { k:'estado', label:'Estado', tipo:'html' }, { k:'avance', label:'Avance', tipo:'pct' }, { k:'apoyo', label:'Apoyo requerido', tipo:'note' }, { k:'act', label:'Actualización', tipo:'date' }, { k:'coment', label:'Comentario', tipo:'note' }
+  ], filas.map(a => ({ id:a['ID Acción'], origen:a['Origen'], rel:a['ID Relacionado'], accion:a['Acción'], resp:a['Responsable'], creada:a['Fecha creación'], comp:a['Fecha compromiso'], prio:a['Prioridad'],
+      estado:'<span class="badge ' + (BADGE_ACC[a['Estado']] || 'stop') + '">' + esc(a['Estado'] || '—') + '</span>' + (a._venc ? ' <span class="badge crit">Vencida</span>' : ''),
+      avance:a['% Avance'], apoyo:a['Apoyo requerido'], act:a['Última actualización'], coment:a['Comentario'] })), { id:'tablaAcciones' }) : WK.empty('Todavía no hay acciones capturadas en la pestaña "Acciones" del Excel.');
+  box.innerHTML = '<div class="title"><h2>Plan de acción</h2><span>' + filas.length + ' acciones</span></div>' +
+    '<div class="kpis">' + kpi('Acciones', filas.length, '') + kpi('Completadas', n('Completada'), 'green') + kpi('En curso', n('En curso'), '') + kpi('Bloqueadas', n('Bloqueada'), 'red') + kpi('Vencidas', filas.filter(a => a._venc).length, 'amber') + '</div>' +
+    (filas.length > 6 ? '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar acción o responsable…" oninput="WK.filtrar(document.getElementById(\'tablaAcciones\'), this.value)"></div>' : '') + tabla;
+}
+function resumenCorte(h){
+  const D = h.D, act = D.p.filter(x => String(x.Fase || '').toUpperCase() !== 'CANCELADO');
+  const hp = act.reduce((s, x) => s + (Number(x['Horas planificadas']) || 0), 0), hc = act.reduce((s, x) => s + (Number(x['Horas consumidas']) || 0), 0);
+  return { act:act.length, crit:act.filter(x => x.Estado === 'Crítico').length, det:act.filter(x => x.Estado === 'Detenido').length, cons: hp ? hc/hp : null, back:(D.b || []).reduce((s, x) => s + (Number(x.Neto) || 0), 0), acc:(D.a || []).length };
+}
+function pintarBitacora(idActual){
+  const box = document.getElementById('bitacoraBox');
+  const filas = historial.slice().reverse().map(h => { const r = resumenCorte(h), hc = WK.hora(h.guardadoEn).split(' ');
+    return { semana:fmtF(h.fechaRevision), cargo:h.guardadoPor || '—', cuando:hc[0] === '—' ? '' : hc[0], hora:hc[1] || '', act:r.act, crit:r.crit, det:r.det, cons:r.cons, back:r.back, acc:r.acc, arch:h.archivo || '', _id:h.guardadoEn }; });
+  const tabla = WK.table([
+    { k:'semana', label:'Semana', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' }, { k:'hora', label:'Hora', tipo:'text' },
+    { k:'act', label:'Proyectos activos', tipo:'num' }, { k:'crit', label:'Críticos', tipo:'num' }, { k:'det', label:'Detenidos', tipo:'num' }, { k:'cons', label:'Consumo horas', tipo:'pct' },
+    { k:'back', label:'Backlog', tipo:'num' }, { k:'acc', label:'Acciones', tipo:'num' }, { k:'arch', label:'Archivo', tipo:'note' }
+  ], filas, { id:'tablaBitacora', vacio:'Aún no hay cortes guardados. Sube el Excel semanal para guardar el primero.',
+    rowAttrs: f => 'onclick="verCorteDesdeBitacora(\'' + f._id + '\')" title="Ver el dashboard completo de esta semana"' + (idActual === f._id ? ' class="wk-on"' : '') });
+  box.innerHTML = '<div class="title"><h2>Bitácora de cortes</h2><span>' + historial.length + ' cortes</span></div>' +
+    '<div class="panel"><p style="margin:0 0 12px;color:var(--wk-grey);font-size:13.5px">Haz clic en un corte para ver el dashboard completo tal como se veía entonces. Puedes ordenar por cualquier columna.</p>' +
+    (filas.length > 6 ? '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar semana o quién cargó…" oninput="WK.filtrar(document.getElementById(\'tablaBitacora\'), this.value)"></div>' : '') + tabla + '</div>';
+  document.getElementById('navBit').innerHTML = 'Bitácora' + (historial.length ? ' <small>' + historial.length + '</small>' : '');
+}
+function verCorteDesdeBitacora(id){ verCorte(id); const t = document.querySelector('.nav[data-v="exec"]'); if(t) t.click(); }
+
+function pintar(snap, esInicial){
+  renderTablero(snap.D);
+  pintarMensajes(snap); pintarAcciones(snap.D.a); pintarBitacora(esInicial ? null : snap.guardadoEn);
+  vestir();
+  const ult = historial.length ? historial[historial.length-1] : null;
+  const viejo = !esInicial && ult && snap.guardadoEn !== ult.guardadoEn;
+  document.getElementById('fechaRevisionBadge').innerHTML = '<span class="fecha-revision">Corte del ' + fmtF(snap.fechaRevision) + (esInicial ? ' · datos iniciales (sin cortes guardados)' : (viejo ? ' · corte anterior' : '')) + '</span>';
+  const foot = document.querySelector('main.b1 .foot');
+  if(foot) foot.textContent = esInicial ? 'Fuente: Plantilla Dashboard Operaciones B1 · aún no hay cortes guardados' : 'Fuente: ' + (snap.archivo || 'Plantilla Dashboard Operaciones B1') + ' · cargado por ' + (snap.guardadoPor || 'desconocido') + ' el ' + WK.hora(snap.guardadoEn);
+  document.getElementById('b1Status').innerHTML = viejo ? '<div class="wk-banner">Estás viendo un corte anterior. <a href="#" onclick="verCorte(\'\'); return false;" style="color:inherit;font-weight:700">Volver al más reciente</a></div>' : '';
+}
+
+function llenarSelect(){
+  const sel = document.getElementById('corteSel');
+  if(!historial.length){ sel.style.display = 'none'; return; }
+  sel.style.display = '';
+  sel.innerHTML = historial.slice().reverse().map((h, i) => '<option value="' + esc(h.guardadoEn) + '">' + (i === 0 ? 'Más reciente · ' : '') + fmtF(h.fechaRevision) + ' · ' + esc((h.guardadoPor || '').split('@')[0] || '—') + '</option>').join('');
+  sel.value = visto ? visto.guardadoEn : historial[historial.length-1].guardadoEn;
+}
+
+function verCorte(id){
+  const h = id ? historial.find(x => x.guardadoEn === id) : historial[historial.length-1];
+  if(!h) return;
+  visto = (id && h !== historial[historial.length-1]) ? h : null;
+  llenarSelect(); pintar(h, false);
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+async function cargarHistorial(){
+  try{
+    const r = await fetch('/api/wbr-operaciones-b1');
+    const d = await r.json();
+    historial = (d.historial || []).filter(h => h && h.D && Array.isArray(h.D.p) && h.D.p.length);
+  }catch(e){ historial = []; }
+}
+
+async function handleFile(file){
+  if(!file) return;
+  const st = document.getElementById('b1Status');
+  st.innerHTML = '<div class="loading"><span class="spinner"></span>Leyendo el archivo…</div>';
+  try{
+    if(typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería de Excel.');
+    const wb = XLSX.read(await file.arrayBuffer(), { type:'array' });
+    const snap = parsearB1(wb, XLSX);
+    snap.archivo = file.name;
+    st.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando el corte…</div>';
+    const r = await fetch('/api/wbr-operaciones-b1', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: snap }) });
+    if(!r.ok){ const e = await r.json().catch(() => ({})); throw new Error(e.error || ('No se pudo guardar (error ' + r.status + ')')); }
+    await cargarHistorial();
+    visto = null; llenarSelect();
+    pintar(historial[historial.length-1], false);
+    st.innerHTML = '<div style="color:var(--wk-green,#1F8A4C)">Corte del ' + fmtF(snap.fechaRevision) + ' guardado: ' + snap.D.p.length + ' proyectos, ' + snap.D.g.length + ' Go Lives, ' + snap.D.r.length + ' riesgos, ' + snap.D.i.length + ' iniciativas y ' + snap.D.b.length + ' hitos de backlog.</div>';
+  }catch(e){
+    console.error(e);
+    st.innerHTML = '<div style="color:var(--wk-red,#B23A3A)">No se pudo cargar el archivo: ' + esc(e.message || String(e)) + '</div>';
+  }
+}
+
+(async function(){
+  await cargarHistorial();
+  llenarSelect();
+  if(historial.length) pintar(historial[historial.length-1], false);
+  else pintar({ fechaRevision:'2026-10-22T12:00:00.000Z', D:DATOS_INICIALES }, true);
+})();
+</script>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+<script src="/asistente.js?v=1" defer></script>
+</body>
+</html>

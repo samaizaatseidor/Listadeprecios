@@ -19,7 +19,7 @@
   *{box-sizing:border-box;}
   body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
   .topnav{background:#fff; border-bottom:1px solid var(--line);}
-  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
   .topnav-logo img{height:26px; display:block;}
     .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
   .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
@@ -42,12 +42,23 @@
   header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
 
-  main{max-width:820px; margin:0 auto; padding:20px 16px 80px;}
-  .section{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  main{max-width:1360px; margin:0 auto; padding:16px 24px 100px;}
+
+  .tabs-bar{position:sticky; top:0; z-index:40; background:var(--card); padding:14px 0 10px;}
+  .tabs-inner{display:flex; gap:6px; background:#fff; border-radius:12px; padding:6px; box-shadow:var(--shadow); overflow-x:auto;}
+  .tab-btn{flex:1; white-space:nowrap; border:none; background:none; font-family:inherit; font-size:13px; font-weight:600; color:var(--grey); padding:10px 14px; border-radius:8px; cursor:pointer;}
+  .tab-btn:hover{color:var(--navy2);}
+  .tab-btn.active{background:var(--blue); color:#fff;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .section{background:#fff; border-radius:12px; padding:18px 22px; margin-bottom:16px; box-shadow:var(--shadow);}
   .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
   .section .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
   .field{margin-bottom:12px;}
   .field label{display:block; font-size:12.5px; color:var(--grey); margin-bottom:4px; font-weight:500;}
+  .grid-fields{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:2px 20px;}
+  .grid-fields .field-full{grid-column:1/-1;}
   .field input[type=text], .field select, .field textarea{
     width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px;
     font-family:inherit; font-size:13.5px; color:var(--ink);
@@ -98,12 +109,68 @@
 </style>
 </head>
 <body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    window.ES_ADMIN = !!d.esAdmin;
+    function _desbloquearCamposAdmin(){
+      document.querySelectorAll('.admin-only-edit').forEach(function(el){
+        if(d.esAdmin){
+          el.removeAttribute('readonly');
+          var hint = el.parentElement.querySelector('.admin-lock-hint');
+          if(hint) hint.style.display = 'none';
+        }
+      });
+    }
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', _desbloquearCamposAdmin);
+    }else{
+      _desbloquearCamposAdmin();
+    }
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      window.SOLO_LECTURA = true;
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){ /* si falla el chequeo, no bloqueamos: evita dejar a todos fuera si el endpoint falla */ }
+})();
+</script>
 
 <nav class="topnav">
   <div class="topnav-wrap">
     <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
     <div class="topnav-links">
       <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
+        </div>
+      </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn active">Comercial <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
@@ -113,6 +180,10 @@
           <a href="/prospecto.html">Investigación de Prospecto</a>
           <a href="/alta.html">Generador de Formato de Alta</a>
           <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -125,11 +196,14 @@
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
         </div>
       </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
           <a href="/dias-habiles.html">Días Hábiles México</a>
           <a href="/minutas.html">Generador de Minutas / Status</a>
           <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
@@ -141,9 +215,23 @@
         </div>
       </div>
       <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
         </div>
       </div>
     </div>
@@ -156,83 +244,113 @@
 
 <main>
 
-  <div class="section">
-    <h2>¿Prefieres llenarla en Excel?</h2>
-    <p class="sub">Descarga la plantilla, llénala offline, y súbela aquí para que se cargue sola en el formulario</p>
-    <div class="actions">
-      <button class="btn btn-ghost" onclick="downloadTemplate()">Descargar plantilla en blanco</button>
-      <label class="btn btn-ghost" style="cursor:pointer;">
-        Subir Excel prellenado
-        <input type="file" id="uploadInput" accept=".xlsx" style="display:none;" onchange="uploadFilledExcel(this.files[0])">
-      </label>
+  <div class="tabs-bar">
+    <div class="tabs-inner">
+      <button type="button" class="tab-btn active" data-tab="datos" onclick="switchTab('datos')">Datos generales</button>
+      <button type="button" class="tab-btn hidden" id="tab-btn-detalle" data-tab="detalle" onclick="switchTab('detalle')">Detalle</button>
+      <button type="button" class="tab-btn" data-tab="meddpicc" onclick="switchTab('meddpicc')">MEDDPICC</button>
+      <button type="button" class="tab-btn" data-tab="enviar" onclick="switchTab('enviar')">Enviar</button>
     </div>
   </div>
 
-  <div class="section">
-    <h2>Datos generales</h2>
-    <p class="sub">Información base del cliente y la oportunidad</p>
-    <div class="field">
-      <label>Nombre cliente *</label>
-      <input type="text" id="f-nombre-cliente">
+  <div class="tab-panel active" id="tab-datos">
+
+    <div class="section">
+      <h2>¿Prefieres llenarla en Excel?</h2>
+      <p class="sub">Descarga la plantilla, llénala offline, y súbela aquí para que se cargue sola en el formulario</p>
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="downloadTemplate()">Descargar plantilla en blanco</button>
+        <label class="btn btn-ghost" style="cursor:pointer;">
+          Subir Excel prellenado
+          <input type="file" id="uploadInput" accept=".xlsx" style="display:none;" onchange="uploadFilledExcel(this.files[0])">
+        </label>
+      </div>
     </div>
-    <div class="field">
-      <label>Tipo de requerimiento *</label>
-      <select id="f-requerimiento">
-        <option value="">Selecciona...</option>
-        <option value="Implementación">Implementación</option>
-        <option value="Upgrade">Upgrade</option>
-        <option value="Rollout">Rollout</option>
-        <option value="Mejora">Mejora</option>
-        <option value="Otro">Otro</option>
-      </select>
+
+    <div class="section">
+      <h2>Datos generales</h2>
+      <p class="sub">Información base del cliente y la oportunidad</p>
+      <div class="grid-fields">
+        <div class="field">
+          <label>Nombre cliente *</label>
+          <input type="text" id="f-nombre-cliente">
+        </div>
+        <div class="field">
+          <label>Tipo de requerimiento *</label>
+          <select id="f-requerimiento">
+            <option value="">Selecciona...</option>
+            <option value="Implementación">Implementación</option>
+            <option value="Upgrade">Upgrade</option>
+            <option value="Rollout">Rollout</option>
+            <option value="Mejora">Mejora</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Gerente área comercial (AE) *</label>
+          <select id="f-gerente-comercial">
+            <option value="">Selecciona...</option>
+            <option value="Fernanda Richards">Fernanda Richards</option>
+            <option value="Manuel Apón">Manuel Apón</option>
+            <option value="Natalia Ossa">Natalia Ossa</option>
+            <option value="Estefanía Muñoz">Estefanía Muñoz</option>
+            <option value="Freda Juárez">Freda Juárez</option>
+            <option value="Fernanda Villagómez">Fernanda Villagómez</option>
+            <option value="Josselyn González">Josselyn González</option>
+            <option value="Carolina Romei">Carolina Romei</option>
+            <option value="Omar Dávila">Omar Dávila</option>
+          </select>
+        </div>
+      </div>
+      <div id="dg-fields"></div>
     </div>
-    <div class="field">
-      <label>Gerente área comercial (AE) *</label>
-      <select id="f-gerente-comercial">
-        <option value="">Selecciona...</option>
-        <option value="Fernanda Richards">Fernanda Richards</option>
-        <option value="Manuel Apón">Manuel Apón</option>
-        <option value="Natalia Ossa">Natalia Ossa</option>
-        <option value="Estefanía Muñoz">Estefanía Muñoz</option>
-        <option value="Freda Juárez">Freda Juárez</option>
-        <option value="Fernanda Villagómez">Fernanda Villagómez</option>
-        <option value="Josselyn González">Josselyn González</option>
-        <option value="Omar Dávila">Omar Dávila</option>
-      </select>
-    </div>
-    <div id="dg-fields"></div>
+
   </div>
 
-  <div class="section hidden" id="section-upgrade">
-    <h2>Upgrade</h2>
-    <p class="sub">Preguntas técnicas específicas para proyectos de upgrade</p>
-    <div id="upgrade-fields"></div>
-  </div>
+  <div class="tab-panel" id="tab-detalle">
 
-  <div class="section hidden" id="section-rollout">
-    <h2>Rollout</h2>
-    <p class="sub">Cuestionario funcional por área — despliega cada sección</p>
-    <label class="check-row"><input type="checkbox" id="f-incluye-loc-mexico"> Incluir cuestionario de Localización México</label>
-    <div id="rollout-fields"></div>
-    <div id="locmexico-fields" class="hidden"></div>
-  </div>
-
-  <div class="section">
-    <h2>Calificación MEDDPICC</h2>
-    <p class="sub">Califica la oportunidad — el score se calcula solo y se hereda al tablero de CRM PresalesMX al enviar la ficha</p>
-    <div class="meddpicc-score-bar">
-      <div class="meddpicc-score-num" id="meddpiccScoreNum">0%</div>
-      <div class="meddpicc-score-label bajo" id="meddpiccScoreLabel">Sin calificar</div>
-      <div class="meddpicc-score-hint">Para cada columna, elige qué tanto sabemos hoy (Sin info / Débil / Parcial / Fuerte) y anota el detalle</div>
+    <div class="section hidden" id="section-upgrade">
+      <h2>Upgrade</h2>
+      <p class="sub">Preguntas técnicas específicas para proyectos de upgrade</p>
+      <div id="upgrade-fields"></div>
     </div>
-    <div class="meddpicc-grid" id="meddpicc-grid"></div>
+
+    <div class="section hidden" id="section-rollout">
+      <h2>Rollout</h2>
+      <p class="sub">Cuestionario funcional por área — despliega cada sección</p>
+      <label class="check-row"><input type="checkbox" id="f-incluye-loc-mexico"> Incluir cuestionario de Localización México</label>
+      <div id="rollout-fields"></div>
+      <div id="locmexico-fields" class="hidden"></div>
+    </div>
+
   </div>
 
-  <div class="section">
-    <div class="actions">
-      <button class="btn btn-primary" onclick="submitFicha()">Enviar a Preventas (agrega a Pipeline)</button>
-      <button class="btn btn-ghost" onclick="downloadExcel()">Descargar Excel</button>
+  <div class="tab-panel" id="tab-meddpicc">
+
+    <div class="section">
+      <h2>Calificación MEDDPICC</h2>
+      <p class="sub">Califica la oportunidad — el score se calcula solo y se hereda al tablero de CRM PresalesMX al enviar la ficha</p>
+      <div class="meddpicc-score-bar">
+        <div class="meddpicc-score-num" id="meddpiccScoreNum">0%</div>
+        <div class="meddpicc-score-label bajo" id="meddpiccScoreLabel">Sin calificar</div>
+        <div class="meddpicc-score-hint">Para cada columna, elige qué tanto sabemos hoy (Sin info / Débil / Parcial / Fuerte) y anota el detalle</div>
+      </div>
+      <div class="meddpicc-grid" id="meddpicc-grid"></div>
     </div>
+
+  </div>
+
+  <div class="tab-panel" id="tab-enviar">
+
+    <div class="section">
+      <h2>Enviar ficha</h2>
+      <p class="sub">Revisa las demás pestañas antes de enviar — puedes ir y venir entre ellas sin perder lo que llevas capturado</p>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="submitFicha()">Enviar a Preventas (agrega a Pipeline)</button>
+        <button class="btn btn-ghost" onclick="downloadExcel()">Descargar Excel</button>
+      </div>
+    </div>
+
   </div>
 
 </main>
@@ -303,29 +421,65 @@ function updateMeddpiccScore(){
   labelEl.textContent = label;
 }
 
+const DG_GROUPS = [
+  {title:'Identificación y contacto', from:0, to:4},
+  {title:'ERP y licenciamiento SAP actual', from:5, to:13},
+  {title:'Operación, volumen e interlocutores', from:14, to:20},
+  {title:'Integraciones y desarrollos', from:21, to:27},
+];
+
+function dgFieldHtml(f,i){
+  const reqMark = f.required ? ' <span style="color:#B23A3A;">*</span>' : '';
+  if(f.type === 'select'){
+    const opts = ['', ...f.options].map(o=>`<option value="${esc(o)}">${o||'Selecciona...'}</option>`).join('');
+    return `<div class="field"><label>${esc(f.label)}${reqMark}</label><select id="dg-${i}">${opts}</select></div>`;
+  }
+  if(f.type === 'textarea'){
+    return `<div class="field field-full"><label>${esc(f.label)}${reqMark}</label><textarea id="dg-${i}" rows="3"></textarea></div>`;
+  }
+  return `<div class="field"><label>${esc(f.label)}${reqMark}</label><input type="text" id="dg-${i}"></div>`;
+}
+
 function renderDatosGenerales(){
   const el = document.getElementById('dg-fields');
-  el.innerHTML = DATA.datosGenerales.map((f,i)=>{
-    const reqMark = f.required ? ' <span style="color:#B23A3A;">*</span>' : '';
-    if(f.type === 'select'){
-      const opts = ['', ...f.options].map(o=>`<option value="${esc(o)}">${o||'Selecciona...'}</option>`).join('');
-      return `<div class="field"><label>${esc(f.label)}${reqMark}</label><select id="dg-${i}">${opts}</select></div>`;
-    }
-    if(f.type === 'textarea'){
-      return `<div class="field"><label>${esc(f.label)}${reqMark}</label><textarea id="dg-${i}" rows="3"></textarea></div>`;
-    }
-    return `<div class="field"><label>${esc(f.label)}${reqMark}</label><input type="text" id="dg-${i}"></div>`;
+  const groupsHtml = DG_GROUPS.map((g,gi)=>{
+    const items = [];
+    for(let i=g.from;i<=g.to;i++) items.push(dgFieldHtml(DATA.datosGenerales[i], i));
+    return `<details class="accordion" ${gi===0?'open':''}>
+      <summary>${esc(g.title)} <span class="count">${g.to-g.from+1} campos</span></summary>
+      <div class="accordion-body grid-fields">${items.join('')}</div>
+    </details>`;
   }).join('');
+  const lastIdx = DATA.datosGenerales.length - 1;
+  el.innerHTML = groupsHtml + dgFieldHtml(DATA.datosGenerales[lastIdx], lastIdx);
 }
+
+const UP_GROUPS = [
+  {title:'Chequeos técnicos previos (ATC / Readiness Check)', from:0, to:3},
+  {title:'Infraestructura y sistemas conectados', from:4, to:10},
+  {title:'Estado técnico del sistema SAP', from:11, to:20},
+  {title:'Roles, módulos y procesos críticos', from:21, to:24},
+  {title:'Limpieza técnica (SE80 / objetos inactivos)', from:25, to:30},
+];
 
 function renderUpgrade(){
   const el = document.getElementById('upgrade-fields');
-  el.innerHTML = DATA.upgrade.map((q,i)=>`
-    <div class="field">
-      <label>${esc(q)}</label>
-      <input type="text" id="up-${i}">
-    </div>
-  `).join('');
+  el.innerHTML = UP_GROUPS.map((g,gi)=>{
+    const items = [];
+    for(let i=g.from;i<=g.to;i++){
+      items.push(`<div class="field"><label>${esc(DATA.upgrade[i])}</label><input type="text" id="up-${i}"></div>`);
+    }
+    return `<details class="accordion" ${gi===0?'open':''}>
+      <summary>${esc(g.title)} <span class="count">${g.to-g.from+1} preguntas</span></summary>
+      <div class="accordion-body grid-fields">${items.join('')}</div>
+    </details>`;
+  }).join('');
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.id==='tab-'+name));
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 function renderRollout(){
@@ -364,6 +518,13 @@ document.getElementById('f-requerimiento').addEventListener('change', (e)=>{
   const v = e.target.value;
   document.getElementById('section-upgrade').classList.toggle('hidden', v !== 'Upgrade');
   document.getElementById('section-rollout').classList.toggle('hidden', v !== 'Rollout');
+  const tabBtn = document.getElementById('tab-btn-detalle');
+  const show = (v === 'Upgrade' || v === 'Rollout');
+  tabBtn.classList.toggle('hidden', !show);
+  tabBtn.textContent = show ? v : 'Detalle';
+  if(!show && tabBtn.classList.contains('active')){
+    switchTab('datos');
+  }
 });
 document.getElementById('f-incluye-loc-mexico').addEventListener('change', (e)=>{
   document.getElementById('locmexico-fields').classList.toggle('hidden', !e.target.checked);
@@ -442,6 +603,7 @@ const AE_TO_PREVENTAS = {
   'Freda Juárez': 'Rocío Anaya',
   'Fernanda Villagómez': 'Rocío Anaya',
   'Josselyn González': 'Rocío Anaya',
+  'Carolina Romei': 'Samuel Aiza',
   'Omar Dávila': 'Samuel Aiza'
 };
 
@@ -617,7 +779,7 @@ async function downloadExcel(){
 }
 
 const REQUERIMIENTO_OPTS = ['Implementación','Upgrade','Rollout','Mejora','Otro'];
-const AE_OPTS = ['Fernanda Richards','Manuel Apón','Natalia Ossa','Estefanía Muñoz','Freda Juárez','Fernanda Villagómez','Josselyn González','Omar Dávila'];
+const AE_OPTS = ['Fernanda Richards','Manuel Apón','Natalia Ossa','Estefanía Muñoz','Freda Juárez','Fernanda Villagómez','Josselyn González','Carolina Romei','Omar Dávila'];
 
 function addListValidation(cell, options){
   cell.dataValidation = {
@@ -779,6 +941,7 @@ renderMeddpicc();
   });
 })();
 </script>
+<script src="/asistente.js?v=1" defer></script>
 </body>
 </html>
 

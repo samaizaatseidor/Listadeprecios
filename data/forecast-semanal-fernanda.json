@@ -1,0 +1,163 @@
+{
+ "cuota": {
+  "swAnual": 1225,
+  "svAnual": 2525,
+  "swYtd": 340.08655,
+  "svYtd": 2573.98354
+ },
+ "q": {
+  "swCuota": 306.25,
+  "svCuota": 632,
+  "mes": [
+   312.5,
+   312.5,
+   312.5
+  ]
+ },
+ "deals": [
+  {
+   "id": "65489729555",
+   "cuenta": "INNOVASPORT-ORDER PROCESS",
+   "lob": "",
+   "sw": 0.0,
+   "sv": 16.0,
+   "estatus": "VC= Commited+ Probable Plan A",
+   "mes": "Octubre",
+   "plan": "Plan A",
+   "next": "En validación de alcance. se pidieron cambios, hoy 19 de octubre se manda",
+   "enLob": false
+  },
+  {
+   "id": "65572002620",
+   "cuenta": "FARMACIAS ROMA-RESIZING AWS",
+   "lob": "",
+   "sw": 0.0,
+   "sv": 11.9,
+   "estatus": "VC= Commited+ Probable Plan A",
+   "mes": "Octubre",
+   "plan": "Plan A",
+   "next": "Subir alta",
+   "enLob": false
+  },
+  {
+   "id": "66277104906",
+   "cuenta": "AMMPER-INTEGRACIÓN KLAAR",
+   "lob": "",
+   "sw": 0.0,
+   "sv": 8.348,
+   "estatus": "VC= Commited+ Probable Plan A",
+   "mes": "Octubre",
+   "plan": "Plan A",
+   "next": "En revisión SOW, se mando comentarios jueves 15 de ocrube, revisar con Uri si estamos OK para mandar a firma",
+   "enLob": false
+  },
+  {
+   "id": "60644344111",
+   "cuenta": "DELMEX-SFSF",
+   "lob": "",
+   "sw": 0.0,
+   "sv": 300.0,
+   "estatus": "VC= Commited+ Probable Plan A",
+   "mes": "Octubre",
+   "plan": "Plan A",
+   "next": "Assessment programado 19 y 20 de octubre para revisar alcance",
+   "enLob": false
+  },
+  {
+   "id": "61763920130",
+   "cuenta": "SURMAN-RENOVACIÓN AMS",
+   "lob": "",
+   "sw": 0.0,
+   "sv": 36.0,
+   "estatus": "VC= Commited+ Probable Plan A",
+   "mes": "Octubre",
+   "plan": "Plan A",
+   "next": "Cliente comenta que ya fue aprobado, estan solicitando la OC, el SOW lo firma Uriel Lara",
+   "enLob": false
+  },
+  {
+   "id": "66278159464",
+   "cuenta": "FARMACIAS ROMA- Control Cambios",
+   "lob": "",
+   "sw": 0.0,
+   "sv": 251.4,
+   "estatus": "VC= Commited+ Probable Plan A",
+   "mes": "Noviembre",
+   "plan": "Plan A",
+   "next": "En revisión de contrato, se reciben ordenes de compra de forma mensual en el peor de los casos",
+   "enLob": false
+  },
+  {
+   "id": "65572619681",
+   "cuenta": "INNOVASPORT-ORDER PROCESS",
+   "lob": "",
+   "sw": 0.0,
+   "sv": 16.0,
+   "estatus": "VC= Commited+ Probable Plan A",
+   "mes": "Noviembre",
+   "plan": "Plan A",
+   "next": "Se estima que en esa fecha se termina y se solicita oc del 50% final",
+   "enLob": false
+  },
+  {
+   "id": "66277478402",
+   "cuenta": "DELMEX- (NON PRD TENANT-SAC)",
+   "lob": "",
+   "sw": 40.0,
+   "sv": 0.0,
+   "estatus": "VC= Commited+ Probable Plan A",
+   "mes": "Noviembre",
+   "plan": "Plan A",
+   "next": "En espera de sesióin tecnica de SAP y solicitar quote",
+   "enLob": false
+  },
+  {
+   "id": "60019840111",
+   "cuenta": "SUKARNE",
+   "lob": "SFSF",
+   "sw": 0.0,
+   "sv": 448.0,
+   "estatus": "VC= Commited+ Probable Plan A",
+   "mes": "Diciembre",
+   "plan": "Plan A",
+   "next": "Buscando visbilidad, Paul mando correo jueves 15 pidiendo sesión directiva",
+   "enLob": false
+  },
+  {
+   "id": "61293145374 Y 61205708209",
+   "cuenta": "INDUSTRIAS TUK",
+   "lob": "",
+   "sw": 200.0,
+   "sv": 600.0,
+   "estatus": "Upside",
+   "mes": "Diciembre",
+   "plan": "Plan B",
+   "next": "",
+   "enLob": false
+  },
+  {
+   "id": "54061783724",
+   "cuenta": "INNOVASPORT-RENOVACION AMS",
+   "lob": "",
+   "sw": 0.0,
+   "sv": 600.0,
+   "estatus": "VC= Commited+ Probable Plan A",
+   "mes": "Diciembre",
+   "plan": "Plan A",
+   "next": "Sesión Hands on viernes 23 de Ocyubre para validar escenario de renovación",
+   "enLob": false
+  },
+  {
+   "id": "51633476766",
+   "cuenta": "20260501_BI_S4_Proyecto_Farmacias Roma",
+   "lob": "Rise",
+   "sw": 0.0,
+   "sv": 125.7,
+   "estatus": "Won",
+   "mes": "Octubre",
+   "plan": "Plan A",
+   "next": "",
+   "enLob": true
+  }
+ ]
+}

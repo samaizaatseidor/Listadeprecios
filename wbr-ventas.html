@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
@@ -38,6 +38,7 @@
   .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
   .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
   .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
 
   header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
   header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
@@ -129,14 +130,17 @@
         <button type="button" class="nav-dropdown-btn active">📋 WBR <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
           <a href="/wbr-finanzas.html">Finanzas</a>
           <a href="/wbr-ventas.html" class="active">Ventas & Pipeline</a>
           <a href="/wbr-operaciones.html">Operaciones</a>
-          <a href="/wbr-productos.html">Target de Clientes</a>
           <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
           <a href="/wbr-ccflex.html">CCFlex</a>
           <a href="/wbr-cta.html">Call to Action</a>
           <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -148,7 +152,9 @@
           <a href="/alta.html">Generador de Formato de Alta</a>
           <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
           <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
-          <a href="/contactos-sap.html">Contactos SAP</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -161,11 +167,13 @@
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
           <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
         </div>
       </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
           <a href="/dias-habiles.html">Días Hábiles México</a>
           <a href="/minutas.html">Generador de Minutas / Status</a>
           <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
@@ -183,10 +191,17 @@
         </div>
       </div>
       <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
           <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
         </div>
       </div>
     </div>
@@ -203,7 +218,7 @@
   <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
 </header>
 
-<main>
+<main class="wk-main">
   <div id="statusBox"></div>
   <div id="content"></div>
 </main>
@@ -213,10 +228,9 @@ let historial = [];
 let actual = null;
 let snapshotVisto = null;
 let mostrando = null;
-let chartVentas, chartPipeline;
 
-function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
-function fmtK(n){ return '€' + Math.round(n||0).toLocaleString('es-MX') + 'K'; }
+const esc = WK.esc;
+const fmtK = n => WK.usdK(n||0);
 function fmtPct(n){ return Math.round((n||0)*100) + '%'; }
 function claseAvance(pct){ return pct >= 0.85 ? 'verde' : (pct >= 0.6 ? 'ambar' : 'rojo'); }
 function claseEstatus(e){
@@ -243,24 +257,72 @@ function parsearOportunidadesEnRango(m, desde, hasta){
   }
   return out;
 }
+function quitarColumnasVacias(m){
+  // Si la hoja empieza en la columna A pero los datos arrancan en la B (o más a la derecha), recorre todo para que el nombre quede en la posición 0
+  let min = Infinity;
+  for(const f of m){ if(!f) continue; for(let j=0;j<f.length;j++){ const c=f[j]; if(c!==null && c!==undefined && String(c).trim()!=='' && String(c).trim()!==' '){ if(j<min) min=j; break; } } }
+  return (min===Infinity || min===0) ? m : m.map(f => f ? f.slice(min) : f);
+}
+// Formato nuevo (desde Q4): tablas con encabezados Comentarios | SE | CLIENTE | TIPO | LOB | Q | MES | SW | SERVICIOS | TOTAL
+function parsearTablaNueva(m, desde, hasta){
+  let enc = null;
+  for(let i=desde;i<m.length && i<hasta;i++){
+    const f=m[i]; if(!f) continue;
+    const ix=f.findIndex(c=>typeof c==='string' && c.trim().toUpperCase()==='CLIENTE');
+    if(ix>=0){ enc = { fila:i, cols:{} }; f.forEach((c,j)=>{ if(typeof c==='string') enc.cols[c.trim().toUpperCase()] = j; }); break; }
+  }
+  if(!enc) return [];
+  const g = (f,k)=>{ const j = enc.cols[k]; return j===undefined ? null : f[j]; };
+  const out=[];
+  for(let i=enc.fila+1;i<m.length && i<hasta;i++){
+    const f=m[i]; if(!f) continue;
+    const cliente = g(f,'CLIENTE');
+    if(!cliente || String(cliente).trim().toUpperCase()==='CLIENTE') continue;
+    const num = v => (typeof v==='number') ? v : 0;
+    out.push({ cliente:String(cliente).trim(), lineaSAP:g(f,'LOB')||'', tipo:g(f,'TIPO')||'', sw:num(g(f,'SW')), services:num(g(f,'SERVICIOS')), total:num(g(f,'TOTAL')), etapa:g(f,'Q')||'', estatus:'', fechaCierre:null, mes:g(f,'MES')||'', vendedor:g(f,'SE')||'', comentario:String(f[0]||'').replace(/ /g,' ').trim() });
+  }
+  return out;
+}
 function parsearVentasPipeline(wb){
   const ws = wb.Sheets['Ventas & Pipeline Q3'] || wb.Sheets[Object.keys(wb.Sheets).find(n => n.toLowerCase().startsWith('ventas & pipeline'))];
   if(!ws) throw new Error('No se encontró una pestaña "Ventas & Pipeline..."');
-  const m = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true });
+  const m = quitarColumnasVacias(XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true }));
   const idxFecha = encontrarFila(m, 'Semana de revisión');
   const fechaRevision = idxFecha>=0 ? (m[idxFecha].find(c => c instanceof Date) || null) : null;
-  const ventas = parsearBloqueVentas(m, encontrarFila(m,'RESULTADO YTD'));
-  const pipeline = parsearBloquePipeline(m, encontrarFila(m,'# X'));
+  const idxVentas = encontrarFila(m,'RESULTADO YTD');
+  const idxPipe = encontrarFila(m,'# X');
+  if(idxVentas<0) throw new Error('No se encontró el bloque "RESULTADO YTD" en la pestaña de Ventas & Pipeline.');
+  if(idxPipe<0) throw new Error('No se encontró el bloque de Pipeline ("# X") en la pestaña de Ventas & Pipeline.');
+  const ventas = parsearBloqueVentas(m, idxVentas);
+  const pipeline = parsearBloquePipeline(m, idxPipe);
+  if(!ventas.length || !pipeline.length) throw new Error('Los bloques de Ventas o Pipeline vienen vacíos; revisa el formato de la pestaña.');
   const idxDetalle = encontrarFila(m, 'DETALLE DE OPORTUNIDADES');
+  const idxFin = encontrarFila(m, 'AGREGAR ESTATUS DE CCFLEX');
+  const finReal = idxFin>=0 ? idxFin : m.length;
+  const base = { fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(), ventas, pipeline };
+
+  const idxSalio = encontrarFila(m, 'LO QUE SALIO');
+  if(idxSalio>=0){
+    // Formato nuevo: Activas / Lo que salió / Lo que entró (movidas de Q) / Oportunidades nuevas
+    const idxEntro = encontrarFila(m, 'LO QUE ENTRO');
+    const idxNuevas = encontrarFila(m, 'OPORTUNIDADES NUEVAS');
+    const finSalio = idxEntro>=0 ? idxEntro : (idxNuevas>=0 ? idxNuevas : finReal);
+    const finEntro = idxNuevas>=0 ? idxNuevas : finReal;
+    return { ...base,
+      oportunidadesActivas: parsearTablaNueva(m, idxDetalle>=0?idxDetalle:0, idxSalio),
+      ganadas: [],
+      bajaron: parsearTablaNueva(m, idxSalio, finSalio),
+      movidas: idxEntro>=0 ? parsearTablaNueva(m, idxEntro, finEntro) : [],
+      bigDeals: [],
+      nuevas: idxNuevas>=0 ? parsearTablaNueva(m, idxNuevas, finReal) : []
+    };
+  }
+
   const idxGanadas = encontrarFila(m, 'GANADAS');
   const idxBajaron = encontrarFila(m, 'BAJARON');
   const idxMovidas = encontrarFila(m, 'SE MOVIERON DE Q');
   const idxBigDeals = encontrarFila(m, 'BIG DEALS');
-  const idxFin = encontrarFila(m, 'AGREGAR ESTATUS DE CCFLEX');
-  const finReal = idxFin>=0 ? idxFin : m.length;
-  return {
-    fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(),
-    ventas, pipeline,
+  return { ...base,
     oportunidadesActivas: parsearOportunidadesEnRango(m, idxDetalle+2, idxGanadas>=0?idxGanadas:finReal),
     ganadas: idxGanadas>=0 ? parsearOportunidadesEnRango(m, idxGanadas+1, idxBajaron>=0?idxBajaron:finReal) : [],
     bajaron: idxBajaron>=0 ? parsearOportunidadesEnRango(m, idxBajaron+1, idxMovidas>=0?idxMovidas:finReal) : [],
@@ -282,46 +344,44 @@ async function handleFile(file){
     snapshotVisto = null;
     statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando el corte de esta semana…</div>';
     const anterior = historial.length ? historial[historial.length-1] : null;
-    await fetch('/api/wbr-ventas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
+    const rGuardar = await fetch('/api/wbr-ventas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
+    if(!rGuardar.ok){ const eg = await rGuardar.json().catch(()=>({})); throw new Error(eg.error || ('No se pudo guardar (error ' + rGuardar.status + ')')); }
     await cargarHistorial();
 
     render();
     pedirInsight(anterior);
-    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte del ' + new Date(actual.fechaRevision).toLocaleDateString('es-MX') + ' guardado.</div>';
+    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte del ' + WK.fecha(new Date(actual.fechaRevision)) + ' guardado.</div>';
   }catch(e){
     console.error(e);
-    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
+    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo cargar el archivo: ${esc(e.message||String(e))}</div>`;
   }
 }
 async function cargarHistorial(){
   try{
     const r = await fetch('/api/wbr-ventas');
     const d = await r.json();
-    historial = d.historial || [];
+    historial = (d.historial || []).filter(h => h && Array.isArray(h.ventas) && h.ventas.length && Array.isArray(h.pipeline) && h.pipeline.length);
     if(historial.length) actual = historial[historial.length-1];
   }catch(e){ historial = []; }
 }
 async function pedirInsight(anterior){
-  const box = document.getElementById('insightBox');
+  const box = document.getElementById('insightText');
   if(!box) return;
-  box.innerHTML = '<div class="loading"><span class="spinner"></span>Delfos está analizando el corte…</div>';
+  box.textContent = 'Delfos está analizando el corte…';
   try{
     const r = await fetch('/api/wbr-ventas-insight', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ actual, anterior }) });
     const d = await r.json();
-    box.innerHTML = d.ok
-      ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(d.resumen)}</div></div>`
-      : `<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">${esc(d.error||'No se pudo generar el insight.')}</div></div>`;
-    if(d.ok){
-      actual.insightGuardado = d.resumen;
-      fetch('/api/wbr-ventas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
-    }
-  }catch(e){
-    box.innerHTML = '<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">No se pudo conectar con Delfos.</div></div>';
-  }
+    if(!d.ok){ box.textContent = d.error || 'No se pudo generar el insight.'; return; }
+    box.textContent = d.resumen;
+    actual.insightGuardado = d.resumen;
+    fetch('/api/wbr-ventas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
+  }catch(e){ box.textContent = 'No se pudo conectar con Delfos.'; }
 }
 
-function verSnapshotHistorico(fechaRevision){
-  const encontrado = historial.find(h => h.fechaRevision === fechaRevision);
+function etiquetaCarga(h){ return h && h.guardadoEn ? 'cargado por ' + (h.guardadoPor || 'desconocido') + ' el ' + WK.hora(h.guardadoEn) : ''; }
+
+function verSnapshotHistorico(idCarga){
+  const encontrado = historial.find(h => h.guardadoEn === idCarga);
   if(!encontrado) return;
   snapshotVisto = encontrado;
   render();
@@ -335,22 +395,32 @@ function volverActual(){
 }
 
 /* ---------- Render ---------- */
-function filaOportunidad(o){
-  return `<tr>
-    <td>${esc(o.cliente)}</td>
-    <td>${esc(o.lineaSAP)}</td>
-    <td class="num">${fmtK(o.total)}</td>
-    <td><span class="etapa-tag">${esc(o.etapa)}</span></td>
-    <td><span class="estatus-tag ${claseEstatus(o.estatus)}">${esc(o.estatus)}</span></td>
-    <td>${o.fechaCierre ? new Date(o.fechaCierre).toLocaleDateString('es-MX') : '—'}</td>
-    <td>${esc(o.vendedor)}</td>
-    <td class="comentario-cell">${esc(o.comentario)}</td>
-  </tr>`;
+const TONO_AV = p => p >= 0.85 ? 'green' : (p >= 0.6 ? 'amber' : 'red');
+function tonoEstatus(e){ e = (e||'').toLowerCase(); if(e.includes('commited') || e.includes('won')) return 'green'; if(e.includes('probable')) return 'amber'; return 'grey'; }
+const fechaOp = o => o.fechaCierre ? (WK.fecha(new Date(o.fechaCierre)) || '') : (o.mes || '');
+function filasOps(lista){
+  const _c = {}; [mostrando.oportunidadesActivas, mostrando.bajaron, mostrando.movidas, mostrando.nuevas, mostrando.ganadas, mostrando.bigDeals].forEach(l => (l||[]).forEach(o => { const n = String(o.vendedor||'').trim(); if(!n) return; const k = WK.norm(n); if(!_c[k] || (/[^\x00-\x7f]/.test(n) && !/[^\x00-\x7f]/.test(_c[k]))) _c[k] = n; }));
+  return (lista||[]).map(o => ({
+    cliente:o.cliente, linea:[o.lineaSAP, o.tipo].filter(Boolean).join(' · '), total:o.total, etapa:o.etapa,
+    estatus: o.estatus ? WK.badge(o.estatus, tonoEstatus(o.estatus)) : '', _est:o.estatus||'',
+    cierre:fechaOp(o), vendedor:(o.vendedor ? _c[WK.norm(String(o.vendedor).trim())] : ''), comentario:o.comentario
+  }));
 }
+const COLS_OPS = [
+  { k:'cliente', label:'Cliente', tipo:'strong' }, { k:'linea', label:'Línea', tipo:'text' }, { k:'total', label:'Total (USD)', tipo:'usdK' },
+  { k:'etapa', label:'Etapa', tipo:'tag' }, { k:'estatus', label:'Estatus', tipo:'html' }, { k:'cierre', label:'Cierre est.', tipo:'date' },
+  { k:'vendedor', label:'KAM', tipo:'text' }, { k:'comentario', label:'Comentario', tipo:'note' }
+];
+function sumaTotal(lista){ return (lista||[]).reduce((a,o) => a + (Number(o.total)||0), 0); }
 function tablaOportunidades(lista){
-  if(!lista.length) return '<p class="sub">Sin registros.</p>';
-  return `<table><tr><th>Cliente</th><th>Línea</th><th class="num">Total</th><th>Etapa</th><th>Estatus</th><th>Cierre Est.</th><th>Vendedor</th><th>Comentario</th></tr>${lista.map(filaOportunidad).join('')}</table>`;
+  const filas = filasOps(lista);
+  const tabla = WK.table(COLS_OPS, filas, { id:'tablaOps', vacio:'Sin registros en esta lista.',
+    footer:'<tr><td class="wk-strong">Total</td><td></td><td class="wk-num">' + WK.usdK(sumaTotal(lista)) + '</td><td colspan="5"></td></tr>' });
+  if(!filas.length) return tabla;
+  return '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar cliente, vendedor, comentario…" oninput="WK.filtrar(document.getElementById(\'tablaOps\'), this.value)"></div>' + tabla;
 }
+function kpiVentas(h){ return h.ventas.find(v => v.nombre.toLowerCase().includes('totales')) || h.ventas[0]; }
+function kpiPipe(h){ return h.pipeline.find(p => p.nombre.toLowerCase().includes('total')) || h.pipeline[0]; }
 
 function render(){
   const content = document.getElementById('content');
@@ -358,124 +428,114 @@ function render(){
   mostrando = snapshotVisto || actual;
   if(!mostrando){
     badge.innerHTML = '';
-    content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con la pestaña "Ventas & Pipeline") para generar el primer dashboard.</p></div></div>`;
+    content.innerHTML = '<div class="wk-card">' + WK.empty('Todavía no hay ningún corte cargado. Sube el Excel semanal (pestaña “Ventas & Pipeline”) para generar el primer dashboard.') + '</div>';
     return;
   }
-  badge.innerHTML = `<span class="fecha-revision">Semana de revisión: ${new Date(mostrando.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
+  const semana = WK.fecha(new Date(mostrando.fechaRevision));
+  badge.innerHTML = '<span class="fecha-revision">Semana de revisión: ' + WK.esc(semana || '—') + '</span>';
+  const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte del <b>' + WK.esc(semana) + '</b> (' + WK.esc(etiquetaCarga(snapshotVisto)) + ') — no es la semana actual.</span><button class="wk-btn" onclick="volverActual()">Volver a la semana actual</button></div>' : '';
 
-  const bannerHistorico = snapshotVisto ? `
-    <div class="section" style="background:#FBF1DE; border:1px solid #E9D9AE; display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
-      <span style="font-size:13px; color:#8A6414;">📅 Estás viendo el corte del <b>${new Date(snapshotVisto.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</b> — no es la semana actual.</span>
-      <button class="btn btn-primary" style="background:#8A6414; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; cursor:pointer;" onclick="volverActual()">Volver a la semana actual</button>
-    </div>
-  ` : '';
+  const v = kpiVentas(mostrando), p = kpiPipe(mostrando);
+  const idx = historial.findIndex(h => h.guardadoEn === mostrando.guardadoEn);
+  const prev = idx > 0 ? historial[idx-1] : null;
+  const pv = prev ? kpiVentas(prev) : null, pp = prev ? kpiPipe(prev) : null;
+  const hasta = idx < 0 ? historial.length : idx + 1;
+  const serie = fn => historial.slice(Math.max(0, hasta - 8), hasta).map(fn);
+  const dpp = (a, b) => (pv ? WK.delta((a||0)*100, (b||0)*100, { bueno:'up', fmt: x => Math.round(x*10)/10 + ' pp' }) : '');
+  const mult = p.targetCQ ? p.resultadoCQ / p.targetCQ : 0;
 
-  const vTotales = mostrando.ventas.find(v=>v.nombre.toLowerCase().includes('totales')) || mostrando.ventas[0];
-  const pTotal = mostrando.pipeline.find(p=>p.nombre.toLowerCase().includes('total')) || mostrando.pipeline[0];
+  const histLbl = historial.slice(Math.max(0, hasta - 8), hasta).map(h => (WK.fecha(new Date(h.fechaRevision)) || '').slice(0,5));
+  const kpis = WK.heroGrid([
+    WK.hero({ label:'Ventas YTD', ir:'metas', ico:'💼', value:WK.pct(v.pctYTD), tono:TONO_AV(v.pctYTD), sub:'Meta anual ' + WK.usdK(v.targetAnual), delta:dpp(v.pctYTD, pv && pv.pctYTD),
+      chart:WK.gauge({ valor:v.resultadoYTD, max:v.targetAnual || 1, tono:TONO_AV(v.pctYTD), texto:WK.usdK(v.resultadoYTD), label:'acumulado (USD)', dark:true }) }),
+    WK.hero({ label:'Ventas — trimestre actual', ir:'metas', ico:'🎯', value:WK.pct(v.pctCQ), tono:TONO_AV(v.pctCQ), sub:'Meta CQ ' + WK.usdK(v.targetCQ), delta:dpp(v.pctCQ, pv && pv.pctCQ),
+      chart:WK.gauge({ valor:v.resultadoCQ, max:v.targetCQ || 1, meta:v.targetFCST && v.targetCQ ? Math.min(v.targetFCST, v.targetCQ) : null, tono:TONO_AV(v.pctCQ), texto:WK.usdK(v.resultadoCQ), label:'en el trimestre (USD)', dark:true }) }),
+    WK.hero({ label:'Forecast vs. meta CQ', ir:'metas', ico:'🔭', value:WK.pct(v.pctFCST), tono:TONO_AV(v.pctFCST), sub:'To go ' + WK.usdK(v.togo), delta:dpp(v.pctFCST, pv && pv.pctFCST),
+      chart:WK.gauge({ valor:Math.min(v.targetFCST, v.targetCQ || v.targetFCST), max:v.targetCQ || v.targetFCST || 1, tono:TONO_AV(v.pctFCST), texto:WK.usdK(v.targetFCST), label:'forecast (USD)', dark:true }) }),
+    WK.hero({ label:'Pipeline total (CQ)', ir:'ops', ico:'🧱', value:WK.usdK(p.resultadoCQ), tono: TONO_AV(mult), sub:(Math.round(mult*10)/10) + 'x la meta de ' + WK.usdK(p.targetCQ),
+      delta: pp ? WK.delta(p.resultadoCQ, pp.resultadoCQ, { bueno:'up', fmt:x => WK.usdK(x) }) : '',
+      chart: WK.area(serie(h => kpiPipe(h).resultadoCQ), { labels:histLbl, color:'#33B4DD' }) || '<div class="wk-hero-sub">La tendencia aparece desde el segundo corte.</div>' })
+  ]);
 
-  content.innerHTML = `
-    ${bannerHistorico}
-    <div class="kpi-grid">
-      <div class="kpi-card ${claseAvance(vTotales.pctYTD)}">
-        <div class="label">Ventas YTD</div>
-        <div class="value">${fmtPct(vTotales.pctYTD)}</div>
-        <div class="sub-value">${fmtK(vTotales.resultadoYTD)} de ${fmtK(vTotales.targetAnual)} anual</div>
-        <div class="kpi-bar"><div class="kpi-bar-fill ${claseAvance(vTotales.pctYTD)}" style="width:${Math.min(100,vTotales.pctYTD*100)}%"></div></div>
-      </div>
-      <div class="kpi-card ${claseAvance(vTotales.pctCQ)}">
-        <div class="label">Ventas — Trimestre actual</div>
-        <div class="value">${fmtPct(vTotales.pctCQ)}</div>
-        <div class="sub-value">${fmtK(vTotales.resultadoCQ)} de ${fmtK(vTotales.targetCQ)} meta CQ</div>
-        <div class="kpi-bar"><div class="kpi-bar-fill ${claseAvance(vTotales.pctCQ)}" style="width:${Math.min(100,vTotales.pctCQ*100)}%"></div></div>
-      </div>
-      <div class="kpi-card ${claseAvance(vTotales.pctFCST)}">
-        <div class="label">Forecast vs. meta CQ</div>
-        <div class="value">${fmtPct(vTotales.pctFCST)}</div>
-        <div class="sub-value">Togo: ${fmtK(vTotales.togo)}</div>
-        <div class="kpi-bar"><div class="kpi-bar-fill ${claseAvance(vTotales.pctFCST)}" style="width:${Math.min(100,vTotales.pctFCST*100)}%"></div></div>
-      </div>
-      <div class="kpi-card">
-        <div class="label">Pipeline total (CQ)</div>
-        <div class="value">${fmtK(pTotal.resultadoCQ)}</div>
-        <div class="sub-value">de ${fmtK(pTotal.targetCQ)} meta (${pTotal.resultadoCQ/pTotal.targetCQ >= 1 ? '≥' : ''}${Math.round(pTotal.resultadoCQ/pTotal.targetCQ*10)/10}x)</div>
-      </div>
-    </div>
+  const insight = snapshotVisto
+    ? (mostrando.insightGuardado ? WK.esc(mostrando.insightGuardado) : 'Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para esta semana.')
+    : 'Generando…';
 
-    <div class="section">
-      <h2>🤖 Insight de Delfos</h2>
-      ${snapshotVisto
-        ? (mostrando.insightGuardado
-            ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(mostrando.insightGuardado)}</div></div>`
-            : `<div class="insight-box"><div class="insight-icon">🗂️</div><div class="insight-text">Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para esta semana.</div></div>`)
-        : `<div id="insightBox"><div class="loading">Generando…</div></div>`}
-    </div>
+  const bulletsCQ = mostrando.ventas.map(x => WK.bullet({ label:x.nombre + ' — trimestre', valor:x.resultadoCQ, meta:x.targetCQ, marca:x.targetFCST || null, marcaLabel:'FCST', tono:TONO_AV(x.pctCQ), nota:'To go ' + WK.usdK(x.togo) })).join('');
+  const bulletsYTD = mostrando.ventas.map(x => WK.bullet({ label:x.nombre + ' — año', valor:x.resultadoYTD, meta:x.targetAnual, tono:TONO_AV(x.pctYTD) })).join('');
+  const bulletsPipe = mostrando.pipeline.map(x => { const m = x.targetCQ ? x.resultadoCQ / x.targetCQ : 0; return WK.bullet({ label:x.nombre + ' — pipeline CQ', valor:x.resultadoCQ, meta:x.targetCQ, tono: TONO_AV(m), nota:(Math.round(m*10)/10) + 'x la meta' }); }).join('');
 
-    <div class="section">
-      <h2>Ventas y Pipeline vs. Objetivo</h2>
-      <p class="sub">Total, SAP y B1 — resultado del trimestre actual contra su meta.</p>
-      <div class="charts-grid">
-        <div class="chart-wrap"><canvas id="chartVentas"></canvas></div>
-        <div class="chart-wrap"><canvas id="chartPipeline"></canvas></div>
-      </div>
-    </div>
+  const tablaMetas = WK.table([
+    { k:'nombre', label:'Línea', tipo:'strong' }, { k:'targetAnual', label:'Meta anual', tipo:'usdK' }, { k:'resultadoYTD', label:'Resultado YTD', tipo:'usdK' }, { k:'pctYTD', label:'% YTD', tipo:'pct' },
+    { k:'targetCQ', label:'Meta CQ', tipo:'usdK' }, { k:'resultadoCQ', label:'Resultado CQ', tipo:'usdK' }, { k:'pctCQ', label:'% CQ', tipo:'pct' },
+    { k:'targetFCST', label:'FCST CQ', tipo:'usdK' }, { k:'pctFCST', label:'% FCST', tipo:'pct' }, { k:'togo', label:'To go', tipo:'usdK' }
+  ], mostrando.ventas, { vacio:'Sin datos.' });
 
-    <div class="section">
-      <h2>Detalle de oportunidades</h2>
-      <div class="tabbar" id="tabbarOps">
-        <button class="active" onclick="setTabOps('activas')">Activas (${mostrando.oportunidadesActivas.length})</button>
-        <button onclick="setTabOps('ganadas')">Ganadas (${mostrando.ganadas.length})</button>
-        <button onclick="setTabOps('bajaron')">Bajaron del FCST (${mostrando.bajaron.length})</button>
-        <button onclick="setTabOps('movidas')">Movidas de Q (${mostrando.movidas.length})</button>
-        <button onclick="setTabOps('bigDeals')">Big Deals (${mostrando.bigDeals.length})</button>
-      </div>
-      <div id="opsContent"></div>
-    </div>
+  const mov = [
+    { t:'Ganadas', l:mostrando.ganadas, ico:'🏆', tono:'green' }, { t:'Bajaron del FCST', l:mostrando.bajaron, ico:'⬇️', tono:'red' },
+    { t:'Entraron (movidas de Q)', l:mostrando.movidas, ico:'↔️', tono:'amber' }, { t:'Nuevas', l:mostrando.nuevas, ico:'✨', tono:'cyan' }
+  ].filter(x => (x.l||[]).length).map(x => WK.kpi({ label:x.t, ico:x.ico, value:x.l.length, tono:x.tono, sub:WK.usdK(sumaTotal(x.l)) + ' en total' })).join('');
 
-    <div class="section">
-      <h2>📅 Bitácora semanal</h2>
-      <p class="sub">Haz clic en una semana para ver el dashboard completo tal como se veía entonces.</p>
-      <table>
-        <tr><th>Semana</th><th class="num">Ventas YTD %</th><th class="num">Ventas CQ %</th><th class="num">Pipeline CQ</th></tr>
-        ${historial.slice().reverse().map(h => {
-          const v = h.ventas.find(x=>x.nombre.toLowerCase().includes('totales')) || h.ventas[0];
-          const p = h.pipeline.find(x=>x.nombre.toLowerCase().includes('total')) || h.pipeline[0];
-          const esEsta = mostrando.fechaRevision === h.fechaRevision;
-          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.fechaRevision}')" title="Ver el dashboard completo de esta semana"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td class="num">${fmtPct(v.pctYTD)}</td><td class="num">${fmtPct(v.pctCQ)}</td><td class="num">${fmtK(p.resultadoCQ)}</td></tr>`;
-        }).join('')}
-      </table>
-    </div>
-  `;
+  // Por Key Account Manager (columna SE del Excel) — nombres unificados sin importar acentos/mayúsculas
+  const canon = {};
+  [mostrando.oportunidadesActivas, mostrando.ganadas, mostrando.bajaron, mostrando.movidas, mostrando.nuevas, mostrando.bigDeals].forEach(l => (l||[]).forEach(o => {
+    const n = String(o.vendedor||'').replace(/\s+/g,' ').trim(); if(!n) return;
+    const k = WK.norm(n); if(!canon[k] || (/[^\x00-\x7f]/.test(n) && !/[^\x00-\x7f]/.test(canon[k]))) canon[k] = n;
+  }));
+  const nombreSE = o => { const n = String(o.vendedor||'').trim(); return n ? canon[WK.norm(n)] : ''; };
+  const esAgrupada = o => /[<≤]\s*\$?\s*\d+\s*k/i.test(o.cliente || '');
+  const porV = {}; let agrupado = null;
+  (mostrando.oportunidadesActivas||[]).forEach(o => {
+    const se = nombreSE(o);
+    if(!se && esAgrupada(o)){ agrupado = o; return; }
+    const k = se || 'Sin asignar'; (porV[k] = porV[k] || { vendedor:k, n:0, total:0 }); porV[k].n++; porV[k].total += Number(o.total)||0;
+  });
+  const tablaV = WK.table([{ k:'vendedor', label:'Key Account Manager', tipo:'strong' }, { k:'n', label:'Oportunidades', tipo:'num' }, { k:'total', label:'Total (USD)', tipo:'usdKbar' }],
+    Object.values(porV).sort((a,b) => b.total - a.total), { vacio:'Sin oportunidades activas.' }) +
+    (agrupado ? '<p class="wk-note" style="margin:12px 2px 0;font-size:12.5px">Además, el Excel trae una línea agrupada “' + WK.esc(agrupado.cliente) + '” por ' + WK.usdK(agrupado.total) + ' sin detalle por KAM; no se incluye en esta tabla.</p>' : '');
 
-  renderCharts();
+  const tabs = [['activas','Activas',mostrando.oportunidadesActivas], ['ganadas','Ganadas',mostrando.ganadas], ['bajaron','Bajaron del FCST',mostrando.bajaron], ['movidas','Movidas de Q',mostrando.movidas], ['nuevas','Nuevas',mostrando.nuevas], ['bigDeals','Big Deals',mostrando.bigDeals]]
+    .filter(t => t[0] === 'activas' || t[0] === 'bajaron' || t[0] === 'movidas' || (t[2]||[]).length);
+  const barraTabs = '<div class="wk-tools" id="tabbarOps">' + tabs.map((t,i) => '<button class="wk-chip' + (i === 0 ? ' on' : '') + '" data-tab="' + t[0] + '" onclick="setTabOps(\'' + t[0] + '\')">' + t[1] + ' <small>' + (t[2]||[]).length + '</small></button>').join('') + '</div>';
+
+  const bitacora = WK.table([
+    { k:'semana', label:'Semana', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' },
+    { k:'ytd', label:'Ventas YTD %', tipo:'pct' }, { k:'cq', label:'Ventas CQ %', tipo:'pct' }, { k:'pipe', label:'Pipeline CQ', tipo:'usdK' }
+  ], historial.slice().reverse().map(h => ({ semana:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:WK.hora(h.guardadoEn).split(' ')[0], ytd:kpiVentas(h).pctYTD, cq:kpiVentas(h).pctCQ, pipe:kpiPipe(h).resultadoCQ, _id:h.guardadoEn })),
+    { rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver el dashboard completo de esta semana"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
+
+  content.innerHTML = banner +
+    WK.chips([{ id:'resumen', label:'Resumen' }, { id:'metas', label:'Metas y avance' }, { id:'ops', label:'Oportunidades', n:(mostrando.oportunidadesActivas||[]).length }, { id:'bitacora', label:'Bitácora', n:historial.length }]) +
+    '<div id="resumen" style="scroll-margin-top:70px">' + kpis + WK.callout('Insight de Delfos', insight, 'insightText') + '</div>' +
+    WK.band('metas', 'Metas y avance', 'Montos en miles de USD · la marca vertical indica el forecast') +
+    '<div class="wk-grid2">' + WK.card({ ico:'📆', titulo:'Trimestre actual', body:bulletsCQ }) + WK.card({ ico:'🗓️', titulo:'Acumulado del año', body:bulletsYTD }) + '</div>' +
+    WK.card({ ico:'🧱', titulo:'Pipeline vs. meta', body:bulletsPipe }) +
+    WK.card({ ico:'🧪', titulo:'Simulador: ¿y si cerramos…?', sub:'Mueve los controles y mira cómo cambia el cierre del trimestre. Es una simulación, no se guarda.', body: WK.whatif({ id:'vtas', sliders:[
+      { k:'close', label:'% del pipeline CQ que se cierra', min:0, max:60, step:1, val:20, fmt:x => x + '%' },
+      { k:'extra', label:'Ventas adicionales ya firmadas (USD miles)', min:0, max:2000, step:50, val:0, fmt:x => '$' + x.toLocaleString('es-MX') + 'K' } ],
+      calc: vals => { const proy = (v.resultadoCQ||0) + (p.resultadoCQ||0) * vals.close/100 + vals.extra, meta = v.targetCQ || 1, gap = meta - proy;
+        return { gauge:{ valor:proy, max:meta, tono:TONO_AV(proy/meta), texto:WK.pct(proy/meta), label:'de la meta CQ', tip:'Cierre proyectado\n' + WK.usdK(proy) + ' de ' + WK.usdK(meta) },
+          stats:[ { valor:WK.usdK(proy), label:'Cierre proyectado CQ' }, { valor:gap > 0 ? WK.usdK(gap) : '✔ cumplida', label: gap > 0 ? 'Falta para la meta' : 'Meta del trimestre' }, { valor:WK.usdK(v.resultadoYTD + proy - (v.resultadoCQ||0)), label:'YTD proyectado' } ],
+          nota: gap > 0 ? 'Con ese ritmo de cierre todavía faltarían ' + WK.usdK(gap) + ' para la meta.' : 'Con ese ritmo se supera la meta del trimestre por ' + WK.usdK(-gap) + '.' }; } }) }) +
+    WK.card({ ico:'📋', titulo:'Detalle de metas', sub:'Haz clic en un encabezado para ordenar.', body:tablaMetas }) +
+    WK.band('ops', 'Oportunidades', 'Detalle del pipeline') +
+    (mov ? '<div class="wk-kpis">' + mov + '</div>' : '') +
+    WK.card({ ico:'🔎', titulo:'Detalle de oportunidades', sub:'Ordena por cualquier columna y filtra por texto.', body: barraTabs + '<div id="opsContent"></div>' }) +
+    WK.card({ ico:'👤', titulo:'Pipeline activo por Key Account Manager', body:tablaV }) +
+    WK.band('bitacora', 'Bitácora semanal', 'Haz clic en una semana para ver el dashboard completo tal como se veía entonces') +
+    WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora }) +
+    '<div class="wk-foot">Montos en USD (miles) · Fechas en DD/MM/AA.</div>';
   setTabOps('activas');
-}
-
-function renderCharts(){
-  if(chartVentas) chartVentas.destroy();
-  if(chartPipeline) chartPipeline.destroy();
-  chartVentas = new Chart(document.getElementById('chartVentas'), {
-    type:'bar',
-    data:{ labels: mostrando.ventas.map(v=>v.nombre), datasets:[
-      { label:'Meta CQ', data: mostrando.ventas.map(v=>v.targetCQ), backgroundColor:'#D8E2EE' },
-      { label:'Resultado CQ', data: mostrando.ventas.map(v=>v.resultadoCQ), backgroundColor:'#1E5BB8' },
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Ventas (trimestre mostrando)' } } }
-  });
-  chartPipeline = new Chart(document.getElementById('chartPipeline'), {
-    type:'bar',
-    data:{ labels: mostrando.pipeline.map(p=>p.nombre), datasets:[
-      { label:'Meta CQ', data: mostrando.pipeline.map(p=>p.targetCQ), backgroundColor:'#D8E2EE' },
-      { label:'Resultado CQ', data: mostrando.pipeline.map(p=>p.resultadoCQ), backgroundColor:'#33B4DD' },
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Pipeline (trimestre mostrando)' } } }
-  });
+  WK.sortable(content);
+  WK.observarSecciones();
 }
 
 function setTabOps(cual){
-  const mapa = { activas:0, ganadas:1, bajaron:2, movidas:3, bigDeals:4 };
-  document.querySelectorAll('#tabbarOps button').forEach((b,i) => b.classList.toggle('active', i===mapa[cual]));
-  const listas = { activas:mostrando.oportunidadesActivas, ganadas:mostrando.ganadas, bajaron:mostrando.bajaron, movidas:mostrando.movidas, bigDeals:mostrando.bigDeals };
-  document.getElementById('opsContent').innerHTML = tablaOportunidades(listas[cual]);
+  document.querySelectorAll('#tabbarOps button').forEach(b => b.classList.toggle('on', b.dataset.tab === cual));
+  const listas = { activas:mostrando.oportunidadesActivas, ganadas:mostrando.ganadas, bajaron:mostrando.bajaron, movidas:mostrando.movidas, nuevas:mostrando.nuevas, bigDeals:mostrando.bigDeals };
+  const cont = document.getElementById('opsContent');
+  cont.innerHTML = tablaOportunidades(listas[cual] || []);
+  WK.sortable(cont);
 }
 
 async function init(){
@@ -518,5 +578,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="/asistente.js?v=1" defer></script>
 </body>
 </html>

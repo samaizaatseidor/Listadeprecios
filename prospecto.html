@@ -11,7 +11,7 @@
 <title>Investigación de Prospecto · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/wbr-kit.js?v=20261012a"></script>
 <style>
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
@@ -67,6 +67,57 @@
   .spinner{display:inline-block; width:14px; height:14px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:8px;}
   @keyframes spin{ to { transform:rotate(360deg); } }
   .error{color:#B23A3A; font-size:13px; background:#FBE7E7; border-radius:8px; padding:10px 12px;}
+
+  /* ---- Cliente 360 (diseño WBR) ---- */
+  main.wk-main{padding-top:20px;}
+  .p-in{width:100%; padding:11px 14px; border:1px solid var(--wk-line); border-radius:12px; font-family:inherit; font-size:14px; color:var(--wk-ink); background:rgba(255,255,255,.05);}
+  .p-in:focus{outline:none; border-color:var(--wk-cyan); box-shadow:0 0 0 3px rgba(61,214,255,.18);}
+  .p-in::placeholder{color:var(--wk-greyl);}
+  textarea.p-in{resize:vertical; font-size:12.5px; line-height:1.5;}
+  textarea.p-in[readonly]{opacity:.8;}
+  .p-lbl{display:block; font-size:12px; color:var(--wk-grey); margin:0 0 6px; font-weight:600; letter-spacing:.3px;}
+  .p-hint{font-size:11.5px; color:var(--wk-greyl); margin:0 0 6px;}
+  .p-row{display:grid; grid-template-columns:1fr auto; gap:12px; align-items:end;}
+  .p-btn{border:none; border-radius:12px; padding:12px 22px; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; background:linear-gradient(120deg,#1E5BB8,#33B4DD); color:#fff; white-space:nowrap;}
+  .p-btn:disabled{background:rgba(255,255,255,.08); color:var(--wk-greyl); cursor:not-allowed;}
+  .p-btn.sec{background:rgba(255,255,255,.08); border:1px solid var(--wk-line); color:var(--wk-ink);}
+  details.p-det{margin-top:14px;} details.p-det summary{cursor:pointer; font-size:12.5px; font-weight:600; color:var(--wk-cyan); margin-bottom:10px;}
+  .p-loading{display:flex; align-items:center; gap:12px; justify-content:center; padding:40px 20px; color:var(--wk-grey); font-size:14px;}
+  .p-error{color:#FFB3C0; background:rgba(255,92,122,.12); border:1px solid rgba(255,92,122,.35); border-radius:12px; padding:12px 14px; font-size:13px;}
+
+  .p-hero{display:grid; grid-template-columns:auto 1fr; gap:22px; align-items:center;}
+  .p-avatar{width:92px; height:92px; border-radius:24px; display:flex; align-items:center; justify-content:center; font:800 34px Poppins,sans-serif; color:#fff; background:linear-gradient(135deg,#1E5BB8,#33B4DD 60%,#8B7CFF); box-shadow:0 10px 28px rgba(61,214,255,.25);}
+  .p-hero h2{margin:0 0 2px; font-size:26px; font-weight:800; color:var(--wk-navy2);}
+  .p-hero .sub{font-size:13px; color:var(--wk-grey); margin-bottom:10px;}
+  .p-facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px 24px; margin-top:6px;}
+  .p-fact span{display:block; font-size:10.5px; letter-spacing:.7px; text-transform:uppercase; font-weight:700; color:var(--wk-greyl);}
+  .p-fact b{display:block; font-size:14px; color:var(--wk-navy2); font-weight:600; word-break:break-word;}
+  .p-fact b a{color:var(--wk-cyan); text-decoration:none;}
+  .p-desc{margin:14px 0 0; font-size:13.5px; line-height:1.6; color:var(--wk-ink);}
+  .p-gauges{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px; margin-bottom:18px;}
+  .p-gauges .wk-card{margin-bottom:0; text-align:center;}
+  .p-gauges .why{font-size:12.5px; color:var(--wk-grey); line-height:1.5; text-align:left; margin-top:6px;}
+  .p-gauges svg{max-width:240px; width:100%;}
+  .p-vd{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px;}
+  .p-vd div{border:1px solid var(--wk-line); border-radius:14px; padding:14px 16px; background:rgba(255,255,255,.04);}
+  .p-vd b{display:block; font-size:14px; color:var(--wk-navy2); margin-bottom:4px;} .p-vd p{margin:0; font-size:12.5px; line-height:1.55; color:var(--wk-grey);}
+  .p-sig{display:grid; gap:12px;}
+  .p-sig>div{display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:start; padding:12px 14px; border:1px solid var(--wk-line); border-radius:14px; background:rgba(255,255,255,.04);}
+  .p-sig b{display:block; font-size:13.5px; color:var(--wk-navy2);} .p-sig p{margin:2px 0 4px; font-size:12.5px; line-height:1.5; color:var(--wk-ink);} .p-sig small{font-size:11px; color:var(--wk-greyl);}
+  .p-pend{display:flex; flex-wrap:wrap; gap:8px;}
+  .p-actions{display:flex; gap:10px; flex-wrap:wrap; margin:6px 0 24px;}
+  .p-two{display:grid; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); gap:18px; margin-bottom:18px;}
+  .p-two .wk-callout{height:100%;}
+  .p-hist{display:grid; gap:8px; margin-top:4px;}
+  .p-hist-row{display:grid; grid-template-columns:minmax(140px,1.6fr) minmax(90px,1fr) minmax(120px,1.2fr) auto auto; gap:12px; align-items:center; padding:10px 14px; border:1px solid var(--wk-line); border-radius:12px; background:rgba(255,255,255,.04); font-size:13px;}
+  .p-hist-row:hover{border-color:var(--wk-cyan);}
+  .p-hist-row b{color:var(--wk-navy2); font-weight:600;} .p-hist-row small{color:var(--wk-greyl); font-size:11.5px;}
+  .p-mini{border:1px solid var(--wk-line); background:rgba(255,255,255,.06); color:var(--wk-ink); border-radius:8px; padding:6px 12px; font:600 12px Poppins,sans-serif; cursor:pointer;}
+  .p-mini:hover{border-color:var(--wk-cyan); color:var(--wk-cyan);} .p-mini.del{color:#FFB3C0;} .p-mini.del:hover{border-color:#FF5C7A;}
+  .p-bx-row{display:flex; gap:14px; flex-wrap:wrap; align-items:center; padding:10px 0; border-top:1px solid var(--wk-line); font-size:13px;} .p-bx-row:first-of-type{border-top:0;}
+  .p-bx-row b{color:var(--wk-navy2);} .p-bx-row span{color:var(--wk-grey);}
+  @media (max-width:700px){ .p-hist-row{grid-template-columns:1fr auto;} }
+  @media (max-width:700px){ .p-row{grid-template-columns:1fr;} .p-hero{grid-template-columns:1fr;} .p-two{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -119,14 +170,17 @@
         <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
           <a href="/wbr-finanzas.html">Finanzas</a>
           <a href="/wbr-ventas.html">Ventas & Pipeline</a>
           <a href="/wbr-operaciones.html">Operaciones</a>
-          <a href="/wbr-productos.html">Target de Clientes</a>
           <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
           <a href="/wbr-ccflex.html">CCFlex</a>
           <a href="/wbr-cta.html">Call to Action</a>
           <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -139,7 +193,9 @@
           <a href="/alta.html">Generador de Formato de Alta</a>
           <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
           <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
-          <a href="/contactos-sap.html">Contactos SAP</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -153,11 +209,13 @@
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
           <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
         </div>
       </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
           <a href="/dias-habiles.html">Días Hábiles México</a>
           <a href="/minutas.html">Generador de Minutas / Status</a>
           <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
@@ -175,53 +233,66 @@
         </div>
       </div>
       <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
           <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
         </div>
       </div>
     </div>
   </div></nav>
 
+
 <header>
-  <h1>Investigación de Prospecto</h1>
-  <p>Escribe el nombre de una empresa y llega preparado a tu primera llamada o correo</p>
+  <div>
+    <h1>🔎 Investigación de Prospecto — Cliente 360</h1>
+    <p>Escribe el nombre de una empresa y Delfos arma su tablero para que llegues preparado a tu primera llamada o correo</p>
+    <div id="fechaBadge"></div>
+  </div>
 </header>
 
-<main>
-  <a href="/agentes.html" style="display:inline-block; margin-bottom:14px; font-size:13px; color:var(--blue); text-decoration:none;">← Agentes powered by DELFOS</a>
+<main class="wk-main">
+  <a href="/agentes.html" style="display:inline-block; margin-bottom:14px; font-size:13px; color:var(--wk-cyan); text-decoration:none;">← Agentes powered by DELFOS</a>
 
-  <div class="section">
-    <h2>Empresa a investigar</h2>
-    <div class="field">
-      <label>Nombre de la empresa</label>
-      <input type="text" id="companyInput" placeholder="Ej. Grupo Bimbo" oninput="document.getElementById('goBtn').disabled = !this.value.trim()">
+  <section class="wk-card">
+    <div class="wk-card-head"><div><h3>🏢 Empresa a investigar</h3><p>Delfos busca en fuentes públicas y llena el tablero de abajo</p></div></div>
+    <div class="p-row">
+      <div>
+        <label class="p-lbl" for="companyInput">Nombre de la empresa</label>
+        <input class="p-in" type="text" id="companyInput" placeholder="Ej. Grupo Bimbo" oninput="document.getElementById('goBtn').disabled = !this.value.trim()" onkeydown="if(event.key==='Enter' && this.value.trim()) investigar()">
+      </div>
+      <button class="p-btn" id="goBtn" onclick="investigar()" disabled>Investigar</button>
     </div>
 
-    <label style="display:block; font-size:12px; color:var(--grey); margin:16px 0 6px; font-weight:500;">Instrucciones para la investigación</label>
-    <p class="admin-lock-hint" style="font-size:11.5px; color:var(--greyl); margin:0 0 6px;">🔒 Solo un Administrador puede editar esto — pídele a uno que lo ajuste en Roles y Permisos si hace falta.</p>
-    <textarea id="promptBox" class="admin-only-edit" readonly rows="14" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; color:var(--ink); resize:vertical; background:#F4F8FC;"></textarea>
+    <label class="p-lbl" for="extraInstructions" style="margin-top:16px;">Instrucciones adicionales (opcional, cualquiera puede agregar)</label>
+    <textarea class="p-in" id="extraInstructions" rows="3" placeholder="Ej. Enfócate también en riesgos de integración con el sistema legado del cliente"></textarea>
 
-    <label style="display:block; font-size:12px; color:var(--grey); margin:14px 0 6px; font-weight:500;">Instrucciones adicionales (opcional, cualquiera puede agregar)</label>
-    <textarea id="extraInstructions" rows="3" placeholder="Ej. Enfócate también en riesgos de integración con el sistema legado del cliente" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12.5px; color:var(--ink); resize:vertical;"></textarea>
+    <details class="p-det">
+      <summary>Ver / editar las instrucciones base de la investigación</summary>
+      <p class="admin-lock-hint p-hint">🔒 Solo un Administrador puede editar esto — pídele a uno que lo ajuste en Roles y Permisos si hace falta. El formato del tablero se aplica automáticamente.</p>
+      <textarea class="p-in admin-only-edit" id="promptBox" readonly rows="14"></textarea>
+    </details>
+  </section>
 
-    <div style="margin-top:14px;">
-      <button class="btn btn-primary" id="goBtn" onclick="investigar()" disabled>Investigar</button>
-    </div>
-  </div>
+  <section class="wk-card" id="histCard">
+    <div class="wk-card-head"><div><h3>🗂️ Investigaciones recientes</h3><p>Reabre una investigación sin volver a consultar a Delfos. Se guardan las últimas <span id="histMax">50</span>, una por empresa.</p></div><span class="wk-count" id="histCount">0</span></div>
+    <div id="histBody"><div class="p-loading" style="padding:14px;"><span class="spinner"></span>Cargando…</div></div>
+  </section>
 
-  <div class="section" id="resultSection" style="display:none;">
-    <h2>Perfil comercial</h2>
+  <div id="resultSection" style="display:none;">
     <div id="resultBody"></div>
-    <div style="margin-top:16px;">
-      <button class="btn btn-primary" id="pdfBtn" onclick="downloadPDF()" style="display:none;">Descargar PDF</button>
-    </div>
   </div>
 </main>
 
 <script>
-const DEFAULT_PROMPT = `Eres un asistente de investigación comercial para el equipo de ventas (AEs y BDRs) de SEIDOR, consultora partner de SAP en México. Investiga la empresa "{{EMPRESA}}" usando fuentes públicas y responde en español, usando exactamente este formato con encabezados en mayúsculas.
+const DEFAULT_PROMPT = `Eres un asistente de investigación comercial para el equipo de ventas (AEs y BDRs) de SEIDOR, consultora partner de SAP en México. Investiga la empresa "{{EMPRESA}}" usando fuentes públicas y responde en español.
 
 PRIORIDAD DE FUENTES — búscalas en este orden y prefiere siempre la fuente más confiable disponible para cada dato:
 Nivel 1 (máxima confianza): sitio web oficial de la empresa, su página de LinkedIn y las de sus directivos.
@@ -230,82 +301,208 @@ Nivel 3 (cámaras y asociaciones del sector, solo si aplica al giro de la empres
 Nivel 4 (prensa de negocios, para nombramientos recientes, voceros oficiales o entrevistas): El Economista, El Financiero, Expansión, Google News.
 Evita blogs sin firma, directorios genéricos sin verificación, o páginas que agregan datos de terceros sin fuente propia.
 
-Para cada dato importante que reportes (RFC, nombres de directivos, cifras, nombramientos recientes), indica entre paréntesis de qué fuente salió, por ejemplo: "(fuente: LinkedIn)" o "(fuente: El Economista, ago 2026)". Si un dato viene de una fuente de nivel 3 o 4, o si no pudiste verificarlo en más de una fuente, dilo explícitamente ("dato sin confirmar en fuente oficial").
+Para cada dato importante (RFC, nombres de directivos, cifras, nombramientos recientes) indica de qué fuente salió. Si un dato viene de una fuente de nivel 3 o 4, o si no pudiste verificarlo en más de una fuente, anótalo en "datosPorConfirmar".
 
-NOMBRE COMERCIAL
-- 
+Qué necesito saber:
+- Identidad: nombre comercial, razón social, RFC (nunca inventes un RFC; idealmente confirmado contra el SAT), industria, sede, tamaño aproximado, tipo de empresa.
+- Personas clave para una venta B2B: dirección general, TI, finanzas, operaciones, compras (nombre, cargo, área y fuente; LinkedIn es la más confiable aquí; si no encuentras nombres específicos, indica qué roles buscar). Para cada persona incluye su correo electrónico y teléfono SOLO si están publicados en una fuente pública (sitio oficial, LinkedIn, comunicados de prensa, reportes anuales, registros de gobierno). Nunca adivines ni deduzcas correos a partir de patrones, y nunca inventes teléfonos: si no está publicado, usa null. Incluye también el teléfono y correo generales de la empresa si son públicos.
+- Qué soluciones SAP (S/4HANA, SuccessFactors, BTP, Analytics Cloud, etc.) encajarían mejor dado su tamaño, industria y posible madurez tecnológica, y cómo posicionarlo en una llamada o correo en frío.
+- Los 3-5 value drivers más relevantes para esta empresa específica (eficiencia operativa, cumplimiento fiscal, escalabilidad, reducción de costos, etc.).
+- Señales recientes: noticias, expansión, cambios de liderazgo, retos del sector, competidores — con fuente y fecha.
+- El encaje con el portafolio SAP NO es una impresión general: es la suma de esta rúbrica de 100 puntos. Califica cada criterio por separado, con su puntaje (de 0 al máximo indicado) y una razón breve con el dato en que te basas. Si no tienes el dato, da 0 a ese criterio y dilo en la razón; no redondees hacia arriba ni repitas puntajes por costumbre:
+  1. Ingresos de la empresa (máx. 20): 0 si no hay dato o son muy bajos para un proyecto SAP; 20 si están en el rango ideal del midmarket mexicano o por encima con capacidad de inversión.
+  2. Tamaño por empleados y complejidad operativa (máx. 10).
+  3. ERP actual y probabilidad de migración (máx. 25): más puntos si usan un ERP obsoleto, fragmentado o sin soporte, o si están en transición; menos si ya tienen SAP moderno.
+  4. Industria con casos y soluciones SAP afines (máx. 15).
+  5. Señales recientes de compra o cambio: expansión, nuevo liderazgo en TI o finanzas, regulación, adquisiciones (máx. 20).
+  6. Contacto accesible: se identificaron decisores con dato público de contacto (máx. 10).
+  Además da una estimación honesta de madurez tecnológica (0-100), explicando en qué te basas.
 
-RAZÓN SOCIAL
-- (si no la encuentras con certeza, indícalo)
+Si no encuentras información confiable sobre algún punto, usa null (o una lista vacía) en vez de inventar datos.`;
 
-RFC
-- (si no lo encuentras con certeza, indícalo — nunca inventes un RFC; idealmente confirmado contra el SAT)
-
-INDUSTRIA
-- 
-
-PRINCIPALES CONTACTOS O PERSONAS CLAVE
-- (nombres y cargos de personas relevantes para una venta B2B: dirección general, TI, finanzas, operaciones, compras; cita la fuente de cada nombre — LinkedIn es la más confiable aquí; si no encuentras nombres específicos, indica qué roles buscar)
-
-QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP
-- (qué soluciones SAP — S/4HANA, SuccessFactors, BTP, Analytics Cloud, etc. — encajarían mejor con esta empresa dado su tamaño, industria y posible madurez tecnológica, y cómo posicionarlo en una llamada o correo en frío)
-
-VALUE DRIVERS PARA ENGANCHAR
-- (los 3-5 argumentos de valor más relevantes para esta empresa específica: eficiencia operativa, cumplimiento fiscal, escalabilidad, reducción de costos, etc., adaptados a su contexto)
-
-OTROS DATOS ÚTILES PARA LA LLAMADA
-- (cualquier cosa adicional relevante: noticias recientes, expansión, cambios de liderazgo, retos del sector, competidores, tamaño aproximado de la empresa, presencia geográfica, etc. — con su fuente)
-
-FUENTES CONSULTADAS
-- (lista las fuentes concretas que sí usaste para esta investigación, con el nivel de confianza de cada una: ej. "LinkedIn (empresa) — Nivel 1", "El Financiero, jul 2026 — Nivel 4". Si no encontraste nada útil en alguna categoría de fuente, no la incluyas aquí.)
-
-Si no encuentras información confiable sobre algún punto, dilo explícitamente en vez de inventar datos.`;
+const FORMATO_JSON = `FORMATO DE RESPUESTA — MUY IMPORTANTE:
+Responde ÚNICAMENTE con un objeto JSON válido (sin texto antes ni después, sin bloques de código markdown) con exactamente esta estructura. Usa null cuando no tengas el dato y [] cuando no haya elementos; no inventes nada.
+{
+  "empresa": {
+    "nombreComercial": "", "razonSocial": null, "rfc": null, "industria": "", "sede": null,
+    "sitioWeb": null, "telefonoGeneral": null, "correoGeneral": null, "empleados": null, "ingresos": null, "fundacion": null,
+    "tipo": "Pública | Privada | Subsidiaria | Gobierno | null",
+    "descripcion": "2-3 frases sobre a qué se dedica"
+  },
+  "encaje": { "valor": 0, "razon": "resumen del puntaje total (0-100, suma de la rúbrica)", "desglose": [ { "criterio": "Ingresos de la empresa", "puntos": 0, "max": 20, "razon": "dato en que te basas" }, { "criterio": "Tamaño y complejidad operativa", "puntos": 0, "max": 10, "razon": "" }, { "criterio": "ERP actual y probabilidad de migración", "puntos": 0, "max": 25, "razon": "" }, { "criterio": "Industria afín a SAP", "puntos": 0, "max": 15, "razon": "" }, { "criterio": "Señales recientes de compra o cambio", "puntos": 0, "max": 20, "razon": "" }, { "criterio": "Contacto accesible", "puntos": 0, "max": 10, "razon": "" } ] },
+  "madurezTI": { "valor": 0, "razon": "por qué este puntaje (0-100, estimación)", "erpActual": null },
+  "contactos": [ { "nombre": "", "cargo": "", "area": "Dirección | TI | Finanzas | Operaciones | Compras | RH | Otra", "correo": null, "telefono": null, "fuente": "de dónde salen el cargo y los datos de contacto" } ],
+  "portafolioSap": [ { "solucion": "", "encaje": 0, "porque": "", "posicionamiento": "cómo plantearlo en llamada o correo" } ],
+  "valueDrivers": [ { "titulo": "", "detalle": "" } ],
+  "senales": [ { "tipo": "Noticia | Expansión | Liderazgo | Reto | Competidor", "titulo": "", "detalle": "", "fecha": null, "fuente": "", "tono": "green | amber | red | blue" } ],
+  "apertura": { "llamada": "frase de apertura para llamada en frío (2-3 frases)", "correo": "primer párrafo para correo en frío" },
+  "datosPorConfirmar": [ "dato sin confirmar en fuente oficial" ],
+  "fuentes": [ { "nombre": "", "nivel": 1, "url": null } ]
+}`;
 
 document.getElementById('promptBox').value = DEFAULT_PROMPT;
 
 function promptCompleto(){
   const base = document.getElementById('promptBox').value;
   const extra = document.getElementById('extraInstructions').value.trim();
-  return extra ? `${base}\n\nInstrucciones adicionales del usuario para esta investigación:\n${extra}` : base;
+  return base + (extra ? `\n\nInstrucciones adicionales del usuario para esta investigación:\n${extra}` : '') + '\n\n' + FORMATO_JSON;
 }
-let lastFeedback = '';
+
+let lastData = null;
 let lastCompany = '';
 
-function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+const esc = WK.esc;
+const arr = x => Array.isArray(x) ? x : [];
+const val = x => (x == null || x === '' || x === 'null') ? null : x;
+const clamp = n => { n = Number(n); return isNaN(n) ? null : Math.max(0, Math.min(100, Math.round(n))); };
+const tonoPct = n => n == null ? 'cyan' : (n >= 70 ? 'green' : (n >= 40 ? 'amber' : 'red'));
 
+function extraerJSON(t){
+  let s = (t || '').trim().replace(/^```(?:json)?/i, '').replace(/```\s*$/, '').trim();
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if(a < 0 || b <= a) return null;
+  try{ return JSON.parse(s.slice(a, b + 1)); }catch(e){ return null; }
+}
+
+function iniciales(n){
+  const p = (n || '?').replace(/[^\p{L}\p{N} ]/gu, '').trim().split(/\s+/).filter(Boolean);
+  return ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase();
+}
+function correoHtml(v){
+  v = val(v);
+  if(v == null || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v).trim())) return '<span style="color:var(--wk-greyl);">—</span>';
+  return '<a href="mailto:' + esc(String(v).trim()) + '" style="color:var(--wk-cyan);text-decoration:none;">' + esc(String(v).trim()) + '</a>';
+}
+function telHtml(v){
+  v = val(v);
+  if(v == null) return '<span style="color:var(--wk-greyl);">—</span>';
+  const digitos = String(v).replace(/[^\d+]/g, '');
+  return digitos.length >= 7 ? '<a href="tel:' + esc(digitos) + '" style="color:var(--wk-cyan);text-decoration:none;white-space:nowrap;">' + esc(v) + '</a>' : esc(v);
+}
+function hechoHtml(label, v, link){
+  v = val(v);
+  if(v == null) return '<div class="p-fact"><span>' + esc(label) + '</span><b style="color:var(--wk-greyl);font-weight:500;">Sin confirmar</b></div>';
+  if(link && /^https?:\/\//i.test(v)) return '<div class="p-fact"><span>' + esc(label) + '</span><b><a href="' + esc(v) + '" target="_blank" rel="noopener">' + esc(v.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '')) + '</a></b></div>';
+  return '<div class="p-fact"><span>' + esc(label) + '</span><b>' + esc(v) + '</b></div>';
+}
+
+const RUBRICA_MAX = [20, 10, 25, 15, 20, 10]; // ingresos, tamaño, ERP, industria, señales, contacto
+function encajeDesglose(d){
+  const ds = arr((d.encaje || {}).desglose);
+  if (ds.length !== RUBRICA_MAX.length) return null;
+  return ds.map((x, i) => ({ criterio: x.criterio || '', max: RUBRICA_MAX[i], puntos: Math.max(0, Math.min(RUBRICA_MAX[i], Number(x.puntos) || 0)), razon: x.razon || '' }));
+}
+function encajeTotal(d){
+  const ds = encajeDesglose(d);
+  return ds ? Math.round(ds.reduce((q, x) => q + x.puntos, 0)) : clamp((d.encaje || {}).valor);
+}
+function desgloseHtml(d){
+  const ds = encajeDesglose(d);
+  if (!ds) return '';
+  return '<div class="why" style="margin-top:12px">' + ds.map(x => '<div style="margin:6px 0"><b>' + esc(x.criterio) + ': ' + x.puntos + '/' + x.max + '</b>' + (x.razon ? ' · ' + esc(x.razon) : '') + '</div>').join('') + '</div>';
+}
+
+function renderDashboard(d){
+  const e = d.empresa || {};
+  const nombre = val(e.nombreComercial) || lastCompany;
+  const enc = encajeTotal(d), mad = clamp((d.madurezTI || {}).valor);
+  const contactos = arr(d.contactos), portafolio = arr(d.portafolioSap), drivers = arr(d.valueDrivers), senales = arr(d.senales), fuentes = arr(d.fuentes), pend = arr(d.datosPorConfirmar);
+  const ap = d.apertura || {};
+  const sitio = val(e.sitioWeb); const sitioUrl = sitio && !/^https?:\/\//i.test(sitio) ? 'https://' + sitio : sitio;
+
+  const chips = WK.chips([
+    { id:'p-resumen', label:'Resumen' }, { id:'p-encaje', label:'Encaje SAP', n:portafolio.length },
+    { id:'p-contactos', label:'Contactos', n:contactos.length }, { id:'p-senales', label:'Señales', n:senales.length },
+    { id:'p-fuentes', label:'Fuentes', n:fuentes.length }
+  ]);
+
+  const hero = WK.card({ id:'p-resumen', body:
+    '<div class="p-hero"><div class="p-avatar">' + esc(iniciales(nombre)) + '</div><div>' +
+      '<h2>' + esc(nombre) + '</h2>' +
+      '<div class="sub">' + esc(val(e.razonSocial) || 'Razón social sin confirmar') + (val(e.tipo) ? ' · ' + esc(e.tipo) : '') + '</div>' +
+      '<div class="p-facts">' + hechoHtml('RFC', e.rfc) + hechoHtml('Industria', e.industria) + hechoHtml('Sede', e.sede) + hechoHtml('Sitio web', sitioUrl, true) + hechoHtml('Teléfono general', e.telefonoGeneral) + hechoHtml('Correo general', e.correoGeneral) + '</div>' +
+    '</div></div>' +
+    (val(e.descripcion) ? '<p class="p-desc">' + esc(e.descripcion) + '</p>' : '') +
+    '<div style="margin-top:16px;">' + WK.stats([
+      { valor: esc(val(e.empleados) || '—'), label:'Empleados' }, { valor: esc(val(e.ingresos) || '—'), label:'Ingresos aprox.' },
+      { valor: esc(val(e.fundacion) || '—'), label:'Fundación' }, { valor: contactos.length + (contactos.some(c => val(c.correo) || val(c.telefono)) ? ' · ' + contactos.filter(c => val(c.correo) || val(c.telefono)).length + ' con dato' : ''), label:'Contactos clave' }, { valor: senales.length, label:'Señales recientes' }
+    ]) + '</div>' });
+
+  const gauges = '<div class="p-gauges">' +
+    WK.card({ ico:'🎯', titulo:'Encaje con portafolio SAP', sub:encajeDesglose(d) ? 'Suma de rúbrica de 100 puntos' : 'Estimación de Delfos', body: WK.gauge({ valor: enc || 0, max:100, tono: tonoPct(enc), texto: enc == null ? '—' : enc + '', label:'de 100' }) + '<div class="why">' + esc(val((d.encaje || {}).razon) || 'Sin explicación.') + '</div>' + desgloseHtml(d) }) +
+    WK.card({ ico:'🧠', titulo:'Madurez tecnológica', sub:'Estimación de Delfos' + (val((d.madurezTI || {}).erpActual) ? ' · ERP: ' + d.madurezTI.erpActual : ''), body: WK.gauge({ valor: mad || 0, max:100, tono: tonoPct(mad), texto: mad == null ? '—' : mad + '', label:'de 100' }) + '<div class="why">' + esc(val((d.madurezTI || {}).razon) || 'Sin explicación.') + '</div>' }) +
+  '</div>';
+
+  const rankItems = portafolio.map(p => ({ label: p.solucion || '—', value: clamp(p.encaje) || 0, tono: tonoPct(clamp(p.encaje)) }));
+  const tablaPort = WK.table([
+    { k:'solucion', label:'Solución', tipo:'strong' }, { k:'encaje', label:'Encaje', tipo:'html' },
+    { k:'porque', label:'Por qué', tipo:'note' }, { k:'pos', label:'Cómo posicionarlo', tipo:'note' }
+  ], portafolio.map(p => ({ solucion:p.solucion, encaje: WK.badge((clamp(p.encaje) == null ? '—' : clamp(p.encaje) + '%'), tonoPct(clamp(p.encaje))), porque:p.porque, pos:p.posicionamiento })), { sinOrden:true, vacio:'Delfos no identificó soluciones con suficiente sustento.' });
+  const encajeSec = WK.band('p-encaje', 'Encaje con el portafolio SAP', 'Qué ofrecer y cómo plantearlo') +
+    '<div class="wk-grid2">' + WK.card({ ico:'📊', titulo:'Ranking de encaje', body: WK.ranked(rankItems, { max:100, fmt: n => n + '%' }) }) +
+    WK.card({ ico:'💡', titulo:'Value drivers para enganchar', body: drivers.length ? '<div class="p-vd">' + drivers.map(v => '<div><b>' + esc(v.titulo) + '</b><p>' + esc(v.detalle) + '</p></div>').join('') + '</div>' : WK.empty('Sin value drivers.') }) + '</div>' +
+    WK.card({ ico:'🧩', titulo:'Detalle por solución', body: tablaPort });
+
+  const porArea = {};
+  contactos.forEach(c => { const a = c.area || 'Otra'; porArea[a] = (porArea[a] || 0) + 1; });
+  const tablaCont = WK.table([
+    { k:'nombre', label:'Nombre', tipo:'strong' }, { k:'cargo', label:'Cargo' }, { k:'area', label:'Área', tipo:'tag' }, { k:'correo', label:'Correo', tipo:'html' }, { k:'telefono', label:'Teléfono', tipo:'html' }, { k:'fuente', label:'Fuente', tipo:'note' }
+  ], contactos.map(c => ({ nombre:c.nombre, cargo:c.cargo, area:c.area, correo:correoHtml(c.correo), telefono:telHtml(c.telefono), fuente:c.fuente })), { vacio:'No se encontraron nombres específicos; busca estos roles en LinkedIn.' });
+  const contSec = WK.band('p-contactos', 'Personas clave', 'A quién buscar') +
+    '<div class="wk-grid2">' + WK.card({ ico:'👥', titulo:'Contactos por área', body: contactos.length ? WK.donut(Object.keys(porArea).map(k => ({ label:k, value:porArea[k] })), { centro: contactos.length + '', sub:'contactos' }) : WK.empty('Sin contactos.') }) +
+    WK.card({ ico:'📇', titulo:'Directorio', count: contactos.length, body: tablaCont }) + '</div>';
+
+  const tonoSig = t => ({ green:'green', amber:'amber', red:'red', blue:'blue' }[t] || 'blue');
+  const senSec = WK.band('p-senales', 'Señales recientes', 'Gancho para abrir la conversación') +
+    WK.card({ ico:'📰', titulo:'Noticias, cambios y retos', count: senales.length, body: senales.length ? '<div class="p-sig">' + senales.map(s =>
+      '<div><span class="wk-b ' + tonoSig(s.tono) + '">' + esc(s.tipo || 'Noticia') + '</span><div><b>' + esc(s.titulo) + '</b><p>' + esc(s.detalle) + '</p><small>' + esc([s.fuente, s.fecha].filter(Boolean).join(' · ')) + '</small></div></div>').join('') + '</div>' : WK.empty('Sin señales recientes confiables.') }) +
+    ((val(ap.llamada) || val(ap.correo)) ? '<div class="p-two" style="margin-top:18px;">' +
+      (val(ap.llamada) ? WK.callout('Apertura para llamada en frío', esc(ap.llamada)) : '') +
+      (val(ap.correo) ? WK.callout('Primer párrafo para correo en frío', esc(ap.correo)) : '') + '</div>' : '') +
+    (pend.length ? WK.card({ ico:'⚠️', titulo:'Datos por confirmar', sub:'No pudieron verificarse en fuente oficial', body:'<div class="p-pend">' + pend.map(p => WK.badge(p, 'amber')).join('') + '</div>' }) : '');
+
+  const tablaFu = WK.table([
+    { k:'nombre', label:'Fuente', tipo:'strong' }, { k:'nivel', label:'Confianza', tipo:'html' }, { k:'url', label:'Enlace', tipo:'html' }
+  ], fuentes.map(f => { const n = Number(f.nivel); return { nombre:f.nombre, nivel: WK.badge('Nivel ' + (n || '—'), n === 1 ? 'green' : (n === 2 ? 'blue' : 'amber')), url: /^https?:\/\//i.test(f.url || '') ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener" style="color:var(--wk-cyan);">abrir</a>' : '—' }; }), { sinOrden:true, vacio:'Delfos no listó fuentes.' });
+  const fuSec = WK.band('p-fuentes', 'Fuentes consultadas', 'Nivel 1 = máxima confianza') + WK.card({ ico:'🔗', titulo:'Fuentes', count: fuentes.length, body: tablaFu });
+
+  const acciones = '<div class="p-actions wk-nosend"><button class="p-btn sec" onclick="investigar()">Volver a investigar</button></div>';
+
+  return chips + '<div id="p-bx"></div>' + hero + gauges + encajeSec + contSec + senSec + fuSec + acciones;
+}
+
+/* Respaldo si Delfos no devolvió JSON */
 function renderFeedback(text){
-  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l);
-  let html = '';
-  let inList = false;
-  const knownHeaders = ['NOMBRE COMERCIAL','RAZÓN SOCIAL','RFC','INDUSTRIA','PRINCIPALES CONTACTOS O PERSONAS CLAVE','QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP','VALUE DRIVERS PARA ENGANCHAR','OTROS DATOS ÚTILES PARA LA LLAMADA','FUENTES CONSULTADAS'];
-  lines.forEach(line=>{
-    const isHeader = knownHeaders.some(h => line.toUpperCase().startsWith(h));
-    if(isHeader){
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  let html = '', inList = false;
+  const knownHeaders = PDF_KNOWN_HEADERS;
+  lines.forEach(line => {
+    if(knownHeaders.some(h => line.toUpperCase().startsWith(h))){
       if(inList){ html += '</ul>'; inList = false; }
-      html += `<h3>${esc(line)}</h3>`;
+      html += '<h3 style="margin:18px 0 8px;font-size:13.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--wk-navy2);">' + esc(line) + '</h3>';
     }else if(line.startsWith('-') || line.startsWith('•')){
-      if(!inList){ html += '<ul>'; inList = true; }
-      html += `<li>${esc(line.replace(/^[-•]\s*/, ''))}</li>`;
+      if(!inList){ html += '<ul style="margin:0;padding-left:20px;">'; inList = true; }
+      html += '<li style="font-size:13px;line-height:1.5;margin-bottom:6px;">' + esc(line.replace(/^[-•]\s*/, '')) + '</li>';
     }else{
       if(inList){ html += '</ul>'; inList = false; }
-      html += `<p style="font-size:13px; color:var(--ink);">${esc(line)}</p>`;
+      html += '<p style="font-size:13px;">' + esc(line) + '</p>';
     }
   });
   if(inList) html += '</ul>';
-  return html || `<p>${esc(text)}</p>`;
+  return html || '<p>' + esc(text) + '</p>';
 }
 
 async function investigar(){
   const company = document.getElementById('companyInput').value.trim();
   if(!company) return;
-  lastCompany = company;
+  lastCompany = company; lastData = null;
   const btn = document.getElementById('goBtn');
   const resultSection = document.getElementById('resultSection');
   const resultBody = document.getElementById('resultBody');
   btn.disabled = true;
   resultSection.style.display = 'block';
-  resultBody.innerHTML = '<div class="loading"><span class="spinner"></span>Preparando investigación…</div>';
-  document.getElementById('pdfBtn').style.display = 'none';
+  const cargando = t => { resultBody.innerHTML = '<section class="wk-card"><div class="p-loading"><span class="spinner"></span>' + esc(t) + '</div></section>'; };
+  cargando('Preparando investigación…');
 
   try{
     const r = await fetch('/api/prospecto', {
@@ -315,9 +512,7 @@ async function investigar(){
     if(!r.body){ throw new Error('sin stream'); }
     const reader = r.body.getReader();
     const decoder = new TextDecoder();
-    let buffer = '';
-    let fullText = '';
-    let gotError = false;
+    let buffer = '', fullText = '', gotError = false;
 
     while(true){
       const { done, value } = await reader.read();
@@ -330,99 +525,131 @@ async function investigar(){
         let obj;
         try{ obj = JSON.parse(line); }catch(e){ continue; }
         if(obj.type === 'status'){
-          resultBody.innerHTML = `<div class="loading"><span class="spinner"></span>${esc(obj.text)}</div>`;
+          cargando(obj.text);
         }else if(obj.type === 'delta'){
           fullText += obj.text;
-          resultBody.innerHTML = `<pre style="white-space:pre-wrap; font-family:inherit; font-size:13px; margin:0;">${esc(fullText)}</pre>`;
+          cargando('Delfos está armando el tablero de ' + company + '… (' + Math.round(fullText.length / 100) / 10 + 'K caracteres)');
         }else if(obj.type === 'error'){
           gotError = true;
-          resultBody.innerHTML = `<div class="error">${esc(obj.text)}</div>`;
+          resultBody.innerHTML = '<div class="p-error">' + esc(obj.text) + '</div>';
         }else if(obj.type === 'done'){
           if(!gotError && fullText){
-            lastFeedback = fullText;
-            resultBody.innerHTML = renderFeedback(fullText);
-            document.getElementById('pdfBtn').style.display = 'inline-block';
+            const data = extraerJSON(fullText);
+            if(data){
+              lastData = data;
+              resultBody.innerHTML = renderDashboard(data);
+              guardarInv(company, data); llenarBx(data, company);
+              document.getElementById('fechaBadge').innerHTML = '<span class="fecha-revision" style="display:inline-block;margin-top:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;">' + esc(company) + ' · ' + new Date().toLocaleDateString('es-MX') + '</span>';
+            }else{
+                            resultBody.innerHTML = '<section class="wk-card"><div class="wk-card-head"><div><h3>📄 Perfil comercial</h3><p>No pude estructurar la respuesta en tablero; te la muestro en texto.</p></div></div>' + renderFeedback(fullText) +
+                '</section>';
+            }
           }
         }
       }
     }
   }catch(e){
-    resultBody.innerHTML = '<div class="error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
+    resultBody.innerHTML = '<div class="p-error">No se pudo conectar con Delfos. Intenta de nuevo.</div>';
   }
-  btn.disabled = false;
+  btn.disabled = !document.getElementById('companyInput').value.trim();
 }
 
 const PDF_KNOWN_HEADERS = ['NOMBRE COMERCIAL','RAZÓN SOCIAL','RFC','INDUSTRIA','PRINCIPALES CONTACTOS O PERSONAS CLAVE','QUÉ PODRÍA HACER SENTIDO DEL PORTAFOLIO SAP','VALUE DRIVERS PARA ENGANCHAR','OTROS DATOS ÚTILES PARA LA LLAMADA','FUENTES CONSULTADAS'];
 
-async function exportFeedbackPDF(title, subtitle, feedbackText, filename){
-  if(!window.jspdf){
-    alert('No se pudo cargar la librería para generar el PDF. Revisa tu conexión a internet y vuelve a intentar; si el problema persiste, avísale a Sam.');
-    return;
-  }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 44;
-  let y;
+/* ---- Historial (últimas 50, compartido) ---- */
+let histAdmin = false;
+function fechaCorta(iso){ try{ return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' }); }catch(e){ return ''; } }
+function quien(email){ return (email || '').split('@')[0].replace(/[._]/g, ' '); }
 
-  doc.setFillColor(10, 18, 38);
-  doc.rect(0, 0, pageWidth, 70, 'F');
+async function cargarHistorial(){
+  const body = document.getElementById('histBody');
   try{
-    const resp = await fetch('/assets/logo_dark.png');
-    const blob = await resp.blob();
-    const dataUrl = await new Promise(res => { const r = new FileReader(); r.onload = ()=>res(r.result); r.readAsDataURL(blob); });
-    doc.addImage(dataUrl, 'PNG', margin, 20, 90, 30);
-  }catch(e){}
-
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(13);
-  doc.setFont(undefined, 'bold');
-  doc.text(title, pageWidth - margin, 32, { align: 'right' });
-  doc.setFontSize(9);
-  doc.setFont(undefined, 'normal');
-  doc.text(subtitle + ' · ' + new Date().toLocaleDateString('es-MX'), pageWidth - margin, 48, { align: 'right' });
-
-  y = 100;
-  doc.setTextColor(22,34,58);
-
-  const lines = feedbackText.split('\n').map(l=>l.trim()).filter(l=>l);
-  lines.forEach(line=>{
-    const isHeader = PDF_KNOWN_HEADERS.some(h => line.toUpperCase().startsWith(h));
-    if(y > pageHeight - 60){ doc.addPage(); y = 50; }
-    if(isHeader){
-      y += 8;
-      doc.setFontSize(11);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(30, 91, 184);
-      doc.text(line, margin, y);
-      y += 16;
-      doc.setTextColor(22,34,58);
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(10);
-    }else{
-      const clean = line.replace(/^[-•]\s*/, '•  ');
-      const wrapped = doc.splitTextToSize(clean, pageWidth - margin*2);
-      wrapped.forEach(w=>{
-        if(y > pageHeight - 60){ doc.addPage(); y = 50; }
-        doc.text(w, margin, y);
-        y += 14;
-      });
-    }
-  });
-
-  try{
-    doc.save(filename);
+    const r = await fetch('/api/prospecto-historial');
+    const d = await r.json();
+    if(!r.ok || !d.ok) throw new Error(d.error || 'sin acceso');
+    histAdmin = !!d.esAdmin;
+    document.getElementById('histMax').textContent = d.max || 50;
+    document.getElementById('histCount').textContent = d.items.length + ' / ' + (d.max || 50);
+    body.innerHTML = d.items.length ? '<div class="p-hist">' + d.items.map(it =>
+      '<div class="p-hist-row"><div><b>' + esc(it.empresa) + '</b><br><small>' + esc(it.industria || '') + '</small></div>' +
+      '<div>' + (it.encaje == null ? '' : WK.badge('Encaje ' + it.encaje, tonoPct(it.encaje))) + '</div>' +
+      '<div><small>' + esc(fechaCorta(it.en)) + '<br>por ' + esc(quien(it.por)) + '</small></div>' +
+      '<button class="p-mini" onclick="abrirInv(\'' + esc(it.id) + '\')">Abrir</button>' +
+      (histAdmin ? '<button class="p-mini del" title="Borrar" onclick="borrarInv(\'' + esc(it.id) + '\', this)">🗑</button>' : '<span></span>') + '</div>').join('') + '</div>'
+      : WK.empty('Aún no hay investigaciones guardadas. La primera que hagas aparecerá aquí.');
   }catch(e){
-    console.error(e);
-    alert('No se pudo generar el archivo PDF. Intenta de nuevo — si sigue fallando, avísale a Sam.');
+    body.innerHTML = '<div class="p-hint">No se pudo cargar el historial.</div>';
   }
 }
 
-function downloadPDF(){
-  if(!lastFeedback) return;
-  exportFeedbackPDF('Investigación de Prospecto', lastCompany, lastFeedback, `Prospecto - ${lastCompany}.pdf`);
+async function guardarInv(company, data){
+  try{
+    const r = await fetch('/api/prospecto-historial', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ empresa: company, data }) });
+    if(r.ok) cargarHistorial();
+  }catch(e){ /* guardar es opcional: si falla, el tablero ya se muestra */ }
 }
+
+async function abrirInv(id){
+  const resultSection = document.getElementById('resultSection');
+  const resultBody = document.getElementById('resultBody');
+  resultSection.style.display = 'block';
+  resultBody.innerHTML = '<section class="wk-card"><div class="p-loading"><span class="spinner"></span>Abriendo investigación…</div></section>';
+  try{
+    const r = await fetch('/api/prospecto-historial?id=' + encodeURIComponent(id));
+    const d = await r.json();
+    if(!r.ok || !d.ok) throw new Error(d.error || 'No se pudo abrir.');
+    const reg = d.registro;
+    lastData = reg.data; lastCompany = reg.empresa;
+    const inp = document.getElementById('companyInput'); inp.value = reg.empresa; document.getElementById('goBtn').disabled = false;
+    resultBody.innerHTML = renderDashboard(reg.data);
+    llenarBx(reg.data, reg.empresa);
+    document.getElementById('fechaBadge').innerHTML = '<span style="display:inline-block;margin-top:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;">' + esc(reg.empresa) + ' · consultada el ' + esc(fechaCorta(reg.en)) + ' por ' + esc(quien(reg.por)) + '</span>';
+    resultSection.scrollIntoView({ behavior:'smooth', block:'start' });
+  }catch(e){
+    resultBody.innerHTML = '<div class="p-error">' + esc(e.message || 'No se pudo abrir la investigación.') + '</div>';
+  }
+}
+
+async function borrarInv(id, btn){
+  if(!confirm('¿Borrar esta investigación del historial? No se puede deshacer.')) return;
+  btn.disabled = true;
+  try{
+    const r = await fetch('/api/prospecto-historial?id=' + encodeURIComponent(id), { method:'DELETE' });
+    const d = await r.json();
+    if(!r.ok || !d.ok) throw new Error(d.error || 'No se pudo borrar.');
+    cargarHistorial();
+  }catch(e){ alert(e.message || 'No se pudo borrar.'); btn.disabled = false; }
+}
+
+/* ---- ¿Ya aparece en la Base Instalada de BX? ---- */
+async function llenarBx(data, company){
+  const el = document.getElementById('p-bx');
+  if(!el) return;
+  const e = (data && data.empresa) || {};
+  const q = new URLSearchParams({ nombre: val(e.nombreComercial) || company });
+  if(val(e.razonSocial)) q.set('razon', e.razonSocial);
+  try{
+    const r = await fetch('/api/prospecto-bx?' + q.toString());
+    if(!r.ok) return;
+    const d = await r.json();
+    if(!d.ok || !d.disponible) return;
+    const m = d.coincidencias || [];
+    const hayExacta = m.some(x => x.tipo === 'exacta');
+    const filas = m.map(x => '<div class="p-bx-row"><b>' + esc(x.cuenta) + '</b>' + WK.badge(x.tipo === 'exacta' ? 'Coincide' : 'Posible', x.tipo === 'exacta' ? 'green' : 'amber') +
+      '<span>LOB: ' + esc(x.lob || '—') + '</span><span>KAM: ' + esc(x.kam || '—') + '</span><span>Ejecutivo BX: ' + esc(x.ejecutivoBx || '—') + '</span></div>').join('');
+    const corte = d.corte ? ' · corte del ' + fechaCorta(d.corte) : '';
+    el.innerHTML = m.length
+      ? WK.card({ ico: hayExacta ? '🏷️' : '🔎', titulo: hayExacta ? 'Ya aparece en la Base Instalada de BX' : 'Posible coincidencia en la Base Instalada de BX', sub: (hayExacta ? 'Es cuenta existente: coordina con el KAM antes de contactar.' : 'Verifica que sea la misma empresa antes de contactar.') + corte, body: filas })
+      : WK.card({ ico:'🆕', titulo:'Sin coincidencia en la Base Instalada de BX', sub:'Por el nombre buscado, parece prospecto nuevo' + corte + '.', body:'' });
+  }catch(err){ /* el cruce es informativo: si falla, no se muestra */ }
+}
+
+/* ---- Enviar / descargar vista (botones del kit WBR) ---- */
+window.WK_SEND_READY = () => !!lastData;
+window.WK_PDF_PLAN = async cap => [await cap(document.getElementById('resultBody'))];
+window.WK_SEND_TITULO = () => 'Prospecto · ' + (lastCompany || 'empresa');
+
+cargarHistorial();
 </script>
 <script>
 (function(){
@@ -457,5 +684,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="/asistente.js?v=1" defer></script>
 </body>
 </html>

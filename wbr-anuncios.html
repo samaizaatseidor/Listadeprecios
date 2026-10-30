@@ -31,19 +31,34 @@
   .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
   .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
   .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
   header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
   header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
   input[type=file]{display:none;}
   .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
-  main{max-width:900px; margin:0 auto; padding:24px 24px 60px;}
-  .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
   .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
-  .anuncio{display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid var(--line);}
-  .anuncio:last-child{border-bottom:none;}
-  .anuncio .num{width:28px; height:28px; border-radius:50%; background:var(--navy2); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12.5px; flex-shrink:0;}
-  .anuncio .texto{font-size:14px; line-height:1.5; padding-top:4px;}
   .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .st-ok{color:#2FE29B; font-size:14px; font-weight:600; padding:2px 0 10px;}
+  .st-err{color:#FF8CA2; font-size:14px; font-weight:600; padding:2px 0 10px;}
+  /* Anuncios — tarjetas grandes con brillo (solo se ven con el tema oscuro del kit) */
+  .an-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr)); gap:22px; margin-bottom:26px;}
+  .an-card{--ac:#3DD6FF; position:relative; overflow:hidden; display:flex; gap:22px; align-items:flex-start; padding:30px 32px; margin-bottom:0; min-height:150px; transition:transform .25s ease, box-shadow .25s ease;}
+  .an-card:before{content:""; position:absolute; inset:0; background:radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--ac) 30%, transparent) 0%, transparent 55%); pointer-events:none;}
+  .an-card:hover{transform:translateY(-4px); box-shadow:0 26px 70px rgba(0,0,0,.55), 0 0 56px -14px var(--ac);}
+  .an-num{position:relative; flex:none; width:72px; height:72px; border-radius:22px; display:flex; align-items:center; justify-content:center; font:800 32px Poppins,sans-serif; color:#04101F; background:linear-gradient(135deg,var(--ac),#fff 240%); box-shadow:0 0 34px color-mix(in srgb, var(--ac) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.5);}
+  .an-body{position:relative; min-width:0; flex:1;}
+  .an-tema{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; letter-spacing:1.4px; text-transform:uppercase; color:var(--ac); font-weight:700; margin-bottom:10px;}
+  .an-tema i{font-style:normal; font-size:18px;}
+  .an-txt{font-size:clamp(22px,1.7vw,32px); font-weight:700; line-height:1.25; color:#fff; letter-spacing:-.3px; overflow-wrap:anywhere; text-shadow:0 2px 24px rgba(0,0,0,.35);}
+  .an-lead{display:block; font-size:clamp(26px,2.2vw,40px); font-weight:800; line-height:1.12; letter-spacing:-.8px; overflow-wrap:anywhere;}
+  .an-pills{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;}
+  .an-pill{display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.22); border-radius:999px; padding:5px 13px; font-size:13px; font-weight:600; color:#fff;}
+  .an-vacio{text-align:center; padding:56px 20px; color:var(--wk-grey,#A5B4CE);} .an-vacio .big{font-size:64px; margin-bottom:8px; filter:drop-shadow(0 0 24px rgba(139,124,255,.6));} .an-vacio h2{margin:0 0 8px; font-size:24px; color:#fff;} .an-vacio p{margin:0; font-size:15px;}
+  .wk-tools{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  @media(max-width:700px){ .an-card{padding:22px 20px; gap:16px;} .an-num{width:54px; height:54px; font-size:24px; border-radius:16px;} }
+  /* ranking dentro de tiles: la pista de la barra nunca se colapsa a 0 */
+  body.wk-dark .wk-hero .wk-rank-row{grid-template-columns:minmax(80px,max-content) minmax(60px,1fr) auto; gap:12px;} body.wk-dark .wk-hero .wk-rank-row .n{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px;}
 </style>
 </head>
 <body>
@@ -80,14 +95,17 @@
         <button type="button" class="nav-dropdown-btn active">📋 WBR <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
           <a href="/wbr-finanzas.html">Finanzas</a>
           <a href="/wbr-ventas.html">Ventas & Pipeline</a>
           <a href="/wbr-operaciones.html">Operaciones</a>
-          <a href="/wbr-productos.html">Target de Clientes</a>
           <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
           <a href="/wbr-ccflex.html">CCFlex</a>
           <a href="/wbr-cta.html">Call to Action</a>
           <a href="/wbr-anuncios.html" class="active">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -99,7 +117,9 @@
           <a href="/alta.html">Generador de Formato de Alta</a>
           <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
           <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
-          <a href="/contactos-sap.html">Contactos SAP</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -112,11 +132,13 @@
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
           <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
         </div>
       </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
           <a href="/dias-habiles.html">Días Hábiles México</a>
           <a href="/minutas.html">Generador de Minutas / Status</a>
           <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
@@ -134,10 +156,17 @@
         </div>
       </div>
       <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
           <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
         </div>
       </div>
     </div>
@@ -148,18 +177,46 @@
   <div>
     <h1>📣 Weekly Business Review — Anuncios</h1>
     <p>Comunicados y anuncios internos de la sesión de esta semana</p>
+    <div id="fechaRevisionBadge"></div>
   </div>
   <label class="upload-label" for="fileInput">⬆️ Subir corte de esta semana</label>
   <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
 </header>
 
-<main>
+<main class="wk-main">
   <div id="statusBox"></div>
   <div id="content"></div>
 </main>
 
+<script src="/wbr-kit.js?v=20261028a"></script>
+
 <script>
-function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+/* Temas por palabra clave: solo para agrupar y dar color; el texto del anuncio se muestra tal cual viene del Excel. */
+const TEMAS = [
+  { id:'viaje',   ico:'✈️', nombre:'Viajes',                  color:'#8B7CFF', re:/viaje|vuelo|hotel|aeropuerto|boleto|traslado/ },
+  { id:'visitas', ico:'🎤', nombre:'Visitas y presentaciones', color:'#FFC857', re:/presentacion|visita|demo|cliente|evento|workshop/ },
+  { id:'agenda',  ico:'📅', nombre:'Agenda y calendario',      color:'#3DD6FF', re:/\bagenda|calendario|\bjunta|reunion|\bsesion|\bcita\b|\bfecha|semana|\bmes\b/ },
+  { id:'cap',     ico:'🎓', nombre:'Capacitación',             color:'#2FE29B', re:/\bcapacit|\bcurso|certific|training|\btaller/ },
+  { id:'aus',     ico:'🏖️', nombre:'Ausencias y días inhábiles', color:'#FF8CA2', re:/vacacion|festivo|puente|inhabil|ausencia|incapacidad/ }
+];
+const GENERAL = { id:'gral', ico:'📣', nombre:'Aviso general', color:'#6FD3F0' };
+function temaDe(t){ const n = WK.norm(t); return TEMAS.find(x => x.re.test(n)) || GENERAL; }
+const corto = (t, n) => { t = String(t); return t.length > n ? t.slice(0, n - 1) + '…' : t; };
+
+let historial = [], actual = null, snapshotVisto = null, mostrando = null;
+function etiquetaCarga(h){ return h && h.guardadoEn ? 'cargado por ' + (h.guardadoPor || 'desconocido') + ' el ' + WK.hora(h.guardadoEn) : ''; }
+async function cargarHistorial(){
+  try{
+    const r = await fetch('/api/wbr-anuncios'); const d = await r.json();
+    historial = (d.historial || []).filter(h => h && Array.isArray(h.anuncios));
+    if(historial.length) actual = historial[historial.length - 1];
+  }catch(e){ historial = []; }
+}
+function verSnapshotHistorico(id){
+  const h = historial.find(x => x.guardadoEn === id); if(!h) return;
+  snapshotVisto = h; render(); window.scrollTo({ top:0, behavior:'smooth' });
+}
+function volverActual(){ snapshotVisto = null; render(); }
 
 async function handleFile(file){
   if(!file) return;
@@ -176,24 +233,74 @@ async function handleFile(file){
     for(let i=0;i<m.length;i++){ if(m[i].some(c=>typeof c==='string' && c.trim()==='#')) { idxHeader = i; break; } }
     const anuncios = [];
     for(let i=idxHeader+1; i<m.length; i++){ const f = m[i]; if(f && f[1]!=null && f[1]!==''){ anuncios.push(String(f[1])); } }
-    render(anuncios);
-    statusBox.innerHTML = `<div style="color:#1F8A4C; font-size:13px;">${anuncios.length} anuncio(s) cargados de "${esc(file.name)}".</div>`;
+    statusBox.innerHTML = '<div class="loading">Guardando…</div>';
+    const snap = { fechaRevision:new Date().toISOString(), archivo:String(file.name).slice(0, 200), anuncios:anuncios };
+    const r = await fetch('/api/wbr-anuncios', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ snapshot:snap }) });
+    if(!r.ok){ const eg = await r.json().catch(()=>({})); throw new Error(eg.error || ('No se pudo guardar (error ' + r.status + ')')); }
+    snapshotVisto = null;
+    await cargarHistorial();
+    render();
+    statusBox.innerHTML = `<div class="st-ok">${anuncios.length} anuncio(s) cargados de "${WK.esc(file.name)}" y guardados en la bitácora.</div>`;
   }catch(e){
     console.error(e);
-    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
+    statusBox.innerHTML = `<div class="st-err">No se pudo leer el archivo: ${WK.esc(e.message||String(e))}</div>`;
   }
 }
 
-function render(anuncios){
+function bitacoraHtml(){
+  const bitacora = WK.table([
+    { k:'corte', label:'Fecha del corte', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' },
+    { k:'archivo', label:'Archivo', tipo:'text' }, { k:'n', label:'Anuncios', tipo:'num' }
+  ], historial.slice().reverse().map(h => ({ corte:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:WK.hora(h.guardadoEn).split(' ')[0], archivo:h.archivo || '—', n:h.anuncios.length, _id:h.guardadoEn })),
+    { rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver los anuncios de este corte"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
+  return historial.length ? WK.band('bitacora', 'Bitácora de cortes', 'Haz clic en un corte para ver los anuncios tal como estaban entonces') + WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora }) : '';
+}
+function render(){
   const content = document.getElementById('content');
+  mostrando = snapshotVisto || actual;
+  const anuncios = mostrando ? mostrando.anuncios : null;
+  document.getElementById('fechaRevisionBadge').innerHTML = mostrando ? '<span class="fecha-revision">Último corte: ' + WK.esc(WK.fecha(new Date(mostrando.fechaRevision)) || '—') + '</span>' : '';
+  const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte del <b>' + WK.esc(WK.fecha(new Date(snapshotVisto.fechaRevision))) + '</b> (' + WK.esc(etiquetaCarga(snapshotVisto)) + ') — no es el más reciente.</span><button class="wk-btn" onclick="volverActual()">Volver al corte más reciente</button></div>' : '';
   if(!anuncios || !anuncios.length){
-    content.innerHTML = `<div class="section"><div class="empty"><h2 style="color:var(--navy2); font-size:16px;">Sin anuncios todavía</h2><p>Sube el Excel semanal (con la pestaña "Anuncios") para verlos aquí.</p></div></div>`;
+    content.innerHTML = banner + `<div class="wk-card"><div class="an-vacio"><div class="big">📣</div><h2>Sin anuncios todavía</h2><p>Sube el Excel semanal (con la pestaña "Anuncios") para verlos aquí.</p></div></div>` + bitacoraHtml();
     return;
   }
-  content.innerHTML = `<div class="section">${anuncios.map((a,i)=>`<div class="anuncio"><div class="num">${i+1}</div><div class="texto">${esc(a)}</div></div>`).join('')}</div>`;
+  const items = anuncios.map((t, i) => ({ n:i+1, texto:t, tema:temaDe(t), palabras:t.trim().split(/\s+/).length }));
+  const grupos = [];
+  items.forEach(it => { let g = grupos.find(x => x.tema.id === it.tema.id); if(!g){ g = { tema:it.tema, items:[] }; grupos.push(g); } g.items.push(it); });
+  grupos.sort((a, b) => b.items.length - a.items.length);
+  const tipGrupo = g => g.tema.ico + ' ' + g.tema.nombre + '\n' + g.items.map(x => '#' + x.n + ' · ' + corto(x.texto, 70)).join('\n');
+  const N = items.length, primero = items[0];
+
+  const hero = WK.heroGrid([
+    WK.hero({ label:'Anuncios de la semana', ir:'anuncios', ico:'📣', value:N, tono:'violet', sub: N === 1 ? 'Un comunicado para la sesión' : 'Comunicados para la sesión',
+      chart: WK.donut(grupos.map(g => ({ label:g.tema.nombre, value:g.items.length, color:g.tema.color, tip:tipGrupo(g) })),
+        { centro:String(N), sub: N === 1 ? 'anuncio' : 'anuncios', tamano:'190px', sinLeyenda:true }) }),
+    WK.hero({ label:'Temas cubiertos', ir:'anuncios', ico:'🧭', value:grupos.length, tono:'cyan', sub: grupos.length === 1 ? 'Un solo tema esta semana' : 'Agrupados por palabras clave del anuncio',
+      chart: WK.ranked(grupos.map(g => ({ label:g.tema.ico + ' ' + g.tema.nombre, value:g.items.length, tip:tipGrupo(g) })), { fmt:v => v + (v === 1 ? ' anuncio' : ' anuncios'), max:grupos[0].items.length }) }),
+    WK.hero({ label:'Anuncio #1 · va primero', ir:'anuncios', ico:'📌', value:'<span class="an-lead">' + WK.esc(corto(primero.texto, 90)) + '</span>', tono:'green',
+      sub: primero.tema.ico + ' ' + primero.tema.nombre,
+      chart: '<div class="an-pills">' + grupos.map(g => '<span class="an-pill" data-tip="' + WK.esc(tipGrupo(g)) + '">' + g.tema.ico + ' ' + WK.esc(g.tema.nombre) + ' · ' + g.items.length + '</span>').join('') + '</div>' })
+  ]);
+
+  const tarjetas = '<div class="an-grid">' + items.map(it =>
+    '<section class="wk-card an-card" style="--ac:' + it.tema.color + '" data-tip="' + WK.esc('Anuncio ' + it.n + ' de ' + N + '\n' + it.tema.ico + ' ' + it.tema.nombre + '\n' + it.palabras + (it.palabras === 1 ? ' palabra' : ' palabras')) + '">' +
+      '<div class="an-num">' + it.n + '</div>' +
+      '<div class="an-body"><div class="an-tema"><i>' + it.tema.ico + '</i>' + WK.esc(it.tema.nombre) + '</div><div class="an-txt">' + WK.esc(it.texto) + '</div></div>' +
+    '</section>').join('') + '</div>';
+
+  const tabla = N >= 6 ? WK.card({ id:'tabla', ico:'🗂️', titulo:'Todos los anuncios', sub:'Ordena por cualquier columna o busca por texto.', count:N,
+    body: '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar en los anuncios…" oninput="WK.filtrar(document.getElementById(\'tablaAnuncios\'), this.value)"></div>' +
+      WK.table([
+        { k:'n', label:'#', tipo:'text' }, { k:'tema', label:'Tema', tipo:'tag' }, { k:'texto', label:'Anuncio', tipo:'strong' }, { k:'palabras', label:'Palabras', tipo:'num' }
+      ], items.map(it => ({ n:it.n, tema:it.tema.ico + ' ' + it.tema.nombre, texto:it.texto, palabras:it.palabras })), { id:'tablaAnuncios' }) }) : '';
+
+
+  content.innerHTML = banner + hero + WK.band('anuncios', 'Anuncios de la sesión', N + (N === 1 ? ' anuncio' : ' anuncios') + ' · pasa el mouse para ver el tema') + tarjetas + tabla + bitacoraHtml();
+  WK.sortable(content);
 }
 
-render(null);
+(async function(){ await cargarHistorial(); render(); })();
 </script>
 <script>
 (function(){
@@ -228,5 +335,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="/asistente.js?v=1" defer></script>
 </body>
 </html>

@@ -31,6 +31,7 @@
   .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
   .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
   .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
   header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
   header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
@@ -59,6 +60,16 @@
   .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
   .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
   @keyframes spin{ to { transform:rotate(360deg); } }
+  .bx-trend{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:28px;}
+  .bx-trend h4{margin:0 0 8px; font-size:14.5px; font-weight:600; color:var(--wk-grey); display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
+  .bx-trend h4 b{color:#fff; font-size:24px; font-weight:800; letter-spacing:-.5px;}
+  .bx-item{display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border:1px solid var(--wk-line); border-radius:14px; background:rgba(255,255,255,.05); transition:background .2s, border-color .2s;}
+  .bx-item:hover{background:rgba(61,214,255,.09); border-color:rgba(61,214,255,.35);}
+  .bx-item .ic{font-size:20px;} .bx-item .tx{font-size:15.5px; line-height:1.55; color:var(--wk-ink);}
+  .bx-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(520px,1fr)); gap:22px; margin-bottom:18px;} .bx-grid>.wk-card{margin-bottom:0;}
+  .wk-wi-out .wk-stat-row{width:100%;}
+  .wk-hero-grid .wk-hero:nth-child(2) .wk-hero-val{font-size:clamp(42px,3.5vw,54px);} .bx-grid>.wk-card:has(.bx-trend){grid-column:1/-1;}
+  .bx-nota{margin:14px 2px 0; font-size:13px; color:var(--wk-greyl);}
 </style>
 </head>
 <body>
@@ -95,14 +106,17 @@
         <button type="button" class="nav-dropdown-btn active">📋 WBR <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
           <a href="/wbr-finanzas.html">Finanzas</a>
           <a href="/wbr-ventas.html">Ventas & Pipeline</a>
           <a href="/wbr-operaciones.html">Operaciones</a>
-          <a href="/wbr-productos.html">Target de Clientes</a>
           <a href="/wbr-bx.html" class="active">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
           <a href="/wbr-ccflex.html">CCFlex</a>
           <a href="/wbr-cta.html">Call to Action</a>
           <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -114,7 +128,9 @@
           <a href="/alta.html">Generador de Formato de Alta</a>
           <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
           <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
-          <a href="/contactos-sap.html">Contactos SAP</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -127,11 +143,13 @@
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
           <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
         </div>
       </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
           <a href="/dias-habiles.html">Días Hábiles México</a>
           <a href="/minutas.html">Generador de Minutas / Status</a>
           <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
@@ -149,10 +167,17 @@
         </div>
       </div>
       <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
           <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
         </div>
       </div>
     </div>
@@ -162,100 +187,293 @@
 <header>
   <div>
     <h1>✨ Weekly Business Review — Business Experience</h1>
-    <p>Renovaciones, cumplimiento CCFlex, oportunidades y riesgo de churn</p>
+    <p>Clientes tocados, riesgos de churn, escalaciones, oportunidades y estrategia del área · USD · Fechas DD/MM/AA</p>
     <div id="fechaRevisionBadge"></div>
   </div>
   <label class="upload-label" for="fileInput">⬆️ Subir corte de esta semana</label>
-  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0], this)">
 </header>
 
-<main>
+<main class="wk-main">
   <div id="statusBox"></div>
   <div id="content"></div>
 </main>
 
+<script src="/wbr-kit.js?v=20261028a"></script>
 <script>
-let historial = [];
+const FORMATO = 'bx-semanal-v2';
+let historial = [];      // solo cortes en el formato del Excel de BX
 let actual = null;
 let snapshotVisto = null;
 let mostrando = null;
 
-function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
+/* ---------- Parseo del Excel de BX ---------- */
+function esFecha(v){ return Object.prototype.toString.call(v) === '[object Date]'; }
+function limpiar(v){
+  if(v == null) return '';
+  if(esFecha(v) || typeof v === 'number') return v;
+  return String(v).replace(/ /g,' ').replace(/\s+/g,' ').trim();
+}
+function textoCelda(f, i){ const v = f ? limpiar(f[i]) : ''; return esFecha(v) ? '' : String(v); }
+function quitarColumnasVacias(m){
+  let min = Infinity;
+  for(const f of m){ if(!f) continue; for(let j=0;j<f.length;j++){ if(limpiar(f[j]) !== ''){ if(j<min) min=j; break; } } }
+  return (min === Infinity || min === 0) ? m : m.map(f => f ? f.slice(min) : f);
+}
+const RE_SUB = /^\s*(\d)\.(\d)\s+(.+)$/;
+const RE_MAIN = /^\s*(\d)\.\s+(.+)$/;
+// Columnas que la plantilla ya trae prellenadas: no cuentan para saber si una fila tiene datos
+const PRELLENADAS = { '1.3': ['tipo'], '2.4': ['tipo de sesion'] };
 
-function parsearBX(wb){
-  const ws = wb.Sheets['BX'];
-  if(!ws) throw new Error('No se encontró una pestaña "BX"');
-  const get = (addr) => { const c = ws[addr]; return c ? c.v : null; };
-  const kpis = ['A','B','C','D','E'].map(col => ({
-    nombre: (get(col+'5')||'').toString().replace(/\n/g,' '),
-    valor: (get(col+'6')||'').toString()
-  })).filter(k => k.nombre);
-  const bullets = [8,11,14,17].map(r => get('B'+r)).filter(Boolean);
-  const mensajeClave = get('A22') || '';
-  return { fechaRevision: new Date().toISOString(), kpis, bullets, mensajeClave };
+function tipoColumna(label, esPrimera){
+  const n = WK.norm(label);
+  if(n.indexOf('monto') >= 0) return 'usd';
+  if(n.indexOf('fecha') >= 0 || n === 'inicio') return 'date';
+  if(n.indexOf('semaforo') >= 0 || n.indexOf('riesgo') >= 0 || n.indexOf('probabilidad') >= 0 || n.indexOf('estatus') >= 0) return 'badge';
+  if(esPrimera) return 'strong';
+  if(/(resultado|feedback|nota|seguimiento|accion|objetivo|senal|avance|hito|estadistica)/.test(n)) return 'note';
+  return 'text';
+}
+function valorCelda(v, tipo){
+  v = limpiar(v);
+  if(v === '') return '';
+  if(esFecha(v)) return WK.fecha(v) || '';
+  if(tipo === 'date'){ return WK.fecha(v) || String(v); }          // si no es fecha (p. ej. una nota), se conserva el texto
+  if(tipo === 'usd'){
+    if(typeof v === 'number') return v;
+    const n = Number(String(v).replace(/[$,\s]|usd/gi,''));
+    return (String(v).trim() !== '' && isFinite(n)) ? n : String(v);
+  }
+  return v;                                                         // texto o número tal cual
 }
 
-async function handleFile(file){
+function parsearBX(wb){
+  const nombre = wb.SheetNames.find(n => /dashboard|semanal|bx/i.test(n)) || wb.SheetNames[0];
+  const ws = wb.Sheets[nombre];
+  if(!ws) throw new Error('No se encontró la hoja del reporte de BX.');
+  const m = quitarColumnasVacias(XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true }));
+
+  const titulos = [];
+  m.forEach((f, i) => {
+    const t = textoCelda(f, 0); let x;
+    if((x = t.match(RE_SUB))) titulos.push({ fila:i, num:x[1]+'.'+x[2], titulo:x[3].trim(), sub:true });
+    else if((x = t.match(RE_MAIN))) titulos.push({ fila:i, num:x[1], titulo:x[2].trim(), sub:false });
+  });
+  if(!titulos.some(t => t.sub)) throw new Error('No se encontró el formato del reporte de BX (secciones 1.1, 1.2 … 3.1). Usa el Excel semanal de BX.');
+  const idxPie = m.findIndex(f => /actualizado por/i.test(textoCelda(f, 0)));
+
+  const secciones = {};
+  titulos.forEach((t, k) => {
+    if(!t.sub) return;
+    const fin = Math.min(...titulos.slice(k+1).map(x => x.fila).concat([idxPie >= 0 ? idxPie : m.length, m.length]));
+    const filas = m.slice(t.fila + 1, fin);
+    if(t.num === '3.1'){
+      const items = filas.map(f => textoCelda(f, 0)).filter(Boolean);
+      secciones[t.num] = { titulo:t.titulo, items };
+      return;
+    }
+    // encabezado = primera fila con al menos 2 celdas llenas
+    const iEnc = filas.findIndex(f => f && f.filter(c => limpiar(c) !== '').length >= 2);
+    if(iEnc < 0){ secciones[t.num] = { titulo:t.titulo, columnas:[], filas:[] }; return; }
+    const enc = filas[iEnc];
+    const idxCols = []; enc.forEach((c, j) => { if(limpiar(c) !== '') idxCols.push(j); });
+    const columnas = idxCols.map((j, c) => { const label = String(limpiar(enc[j])); return { k:'c'+c, label, tipo:tipoColumna(label, c === 0), j }; });
+    const ignorar = (PRELLENADAS[t.num] || []);
+    const datos = [];
+    filas.slice(iEnc + 1).forEach(f => {
+      if(!f) return;
+      const tieneDatos = columnas.some(c => ignorar.indexOf(WK.norm(c.label)) < 0 && limpiar(f[c.j]) !== '');
+      if(!tieneDatos) return;
+      const fila = {}; columnas.forEach(c => { fila[c.k] = valorCelda(f[c.j], c.tipo); });
+      datos.push(fila);
+    });
+    secciones[t.num] = { titulo:t.titulo, columnas:columnas.map(c => ({ k:c.k, label:c.label, tipo:c.tipo })), filas:datos };
+  });
+
+  // Pie: "Actualizado por: … · Semana del: …"
+  let actualizadoPor = '', semanaDel = '';
+  if(idxPie >= 0){
+    const pie = textoCelda(m[idxPie], 0);
+    const a = pie.match(/Actualizado por:\s*(.*?)\s*(?:·|$)/i); if(a) actualizadoPor = a[1].replace(/_+/g,'').trim();
+    const s = pie.match(/Semana del:\s*(.*)$/i); if(s){ const t = s[1].replace(/_+/g,'').trim(); semanaDel = WK.fecha(t) || (/\d/.test(t) ? t : ''); }
+  }
+  let fechaRevision = new Date().toISOString();
+  const mf = (semanaDel||'').match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if(mf) fechaRevision = new Date(2000 + (+mf[3]), (+mf[2]) - 1, +mf[1]).toISOString();
+
+  const snap = { formato:FORMATO, fechaRevision, semanaDel, actualizadoPor, hoja:nombre, secciones };
+  snap.kpis = calcularKpis(snap);
+  return snap;
+}
+
+function colKey(sec, prefijo){ const c = (sec && sec.columnas || []).find(c => WK.norm(c.label).indexOf(prefijo) === 0); return c ? c.k : null; }
+function calcularKpis(s){
+  const S = s.secciones, n = k => (S[k] && S[k].filas ? S[k].filas.length : 0);
+  const kSem = colKey(S['1.1'], 'semaforo'); let verdes = 0, amarillos = 0, rojos = 0;
+  if(kSem) S['1.1'].filas.forEach(f => { const t = WK.tono(f[kSem]); if(t === 'green') verdes++; else if(t === 'amber') amarillos++; else if(t === 'red') rojos++; });
+  const kMonto = colKey(S['2.2'], 'monto'); let montoChurn = 0;
+  if(kMonto) S['2.2'].filas.forEach(f => { if(typeof f[kMonto] === 'number') montoChurn += f[kMonto]; });
+  const kRiesgo = colKey(S['1.5'], 'riesgo'); let altas = 0;
+  if(kRiesgo) S['1.5'].filas.forEach(f => { if(WK.tono(f[kRiesgo]) === 'red') altas++; });
+  return { clientes:n('1.1'), verdes, amarillos, rojos, detectadas:n('1.2'), churn:n('2.2'), montoChurn, escalaciones:n('1.5'), altas, seguimiento:n('2.3'), reuniones:n('2.1') + n('2.4') };
+}
+
+/* ---------- Carga y guardado ---------- */
+async function handleFile(file, input){
   if(!file) return;
   const statusBox = document.getElementById('statusBox');
   statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Leyendo el archivo…</div>';
   try{
     if(typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería de Excel.');
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type:'array', cellDates:true });
-    actual = parsearBX(wb);
-    snapshotVisto = null;
-    statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando…</div>';
-    const anterior = historial.length ? historial[historial.length-1] : null;
-    await fetch('/api/wbr-bx', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
+    const wb = XLSX.read(await file.arrayBuffer(), { type:'array', cellDates:true });
+    const snap = parsearBX(wb);
+    statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando el corte de esta semana…</div>';
+    const r = await fetch('/api/wbr-bx', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: snap }) });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || !d.ok) throw new Error(d.error || ('No se pudo guardar (error ' + r.status + ')'));
     await cargarHistorial();
+    const i = historial.findIndex(h => h.guardadoEn === d.guardadoEn);
+    actual = i >= 0 ? historial[i] : historial[historial.length-1];
+    snapshotVisto = null;
     render();
+    const anterior = i > 0 ? historial[i-1] : (i < 0 && historial.length > 1 ? historial[historial.length-2] : null);
     pedirInsight(anterior);
-    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte guardado.</div>';
+    statusBox.innerHTML = '<div style="color:#2FE29B; font-size:14px;">Corte guardado correctamente.</div>';
   }catch(e){
     console.error(e);
-    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
+    statusBox.innerHTML = '<div style="color:#FF8CA2; font-size:14px;">No se pudo cargar el archivo: ' + WK.esc(e.message || String(e)) + '</div>';
   }
+  if(input) input.value = '';
 }
+
 async function cargarHistorial(){
   try{
     const r = await fetch('/api/wbr-bx');
     const d = await r.json();
-    historial = d.historial || [];
+    historial = (d.historial || []).filter(h => h && h.formato === FORMATO && h.secciones);
     if(historial.length) actual = historial[historial.length-1];
   }catch(e){ historial = []; }
 }
+
 async function pedirInsight(anterior){
-  const box = document.getElementById('insightBox');
+  const box = document.getElementById('insightText');
   if(!box) return;
-  box.innerHTML = '<div class="loading"><span class="spinner"></span>Delfos está analizando el corte…</div>';
+  box.textContent = 'Delfos está analizando el corte…';
   try{
     const r = await fetch('/api/wbr-bx-insight', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ actual, anterior }) });
     const d = await r.json();
-    box.innerHTML = d.ok
-      ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(d.resumen)}</div></div>`
-      : `<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">${esc(d.error||'No se pudo generar el insight.')}</div></div>`;
-    if(d.ok){
-      actual.insightGuardado = d.resumen;
-      fetch('/api/wbr-bx', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
-    }
-  }catch(e){
-    box.innerHTML = '<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">No se pudo conectar con Delfos.</div></div>';
-  }
+    if(!d.ok){ box.textContent = d.error || 'No se pudo generar el insight.'; return; }
+    box.textContent = d.resumen;
+    // Se guarda junto con el corte para verlo igual al revisitar la bitácora
+    actual.insightGuardado = d.resumen;
+    fetch('/api/wbr-bx', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(() => {});
+  }catch(e){ box.textContent = 'No se pudo conectar con Delfos.'; }
 }
 
-function verSnapshotHistorico(fechaRevision){
-  const encontrado = historial.find(h => h.fechaRevision === fechaRevision);
+function verSnapshotHistorico(id){
+  const encontrado = historial.find(h => h.guardadoEn === id);
   if(!encontrado) return;
-  snapshotVisto = encontrado;
-  render();
-  window.scrollTo({top:0, behavior:'smooth'});
+  snapshotVisto = encontrado; render(); window.scrollTo({ top:0, behavior:'smooth' });
+}
+function volverActual(){
+  snapshotVisto = null; render();
+  pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
 }
 
-function volverActual(){
-  snapshotVisto = null;
-  render();
-  pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
+/* ---------- Pintado ---------- */
+const NOMBRE_BLOQUE = { '1':'Ejecutado', '2':'Planeado', '3':'Estrategia' };
+const SUB_BLOQUE = { '1':'Lo que pasó esta semana', '2':'Lo que viene', '3':'Hitos internos y madurez del área' };
+const ICONO = { '1.1':'🤝', '1.2':'💡', '1.3':'🚀', '1.4':'📈', '1.5':'🚨', '2.1':'📅', '2.2':'⚠️', '2.3':'🎯', '2.4':'🗓️' };
+
+function seccionHtml(num, s){
+  const cols = s.columnas.map(c => ({ k:c.k, label: c.tipo === 'usd' ? c.label + ' (USD)' : c.label, tipo:c.tipo }));
+  // si una columna "text" trae solo números, se alinea como número
+  cols.forEach(c => { if(c.tipo === 'text' && s.filas.length && s.filas.every(f => f[c.k] === '' || typeof f[c.k] === 'number')) c.tipo = 'num'; });
+  return WK.card({ id:'s'+num.replace('.','-'), ico:ICONO[num], titulo: num + '  ' + s.titulo, count: s.filas.length, body: WK.table(cols, s.filas) });
+}
+
+/* ---------- Visualizaciones con datos del corte ---------- */
+const COL_TONO = { red:'#FF5C7A', amber:'#FFC857', green:'#2FE29B', grey:'#8B7CFF' };
+const ORDEN_TONO = ['red', 'amber', 'green', 'grey'];
+const NOM_TONO = {
+  semaforo: { red:'Rojo', amber:'Amarillo', green:'Verde', grey:'Sin semáforo' },
+  probabilidad: { red:'Alta', amber:'Media', green:'Baja', grey:'Sin dato' },
+  riesgo: { red:'Alto', amber:'Medio', green:'Bajo', grey:'Sin clasificar' }
+};
+const filasSec = sec => (sec && sec.filas) || [];
+const nombreDe = (sec, f) => String(f[sec.columnas[0].k] || '').trim();
+
+/* Agrupa las filas de una sección por el tono de una columna (semáforo / probabilidad / riesgo) */
+function grupos(sec, prefijo){
+  const kc = colKey(sec, prefijo); if(!kc) return [];
+  const kMonto = colKey(sec, 'monto'), g = {};
+  filasSec(sec).forEach(f => {
+    const t = WK.tono(f[kc]); const x = g[t] = g[t] || { tono:t, nombre:NOM_TONO[prefijo][t], n:0, monto:0, nombres:[] };
+    x.n++; if(kMonto && typeof f[kMonto] === 'number') x.monto += f[kMonto]; x.nombres.push(nombreDe(sec, f));
+  });
+  return ORDEN_TONO.filter(t => g[t]).map(t => g[t]);
+}
+function tipDe(titulo, g, conMonto){
+  return titulo + ': ' + g.nombre + '\n' + g.n + (g.n === 1 ? ' registro' : ' registros') + (conMonto && g.monto ? ' · ' + WK.usd(g.monto) + ' USD' : '') + '\n' + g.nombres.join(', ');
+}
+
+/* Ranking de monto USD en riesgo por cliente (barra coloreada por probabilidad de churn) */
+function rankingChurn(S, max){
+  const sec = S['2.2']; if(!sec || !filasSec(sec).length) return '';
+  const kM = colKey(sec, 'monto'), kP = colKey(sec, 'probabilidad'), kS = colKey(sec, 'senal'), kA = colKey(sec, 'plan');
+  if(!kM) return '';
+  const items = filasSec(sec).filter(f => typeof f[kM] === 'number' && f[kM] > 0).sort((a, b) => b[kM] - a[kM]).slice(0, max || 8).map(f => ({
+    label: nombreDe(sec, f), value: f[kM], tono: kP ? (WK.tono(f[kP]) === 'grey' ? '' : WK.tono(f[kP])) : '',
+    tip: nombreDe(sec, f) + '\n' + WK.usd(f[kM]) + ' USD en riesgo' + (kP && f[kP] ? '\nProbabilidad de churn: ' + f[kP] : '') + (kS && f[kS] ? '\nSeñal: ' + f[kS] : '') + (kA && f[kA] ? '\nPlan de acción: ' + f[kA] : '') }));
+  return items.length ? WK.ranked(items, { fmt: WK.usd }) : '';
+}
+
+function resumenConcentracion(S, K){
+  const sec = S['2.2'], kM = colKey(sec, 'monto'); if(!kM) return '';
+  const top = filasSec(sec).filter(f => typeof f[kM] === 'number' && f[kM] > 0).sort((a, b) => b[kM] - a[kM])[0];
+  if(!top || !K.montoChurn) return '';
+  return '<div style="margin-top:22px">' + WK.stats([{ valor:WK.usd(K.montoChurn), label:'USD en riesgo (total)' }, { valor:WK.pct(top[kM] / K.montoChurn), label:'concentrado en ' + nombreDe(sec, top) }, { valor:K.churn, label: K.churn === 1 ? 'cliente en riesgo' : 'clientes en riesgo' }]) + '</div>';
+}
+
+function graficasResumen(S, K, cortes, etiquetas){
+  const tarjetas = [], ancho = [];
+  const sec22 = S['2.2'], gProb = grupos(sec22, 'probabilidad'), gSem = grupos(S['1.1'], 'semaforo'), gEsc = grupos(S['1.5'], 'riesgo');
+  const rank = rankingChurn(S, 8);
+  const sinMonto = sec22 ? filasSec(sec22).filter(f => { const k = colKey(sec22, 'monto'); return !k || typeof f[k] !== 'number' || !(f[k] > 0); }).length : 0;
+  if(rank) tarjetas.push(WK.card({ ico:'💸', titulo:'Monto en riesgo por cliente', sub:'USD · el color indica la probabilidad de churn (rojo alta, amarillo media, verde baja)', count: WK.usd(K.montoChurn) + ' USD',
+    body: rank + resumenConcentracion(S, K) + (sinMonto ? '<p class="bx-nota">' + sinMonto + (sinMonto === 1 ? ' cliente en riesgo sin monto capturado.' : ' clientes en riesgo sin monto capturado.') + '</p>' : '') }));
+  if(gProb.length){
+    const usaMonto = gProb.some(g => g.monto > 0);
+    tarjetas.push(WK.card({ ico:'🎲', titulo:'Probabilidad de churn', sub: usaMonto ? 'Participación del monto en riesgo según la probabilidad capturada' : 'Clientes en riesgo según la probabilidad capturada', count: K.churn,
+      body: WK.donut(gProb.map(g => ({ label: g.nombre + ' · ' + g.n + (g.n === 1 ? ' cliente' : ' clientes'), value: usaMonto ? g.monto : g.n, color: COL_TONO[g.tono], tip: tipDe('Probabilidad', g, true) })), { centro: String(K.churn), sub: K.churn === 1 ? 'cliente' : 'clientes', tamano:'clamp(190px,17vw,280px)' }) }));
+  }
+  if(gSem.length) tarjetas.push(WK.card({ ico:'🚦', titulo:'Semáforo de clientes tocados', sub:'Estado de la relación con cada cliente atendido esta semana', count: K.clientes,
+    body: WK.donut(gSem.map(g => ({ label: g.nombre + ' · ' + g.n + (g.n === 1 ? ' cliente' : ' clientes'), value: g.n, color: COL_TONO[g.tono], tip: tipDe('Semáforo', g, false) })), { centro: String(K.clientes), sub:'clientes', tamano:'clamp(190px,17vw,280px)' }) }));
+  if(gEsc.length) tarjetas.push(WK.card({ ico:'🚨', titulo:'Escalaciones por nivel de riesgo', sub:'Temas abiertos con otras áreas', count: K.escalaciones,
+    body: WK.donut(gEsc.map(g => ({ label: g.nombre + ' · ' + g.n + (g.n === 1 ? ' tema' : ' temas'), value: g.n, color: COL_TONO[g.tono], tip: tipDe('Riesgo', g, false) })), { centro: String(K.escalaciones), sub: K.escalaciones === 1 ? 'tema' : 'temas', tamano:'clamp(190px,17vw,280px)' }) }));
+
+  // tendencia semanal: solo con 2 o más cortes
+  const ks = cortes.map(h => h.kpis || calcularKpis(h));
+  if(ks.length >= 2){
+    const bt = (t, clave, color, fmt) => { const v = ks.map(k => k[clave]); const a = WK.area(v, { labels:etiquetas, color, fmt, nombre:t }); return a ? '<div><h4><span>' + t + '</span><b>' + fmt(v[v.length-1]) + '</b></h4>' + a + '</div>' : ''; };
+    tarjetas.push(WK.card({ ico:'📈', titulo:'Tendencia semanal', sub:'Últimos ' + ks.length + ' cortes · pasa el cursor sobre un punto',
+      body:'<div class="bx-trend">' + bt('Clientes tocados', 'clientes', '#2FE29B', WK.num) + bt('Riesgos de churn', 'churn', '#FF5C7A', WK.num) + bt('USD en riesgo', 'montoChurn', '#FFC857', WK.usd) + bt('Escalaciones', 'escalaciones', '#8B7CFF', WK.num) + '</div>' }));
+  }
+
+  let html = tarjetas.length ? WK.band('analisis', 'Panorama', 'Lo importante del corte de un vistazo · pasa el cursor sobre las gráficas') + '<div class="bx-grid">' + tarjetas.join('') + '</div>' : '';
+
+  // simulador what-if: solo si hay montos de churn capturados
+  let simulador = false;
+  if(K.montoChurn > 0){
+    simulador = true; const M = K.montoChurn, N = K.churn;
+    html += WK.card({ id:'simulador', ico:'🧪', titulo:'Simulador: ¿y si retenemos…?', sub:'Mueve el control y mira cuánto de los ' + WK.usd(M) + ' USD en riesgo de churn quedaría protegido. Es una simulación, no se guarda.',
+      body: WK.whatif({ id:'bxchurn', sliders:[ { k:'ret', label:'% del monto en riesgo que logramos retener', min:0, max:100, step:5, val:50, fmt:x => x + '%' } ],
+        calc: vals => { const prot = M * vals.ret / 100, queda = M - prot, p = vals.ret / 100;
+          return { gauge:{ valor:prot, max:M, tono: p >= 0.7 ? 'green' : (p >= 0.4 ? 'amber' : 'red'), texto:WK.pct(p), label:'del monto protegido', tip:'Monto protegido\n' + WK.usd(prot) + ' USD de ' + WK.usd(M) + ' USD' },
+            stats:[ { valor:WK.usd(prot), label:'USD protegidos' }, { valor:WK.usd(queda), label:'USD aún en riesgo' }, { valor:N, label: N === 1 ? 'cliente en riesgo' : 'clientes en riesgo' } ],
+            nota: queda > 0 ? 'Reteniendo ' + vals.ret + '% quedarían ' + WK.usd(queda) + ' USD en riesgo.' : 'Con retención total se protegen los ' + WK.usd(M) + ' USD.' }; } }) });
+  }
+  return { html, simulador };
 }
 
 function render(){
@@ -264,57 +482,85 @@ function render(){
   mostrando = snapshotVisto || actual;
   if(!mostrando){
     badge.innerHTML = '';
-    content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con la pestaña "BX") para generar el primer dashboard.</p></div></div>`;
+    content.innerHTML = '<div class="wk-card">' + WK.empty('Todavía no hay ningún corte cargado. Sube el Excel semanal de BX (hoja “BX Dashboard Semanal”) para generar el primer dashboard.') + '</div>';
     return;
   }
-  badge.innerHTML = `<span class="fecha-revision">Última carga: ${new Date(mostrando.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
+  const S = mostrando.secciones, K = mostrando.kpis || calcularKpis(mostrando);
+  const semana = mostrando.semanaDel || WK.fecha(mostrando.fechaRevision);
+  badge.innerHTML = '<span class="fecha-revision">Semana: ' + WK.esc(semana || '—') + (mostrando.actualizadoPor ? ' · Actualizó: ' + WK.esc(mostrando.actualizadoPor) : '') + '</span>';
 
-  const bannerHistorico = snapshotVisto ? `
-    <div class="section" style="background:#FBF1DE; border:1px solid #E9D9AE; display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
-      <span style="font-size:13px; color:#8A6414;">📅 Estás viendo el corte del <b>${new Date(snapshotVisto.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</b> — no es el más reciente.</span>
-      <button class="btn btn-primary" style="background:#8A6414; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; cursor:pointer;" onclick="volverActual()">Volver al corte más reciente</button>
-    </div>
-  ` : '';
+  const idx = historial.findIndex(h => h.guardadoEn === mostrando.guardadoEn);
+  const previo = idx > 0 ? historial[idx-1] : null, PK = previo ? (previo.kpis || calcularKpis(previo)) : null;
 
-  content.innerHTML = `
-    ${bannerHistorico}
-    <div class="kpi-grid">
-      ${mostrando.kpis.map(k=>`<div class="kpi-card"><div class="label">${esc(k.nombre)}</div><div class="value">${esc(k.valor.split(':')[1]||k.valor)}</div><div class="meta">${esc(k.valor.split(':')[0]||'')}</div></div>`).join('')}
-    </div>
+  const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte de la semana <b>' + WK.esc(semana || '—') + '</b> (' + WK.esc(etiquetaCarga(snapshotVisto)) + ') — no es el más reciente.</span><button class="wk-btn" onclick="volverActual()">Volver al más reciente</button></div>' : '';
 
-    <div class="section">
-      <h2>🤖 Insight de Delfos</h2>
-      ${snapshotVisto
-        ? (mostrando.insightGuardado
-            ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(mostrando.insightGuardado)}</div></div>`
-            : `<div class="insight-box"><div class="insight-icon">🗂️</div><div class="insight-text">Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible.</div></div>`)
-        : `<div id="insightBox"><div class="loading">Generando…</div></div>`}
-    </div>
+  const sub1 = [K.verdes ? K.verdes + ' en verde' : '', K.amarillos ? K.amarillos + ' en amarillo' : '', K.rojos ? K.rojos + ' en rojo' : ''].filter(Boolean).join(' · ');
+  const semTotal = K.verdes + K.amarillos + K.rojos;
+  const tonoSem = !K.clientes ? 'cyan' : (K.rojos ? 'red' : ((semTotal && K.verdes / semTotal >= 0.75) ? 'green' : (K.amarillos ? 'amber' : 'green')));
+  const plural = (n, s, p) => n + ' ' + (n === 1 ? s : p);
+  const montoPrev = PK ? PK.montoChurn : null;
+  const cortesVis = historial.slice(Math.max(0, (idx < 0 ? historial.length : idx + 1) - 8), idx < 0 ? historial.length : idx + 1);
+  const histLbl = cortesVis.map(h => (h.semanaDel || WK.fecha(h.fechaRevision) || '').slice(0, 5));
+  const gEsc = grupos(S['1.5'], 'riesgo');
 
-    <div class="section">
-      <h2>Detalle de la semana</h2>
-      ${mostrando.bullets.map(b=>`<div class="bullet"><span class="dot">●</span><span>${esc(b)}</span></div>`).join('')}
-    </div>
+  const kpis = WK.heroGrid([
+    WK.hero({ label:'Clientes tocados', ir:'s1-1', ico:'🤝', value:K.clientes, tono:tonoSem, sub:sub1 || 'Sin interacciones registradas',
+      delta: PK ? WK.delta(K.clientes, PK.clientes, { bueno:'up' }) : '',
+      chart: semTotal ? WK.gauge({ valor:K.verdes, max:semTotal, tono:tonoSem, texto:K.verdes + ' de ' + semTotal, label:'clientes en verde', dark:true,
+        tip:'Semáforo de clientes tocados\n' + K.verdes + ' verde · ' + K.amarillos + ' amarillo · ' + K.rojos + ' rojo' }) : '' }),
+    WK.hero({ label:'Riesgos de churn', ir:'s2-2', ico:'⚠️', value: K.montoChurn ? WK.usd(K.montoChurn) : K.churn, tono: K.churn ? 'red' : 'green',
+      sub: K.churn ? 'USD · ' + plural(K.churn, 'cliente en riesgo', 'clientes en riesgo') + (K.montoChurn ? '' : ' · monto sin capturar') : 'Sin riesgos reportados',
+      delta: (PK && K.montoChurn && montoPrev != null) ? WK.delta(K.montoChurn, montoPrev, { bueno:'down', fmt:x => WK.usd(x) }) : (PK ? WK.delta(K.churn, PK.churn, { bueno:'down' }) : ''),
+      chart: rankingChurn(S, 3) }),
+    WK.hero({ label:'Escalaciones', ir:'s1-5', ico:'🚨', value:K.escalaciones, tono: K.altas ? 'red' : (K.escalaciones ? 'amber' : 'green'),
+      sub: K.altas ? K.altas + ' de riesgo alto' : (K.escalaciones ? 'Ninguna de riesgo alto' : 'Sin escalaciones'),
+      delta: PK ? WK.delta(K.escalaciones, PK.escalaciones, { bueno:'down' }) : '',
+      chart: K.escalaciones ? WK.gauge({ valor:K.altas, max:K.escalaciones, tono: K.altas ? 'red' : 'amber', texto:K.altas + ' de ' + K.escalaciones, label:'de riesgo alto', dark:true,
+        tip:'Escalaciones por nivel de riesgo\n' + (gEsc.map(g => g.nombre + ': ' + g.n).join(' · ') || 'Sin clasificar') }) : '' }),
+    WK.hero({ label:'Oportunidades en seguimiento', ir:'s2-3', ico:'🎯', value:K.seguimiento, tono:'cyan',
+      sub: K.detectadas ? K.detectadas + ' detectadas esta semana' : 'Con responsable comercial',
+      delta: PK ? WK.delta(K.seguimiento, PK.seguimiento, { bueno:'up' }) : '',
+      chart: WK.area(cortesVis.map(h => (h.kpis || calcularKpis(h)).seguimiento), { labels:histLbl, color:'#3DD6FF', nombre:'En seguimiento' }) ||
+        WK.stats([{ valor:K.reuniones, label:'Reuniones programadas' }, { valor:K.detectadas, label:'Oportunidades detectadas' }]) })
+  ]);
 
-    ${mostrando.mensajeClave ? `
-    <div class="section">
-      <h2>Mensaje clave / Prioridad de la semana</h2>
-      <div class="mensaje-clave">${esc(mostrando.mensajeClave)}</div>
-    </div>` : ''}
+  const analisis = graficasResumen(S, K, cortesVis, histLbl);
 
-    <div class="section">
-      <h2>📅 Bitácora de cortes</h2>
-      <p class="sub">Haz clic en un corte para verlo completo tal como se veía entonces.</p>
-      <table>
-        <tr><th>Fecha de carga</th><th>Mensaje clave de esa semana</th></tr>
-        ${historial.slice().reverse().map(h => {
-          const esEsta = mostrando.fechaRevision === h.fechaRevision;
-          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.fechaRevision}')" title="Ver este corte completo"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td>${esc((h.mensajeClave||'').slice(0,100))}</td></tr>`;
-        }).join('')}
-      </table>
-    </div>
-  `;
+  const insight = snapshotVisto
+    ? (mostrando.insightGuardado ? WK.esc(mostrando.insightGuardado) : 'Este corte se guardó sin insight de Delfos.')
+    : 'Generando…';
+
+  const hechas = [], vacias = [];
+  const bloque = (n, claves) => {
+    const cards = claves.filter(k => S[k] && S[k].filas && S[k].filas.length).map(k => seccionHtml(k, S[k]));
+    claves.forEach(k => { if(S[k] && !(S[k].filas && S[k].filas.length)) vacias.push(k); });
+    return { n:cards.length, html: WK.band('b' + n, n + '. ' + NOMBRE_BLOQUE[n], SUB_BLOQUE[n]) + (cards.join('') || '<div class="wk-card">' + WK.empty('Sin datos esta semana.') + '</div>') };
+  };
+  const b1 = bloque('1', ['1.1','1.2','1.3','1.4','1.5']);
+  const b2 = bloque('2', ['2.1','2.2','2.3','2.4']);
+  const items = (S['3.1'] && S['3.1'].items) || [];
+  const b3html = WK.band('b3', '3. ' + NOMBRE_BLOQUE['3'], SUB_BLOQUE['3']) +
+    WK.card({ id:'s3-1', ico:'🧭', titulo:'3.1  ' + ((S['3.1'] && S['3.1'].titulo) || 'Capacitación, documentación e iniciativas internas'), count: items.length,
+      body: items.length ? '<div style="display:grid;gap:12px">' + items.map(t => '<div class="bx-item"><span class="ic">🎯</span><span class="tx">' + WK.esc(t) + '</span></div>').join('') + '</div>' : WK.empty('Sin datos esta semana.') });
+
+  const bitacora = WK.card({ id:'bitacora', ico:'📅', titulo:'Bitácora de cortes', sub:'Haz clic en un corte para verlo completo tal como se veía entonces. Puedes ordenar por cualquier columna.', count: historial.length,
+    body: WK.table([
+      { k:'semana', label:'Semana', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' },
+      { k:'clientes', label:'Clientes', tipo:'num' }, { k:'churn', label:'Churn', tipo:'num' }, { k:'esc', label:'Escalaciones', tipo:'num' }
+    ], historial.slice().reverse().map(h => { const k = h.kpis || calcularKpis(h); return { semana: h.semanaDel || WK.fecha(h.fechaRevision), cargo: h.guardadoPor || '—', cuando: (WK.hora(h.guardadoEn)).split(' ')[0], clientes:k.clientes, churn:k.churn, esc:k.escalaciones, _id:h.guardadoEn }; }),
+      { rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver este corte completo"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') }) });
+
+  const omitidas = vacias.length ? '<div class="wk-foot">Secciones sin datos esta semana (omitidas): ' + vacias.join(', ') + '. Montos en USD · Fechas en DD/MM/AA.</div>' : '<div class="wk-foot">Montos en USD · Fechas en DD/MM/AA.</div>';
+
+  content.innerHTML = banner +
+    WK.chips([{ id:'resumen', label:'Resumen' }].concat(analisis.simulador ? [{ id:'simulador', label:'Simulador' }] : []).concat([{ id:'b1', label:'1. Ejecutado', n:b1.n }, { id:'b2', label:'2. Planeado', n:b2.n }, { id:'b3', label:'3. Estrategia', n:items.length }, { id:'bitacora', label:'Bitácora', n:historial.length }])) +
+    '<div id="resumen" style="scroll-margin-top:70px">' + kpis + WK.callout('Lectura ejecutiva', insight, 'insightText') + '</div>' +
+    analisis.html +
+    b1.html + b2.html + b3html + '<div style="height:18px"></div>' + bitacora + omitidas;
+  WK.sortable(content);
+  WK.observarSecciones();
 }
+function etiquetaCarga(h){ return 'cargado por ' + (h.guardadoPor || 'desconocido') + ' el ' + WK.hora(h.guardadoEn); }
 
 async function init(){
   await cargarHistorial();
@@ -356,5 +602,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="/asistente.js?v=1" defer></script>
 </body>
 </html>

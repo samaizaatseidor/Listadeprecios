@@ -33,6 +33,23 @@
   .btn-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
   .btn-danger{background:#fff; color:#B23A3A; border:1px solid #E8C7C7;}
 
+
+  .rev-banner{display:none; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 16px; background:#FFF6E0; border-bottom:1px solid #F0DDA8; font-size:13px; color:#6B4E08;}
+  .rev-banner.show{display:flex;}
+  .rev-banner b{color:#4A3505;}
+  .rev-banner .sp{flex:1;}
+  .rev-card{padding:6px 2px;}
+  .rev-prog{font-size:12px; color:var(--grey); margin-bottom:10px;}
+  .rev-bar{height:4px; background:#E4ECF6; border-radius:4px; margin-bottom:14px; overflow:hidden;}
+  .rev-bar i{display:block; height:100%; background:var(--blue); transition:width .25s;}
+  .rev-card h3{margin:0 0 6px; font-size:17px; color:var(--navy2);}
+  .rev-meta{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;}
+  .rev-box{background:#F3F8FD; border-radius:10px; padding:10px 12px; font-size:13px; color:var(--ink); margin-bottom:12px; line-height:1.45;}
+  .rev-box small{display:block; color:var(--grey); font-size:11px; margin-bottom:3px;}
+  .rev-card textarea{width:100%; min-height:84px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:14px; color:var(--ink); resize:vertical; box-sizing:border-box;}
+  .rev-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+  .rev-actions .sp{flex:1;}
+
   .board{display:flex; gap:14px; padding:16px; overflow-x:auto;}
   .col{background:#EDF3FA; border-radius:12px; min-width:270px; max-width:290px; flex-shrink:0; padding:10px; max-height:calc(100vh - 190px); overflow-y:auto;}
   .col h2{font-size:12px; color:var(--grey); margin:2px 4px 10px; display:flex; justify-content:space-between; font-weight:600;}
@@ -88,6 +105,8 @@
   .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:20; align-items:flex-end; justify-content:center;}
   .overlay.open{display:flex;}
   .sheet{background:#fff; width:100%; max-width:520px; border-radius:16px 16px 0 0; padding:20px; max-height:90vh; overflow-y:auto;}
+  .sheet.wide{max-width:760px;}
+  @media (min-width:700px){ .overlay{align-items:center;} .sheet{border-radius:16px; max-height:88vh; box-shadow:0 24px 70px rgba(10,18,38,.35);} }
   .sheet label{display:block; font-size:11.5px; color:var(--grey); margin:14px 0 5px; font-weight:500;}
   .sheet label:first-of-type{margin-top:4px;}
   .sheet input[type=text], .sheet input[type=url], .sheet select, .sheet textarea{
@@ -107,7 +126,7 @@
   .loading{color:#fff; padding:40px; text-align:center;}
 
   .topnav{background:#fff; border-bottom:1px solid var(--line);}
-  .topnav-wrap{max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
   .topnav-logo img{height:26px; display:block;}
     .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
   .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
@@ -126,14 +145,71 @@
   .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
   .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    window.ES_ADMIN = !!d.esAdmin;
+    function _desbloquearCamposAdmin(){
+      document.querySelectorAll('.admin-only-edit').forEach(function(el){
+        if(d.esAdmin){
+          el.removeAttribute('readonly');
+          var hint = el.parentElement.querySelector('.admin-lock-hint');
+          if(hint) hint.style.display = 'none';
+        }
+      });
+    }
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', _desbloquearCamposAdmin);
+    }else{
+      _desbloquearCamposAdmin();
+    }
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      window.SOLO_LECTURA = true;
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){ /* si falla el chequeo, no bloqueamos: evita dejar a todos fuera si el endpoint falla */ }
+})();
+</script>
 
 <nav class="topnav">
   <div class="topnav-wrap">
     <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
     <div class="topnav-links">
       <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
+        </div>
+      </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Comercial <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
@@ -143,6 +219,10 @@
           <a href="/prospecto.html">Investigación de Prospecto</a>
           <a href="/alta.html">Generador de Formato de Alta</a>
           <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -155,11 +235,14 @@
           <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
         </div>
       </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
           <a href="/dias-habiles.html">Días Hábiles México</a>
           <a href="/minutas.html">Generador de Minutas / Status</a>
           <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
@@ -171,9 +254,23 @@
         </div>
       </div>
       <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
         </div>
       </div>
     </div>
@@ -193,10 +290,23 @@
   </select>
   <button class="btn btn-primary" onclick="openSheet(null)">+ Nuevo</button>
   <button class="btn btn-ghost" onclick="loadFromServer()">↻ Actualizar</button>
+  <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()" title="Carga masiva desde la plantilla CRMPresalesMX_Carga_Inicial.xlsx">⬆ Importar Excel</button>
+  <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" onchange="importExcel(this)">
   <button class="btn btn-danger" onclick="clearAll()">Borrar todo</button>
 </div>
 
+<div class="rev-banner" id="revBanner">
+  <span id="revBannerTxt"></span>
+  <span class="sp"></span>
+  <button class="btn btn-primary" onclick="openReview()">Repasar ahora</button>
+  <button class="btn btn-ghost" onclick="hideBannerToday()">Hoy no</button>
+</div>
+
 <div class="board" id="board"><div class="loading" style="color:var(--grey)">Cargando…</div></div>
+
+<div class="overlay" id="revOverlay" onclick="if(event.target===this) closeReview()">
+  <div class="sheet" id="revSheet"></div>
+</div>
 
 <div class="overlay" id="overlay" onclick="if(event.target===this) closeSheet()">
   <div class="sheet" id="sheet"></div>
@@ -214,7 +324,7 @@ const STAGES = [
 ];
 const GONOGO = ['Go', 'No-Go'];
 const HANDOVER_OPTS = ['Sí', 'No'];
-const ASIGNADOS = ['Gustavo Najar', 'Rocío Anaya', 'Samuel Aiza'];
+const ASIGNADOS = ['Gustavo Najar', 'Rocío Anaya', 'Verónica Pang', 'Samuel Aiza'];
 const PRODUCTS = ['S/4HANA', 'SuccessFactors', 'BTP', 'Analytics Cloud', 'Ariba', 'Otro'];
 const MODALIDADES = ['Public', 'Private', 'OnPremise', 'N/A'];
 const CONTRATACIONES = ['Solo servicios', 'Servicios + Suscripción'];
@@ -469,7 +579,7 @@ function applyGoNoGo(value){
   if(value === 'No-Go') stageSelect.value = 'no_go';
 }
 
-function closeSheet(){ document.getElementById('overlay').classList.remove('open'); currentId = null; }
+function closeSheet(){ document.getElementById('overlay').classList.remove('open'); document.getElementById('sheet').classList.remove('wide'); currentId = null; }
 
 function buildActivityDiff(existing, newVals){
   if(!existing) return [{ at: new Date().toISOString(), by: currentUser, note: 'Creó la tarjeta' }];
@@ -528,9 +638,11 @@ async function saveCard(){
     modulos: document.getElementById('f-modulos').value.trim(),
     sharepoint: document.getElementById('f-sharepoint').value.trim(),
     next: document.getElementById('f-next').value.trim(),
+    nextAt: undefined,
     notes: document.getElementById('f-notes').value.trim(),
     ficha: existing ? existing.ficha : undefined
   };
+  data.nextAt = (existing && existing.next === data.next && existing.nextAt) ? existing.nextAt : (data.next ? new Date().toISOString() : (existing ? existing.nextAt : undefined));
   const newActivity = buildActivityDiff(existing, data);
   newActivity.forEach(a => logAudit(existing ? 'Editó tarjeta' : 'Creó tarjeta', `${client} — ${a.note}`));
   data.activityLog = (existing && existing.activityLog ? existing.activityLog.slice() : []).concat(newActivity);
@@ -633,14 +745,305 @@ function viewFicha(id){
     <p class="sheet-title">Ficha de ${esc(p.client)}</p>
     ${body}
   `;
+  document.getElementById('sheet').classList.add('wide');
   document.getElementById('overlay').classList.add('open');
+}
+
+/* ---------- Importar Excel (carga masiva) ---------- */
+const IMPORT_HEADERS = {
+  'cliente / proyecto':'client', 'descripcion':'desc', 'etapa':'stage', 'riesgo':'risk',
+  'go / no-go':'goNoGo', 'asignado a preventa':'asignadoA', 'handover formal':'handoverFormal',
+  'producto(s)':'products', 'modalidad':'modalidad', 'contratacion':'contratacion',
+  'tipo de compromiso':'tipoCompromiso', 'valor estimado':'valor', 'modulos / alcance':'modulos',
+  'liga a sharepoint':'sharepoint', 'proximo paso':'next', 'notas':'notes',
+  'fecha entrada a etapa actual':'fecha'
+};
+function impNorm(s){
+  return String(s==null?'':s).replace(/\s*\*\s*$/,'').trim().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
+}
+function impPick(raw, options){ // devuelve el valor canónico de options o null
+  const k = impNorm(raw);
+  if(!k) return '';
+  const hit = options.find(o => impNorm(o) === k);
+  return hit === undefined ? null : hit;
+}
+function impDateISO(v){
+  if(v==null || v==='') return null;
+  let y,m,d;
+  if(typeof v === 'number'){
+    const p = XLSX.SSF.parse_date_code(v); if(!p) return null;
+    y=p.y; m=p.m; d=p.d;
+  }else{
+    const mt = String(v).trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(!mt) return null;
+    y=+mt[1]; m=+mt[2]; d=+mt[3];
+  }
+  return new Date(Date.UTC(y, m-1, d, 12)).toISOString();
+}
+function parseImportRows(aoa, existingNames){
+  const warnings = [];
+  let hIdx = aoa.findIndex(r => (r||[]).some(c => impNorm(c) === 'cliente / proyecto'));
+  if(hIdx === -1) throw new Error('No encontré la columna "Cliente / Proyecto". Usa la plantilla CRMPresalesMX_Carga_Inicial.xlsx (hoja "Carga").');
+  const colOf = {};
+  aoa[hIdx].forEach((h,i)=>{ const key = IMPORT_HEADERS[impNorm(h)]; if(key && !(key in colOf)) colOf[key] = i; });
+  const stageByNorm = {};
+  STAGES.forEach(s=>{ stageByNorm[impNorm(s.label)] = s.id; stageByNorm[impNorm(s.id)] = s.id; });
+  const seen = new Set(existingNames);
+  const out = []; let skippedEmpty = 0, skippedExample = 0, skippedDup = 0;
+  const now = new Date().toISOString();
+  const stamp = Date.now().toString(36);
+
+  for(let i = hIdx+1; i < aoa.length; i++){
+    const row = aoa[i] || [];
+    const g = key => (key in colOf && row[colOf[key]] != null) ? row[colOf[key]] : '';
+    const gs = key => String(g(key)).trim();
+    const xl = i+1; // número de fila en Excel
+    const client = gs('client');
+    if(!client){ if(row.some(c=>String(c==null?'':c).trim()!=='')) skippedEmpty++; continue; }
+    if(/^cliente ejemplo/i.test(client) || /fila de ejemplo/i.test(gs('notes'))){ skippedExample++; continue; }
+    const nk = impNorm(client);
+    if(seen.has(nk)){ skippedDup++; continue; }
+    seen.add(nk);
+
+    const warn = msg => warnings.push(`Fila ${xl} (${client}): ${msg}`);
+    const pickOr = (key, options, label) => {
+      const v = impPick(g(key), options);
+      if(v === null){ warn(`${label} "${gs(key)}" no es válido, se dejó vacío`); return ''; }
+      return v;
+    };
+    let goNoGo = pickOr('goNoGo', GONOGO, 'Go/No-Go');
+    let stage = '';
+    if(gs('stage')){
+      stage = stageByNorm[impNorm(g('stage'))] || '';
+      if(!stage) warn(`Etapa "${gs('stage')}" no es válida, se cargó como Prospección`);
+    }else if(goNoGo === 'No-Go') stage = 'no_go';
+    else if(goNoGo === 'Go') stage = 'asignada_preventa';
+    if(!stage) stage = 'prospeccion';
+
+    let handoverFormal = pickOr('handoverFormal', HANDOVER_OPTS, 'Handover');
+    if(handoverFormal && stage !== 'implementacion'){ warn('Handover solo aplica en Implementación, se dejó vacío'); handoverFormal = ''; }
+
+    const products = [];
+    gs('products').split(/[,;\n]/).map(x=>x.trim()).filter(Boolean).forEach(x=>{
+      const v = impPick(x, PRODUCTS);
+      if(v === null){ warn(`Producto "${x}" no está en el catálogo, se cargó como Otro`); if(!products.includes('Otro')) products.push('Otro'); }
+      else if(v && !products.includes(v)) products.push(v);
+    });
+
+    const fechaRaw = g('fecha');
+    let at = impDateISO(fechaRaw);
+    if(fechaRaw !== '' && !at) warn('Fecha de entrada a etapa no reconocida, se usó la fecha de carga');
+    at = at || now;
+
+    out.push({
+      id: client.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '-' + stamp + '-' + out.length,
+      client,
+      desc: gs('desc'),
+      stage,
+      risk: pickOr('risk', ['Bajo','Medio','Alto'], 'Riesgo'),
+      goNoGo,
+      asignadoA: pickOr('asignadoA', ASIGNADOS, 'Asignado a'),
+      handoverFormal,
+      stageHistory: [{ stage, at }],
+      products,
+      modalidad: pickOr('modalidad', MODALIDADES, 'Modalidad'),
+      contratacion: pickOr('contratacion', CONTRATACIONES, 'Contratación'),
+      tipoCompromiso: pickOr('tipoCompromiso', COMPROMISOS, 'Tipo de compromiso'),
+      valor: gs('valor'),
+      modulos: gs('modulos'),
+      sharepoint: gs('sharepoint'),
+      next: gs('next'),
+      notes: gs('notes'),
+      activityLog: [{ at: now, by: currentUser, note: 'Creó la tarjeta (importación Excel)' }]
+    });
+  }
+  return { projects: out, warnings, skippedEmpty, skippedExample, skippedDup };
+}
+
+async function importExcel(input){
+  const file = input.files && input.files[0];
+  input.value = '';
+  if(!file) return;
+  try{
+    if(!/\.(xlsx|xls)$/i.test(file.name)) throw new Error('El archivo debe ser .xlsx o .xls.');
+    if(typeof XLSX === 'undefined') throw new Error('No se pudo cargar la librería de Excel. Revisa tu conexión y recarga la página.');
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    const sheetName = wb.SheetNames.find(n => impNorm(n) === 'carga') || wb.SheetNames[0];
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {header:1, defval:'', raw:true});
+
+    // Traer lo más reciente del servidor para no pisar cambios de otros
+    const r = await fetch('/api/projects');
+    const data = await r.json();
+    projects = data.projects || [];
+    lastSync = data;
+
+    const res = parseImportRows(aoa, projects.map(p => impNorm(p.client)));
+    if(!res.projects.length){
+      alert('No hay proyectos nuevos para importar.' +
+        (res.skippedDup ? `\n${res.skippedDup} ya existen en el tablero (mismo nombre).` : '') +
+        (res.skippedExample ? '\nSe omitió la fila de ejemplo.' : ''));
+      return;
+    }
+    const byStage = STAGES.map(s => [s.label, res.projects.filter(p=>p.stage===s.id).length]).filter(x=>x[1]);
+    let msg = `Se importarán ${res.projects.length} proyectos nuevos al tablero (hoja "${sheetName}"):\n` +
+      byStage.map(([l,n]) => `  • ${l}: ${n}`).join('\n') +
+      `\n\nYa existen y se omiten: ${res.skippedDup}` +
+      (res.skippedExample ? `\nFila de ejemplo omitida: ${res.skippedExample}` : '') +
+      (res.skippedEmpty ? `\nFilas sin Cliente / Proyecto omitidas: ${res.skippedEmpty}` : '') +
+      `\nLos proyectos actuales no se modifican.`;
+    if(res.warnings.length){
+      msg += `\n\nAvisos (${res.warnings.length}):\n` + res.warnings.slice(0,8).map(w=>'  - '+w).join('\n') +
+        (res.warnings.length>8 ? `\n  … y ${res.warnings.length-8} más` : '');
+    }
+    msg += '\n\n¿Continuar?';
+    if(!confirm(msg)) return;
+
+    projects = projects.concat(res.projects);
+    await logAudit('Importó Excel', `${res.projects.length} proyectos nuevos desde ${file.name}`);
+    await saveToServer();
+    render();
+    alert(`Listo: ${res.projects.length} proyectos importados.`);
+  }catch(e){
+    console.error(e);
+    alert('No se pudo importar: ' + (e.message || e));
+  }
+}
+
+
+// ---------- Repaso de próximos pasos ----------
+const SE_EMAILS = {
+  'gustavo.najar@seidor.com':'Gustavo Najar', 'rocio.anaya@seidor.com':'Rocío Anaya',
+  'veronica.pang@seidor.com':'Verónica Pang', 'samuel.aiza@seidor.com':'Samuel Aiza'
+};
+const REVIEW_DIAS = 7;                       // días sin tocar el próximo paso para considerarlo desactualizado
+const REVIEW_EXCLUIR = ['no_go', 'pausado'];  // etapas que no se repasan
+let reviewQueue = [];
+let reviewPos = 0;
+let reviewFor = '';
+
+function reviewOwner(){
+  const qs = new URLSearchParams(location.search);
+  const forced = qs.get('asignado');
+  if(forced && ASIGNADOS.includes(forced)) return forced;
+  return SE_EMAILS[(currentUser || '').toLowerCase()] || '';
+}
+function nextIsStale(p){
+  if(REVIEW_EXCLUIR.includes(p.stage)) return false;
+  if(!p.nextAt) return true;
+  return (Date.now() - new Date(p.nextAt).getTime()) > REVIEW_DIAS*24*3600*1000;
+}
+function staleFor(owner){
+  return projects.filter(p => p.asignadoA === owner && nextIsStale(p));
+}
+function todayKey(){ return 'revHide-' + new Date().toISOString().slice(0,10); }
+function updateReviewBanner(){
+  const banner = document.getElementById('revBanner');
+  const owner = reviewOwner();
+  if(!owner){ banner.classList.remove('show'); return; }
+  let hidden = false;
+  try{ hidden = localStorage.getItem(todayKey()) === '1'; }catch(e){}
+  const n = staleFor(owner).length;
+  if(!n || (hidden && !new URLSearchParams(location.search).has('revisar'))){ banner.classList.remove('show'); return; }
+  document.getElementById('revBannerTxt').innerHTML = `Tienes <b>${n}</b> oportunidad${n===1?'':'es'} sin actualizar el próximo paso (más de ${REVIEW_DIAS} días).`;
+  banner.classList.add('show');
+}
+function hideBannerToday(){
+  try{ localStorage.setItem(todayKey(), '1'); }catch(e){}
+  document.getElementById('revBanner').classList.remove('show');
+}
+function openReview(){
+  reviewFor = reviewOwner();
+  reviewQueue = staleFor(reviewFor).map(p => p.id);
+  reviewPos = 0;
+  if(!reviewQueue.length){ alert('Todo al día: no tienes próximos pasos pendientes de actualizar.'); return; }
+  renderReview();
+  document.getElementById('revOverlay').classList.add('open');
+}
+function closeReview(){
+  document.getElementById('revOverlay').classList.remove('open');
+  updateReviewBanner();
+  render();
+}
+function daysAgo(iso){
+  if(!iso) return 'nunca actualizado';
+  const d = Math.floor((Date.now() - new Date(iso).getTime())/86400000);
+  return d <= 0 ? 'hoy' : `hace ${d} día${d===1?'':'s'}`;
+}
+function renderReview(){
+  const sheet = document.getElementById('revSheet');
+  if(reviewPos >= reviewQueue.length){
+    sheet.innerHTML = `<div class="rev-card"><h3>Listo ✅</h3><p style="color:var(--grey);font-size:13px">Repasaste ${reviewQueue.length} oportunidad${reviewQueue.length===1?'':'es'}.</p>
+      <div class="rev-actions"><span class="sp"></span><button class="btn btn-primary" onclick="closeReview()">Cerrar</button></div></div>`;
+    return;
+  }
+  const p = projects.find(x => x.id === reviewQueue[reviewPos]);
+  if(!p){ reviewPos++; renderReview(); return; }
+  const stage = (STAGES.find(s => s.id === p.stage) || {}).label || p.stage;
+  const pct = Math.round(reviewPos / reviewQueue.length * 100);
+  const chips = [`<span class="chip">${esc(stage)}</span>`]
+    .concat(p.valor ? [`<span class="chip">💰 ${esc(p.valor)}</span>`] : [])
+    .concat(p.risk ? [`<span class="chip">Riesgo ${esc(p.risk)}</span>`] : []).join('');
+  sheet.innerHTML = `<div class="rev-card">
+    <div class="rev-prog">${reviewPos+1} de ${reviewQueue.length} · ${esc(reviewFor)}</div>
+    <div class="rev-bar"><i style="width:${pct}%"></i></div>
+    <h3>${esc(p.client)}</h3>
+    <div class="rev-meta">${chips}</div>
+    <div class="rev-box"><small>Próximo paso actual · ${daysAgo(p.nextAt)}</small>${p.next ? esc(p.next) : '<i>Sin definir</i>'}</div>
+    <label style="font-size:12px;color:var(--grey)">¿Cuál es el próximo paso?</label>
+    <textarea id="rev-next" placeholder="Ej. Enviar propuesta económica — 30 oct">${esc(p.next || '')}</textarea>
+    <div class="rev-actions">
+      <button class="btn btn-primary" onclick="reviewSave(false)">Guardar y siguiente</button>
+      <button class="btn btn-ghost" onclick="reviewSave(true)" ${p.next ? '' : 'disabled style="opacity:.5"'}>Sigue igual</button>
+      <button class="btn btn-ghost" onclick="reviewSkip()">Saltar</button>
+      <span class="sp"></span>
+      <button class="btn btn-ghost" onclick="closeReview()">Cerrar</button>
+    </div></div>`;
+  const ta = document.getElementById('rev-next');
+  if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+function reviewSkip(){ reviewPos++; renderReview(); }
+async function reviewSave(sameAsBefore){
+  const id = reviewQueue[reviewPos];
+  const txt = document.getElementById('rev-next').value.trim();
+  if(!txt){ alert('Escribe el próximo paso, o usa "Saltar".'); return; }
+  try{
+    // Traer lo más reciente para no pisar cambios de otros
+    const r0 = await fetch('/api/projects');
+    const fresh = await r0.json();
+    const list = fresh.projects || [];
+    const p = list.find(x => x.id === id);
+    if(!p){ alert('Esa oportunidad ya no existe en el tablero.'); reviewPos++; renderReview(); return; }
+    const changed = (p.next || '') !== txt;
+    const now = new Date().toISOString();
+    p.next = txt;
+    p.nextAt = now;
+    p.activityLog = (p.activityLog || []).concat([{ at: now, by: currentUser,
+      note: changed ? `Actualizó próximo paso: "${txt}"` : 'Confirmó que el próximo paso sigue vigente' }]);
+    const r = await fetch('/api/projects', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(list) });
+    if(!r.ok){ alert('No se pudo guardar (' + r.status + '). Revisa tus permisos de edición en el CRM.'); return; }
+    const out = await r.json();
+    document.getElementById('synctag').textContent = out.updatedBy ? `Última edición: ${out.updatedBy}` : '';
+    projects = list;
+    logAudit('Repaso de próximo paso', `${p.client} — ${changed ? 'actualizó' : 'confirmó'}`);
+    reviewPos++;
+    renderReview();
+  }catch(e){
+    console.error(e);
+    alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
+  }
 }
 
 document.getElementById('search').addEventListener('input', render);
 document.getElementById('filterAsignado').addEventListener('change', render);
 populateFilters();
-loadCurrentUser();
-loadFromServer();
+(async function(){
+  await loadCurrentUser();
+  await loadFromServer();
+  updateReviewBanner();
+  if(new URLSearchParams(location.search).has('revisar') && reviewOwner()) openReview();
+})();
 </script>
 <script>
 (function(){
@@ -658,5 +1061,6 @@ loadFromServer();
   });
 })();
 </script>
+<script src="/asistente.js?v=1" defer></script>
 </body>
 </html>

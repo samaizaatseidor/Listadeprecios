@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 <style>
   :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --green:#1F8A4C; --amber:#D8A63A; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
   *{box-sizing:border-box;}
@@ -32,35 +32,41 @@
   .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
   .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
   .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
   header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
   header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
   .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
   input[type=file]{display:none;}
   .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
-  main{max-width:1400px; margin:0 auto; padding:24px 24px 60px;}
-  .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
-  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
-  .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
-  .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
-  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:14px; margin-bottom:18px;}
-  .kpi-card{background:#fff; border-radius:14px; padding:18px 20px; box-shadow:var(--shadow);}
-  .kpi-card .label{font-size:11px; color:var(--greyl); text-transform:uppercase; letter-spacing:0.5px; font-weight:700;}
-  .kpi-card .value{font-size:26px; font-weight:800; color:var(--navy2); margin-top:6px;}
-  .kpi-card.rojo .value{color:var(--red);} .kpi-card.ambar .value{color:var(--amber);} .kpi-card.verde .value{color:var(--green);}
-  .charts-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
-  .chart-wrap{position:relative; height:260px;}
-  @media (max-width:900px){ .charts-grid{grid-template-columns:1fr;} }
-  .insight-box{background:linear-gradient(135deg, #F4F8FC 0%, #EAF3FB 100%); border:1px solid var(--line); border-radius:12px; padding:18px 20px; display:flex; gap:14px; align-items:flex-start;}
-  .insight-icon{font-size:26px; flex-shrink:0;}
-  .insight-text{font-size:13.5px; line-height:1.6; color:var(--ink); white-space:pre-wrap;}
-  table{width:100%; border-collapse:collapse; font-size:12.5px;}
-  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10.5px; text-transform:uppercase;}
-  td{padding:9px 6px; border-bottom:1px solid var(--line); vertical-align:top;}
-  .num{text-align:right; font-variant-numeric:tabular-nums;}
   .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
   .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
   @keyframes spin{ to { transform:rotate(360deg); } }
+
+  /* Salud por LOB (componente local, tema oscuro) */
+  .ob-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:22px;}
+  .ob-blk{--oc:#3DD6FF; position:relative; border-radius:22px; padding:22px 24px 20px; background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.10); box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 16px 40px rgba(0,0,0,.4); overflow:hidden; transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;}
+  .ob-blk:before{content:""; position:absolute; left:0; right:0; top:0; height:4px; background:linear-gradient(90deg,var(--oc),transparent);}
+  .ob-blk:after{content:""; position:absolute; right:-70px; top:-90px; width:240px; height:200px; background:radial-gradient(ellipse,var(--oc),transparent 70%); opacity:.16; pointer-events:none;}
+  .ob-blk:hover{transform:translateY(-3px); border-color:var(--oc); box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 22px 50px rgba(0,0,0,.5),0 0 40px -12px var(--oc);}
+  .ob-head{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; position:relative; z-index:1;}
+  .ob-head b{font-size:24px; font-weight:800; color:#fff; letter-spacing:-.3px;}
+  .ob-who{display:flex; align-items:center; gap:12px; min-width:0;}
+  .ob-who img{width:58px; height:58px; border-radius:50%; object-fit:cover; flex:none; border:2px solid var(--oc); box-shadow:0 0 0 4px rgba(255,255,255,.06),0 6px 18px rgba(0,0,0,.45);}
+  .ob-who small{display:block; margin-top:2px; font-size:12.5px; font-weight:500; color:var(--wk-grey);}
+  .ob-deltas{display:flex; gap:6px; flex-wrap:wrap;}
+  .ob-blk .wk-gauge{max-width:230px; margin:4px auto 8px; position:relative; z-index:1;}
+  .ob-row{margin-top:14px; position:relative; z-index:1; padding:6px 8px 8px; border-radius:10px;}
+  .ob-row:hover{background:rgba(255,255,255,.05);}
+  .ob-row .t{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:7px;}
+  .ob-row span{color:var(--wk-grey); font-weight:600; font-size:14.5px; white-space:nowrap;}
+  .ob-row .wk-bar{height:14px; margin:0;}
+  .ob-row b{color:#fff; font-size:19px; font-variant-numeric:tabular-nums;}
+  .ob-row b small{font-weight:600; color:var(--wk-greyl); margin-left:7px; font-size:13px;}
+  .wk-wi-out{gap:24px;} .wk-wi-out .wk-stat-row{width:100%;}
+  .ob-sec{font-size:12.5px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--wk-greyl); margin:0 0 12px;}
+  .ob-sec.sp{margin-top:26px;}
+  .ob-note{font-size:13px; color:var(--wk-greyl); margin-top:16px;}
 </style>
 </head>
 <body>
@@ -97,14 +103,17 @@
         <button type="button" class="nav-dropdown-btn active">📋 WBR <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
           <a href="/wbr-finanzas.html">Finanzas</a>
           <a href="/wbr-ventas.html">Ventas & Pipeline</a>
           <a href="/wbr-operaciones.html" class="active">Operaciones</a>
-          <a href="/wbr-productos.html">Target de Clientes</a>
           <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
           <a href="/wbr-ccflex.html">CCFlex</a>
           <a href="/wbr-cta.html">Call to Action</a>
           <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -116,7 +125,9 @@
           <a href="/alta.html">Generador de Formato de Alta</a>
           <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
           <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
-          <a href="/contactos-sap.html">Contactos SAP</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -129,11 +140,13 @@
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
           <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
         </div>
       </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
           <a href="/dias-habiles.html">Días Hábiles México</a>
           <a href="/minutas.html">Generador de Minutas / Status</a>
           <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
@@ -151,10 +164,17 @@
         </div>
       </div>
       <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
           <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
         </div>
       </div>
     </div>
@@ -171,7 +191,7 @@
   <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
 </header>
 
-<main>
+<main class="wk-main">
   <div id="statusBox"></div>
   <div id="content"></div>
 </main>
@@ -181,11 +201,10 @@ let historial = [];
 let actual = null;
 let snapshotVisto = null;
 let mostrando = null;
-let chartDesvio, chartProyectos;
 
-function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&lt;','<':'&lt;','>':'&gt;'}[c])); }
-function fmtPct(n){ return n==null||isNaN(n) ? '—' : Math.round(n*100)+'%'; }
-function claseRiesgo(pct){ if(pct==null) return ''; return pct > 0.3 ? 'rojo' : (pct > 0.15 ? 'ambar' : 'verde'); }
+const esc = WK.esc;
+const TONO_RIESGO = pct => pct == null ? 'cyan' : (pct > 0.3 ? 'red' : (pct > 0.15 ? 'amber' : 'green'));
+const suma = (lobs, k) => (lobs||[]).reduce((s,l) => s + (Number(l[k])||0), 0);
 
 function encontrarFila(m, ancla){ for(let i=0;i<m.length;i++){ if(m[i].some(c=>typeof c==='string' && c.trim().toUpperCase()===ancla.toUpperCase())) return i; } return -1; }
 
@@ -196,6 +215,7 @@ function parsearOperaciones(wb){
   const idxFecha = encontrarFila(m, 'Semana de revisión');
   const fechaRevision = idxFecha>=0 ? (m[idxFecha].find(c => c instanceof Date) || null) : null;
   const idxHeader = encontrarFila(m, 'LOB');
+  if(idxHeader < 0) throw new Error('No se encontró la tabla "LOB" en la pestaña de Operaciones.');
   const porLob = [];
   for(let i=idxHeader+1; i<m.length; i++){
     const f = m[i];
@@ -203,6 +223,7 @@ function parsearOperaciones(wb){
     if(String(f[0]).toUpperCase()==='TOTAL') break;
     porLob.push({ lob:f[0], proyectos:f[1]||0, conDesvio:f[2]||0, conRiesgo:f[3]||0, goLiveAnual:f[6]||0, goLiveQ:f[7]||0, topProyectos:f[8]||'' });
   }
+  if(!porLob.length) throw new Error('La tabla de Operaciones por LOB viene vacía; revisa el formato de la pestaña.');
   return { fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(), porLob };
 }
 
@@ -218,45 +239,43 @@ async function handleFile(file){
     snapshotVisto = null;
     statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando…</div>';
     const anterior = historial.length ? historial[historial.length-1] : null;
-    await fetch('/api/wbr-operaciones', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
+    const rGuardar = await fetch('/api/wbr-operaciones', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
+    if(!rGuardar.ok){ const eg = await rGuardar.json().catch(()=>({})); throw new Error(eg.error || ('No se pudo guardar (error ' + rGuardar.status + ')')); }
     await cargarHistorial();
     render();
     pedirInsight(anterior);
-    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte del ' + new Date(actual.fechaRevision).toLocaleDateString('es-MX') + ' guardado.</div>';
+    statusBox.innerHTML = '<div style="color:var(--wk-green,#1F8A4C); font-size:14px;">Corte del ' + WK.fecha(new Date(actual.fechaRevision)) + ' guardado.</div>';
   }catch(e){
     console.error(e);
-    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
+    statusBox.innerHTML = `<div style="color:var(--wk-red,#B23A3A); font-size:14px;">No se pudo cargar el archivo: ${esc(e.message||String(e))}</div>`;
   }
 }
 async function cargarHistorial(){
   try{
     const r = await fetch('/api/wbr-operaciones');
     const d = await r.json();
-    historial = d.historial || [];
+    historial = (d.historial || []).filter(h => h && Array.isArray(h.porLob) && h.porLob.length);
     if(historial.length) actual = historial[historial.length-1];
   }catch(e){ historial = []; }
 }
 async function pedirInsight(anterior){
-  const box = document.getElementById('insightBox');
+  const box = document.getElementById('insightText');
   if(!box) return;
-  box.innerHTML = '<div class="loading"><span class="spinner"></span>Delfos está analizando el corte…</div>';
+  box.textContent = 'Delfos está analizando el corte…';
   try{
     const r = await fetch('/api/wbr-operaciones-insight', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ actual, anterior }) });
     const d = await r.json();
-    box.innerHTML = d.ok
-      ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(d.resumen)}</div></div>`
-      : `<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">${esc(d.error||'No se pudo generar el insight.')}</div></div>`;
-    if(d.ok){
-      actual.insightGuardado = d.resumen;
-      fetch('/api/wbr-operaciones', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
-    }
-  }catch(e){
-    box.innerHTML = '<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">No se pudo conectar con Delfos.</div></div>';
-  }
+    if(!d.ok){ box.textContent = d.error || 'No se pudo generar el insight.'; return; }
+    box.textContent = d.resumen;
+    actual.insightGuardado = d.resumen;
+    fetch('/api/wbr-operaciones', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
+  }catch(e){ box.textContent = 'No se pudo conectar con Delfos.'; }
 }
 
-function verSnapshotHistorico(fechaRevision){
-  const encontrado = historial.find(h => h.fechaRevision === fechaRevision);
+function etiquetaCarga(h){ return h && h.guardadoEn ? 'cargado por ' + (h.guardadoPor || 'desconocido') + ' el ' + WK.hora(h.guardadoEn) : ''; }
+
+function verSnapshotHistorico(idCarga){
+  const encontrado = historial.find(h => h.guardadoEn === idCarga);
   if(!encontrado) return;
   snapshotVisto = encontrado;
   render();
@@ -269,97 +288,168 @@ function volverActual(){
   pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
 }
 
+/* ---------- Componentes locales ---------- */
+const pctDe = (a, b) => b ? a / b : null;
+// Un bloque por LOB (tema oscuro): medidor de proyectos sanos + barras de proyectos, desvío, riesgo y Go-Live, con tooltips y cambio vs. corte anterior
+const LOBCOL = ['#3DD6FF','#8B7CFF','#2FE29B','#FFC857','#FF5C7A','#F59E4B'];
+const colorLob = (lobs, nombre) => LOBCOL[Math.max(0, lobs.findIndex(l => String(l.lob) === String(nombre))) % LOBCOL.length];
+// Proyectos sanos (mínimo estimado): el Excel solo trae conteos, así que se asume que ningún proyecto tiene desvío y riesgo a la vez
+const sanosMin = (p, d, r) => p ? Math.max(0, p - d - r) : 0;
+const TONO_SANO = f => f == null ? 'cyan' : (f >= 0.8 ? 'green' : (f >= 0.65 ? 'amber' : 'red'));
+// Responsable de cada LOB (foto en /assets/owners). Se busca por nombre de LOB sin acentos, espacios ni signos.
+const RESP_LOB = { rise:{ n:'Rogelio Leyva', f:'rogelio' }, grow:{ n:'Rogelio Leyva', f:'rogelio' }, sfsf:{ n:'Araceli Peñaloza', f:'araceli' }, b1:{ n:'María José Bastian', f:'mariajose' } };
+const respLob = nom => RESP_LOB[String(nom || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')] || null;
+function saludPorLob(lobs, prev){
+  const max = Math.max.apply(null, lobs.map(l => l.proyectos || 0)) || 1;
+  const pv = {}; (prev ? prev.porLob : []).forEach(l => { pv[String(l.lob)] = l; });
+  return '<div class="ob-grid">' + lobs.map(l => {
+    const p = pv[String(l.lob)], nom = String(l.lob), P = l.proyectos || 0, D = l.conDesvio || 0, R = l.conRiesgo || 0;
+    const tops = String(l.topProyectos || '').split('|').map(x => x.trim()).filter(Boolean);
+    const lista = tops.length ? '\n\nProyectos más relevantes de ' + nom + ':\n' + tops.slice(0, 8).map(x => '• ' + x).join('\n') + (tops.length > 8 ? '\n+' + (tops.length - 8) + ' más' : '') + '\n(El Excel no separa cuáles tienen desvío y cuáles riesgo)' : '';
+    const fila = (txt, n, tono, total, prevN, conLista) => {
+      const tip = nom + ' · ' + txt + '\n' + WK.num(n||0) + (total ? ' de ' + WK.num(total) + ' proyectos (' + WK.pct(pctDe(n||0, total)) + ')' : (txt === 'Proyectos' ? ' proyectos activos' : ' en el año')) + (p && prevN != null ? '\nCorte anterior: ' + WK.num(prevN) : '') + (conLista && n ? lista : '');
+      return '<div class="ob-row" data-tip="' + esc(tip) + '"><div class="t"><span>' + txt + '</span><b>' + WK.num(n||0) + (total ? '<small>' + WK.pct(pctDe(n||0, total)) + '</small>' : '') + '</b></div>' + WK.bar(Math.min(1, (n||0)/max), tono) + '</div>';
+    };
+    const chip = (a, b, t) => { const c = p && a !== b ? WK.delta(a, b, { bueno:'down' }) : ''; return c ? c.replace('Contra el corte anterior', t + ' vs. corte anterior').replace('>▲', '>' + t + ' ▲').replace('>▼', '>' + t + ' ▼') : ''; };
+    const d = '<div class="ob-deltas">' + chip(l.conDesvio, p && p.conDesvio, 'Desvíos') + chip(l.conRiesgo, p && p.conRiesgo, 'Riesgos') + '</div>';
+    const sano = pctDe(sanosMin(P, D, R), P);
+    const gauge = P ? WK.gauge({ valor:sanosMin(P, D, R), max:P, tono:TONO_SANO(sano), texto:WK.pct(sano), label:'proyectos sanos (mín.)', tip:nom + ' · proyectos sanos\n' + WK.num(sanosMin(P, D, R)) + ' de ' + WK.num(P) + ' sin desvío ni riesgo\nEstimación mínima: supone que ningún proyecto tiene desvío y riesgo a la vez' }) : '';
+    return '<div class="ob-blk" style="--oc:' + colorLob(lobs, nom) + '"><div class="ob-head">' + (respLob(nom) ? '<div class="ob-who"><img src="/assets/owners/' + respLob(nom).f + '.jpg" alt="' + esc(respLob(nom).n) + '" loading="lazy" onerror="this.remove()"><div><b>' + esc(nom) + '</b><small>' + esc(respLob(nom).n) + '</small></div></div>' : '<b>' + esc(nom) + '</b>') + d + '</div>' + gauge +
+      fila('Proyectos', P, 'cyan', 0, p && p.proyectos) + fila('Con desvío', D, 'amber', P, p && p.conDesvio, true) + fila('Con riesgo', R, 'red', P, p && p.conRiesgo, true) + fila('Go-Live anual', l.goLiveAnual, 'green', 0, p && p.goLiveAnual) + '</div>';
+  }).join('') + '</div><div class="ob-note">Barras a la misma escala · los chips aparecen cuando cambian desvíos o riesgos contra el corte anterior (verde = bajaron) · pasa el mouse sobre cualquier barra o medidor para ver el detalle; en Con desvío y Con riesgo verás los proyectos más relevantes de la LOB.</div>';
+}
+function proyectosClave(lobs){
+  const out = [];
+  lobs.forEach(l => String(l.topProyectos||'').split('|').map(s => s.trim()).filter(Boolean).forEach(p => out.push({ proyecto:p, lob:String(l.lob), proyLob:l.proyectos || 0, pctD:pctDe(l.conDesvio, l.proyectos), pctR:pctDe(l.conRiesgo, l.proyectos), gl:l.goLiveAnual || 0 })));
+  return out;
+}
+
+/* ---------- Render ---------- */
 function render(){
   const content = document.getElementById('content');
   const badge = document.getElementById('fechaRevisionBadge');
   mostrando = snapshotVisto || actual;
   if(!mostrando){
     badge.innerHTML = '';
-    content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con la pestaña "Operaciones") para generar el primer dashboard.</p></div></div>`;
+    content.innerHTML = '<div class="wk-card">' + WK.empty('Todavía no hay ningún corte cargado. Sube el Excel semanal (pestaña “Operaciones”) para generar el primer dashboard.') + '</div>';
     return;
   }
-  badge.innerHTML = `<span class="fecha-revision">Semana de revisión: ${new Date(mostrando.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
+  const lobs = mostrando.porLob;
+  const semana = WK.fecha(new Date(mostrando.fechaRevision));
+  badge.innerHTML = '<span class="fecha-revision">Semana de revisión: ' + esc(semana || '—') + '</span>';
+  const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte del <b>' + esc(semana) + '</b> (' + esc(etiquetaCarga(snapshotVisto)) + ') — no es la semana actual.</span><button class="wk-btn" onclick="volverActual()">Volver a la semana actual</button></div>' : '';
 
-  const bannerHistorico = snapshotVisto ? `
-    <div class="section" style="background:#FBF1DE; border:1px solid #E9D9AE; display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
-      <span style="font-size:13px; color:#8A6414;">📅 Estás viendo el corte del <b>${new Date(snapshotVisto.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</b> — no es la semana actual.</span>
-      <button class="btn btn-primary" style="background:#8A6414; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; cursor:pointer;" onclick="volverActual()">Volver a la semana actual</button>
-    </div>
-  ` : '';
+  const idx = historial.findIndex(h => h.guardadoEn === mostrando.guardadoEn);
+  const prev = idx > 0 ? historial[idx-1] : null;
+  const hasta = idx < 0 ? historial.length : idx + 1;
+  const ventana = historial.slice(Math.max(0, hasta - 8), hasta);
+  const serie = k => ventana.map(h => suma(h.porLob, k));
+  const histLbl = ventana.map(h => (WK.fecha(new Date(h.fechaRevision)) || '').slice(0,5));
 
-  const totalProyectos = mostrando.porLob.reduce((s,l)=>s+l.proyectos,0);
-  const totalDesvio = mostrando.porLob.reduce((s,l)=>s+l.conDesvio,0);
-  const totalRiesgo = mostrando.porLob.reduce((s,l)=>s+l.conRiesgo,0);
-  const pctDesvio = totalProyectos ? totalDesvio/totalProyectos : null;
-  const pctRiesgo = totalProyectos ? totalRiesgo/totalProyectos : null;
-  const totalGoLiveQ = mostrando.porLob.reduce((s,l)=>s+l.goLiveQ,0);
+  const tP = suma(lobs,'proyectos'), tD = suma(lobs,'conDesvio'), tR = suma(lobs,'conRiesgo'), tGA = suma(lobs,'goLiveAnual'), tGQ = suma(lobs,'goLiveQ');
+  const pD = pctDe(tD, tP), pR = pctDe(tR, tP);
+  const pP = prev ? suma(prev.porLob,'proyectos') : null, pDp = prev ? pctDe(suma(prev.porLob,'conDesvio'), pP) : null, pRp = prev ? pctDe(suma(prev.porLob,'conRiesgo'), pP) : null;
+  const dPts = (a, b) => (prev && a != null && b != null) ? WK.delta(a*100, b*100, { bueno:'down', fmt: x => (Math.round(x*10)/10) + ' pp' }) : '';
+  const dCnt = (a, b, bueno) => prev ? WK.delta(a, b, { bueno }) : '';
+  const tendencia = (k, color) => (WK.area(serie(k), { labels:histLbl, color }) || '');
 
-  content.innerHTML = `
-    ${bannerHistorico}
-    <div class="kpi-grid">
-      <div class="kpi-card"><div class="label">Proyectos activos</div><div class="value">${totalProyectos}</div></div>
-      <div class="kpi-card ${claseRiesgo(pctDesvio)}"><div class="label">Con desvío</div><div class="value">${totalDesvio}</div><div style="font-size:11px; color:var(--grey);">${fmtPct(pctDesvio)} del total</div></div>
-      <div class="kpi-card ${claseRiesgo(pctRiesgo)}"><div class="label">Con riesgo</div><div class="value">${totalRiesgo}</div><div style="font-size:11px; color:var(--grey);">${fmtPct(pctRiesgo)} del total</div></div>
-      <div class="kpi-card"><div class="label">Go-Live este trimestre</div><div class="value">${totalGoLiveQ}</div></div>
-    </div>
+  const kpis = WK.heroGrid([
+    WK.hero({ label:'Proyectos activos', ir:'lob', ico:'⚙️', value:WK.num(tP), sub:lobs.length + ' LOB', delta:dCnt(tP, pP, null),
+      chart: tendencia('proyectos', '#33B4DD') || WK.gauge({ valor:tGA, max:Math.max(tP, tGA, 1), tono:'cyan', texto:WK.num(tGA), label:'Go-Live anual', dark:true }) }),
+    WK.hero({ label:'Con desvío', ir:'lob', ico:'⏱️', value:WK.num(tD), tono:TONO_RIESGO(pD), sub:WK.pct(pD) + ' del total', delta:dPts(pD, pDp),
+      chart: WK.gauge({ valor:tD, max:tP || 1, tono:TONO_RIESGO(pD), texto:WK.pct(pD), label:'de los proyectos', dark:true }) }),
+    WK.hero({ label:'Con riesgo', ir:'lob', ico:'⚠️', value:WK.num(tR), tono:TONO_RIESGO(pR), sub:WK.pct(pR) + ' del total', delta:dPts(pR, pRp),
+      chart: WK.gauge({ valor:tR, max:tP || 1, tono:TONO_RIESGO(pR), texto:WK.pct(pR), label:'de los proyectos', dark:true }) }),
+    WK.hero({ label:'Go-Live este trimestre', ir:'detalle', ico:'🚀', value:WK.num(tGQ), sub:'de ' + WK.num(tGA) + ' Go-Live en el año', delta:dCnt(tGQ, prev ? suma(prev.porLob,'goLiveQ') : null, 'up'),
+      chart: tendencia('goLiveQ', '#2FCB73') || WK.gauge({ valor:tGQ, max:tGA || 1, tono:'green', texto:WK.num(tGQ) + ' / ' + WK.num(tGA), label:'Q vs. año', dark:true }) })
+  ]);
 
-    <div class="section">
-      <h2>🤖 Insight de Delfos</h2>
-      ${snapshotVisto
-        ? (mostrando.insightGuardado
-            ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(mostrando.insightGuardado)}</div></div>`
-            : `<div class="insight-box"><div class="insight-icon">🗂️</div><div class="insight-text">Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para esta semana.</div></div>`)
-        : `<div id="insightBox"><div class="loading">Generando…</div></div>`}
-    </div>
+  const insight = snapshotVisto
+    ? (mostrando.insightGuardado ? esc(mostrando.insightGuardado) : 'Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para esta semana.')
+    : 'Generando…';
 
-    <div class="section">
-      <h2>Proyectos por LOB</h2>
-      <div class="charts-grid">
-        <div class="chart-wrap"><canvas id="chartProyectos"></canvas></div>
-        <div class="chart-wrap"><canvas id="chartDesvio"></canvas></div>
-      </div>
-    </div>
+  const conProy = lobs.filter(l => l.proyectos > 0);
+  const detalleLob = l => nomLob(l) + '\n' + WK.num(l.proyectos) + ' proyectos · ' + WK.num(l.conDesvio) + ' con desvío · ' + WK.num(l.conRiesgo) + ' con riesgo\nGo-Live: ' + WK.num(l.goLiveAnual) + ' en el año · ' + WK.num(l.goLiveQ) + ' este trimestre';
+  const nomLob = l => String(l.lob);
+  const donutProy = WK.card({ ico:'🧩', titulo:'Proyectos por LOB', sub:'Cuántos proyectos activos lleva cada línea', body: WK.donut(conProy.map(l => ({ label:nomLob(l), value:l.proyectos, color:colorLob(lobs, l.lob), tip:detalleLob(l) })), { centro:WK.num(tP), sub:'proyectos' }) +
+    '<div style="margin-top:20px">' + WK.stats([{ valor:WK.num(tP), label:'Proyectos activos' }, { valor:WK.num(tD), label:'Con desvío' }, { valor:WK.num(tR), label:'Con riesgo' }, { valor:WK.pct(pctDe(sanosMin(tP, tD, tR), tP)), label:'Sanos (mín. estimado)' }]) + '</div>' });
+  const donutGL = WK.card({ ico:'🚀', titulo:'Go-Live por LOB', sub:'Go-Live programados en el año', body:
+    WK.donut(lobs.filter(l => l.goLiveAnual > 0).map(l => ({ label:nomLob(l), value:l.goLiveAnual, color:colorLob(lobs, l.lob), tip:nomLob(l) + '\n' + WK.num(l.goLiveAnual) + ' Go-Live en el año (' + WK.pct(pctDe(l.goLiveAnual, tGA)) + ')\n' + WK.num(l.goLiveQ) + ' este trimestre\n' + WK.num(l.proyectos) + ' proyectos activos' })), { centro:WK.num(tGA), sub:'en el año' }) +
+    '<div style="margin-top:20px">' + WK.stats([{ valor:WK.num(tGQ), label:'Go-Live este trimestre' }, { valor:WK.num(tGA), label:'Go-Live en el año' }].concat(lobs.filter(l => l.goLiveQ > 0).map(l => ({ valor:WK.num(l.goLiveQ), label:'Q · ' + l.lob })))) + '</div>' });
 
-    <div class="section">
-      <h2>Detalle por LOB</h2>
-      <table>
-        <tr><th>LOB</th><th class="num">Proyectos</th><th class="num">Con desvío</th><th class="num">Con riesgo</th><th class="num">Go-Live anual</th><th class="num">Go-Live Q</th><th>Top proyectos</th></tr>
-        ${mostrando.porLob.map(l=>`<tr><td><b>${esc(l.lob)}</b></td><td class="num">${l.proyectos}</td><td class="num">${l.conDesvio}</td><td class="num">${l.conRiesgo}</td><td class="num">${l.goLiveAnual}</td><td class="num">${l.goLiveQ}</td><td style="font-size:11.5px; color:var(--grey);">${esc(l.topProyectos)}</td></tr>`).join('')}
-      </table>
-    </div>
+  const rk = (k) => WK.ranked(lobs.map(l => { const p = pctDe(l[k], l.proyectos); return { label:nomLob(l), value:p || 0, tono:TONO_RIESGO(p), tip:nomLob(l) + ' · ' + (k === 'conDesvio' ? 'con desvío' : 'con riesgo') + '\n' + WK.num(l[k]) + ' de ' + WK.num(l.proyectos) + ' proyectos (' + WK.pct(p) + ')' }; }).sort((x,y) => y.value - x.value), { fmt:WK.pct, max:1 });
+  const exposicion = WK.card({ ico:'🎯', titulo:'Exposición por LOB', sub:'% de proyectos con desvío y con riesgo (rojo > 30%, ámbar > 15%)', body:'<div class="ob-sec">Con desvío</div>' + rk('conDesvio') + '<div class="ob-sec sp">Con riesgo</div>' + rk('conRiesgo') });
+  const pctTxt = (n, t) => WK.pct(pctDe(n, t)) + ' del total';
+  const columnas = WK.card({ ico:'📊', titulo:'Proyectos, desvíos y riesgos', sub:'Conteo por LOB — pasa el mouse sobre una barra', body: WK.columns(lobs.map(nomLob), [
+    { nombre:'Proyectos', valores:lobs.map(l => l.proyectos || 0), color:'#3DD6FF', extra:lobs.map(l => 'Go-Live anual: ' + WK.num(l.goLiveAnual)) },
+    { nombre:'Con desvío', valores:lobs.map(l => l.conDesvio || 0), color:'#FFC857', extra:lobs.map(l => WK.pct(pctDe(l.conDesvio, l.proyectos)) + ' de sus proyectos') },
+    { nombre:'Con riesgo', valores:lobs.map(l => l.conRiesgo || 0), color:'#FF5C7A', extra:lobs.map(l => WK.pct(pctDe(l.conRiesgo, l.proyectos)) + ' de sus proyectos') },
+    { nombre:'Go-Live anual', valores:lobs.map(l => l.goLiveAnual || 0), color:'#2FE29B', extra:lobs.map(l => WK.num(l.goLiveQ) + ' este trimestre') }
+  ], { fmt:WK.num, id:'ops' }) });
 
-    <div class="section">
-      <h2>📅 Bitácora semanal</h2>
-      <p class="sub">Haz clic en una semana para ver el dashboard completo tal como se veía entonces.</p>
-      <table>
-        <tr><th>Semana</th><th class="num">Proyectos</th><th class="num">% Desvío</th><th class="num">% Riesgo</th></tr>
-        ${historial.slice().reverse().map(h => {
-          const tp = h.porLob.reduce((s,l)=>s+l.proyectos,0), td = h.porLob.reduce((s,l)=>s+l.conDesvio,0), tr = h.porLob.reduce((s,l)=>s+l.conRiesgo,0);
-          const esEsta = mostrando.fechaRevision === h.fechaRevision;
-          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.fechaRevision}')" title="Ver el dashboard completo de esta semana"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td class="num">${tp}</td><td class="num">${fmtPct(tp?td/tp:null)}</td><td class="num">${fmtPct(tp?tr/tp:null)}</td></tr>`;
-        }).join('')}
-      </table>
-    </div>
-  `;
-  renderCharts();
-}
+  /* ---------- Simuladores (no se guardan) ---------- */
+  // Reparte N resoluciones entre las LOB empezando por la que más tiene
+  const repartir = (arr, n) => { const a = arr.slice(); for(let i=0; i<n; i++){ let m = 0; a.forEach((x, j) => { if(x > a[m]) m = j; }); if(a[m] <= 0) break; a[m]--; } return a; };
+  const simSalud = WK.whatif({ id:'opsSalud', sliders:[
+    { k:'d', label:'Proyectos con desvío que resolvemos', min:0, max:Math.max(1, tD), step:1, val:0, fmt:x => WK.num(x) + ' de ' + WK.num(tD) },
+    { k:'r', label:'Proyectos con riesgo que mitigamos', min:0, max:Math.max(1, tR), step:1, val:0, fmt:x => WK.num(x) + ' de ' + WK.num(tR) } ],
+    calc: vals => {
+      const nd = repartir(lobs.map(l => l.conDesvio || 0), Math.min(vals.d, tD)), nr = repartir(lobs.map(l => l.conRiesgo || 0), Math.min(vals.r, tR));
+      const sanos = lobs.map((l, i) => sanosMin(l.proyectos || 0, nd[i], nr[i])), tS = sanos.reduce((a, b) => a + b, 0), tS0 = lobs.reduce((a, l) => a + sanosMin(l.proyectos || 0, l.conDesvio || 0, l.conRiesgo || 0), 0);
+      const f = pctDe(tS, tP), f0 = pctDe(tS0, tP), ganancia = f != null && f0 != null ? Math.round((f - f0) * 100) : 0;
+      return { gauge:{ valor:tS, max:tP || 1, tono:TONO_SANO(f), texto:WK.pct(f), label:'proyectos sanos', tip:'Proyectos sanos (total)\n' + WK.num(tS) + ' de ' + WK.num(tP) + ' sin desvío ni riesgo\nHoy: ' + WK.pct(f0) },
+        stats:lobs.map((l, i) => ({ valor:WK.pct(pctDe(sanos[i], l.proyectos)), label:'Sanos · ' + l.lob })).concat([{ valor:'+' + ganancia + ' pp', label:'vs. hoy (' + WK.pct(f0) + ')' }]),
+        nota:vals.d + vals.r === 0 ? 'Mueve los controles para ver cuántos proyectos quedarían sanos si resolvemos desvíos y riesgos (se atacan primero las LOB con más casos).' : 'Resolviendo ' + WK.num(Math.min(vals.d, tD)) + ' desvío(s) y mitigando ' + WK.num(Math.min(vals.r, tR)) + ' riesgo(s), ' + WK.num(tS) + ' de ' + WK.num(tP) + ' proyectos quedarían sin desvío ni riesgo. Estimación mínima: supone que ningún proyecto tiene ambos.' };
+    } });
+  const simGoLive = WK.whatif({ id:'opsGL', sliders:[
+    { k:'ade', label:'Go-Live que se adelantan a este trimestre', min:0, max:Math.max(1, tGA - tGQ), step:1, val:0, fmt:x => '+' + WK.num(x) },
+    { k:'atr', label:'Go-Live del trimestre que se atrasan', min:0, max:Math.max(1, tGQ), step:1, val:0, fmt:x => '−' + WK.num(x) } ],
+    calc: vals => {
+      const ade = Math.min(vals.ade, Math.max(0, tGA - tGQ)), atr = Math.min(vals.atr, tGQ), q = tGQ + ade - atr, resto = Math.max(0, tGA - q), f = pctDe(q, tGA);
+      return { gauge:{ valor:q, max:tGA || 1, tono:q >= tGQ ? 'green' : 'amber', texto:WK.num(q) + ' / ' + WK.num(tGA), label:'Go-Live del trimestre vs. año', tip:'Go-Live del trimestre\n' + WK.num(q) + ' de ' + WK.num(tGA) + ' del año (' + WK.pct(f) + ')\nHoy: ' + WK.num(tGQ) },
+        stats:[ { valor:WK.num(q), label:'Go-Live este trimestre' }, { valor:WK.num(resto), label:'Quedan para el resto del año' }, { valor:(q - tGQ >= 0 ? '+' : '−') + WK.num(Math.abs(q - tGQ)), label:'vs. hoy (' + WK.num(tGQ) + ')' } ],
+        nota:ade + atr === 0 ? 'Mueve los controles para ver cómo cambia la carga del trimestre si se adelantan o se atrasan Go-Live.' : 'El trimestre pasaría de ' + WK.num(tGQ) + ' a ' + WK.num(q) + ' Go-Live y quedarían ' + WK.num(resto) + ' por entregar en el resto del año.' };
+    } });
+  const simulador = (ico, titulo, sub, sim) => WK.card({ ico, titulo, sub:sub + ' Es una simulación, no se guarda.', body:sim });
 
-function renderCharts(){
-  if(chartProyectos) chartProyectos.destroy();
-  if(chartDesvio) chartDesvio.destroy();
-  chartProyectos = new Chart(document.getElementById('chartProyectos'), {
-    type:'bar',
-    data:{ labels: mostrando.porLob.map(l=>l.lob), datasets:[{ label:'Proyectos', data: mostrando.porLob.map(l=>l.proyectos), backgroundColor:'#1E5BB8' }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Proyectos por LOB' }, legend:{display:false} } }
-  });
-  chartDesvio = new Chart(document.getElementById('chartDesvio'), {
-    type:'bar',
-    data:{ labels: mostrando.porLob.map(l=>l.lob), datasets:[
-      { label:'Con desvío', data: mostrando.porLob.map(l=>l.conDesvio), backgroundColor:'#D8A63A' },
-      { label:'Con riesgo', data: mostrando.porLob.map(l=>l.conRiesgo), backgroundColor:'#B23A3A' },
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Desvío y riesgo por LOB' } } }
-  });
+  const filasLob = lobs.map(l => ({ lob:nomLob(l), proyectos:l.proyectos, conDesvio:l.conDesvio, conRiesgo:l.conRiesgo, pctD:pctDe(l.conDesvio, l.proyectos), pctR:pctDe(l.conRiesgo, l.proyectos), ga:l.goLiveAnual, gq:l.goLiveQ, top:String(l.topProyectos||'').split('|').map(s => s.trim()).filter(Boolean).join(' · ') }));
+  const tablaLob = WK.table([
+    { k:'lob', label:'LOB', tipo:'strong' }, { k:'proyectos', label:'Proyectos', tipo:'num' }, { k:'conDesvio', label:'Con desvío', tipo:'num' }, { k:'conRiesgo', label:'Con riesgo', tipo:'num' },
+    { k:'pctD', label:'% desvío', tipo:'pct' }, { k:'pctR', label:'% riesgo', tipo:'pct' }, { k:'ga', label:'Go-Live anual', tipo:'num' }, { k:'gq', label:'Go-Live Q', tipo:'num' }, { k:'top', label:'Proyectos más relevantes', tipo:'note' }
+  ], filasLob, { vacio:'Sin datos por LOB.',
+    footer:'<tr><td>Total</td><td class="wk-num">' + WK.num(tP) + '</td><td class="wk-num">' + WK.num(tD) + '</td><td class="wk-num">' + WK.num(tR) + '</td><td class="wk-num">' + WK.pct(pD) + '</td><td class="wk-num">' + WK.pct(pR) + '</td><td class="wk-num">' + WK.num(tGA) + '</td><td class="wk-num">' + WK.num(tGQ) + '</td><td></td></tr>' });
+
+  const clave = proyectosClave(lobs);
+  const tablaClave = clave.length
+    ? '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar proyecto o LOB…" oninput="WK.filtrar(document.getElementById(\'tablaClave\'), this.value)"></div>' +
+      WK.table([{ k:'proyecto', label:'Proyecto', tipo:'strong' }, { k:'lob', label:'LOB', tipo:'tag' }, { k:'proyLob', label:'Proyectos de la LOB', tipo:'num' }, { k:'pctD', label:'% desvío LOB', tipo:'pct' }, { k:'pctR', label:'% riesgo LOB', tipo:'pct' }, { k:'gl', label:'Go-Live anual LOB', tipo:'num' }], clave, { id:'tablaClave' })
+    : WK.empty('El Excel no trae proyectos relevantes por LOB.');
+
+  const bitacora = '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar semana o quién cargó…" oninput="WK.filtrar(document.getElementById(\'tablaBitacora\'), this.value)"></div>' + WK.table([
+    { k:'semana', label:'Semana', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' },
+    { k:'proy', label:'Proyectos', tipo:'num' }, { k:'desv', label:'% Desvío', tipo:'pct' }, { k:'ries', label:'% Riesgo', tipo:'pct' }, { k:'gq', label:'Go-Live Q', tipo:'num' }
+  ], historial.slice().reverse().map(h => { const tp = suma(h.porLob,'proyectos'); return { semana:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:WK.hora(h.guardadoEn).split(' ')[0], proy:tp, desv:pctDe(suma(h.porLob,'conDesvio'), tp), ries:pctDe(suma(h.porLob,'conRiesgo'), tp), gq:suma(h.porLob,'goLiveQ'), _id:h.guardadoEn }; }),
+    { id:'tablaBitacora', rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver el dashboard completo de esta semana"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
+
+  content.innerHTML = banner +
+    WK.chips([{ id:'resumen', label:'Resumen' }, { id:'lob', label:'Por LOB', n:lobs.length }, { id:'simular', label:'Simuladores' }, { id:'detalle', label:'Detalle' }, { id:'bitacora', label:'Bitácora', n:historial.length }]) +
+    '<div id="resumen" style="scroll-margin-top:70px">' + kpis + WK.callout('Insight de Delfos', insight, 'insightText') + '</div>' +
+    WK.band('lob', 'Operaciones por LOB', 'Proyectos, desvíos, riesgos y Go-Lives') +
+    '<div class="wk-grid2">' + donutProy + donutGL + '</div>' +
+    '<div style="height:22px"></div>' +
+    WK.card({ ico:'🩺', titulo:'Salud por LOB', sub:'Proyectos, desvíos y riesgos de cada línea', body:saludPorLob(lobs, prev) }) +
+    '<div class="wk-grid2">' + exposicion + columnas + '</div>' +
+    WK.band('simular', 'Simuladores', 'Qué pasaría si… · no se guardan') +
+    simulador('🧪', 'Simulador: ¿y si resolvemos desvíos y riesgos?', 'Mueve los controles y mira cuántos proyectos quedarían sanos por LOB.', simSalud) +
+      simulador('🚀', 'Simulador: ¿y si cambian los Go-Live?', 'Adelanta o atrasa Go-Live y mira la carga del trimestre.', simGoLive) +
+    WK.band('detalle', 'Detalle', 'Ordena por cualquier columna') +
+    WK.card({ ico:'📋', titulo:'Detalle por LOB', sub:'Haz clic en un encabezado para ordenar.', body:tablaLob }) +
+    WK.card({ ico:'⭐', titulo:'Proyectos más relevantes', count:clave.length, sub:'Busca por proyecto o LOB y ordena por cualquier columna.', body:tablaClave }) +
+    WK.band('bitacora', 'Bitácora semanal', 'Haz clic en una semana para ver el dashboard completo tal como se veía entonces') +
+    WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora }) +
+    '<div class="wk-foot">Conteos de proyectos (sin montos) · Fechas en DD/MM/AA.</div>';
+  WK.sortable(content);
+  WK.observarSecciones();
 }
 
 async function init(){
@@ -402,5 +492,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="/asistente.js?v=1" defer></script>
 </body>
 </html>

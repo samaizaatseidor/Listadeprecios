@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>Forecast Semanal · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="/wbr-kit.js?v=20261010s"></script>
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC;
+    --green:#1F8A4C; --amber:#8A6414; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+  .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
+  header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+  .fecha-revision{display:inline-block; margin-top:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600;}
+  input[type=file]{display:none;}
+  .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
+
+  main{max-width:1600px; margin:0 auto; padding:24px 24px 60px;}
+  .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
+  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px; display:flex; align-items:center; gap:8px;}
+  .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
+  .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
+  .empty h2{color:var(--navy2); font-size:18px; margin-bottom:8px;}
+
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-bottom:18px;}
+  .kpi-card{background:#fff; border-radius:14px; padding:18px 20px; box-shadow:var(--shadow);}
+  .kpi-card .label{font-size:11px; color:var(--greyl); text-transform:uppercase; letter-spacing:0.5px; font-weight:700;}
+  .kpi-card .value{font-size:26px; font-weight:800; color:var(--navy2); margin-top:6px;}
+  .kpi-card .sub-value{font-size:12px; color:var(--grey); margin-top:2px;}
+  .kpi-bar{height:6px; border-radius:4px; background:var(--card); margin-top:12px; overflow:hidden;}
+  .kpi-bar-fill{height:100%; border-radius:4px;}
+  .kpi-card.verde .value{color:var(--green);} .kpi-bar-fill.verde{background:var(--green);}
+  .kpi-card.ambar .value{color:var(--amber);} .kpi-bar-fill.ambar{background:#D8A63A;}
+  .kpi-card.rojo .value{color:var(--red);} .kpi-bar-fill.rojo{background:var(--red);}
+
+  .charts-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .chart-wrap{position:relative; height:260px;}
+  @media (max-width:900px){ .charts-grid{grid-template-columns:1fr;} }
+
+  .insight-box{background:linear-gradient(135deg, #F4F8FC 0%, #EAF3FB 100%); border:1px solid var(--line); border-radius:12px; padding:18px 20px; display:flex; gap:14px; align-items:flex-start;}
+  .insight-icon{font-size:26px; flex-shrink:0;}
+  .insight-text{font-size:13.5px; line-height:1.6; color:var(--ink); white-space:pre-wrap;}
+
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:0.3px;}
+  td{padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tr:hover td{background:var(--card);}
+  .num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .etapa-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:var(--card); color:var(--navy2);}
+  .estatus-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px;}
+  .estatus-commited{background:#E7F7EE; color:var(--green);}
+  .estatus-probable{background:#FBF1DE; color:var(--amber);}
+  .estatus-upside{background:var(--card); color:var(--grey);}
+  .comentario-cell{max-width:240px; font-size:11.5px; color:var(--grey);}
+
+  .tabbar{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
+  .tabbar button{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:7px 14px; font-family:inherit; font-size:12.5px; font-weight:600; color:var(--grey); cursor:pointer;}
+  .tabbar button.active{background:var(--navy2); color:#fff; border-color:var(--navy2);}
+
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
+  @keyframes spin{ to { transform:rotate(360deg); } }
+
+  /* ---------- Forecast Semanal (tema oscuro WBR) ---------- */
+  .fs-bar{position:sticky; top:0; z-index:40; display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:10px 24px; margin:0 -24px 16px; background:rgba(6,12,27,.88); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,255,255,.08);}
+  .fs-tabs{display:flex; gap:6px; flex-wrap:wrap; flex:1 1 auto;}
+  .fs-tab{display:inline-flex; align-items:center; gap:8px; padding:6px 14px 6px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:#CFE0FA; font:600 13px Poppins,sans-serif; cursor:pointer; transition:.15s;}
+  .fs-tab:hover{border-color:#3DD6FF; color:#fff; box-shadow:0 0 18px rgba(61,214,255,.25); transform:translateY(-1px);}
+  .fs-tab.on{background:linear-gradient(135deg,#1E5BB8,#3DD6FF); border-color:transparent; color:#04101F;}
+  .fs-tab .av{width:24px; height:24px; border-radius:50%; background:rgba(61,214,255,.25); color:#fff; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+  .fs-tab.on .av{background:rgba(4,16,31,.35);}
+  .fs-tab .av img{width:100%; height:100%; object-fit:cover;}
+  .fs-tab .dot{width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.25);}
+  .fs-tab .dot.ok{background:#2FE29B; box-shadow:0 0 8px #2FE29B;} .fs-tab .dot.pend{background:#FFC857;}
+  .fs-tools{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .fs-btn{font:600 12.5px Poppins,sans-serif; padding:8px 14px; border-radius:9px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#E3ECFA; cursor:pointer;}
+  .fs-btn:hover{border-color:#3DD6FF; color:#fff;}
+  .fs-btn.pri{background:linear-gradient(135deg,#1E5BB8,#2E8FE0); border-color:transparent; color:#fff;}
+  .fs-btn.ok{background:linear-gradient(135deg,#17A06A,#2FE29B); border-color:transparent; color:#04210F;}
+  .fs-btn:disabled{opacity:.45; cursor:not-allowed;}
+  .fs-sem{display:flex; align-items:center; gap:6px; font-size:12.5px; color:#A5B4CE; font-weight:600;}
+  .fs-sem input,.fs-sem select{font:600 12.5px Poppins,sans-serif; padding:6px 8px; border:1px solid rgba(255,255,255,.16); border-radius:8px; color:#fff; background:rgba(255,255,255,.07); color-scheme:dark;}
+  .fs-sem select option,.fs-t select option{background:#0E1A34; color:#fff;}
+  .fs-info{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px;}
+  .fs-pill{display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:99px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); font-size:12px; font-weight:600; color:#A5B4CE;}
+  .fs-pill.ok{background:rgba(47,226,155,.12); border-color:rgba(47,226,155,.35); color:#4CE8AB;} .fs-pill.warn{background:rgba(255,200,87,.12); border-color:rgba(255,200,87,.35); color:#FFD479;} .fs-pill.bad{background:rgba(255,92,122,.12); border-color:rgba(255,92,122,.35); color:#FF8CA2;}
+  .fs-legend{display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:#A5B4CE; margin:0 0 12px;}
+  .fs-legend i{display:inline-block; width:22px; height:14px; border-radius:4px; vertical-align:-3px; margin-right:6px;}
+  .fs-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; margin-bottom:16px;}
+  .fs-kpi{position:relative; background:linear-gradient(150deg,rgba(255,255,255,.08),rgba(255,255,255,.025)); border:1px solid rgba(255,255,255,.09); border-radius:16px; padding:16px 18px; box-shadow:0 18px 44px rgba(0,0,0,.4); overflow:hidden;}
+  .fs-kpi:before{content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:#3DD6FF;}
+  .fs-kpi[data-s="g"]:before{background:#2FE29B;} .fs-kpi[data-s="a"]:before{background:#FFC857;} .fs-kpi[data-s="r"]:before{background:#FF5C7A;}
+  .fs-kpi .l{font-size:11px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:#7D8FAE;}
+  .fs-kpi .v{font-size:36px; font-weight:800; color:#fff; line-height:1.15; margin:6px 0 2px; letter-spacing:-.5px;}
+  .fs-kpi .s{font-size:12.5px; color:#A5B4CE; min-height:18px;} .fs-kpi .s b{color:#fff;}
+  .fs-prog{height:8px; border-radius:99px; background:rgba(255,255,255,.08); overflow:hidden; margin-top:10px;}
+  .fs-prog>i{display:block; height:100%; width:0; border-radius:99px; background:linear-gradient(90deg,#1E5BB8,#3DD6FF); transition:width .8s cubic-bezier(.2,.8,.2,1);}
+  .fs-kpi[data-s="g"] .fs-prog>i{background:linear-gradient(90deg,#17A06A,#2FE29B);} .fs-kpi[data-s="a"] .fs-prog>i{background:linear-gradient(90deg,#E0A12A,#FFD479);} .fs-kpi[data-s="r"] .fs-prog>i{background:linear-gradient(90deg,#D6405E,#FF8CA2);}
+  .fs-delta{display:inline-block; margin-left:8px; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:700; background:rgba(255,255,255,.08); color:#A5B4CE; vertical-align:middle;}
+  .fs-delta.up{background:rgba(47,226,155,.14); color:#4CE8AB;} .fs-delta.down{background:rgba(255,92,122,.15); color:#FF8CA2;}
+
+  .fs-tw{overflow-x:auto; border-radius:12px;}
+  table.fs-t{width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px; color:#DDE8F8;}
+  .fs-t th{background:rgba(14,26,52,.96); color:#9FB2D3; font-size:11px; letter-spacing:.6px; text-transform:uppercase; padding:10px 10px; text-align:right; font-weight:700; white-space:nowrap; border-bottom:1px solid rgba(255,255,255,.1);}
+  .fs-t th.l,.fs-t th:first-child{text-align:left;}
+  .fs-t th.g2{color:#8FE6FF;}
+  .fs-t th.grp{text-align:center; color:#fff; font-size:11.5px; letter-spacing:1.4px; background:rgba(30,91,184,.35); border-bottom:2px solid #3DD6FF; border-left:1px solid rgba(255,255,255,.12);}
+  .fs-t th.grp.g2{color:#8FE6FF; background:rgba(61,214,255,.14);}
+  .fs-t th.grp0{background:transparent; border-bottom:none;}
+  .fs-t td{padding:5px 8px; border-bottom:1px solid rgba(255,255,255,.06); text-align:right; font-variant-numeric:tabular-nums; vertical-align:middle; color:#DDE8F8;}
+  .fs-t td:first-child,.fs-t td.l{text-align:left;}
+  .fs-t td.k{font-weight:700; color:#fff; white-space:nowrap;}
+  .fs-t tr.hl td{background:rgba(61,214,255,.10); font-weight:700; color:#fff;}
+  .fs-t tr.tot td{background:rgba(255,255,255,.06); font-weight:800; color:#fff; border-top:1px solid rgba(255,255,255,.18);}
+  .fs-t td.ae,.fs-legend i.ae{background:rgba(255,214,64,.20); box-shadow:inset 0 0 0 1px rgba(255,214,64,.45);}
+  .fs-t td.ops,.fs-legend i.ops{background:rgba(70,150,255,.24); box-shadow:inset 0 0 0 1px rgba(70,150,255,.50);}
+  .fs-t td.calc,.fs-legend i.calc{background:rgba(255,255,255,.05); box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);}
+  .fs-t td.calc{color:#fff; font-weight:600;}
+  .fs-t tbody tr:hover td{background-color:rgba(61,214,255,.08)!important; color:#fff;}
+  .fs-t tbody tr:hover td.ae{background-color:rgba(255,214,64,.32)!important;}
+  .fs-t tbody tr:hover td.ops{background-color:rgba(70,150,255,.38)!important;}
+  .fs-t tbody tr:hover td.calc{background-color:rgba(255,255,255,.09)!important;}
+  .fs-chk{width:18px; height:18px; accent-color:#2FE29B; cursor:pointer;}
+  .fs-in{width:100%; min-width:64px; font:600 13px Poppins,sans-serif; text-align:right; border:1px solid transparent; background:transparent; border-radius:6px; padding:5px 6px; color:#fff; font-variant-numeric:tabular-nums; color-scheme:dark;}
+  .fs-in:hover{border-color:rgba(255,255,255,.25); background:rgba(255,255,255,.07);} .fs-in:focus{outline:none; border-color:#3DD6FF; background:rgba(255,255,255,.08); box-shadow:0 0 0 3px rgba(61,214,255,.2);}
+  .fs-in::placeholder{color:rgba(255,255,255,.3);}
+  .fs-in.t{text-align:left;} .fs-t select.fs-in{cursor:pointer;} textarea.fs-in{resize:vertical; min-height:34px; line-height:1.35; font-weight:500; font-size:12px;}
+  .fs-t .v{display:inline-block; padding:5px 6px; color:#fff; font-weight:600;}
+  .fs-tag{display:inline-block; padding:2px 9px; border-radius:99px; font-size:11px; font-weight:700; white-space:nowrap; background:rgba(255,255,255,.08); color:#CFE0FA;}
+  .fs-tag.won{background:rgba(61,160,255,.2); color:#8FD0FF;} .fs-tag.vc{background:rgba(47,226,155,.14); color:#4CE8AB;} .fs-tag.top{background:rgba(255,200,87,.15); color:#FFD479;} .fs-tag.up{background:rgba(255,255,255,.08); color:#A5B4CE;} .fs-tag.lost{background:rgba(255,92,92,.18); color:#FF8C8C;}
+  .fs-x{border:none; background:none; color:#FF8CA2; cursor:pointer; font-size:15px; padding:2px 6px; border-radius:6px;} .fs-x:hover{background:rgba(255,92,122,.18);}
+  .fs-one>.wk-card{margin-bottom:18px;}
+  body.fs-ov .wk-owner-multi .wk-owner-cap{display:none;}
+  .fs-note{font-size:12px; color:#A5B4CE; margin:10px 2px 0;} .fs-note b{color:#fff;}
+  .fs-warn{background:rgba(255,200,87,.12); border:1px solid rgba(255,200,87,.35); color:#FFD479; border-radius:10px; padding:8px 12px; font-size:12.5px; font-weight:600; margin:0 0 12px;}
+  .fs-snap{background:linear-gradient(135deg,rgba(61,214,255,.14),rgba(139,124,255,.10)); border:1px solid rgba(61,214,255,.28); border-left:5px solid #3DD6FF; border-radius:12px; padding:10px 14px; font-size:13px; color:#E3ECFA; margin-bottom:14px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+  .fs-chart{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:end; height:210px; padding:6px 10px 0;}
+  .fs-col{display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; position:relative;}
+  .fs-stack{width:56%; max-width:90px; display:flex; flex-direction:column-reverse; border-radius:8px 8px 0 0; overflow:hidden; transition:height .6s;}
+  .fs-stack>i{display:block; width:100%; min-height:0;}
+  .fs-mark{position:absolute; left:6%; right:6%; border-top:2px dashed #FF5C7A; font-size:10.5px; color:#FF8CA2; font-weight:700; text-align:right; pointer-events:none;}
+  .fs-cl{font-size:12px; font-weight:700; color:#E3ECFA; margin-top:6px;}
+  .fs-lg{display:flex; gap:14px; flex-wrap:wrap; justify-content:center; font-size:11.5px; color:#A5B4CE; margin-top:10px;} .fs-lg i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px;}
+  .fs-hbar{display:flex; height:12px; border-radius:99px; overflow:hidden; background:rgba(255,255,255,.1); min-width:120px;} .fs-hbar>i{display:block; height:100%;}
+  .fs-row-click{cursor:pointer;} .fs-row-click:hover td{background:rgba(61,214,255,.12)!important;}
+  .fs-modal{position:fixed; inset:0; background:rgba(2,6,16,.7); z-index:9998; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .fs-modal>div{background:#0E1A34; border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:22px 24px; width:min(560px,100%); box-shadow:0 20px 60px rgba(0,0,0,.5);}
+  .fs-modal h3{margin:0 0 4px; color:#fff;} .fs-modal p{margin:0 0 14px; font-size:12.5px; color:#A5B4CE;}
+  .fs-modal label{display:block; font-size:12px; font-weight:700; color:#E3ECFA; margin:10px 0 4px;}
+  .fs-modal input{width:100%; font:500 13px Poppins,sans-serif; padding:9px 10px; border:1px solid rgba(255,255,255,.16); border-radius:8px; background:rgba(255,255,255,.07); color:#fff;}
+  .fs-toast{position:fixed; left:50%; bottom:28px; transform:translateX(-50%); background:#17A06A; color:#fff; padding:11px 20px; border-radius:99px; font-size:13px; font-weight:600; z-index:9999; box-shadow:0 10px 30px rgba(0,0,0,.4); max-width:90vw;}
+  .fs-toast.err{background:#C2304F;}
+  @media (max-width:900px){ .fs-chart{height:170px;} }
+  .fs-deals{table-layout:fixed; width:100%;} .fs-tw:has(.fs-deals){overflow-x:hidden;}
+  .fs-deals th{white-space:normal; padding:8px 4px; font-size:10.5px; letter-spacing:.2px;}
+  .fs-deals td{padding:5px 4px; overflow-wrap:anywhere; word-break:break-word;}
+  .fs-deals .fs-in{min-width:0; padding:5px 4px; font-size:12px;}
+  .fs-deals select.fs-in{text-overflow:ellipsis;}
+  .fs-deals .fs-tag{white-space:normal; display:inline-block; text-align:left; line-height:1.3;}
+  .fs-deals .fs-chk{margin:0;}
+  .fs-deals th.fs-sortable{cursor:pointer; user-select:none;} .fs-deals th.fs-sortable:hover{color:#fff;}
+  .fs-deals tr.fs-frow th{padding:4px 3px; background:rgba(8,16,34,.96); text-transform:none; letter-spacing:0;}
+  .fs-frow input,.fs-frow select{width:100%; min-width:0; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); color:#E6EEFB; border-radius:5px; padding:4px 4px; font-size:11px; font-family:inherit;}
+  .fs-frow select option{background:#0E1A34; color:#E6EEFB;}
+  .fs-lostbox{margin-top:22px; border-top:1px dashed rgba(255,92,92,.45); padding-top:12px;} .fs-losthd{font-weight:700; color:#FF8C8C; font-size:13px; margin-bottom:6px;} .fs-losthd span{font-weight:400; color:#9FB2D3; font-size:12px; margin-left:8px;} .fs-lostt{opacity:.8;} .fs-lostt thead th{background:rgba(60,20,28,.55);}
+  .fs-modal{position:fixed; inset:0; background:rgba(3,8,20,.78); z-index:9998; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .fs-modal>.fs-mbox{background:#0E1A34; border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:22px; width:1240px !important; max-width:100% !important; box-sizing:border-box; max-height:90vh; display:flex; flex-direction:column; color:#E6EEFB;}
+  .fs-mbox h3{margin:0 0 6px; font-size:18px;} .fs-mp{margin:0 0 12px; color:#9FB2D3; font-size:13px;}
+  .fs-mctl{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; font-size:12.5px; color:#9FB2D3;} .fs-mctl select,.fs-mctl input{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18); color:#E6EEFB; border-radius:6px; padding:4px 6px; margin-left:4px;}
+  .fs-mctl option{background:#0E1A34;} .fs-mtw{overflow:auto; border:1px solid rgba(255,255,255,.08); border-radius:10px;} .fs-mtw td{padding:7px 8px; font-size:12.5px; vertical-align:top;}
+  .fs-mtw td:not(:nth-child(5)){text-align:left;}
+  .fs-mtw select{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18); color:#E6EEFB; border-radius:6px; padding:4px; font-size:12px; max-width:130px;} .fs-mtw select.need{border-color:#FFB020; background:rgba(255,176,32,.18);} .fs-mtw option{background:#0E1A34;}
+  .fs-orig{font-size:10.5px; color:#7D8FAE; margin-top:2px; max-width:150px;} .fs-capp{color:#FFD479; font-size:12.5px; margin-bottom:8px; min-height:0;} .fs-mtw tr.pend td{background:rgba(255,176,32,.05);}
+  .fs-caps{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;} .fs-cap{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:8px 14px; display:flex; flex-direction:column; min-width:110px;} .fs-cap b{font-size:20px;} .fs-cap span{font-size:11px; color:#9FB2D3;} .fs-cap.nue b{color:#8FD0FF;} .fs-cap.act b{color:#FFD479;} .fs-cap.omi b{color:#FF8C8C;}
+  .fs-mbtn button:disabled{opacity:.45; cursor:not-allowed;}
+  .fs-mbtn{display:flex; justify-content:flex-end; gap:10px; margin-top:14px;}
+  .fs-fcount{margin-top:10px; font-size:12px; color:#9FB2D3;} .fs-fcount a{color:#3DD6FF;}
+  .fs-seg{display:inline-flex; border:1px solid rgba(255,255,255,.18); border-radius:10px; overflow:hidden;}
+  .fs-seg button{font:600 12.5px Poppins,sans-serif; padding:8px 14px; border:none; background:rgba(255,255,255,.05); color:#A5B4CE; cursor:pointer;}
+  .fs-seg button.on{background:linear-gradient(135deg,#1E5BB8,#2E8FE0); color:#fff;}
+  .fs-foot{margin:26px 0 8px; padding:16px 18px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; border:1px solid rgba(255,255,255,.1); border-radius:14px; background:rgba(255,255,255,.04);}
+  .fs-foot span{font-size:12.5px; color:#A5B4CE;}
+</style>
+</head>
+<body data-wk-owner="forecastequipo">
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    window.ES_ADMIN = !!d.esAdmin;
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      window.SOLO_LECTURA = true;
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){}
+})();
+</script>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html" class="active">Forecast Semanal</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div>
+    <h1>📈 Forecast Semanal — Comercial</h1>
+    <p>Reporte de forecast de los AEs para la sesión de los lunes: cuota, trimestre, top deals y LOB</p>
+    <div id="fechaRevisionBadge"></div>
+  </div>
+</header>
+
+<main class="wk-main">
+  <div id="statusBox"><div class="loading"><span class="spinner"></span>Cargando forecast…</div></div>
+  <div id="content"></div>
+</main>
+
+<script>
+/* ============ Forecast Semanal — lógica del Excel "Formato Forecast Ventas" ============ */
+const esc = WK.esc;
+const VC = 'VC= Commited+ Probable Plan A';
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const ESTATUS = ['Won', VC, 'Top Upside =Plan B', 'Upside', 'Perdida'];
+const LOBS = ['B1','Grow','Rise','SFSF','LOB'];
+const PLANES = ['Plan A','Plan B'];
+const p2 = n => String(n).padStart(2,'0');
+
+let D = null;            // respuesta del servidor
+let B = {};              // tableros en edición (copia de trabajo por AE)
+let dirty = {};          // slug → true si hay cambios sin guardar
+let vista = 'overview';  // 'overview' | slug
+let snap = null;
+let editando = false;   // modo Visualizar / Editar (por defecto, Visualizar)         // reporte histórico que se está viendo (solo lectura)
+let corte = 'actual';    // corte del overview: 'actual' o semana ISO
+let SEM = lunesDe(new Date());
+let ordenDeals = null;
+
+/* ---------- fechas y formatos ---------- */
+function isoDe(d){ return d.getFullYear() + '-' + p2(d.getMonth()+1) + '-' + p2(d.getDate()); }
+function lunesDe(d){ d = new Date(d); d.setHours(12,0,0,0); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return isoDe(d); }
+function fFecha(iso){ if(!iso) return '—'; const m = String(iso).slice(0,10).split('-'); return m[2] + '/' + m[1] + '/' + m[0].slice(2); }
+function fFechaHora(ts){ if(!ts) return '—'; const d = new Date(ts); return p2(d.getDate()) + '/' + p2(d.getMonth()+1) + '/' + String(d.getFullYear()).slice(2) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes()); }
+function qDe(semISO){ const m = +semISO.slice(5,7) - 1, q = Math.floor(m/3); return { q: q+1, anio: semISO.slice(0,4), meses: MESES.slice(q*3, q*3+3) }; }
+const numK = n => (n < 0 ? '-' : '') + '$' + Math.abs(Math.round(n||0)).toLocaleString('es-MX');
+const pct = n => Math.round((n||0)*100) + '%';
+const mult = n => (n||0).toFixed(2) + 'x';
+const parseNum = s => { const n = Number(String(s).replace(/[$,\s]/g,'')); return Number.isFinite(n) ? n : 0; };
+function iniciales(t){ return String(t||'').split(/\s+/).filter(Boolean).slice(0,2).map(w => w[0]).join('').toUpperCase(); }
+
+/* ---------- cálculo (mismas fórmulas del Excel) ---------- */
+function vacio(){ return { cuota:{ swAnual:0, svAnual:0, swYtd:0, svYtd:0 }, q:{ swCuota:0, svCuota:0, mes:[0,0,0] }, deals:[] }; }
+function clonar(b){ return JSON.parse(JSON.stringify(b || vacio())); }
+const totalDeal = d => (+d.sw||0) + (+d.sv||0);
+function calc(b, meses){
+  const ds = b.deals || [], c = b.cuota || {}, q = b.q || { mes:[0,0,0] };
+  const won = d => d.estatus === 'Won', vc = d => d.estatus === VC, up = d => /upside/i.test(d.estatus||'');
+  const S = (f, campo, mes) => ds.filter(d => f(d) && (mes ? d.mes === mes : meses.includes(d.mes))).reduce((a,d) => a + (campo === 't' ? totalDeal(d) : (+d[campo]||0)), 0);
+  const div = (a,b2) => b2 ? a/b2 : 0;
+  const v = {};
+  // 1) Cuota del año
+  v['a.sw'] = +c.swAnual||0; v['a.sv'] = +c.svAnual||0; v['a.t'] = v['a.sw'] + v['a.sv'];
+  v['y.sw'] = +c.swYtd||0;  v['y.sv'] = +c.svYtd||0;  v['y.t'] = v['y.sw'] + v['y.sv'];
+  ['sw','sv','t'].forEach(k => { v['p.'+k] = div(v['y.'+k], v['a.'+k]); v['g.'+k] = v['a.'+k] - v['y.'+k]; });
+  // 2) Forecast del Q
+  const cols = ['sw','sv','t','m0','m1','m2'];
+  v['qc.sw'] = +q.swCuota||0; v['qc.sv'] = +q.svCuota||0; v['qc.t'] = v['qc.sw'] + v['qc.sv'];
+  [0,1,2].forEach(i => v['qc.m'+i] = +(q.mes||[])[i]||0);
+  ['sw','sv'].forEach(k => { v['qw.'+k] = S(won,k); v['qv.'+k] = S(vc,k); v['qp.'+k] = S(up,k) + S(vc,k); });
+  v['qw.t'] = v['qw.sw'] + v['qw.sv']; v['qv.t'] = v['qv.sw'] + v['qv.sv']; v['qp.t'] = v['qp.sw'] + v['qp.sv'];
+  [0,1,2].forEach(i => { const m = meses[i]; v['qw.m'+i] = S(won,'t',m); v['qv.m'+i] = S(vc,'t',m); v['qp.m'+i] = S(up,'t',m) + S(vc,'t',m); v['qu.m'+i] = S(up,'t',m); });
+  cols.forEach(k => { v['qf.'+k] = v['qw.'+k] + v['qv.'+k]; v['qa.'+k] = div(v['qf.'+k], v['qc.'+k]); v['qb.'+k] = div(v['qp.'+k], v['qc.'+k]); });
+  // 3) Top deals
+  ds.forEach((d,i) => v['dt.'+i] = totalDeal(d));
+  const act = ds.filter(d => d.estatus !== 'Perdida');
+  v['dtot.sw'] = act.reduce((a,d) => a + (+d.sw||0), 0); v['dtot.sv'] = act.reduce((a,d) => a + (+d.sv||0), 0); v['dtot.t'] = v['dtot.sw'] + v['dtot.sv'];
+  // 4) LOB
+  const lobDe = d => LOBS.find(l => l.toLowerCase() === String(d.lob||'').toLowerCase());
+  let tv = 0, tp = 0;
+  LOBS.forEach(l => {
+    const mias = act.filter(d => lobDe(d) === l), vend = mias.filter(won).reduce((a,d) => a + totalDeal(d), 0), todo = mias.reduce((a,d) => a + totalDeal(d), 0);
+    v['lv.'+l] = vend; v['lp.'+l] = todo - vend; v['lt.'+l] = todo; tv += vend; tp += todo - vend;
+  });
+  v['lv.t'] = tv; v['lp.t'] = tp; v['lt.t'] = tv + tp;
+  v['sinlob.n'] = act.filter(d => !lobDe(d) && totalDeal(d)).length;
+  v['sinlob.t'] = act.filter(d => !lobDe(d)).reduce((a,d) => a + totalDeal(d), 0);
+  return v;
+}
+function fmtClave(k, n){
+  if(/^(p|qa)\./.test(k)) return pct(n);
+  if(/^qb\./.test(k)) return mult(n);
+  if(k === 'sinlob.n') return String(n);
+  return numK(n);
+}
+function sumar(boards){
+  const o = vacio();
+  boards.forEach(b => {
+    ['swAnual','svAnual','swYtd','svYtd'].forEach(k => o.cuota[k] += +(b.cuota||{})[k]||0);
+    o.q.swCuota += +(b.q||{}).swCuota||0; o.q.svCuota += +(b.q||{}).svCuota||0;
+    [0,1,2].forEach(i => o.q.mes[i] += +((b.q||{}).mes||[])[i]||0);
+    (b.deals||[]).forEach(d => o.deals.push(Object.assign({ _ae: b._ae }, d)));
+  });
+  return o;
+}
+function semaforo(p){ return p >= 0.85 ? 'g' : (p >= 0.6 ? 'a' : 'r'); }
+
+/* ---------- datos y permisos ---------- */
+const AEs = () => (D && D.config ? D.config.aes : []);
+const nombreAe = slug => (AEs().find(a => a.slug === slug) || {}).nombre || slug;
+const puedeOps = () => !!(D && D.yo.esOps);
+const puedeAe = slug => !!(D && (D.yo.esOps || D.yo.ae === slug));
+function boardDe(slug){ return B[slug] || (B[slug] = clonar(D.live[slug])); }
+function liveDe(slug){ return D.live[slug] ? Object.assign({ _ae: slug }, D.live[slug]) : Object.assign(vacio(), { _ae: slug }); }
+
+function boardsAl(semISO){ // último reporte de cada AE hasta esa semana
+  return AEs().map(a => {
+    const e = D.historial.filter(h => h.ae === a.slug && h.semana <= semISO).sort((x,y) => (x.semana + x.reportadoEn).localeCompare(y.semana + y.reportadoEn)).pop();
+    return e ? Object.assign({ _ae: a.slug, _rep: e }, e.board) : Object.assign(vacio(), { _ae: a.slug });
+  });
+}
+const semanasHist = () => Array.from(new Set(D.historial.map(h => h.semana))).sort().reverse();
+
+async function api(body){
+  const r = await fetch('/api/forecast-semanal', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
+  let j = null; try { j = await r.json(); } catch(e){}
+  if(!r.ok || !j || !j.ok){ const err = new Error((j && j.error) || 'No se pudo completar la acción.'); err.data = j; throw err; }
+  return j;
+}
+function toast(msg, err){ const t = document.createElement('div'); t.className = 'fs-toast' + (err ? ' err' : ''); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), err ? 6000 : 3200); }
+
+async function cargar(){
+  const sb = document.getElementById('statusBox');
+  try{
+    const r = await fetch('/api/forecast-semanal'); const j = await r.json();
+    if(!r.ok || !j.ok) throw new Error(j.error || 'Sin acceso');
+    D = j; B = {}; dirty = {};
+    if(D.yo.soloPropio){ if(!D.yo.ae){ sb.innerHTML = '<div class="fs-warn">Tu correo aún no está asignado a un tablero. Pide a Sales Ops que lo asigne en ⚙️ Responsables.</div>'; return; } vista = D.yo.ae; }
+    if(!window.__fsInit){ window.__fsInit = true; const h = location.hash.replace('#',''); if(!D.yo.soloPropio && h && AEs().some(a => a.slug === h)) vista = h; }
+    sb.innerHTML = ''; pintar();
+  }catch(e){ sb.innerHTML = '<div class="fs-warn">No se pudo cargar el Forecast Semanal: ' + esc(e.message) + '</div>'; }
+}
+
+/* ---------- guardar / reportar ---------- */
+async function guardar(slug, silencioso){
+  if(!dirty[slug]) return true;
+  try{
+    const j = await api({ accion:'guardar', ae: slug, version: (D.live[slug] || {}).version || 0, board: B[slug] });
+    D.live[slug] = j.board; B[slug] = clonar(j.board); dirty[slug] = false;
+    if(!silencioso) toast('Guardado ✓'); pintar(true); return true;
+  }catch(e){
+    if(e.data && e.data.conflicto){ D.live[slug] = e.data.board; B[slug] = clonar(e.data.board); dirty[slug] = false; pintar(true); }
+    toast(e.message, true); return false;
+  }
+}
+async function reportar(slug){
+  if(!(await guardar(slug, true))) return;
+  const b = D.live[slug];
+  if(!confirm('¿Reportar el forecast de ' + nombreAe(slug) + ' para la semana del lunes ' + fFecha(SEM) + '?\nQuedará registrado con fecha y hora en el historial.')) return;
+  try{
+    const j = await api({ accion:'reportar', ae: slug, semana: SEM });
+    D.live[slug] = j.board; B[slug] = clonar(j.board);
+    const r = await fetch('/api/forecast-semanal'); const d2 = await r.json(); if(d2.ok){ D.historial = d2.historial; }
+    toast('Forecast reportado ✓ ' + fFechaHora(j.board.reportadoEn)); pintar(true);
+  }catch(e){ toast(e.message, true); }
+}
+window.addEventListener('beforeunload', e => { if(Object.values(dirty).some(Boolean)){ e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- piezas de render ---------- */
+const cv = k => '<span class="fs-c" data-c="' + k + '"></span>';
+function celda(path, val, tipo, editable, clase){
+  if(editable) return '<td class="' + clase + '"><input class="fs-in" data-f="' + path + '" value="' + (val ? String(Math.round(val*1000)/1000) : '') + '" inputmode="decimal" placeholder="0"></td>';
+  return '<td class="' + clase + '"><span class="v">' + numK(val) + '</span></td>';
+}
+function tagEst(e){ const c = e === 'Won' ? 'won' : e === VC ? 'vc' : e === 'Top Upside =Plan B' ? 'top' : e === 'Perdida' ? 'lost' : 'up'; return e ? '<span class="fs-tag ' + c + '" data-est="' + esc(e) + '">' + esc(e === VC ? 'VC · Commit + Probable (Plan A)' : e) + '</span>' : ''; }
+function kpi(label, keyV, sub, opts){
+  opts = opts || {};
+  return '<div class="fs-kpi" ' + (opts.sem ? 'data-sem="' + opts.sem + '"' : '') + '><div class="l">' + label + '</div><div class="v">' + cv(keyV) + (opts.delta ? '<span class="fs-delta" data-delta="' + opts.delta + '"></span>' : '') + '</div><div class="s">' + sub + '</div>' + (opts.bar ? '<div class="fs-prog"><i data-bar="' + opts.bar + '"></i></div>' : '') + '</div>';
+}
+
+function bloqueCuota(ed, titulo){
+  const e = ed || {}, ops = e.ops, ae = e.ae, co = e.plano ? 'calc' : 'ops', ca = e.plano ? 'calc' : 'ae';
+  return '<div class="wk-band"><h2>1 · Cuota del año — ¿dónde estoy?</h2><span>Avance vs cuota anual</span></div>' +
+  '<div class="fs-grid">' + kpi('Avance vs cuota anual', 'p.t', 'Cerrado YTD <b>' + cv('y.t') + '</b> de <b>' + cv('a.t') + '</b>', { sem:'p.t', bar:'p.t' }) +
+    kpi('Cerrado YTD', 'y.t', 'SW ' + cv('y.sw') + ' · Servicios ' + cv('y.sv'), {}) +
+    kpi('GAP 2026', 'g.t', 'SW ' + cv('g.sw') + ' · Servicios ' + cv('g.sv'), {}) + '</div>' +
+  '<div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th>Concepto</th><th>SW</th><th>Servicios</th><th>Total</th></tr></thead><tbody>' +
+    '<tr><td class="k">Cuota Anual</td>' + celda('cuota.swAnual', e.b.cuota.swAnual, 'n', ops, co) + celda('cuota.svAnual', e.b.cuota.svAnual, 'n', ops, co) + '<td class="calc">' + cv('a.t') + '</td></tr>' +
+    '<tr><td class="k">Cerrado YTD</td>' + celda('cuota.swYtd', e.b.cuota.swYtd, 'n', ae, ca) + celda('cuota.svYtd', e.b.cuota.svYtd, 'n', ae, ca) + '<td class="calc">' + cv('y.t') + '</td></tr>' +
+    '<tr class="hl"><td class="k">% Avance</td><td class="calc">' + cv('p.sw') + '</td><td class="calc">' + cv('p.sv') + '</td><td class="calc">' + cv('p.t') + '</td></tr>' +
+    '<tr><td class="k">GAP 2026</td><td class="calc">' + cv('g.sw') + '</td><td class="calc">' + cv('g.sv') + '</td><td class="calc">' + cv('g.t') + '</td></tr>' +
+  '</tbody></table></div></div>';
+}
+
+function bloqueQ(ed, qi){
+  const e = ed || {}, ops = e.ops, q = e.b.q, M = qi.meses, co = e.plano ? 'calc' : 'ops';
+  const fila = (lbl, pre, cls, ro) => '<tr class="' + (cls||'') + '"><td class="k">' + lbl + '</td>' + ['sw','sv','t','m0','m1','m2'].map(k => '<td class="calc">' + cv(pre + '.' + k) + '</td>').join('') + '</tr>';
+  return '<div class="wk-band"><h2>2 · Forecast del trimestre — Q' + qi.q + ' ' + qi.anio + '</h2><span>' + M.join(' · ') + '</span></div>' +
+  '<div class="fs-grid">' + kpi('Forecast (Won + VC)', 'qf.t', 'Won ' + cv('qw.t') + ' · VC ' + cv('qv.t'), { sem:'qa.t', delta:'qf.t' }) +
+    kpi('Alcance vs cuota del Q', 'qa.t', 'Cuota del Q <b>' + cv('qc.t') + '</b>', { sem:'qa.t', bar:'qa.t' }) +
+    kpi('Cobertura de pipeline', 'qb.t', 'Pipeline <b>' + cv('qp.t') + '</b> (VC + Upside)', { delta:'qp.t' }) + '</div>' +
+  '<div class="fs-one"><div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th class="grp0"></th><th colspan="3" class="grp">Q general</th><th colspan="3" class="grp g2">Mensual</th></tr><tr><th>Concepto</th><th>SW</th><th>Servicios</th><th>Total</th><th class="g2">' + M[0] + '</th><th class="g2">' + M[1] + '</th><th class="g2">' + M[2] + '</th></tr></thead><tbody>' +
+    '<tr><td class="k">Cuota del Q</td>' + celda('q.swCuota', q.swCuota, 'n', ops, co) + celda('q.svCuota', q.svCuota, 'n', ops, co) + '<td class="calc">' + cv('qc.t') + '</td>' + [0,1,2].map(i => celda('q.mes.' + i, q.mes[i], 'n', ops, co)).join('') + '</tr>' +
+    fila('Won en el Q', 'qw') + fila('VC (Commit + Probable)', 'qv') + fila('Forecast (Won + VC)', 'qf', 'hl') + fila('Alcance vs Cuota', 'qa') + fila('Pipeline (VC + Top Upside + Upside)', 'qp') + fila('Cobertura (Pipeline vs Cuota)', 'qb') +
+  '</tbody></table></div><p class="fs-note">Compromiso por mes = <b>Cerrado + VC</b>. Las columnas de mes suman el monto total (SW + Servicios) de los deals con ese mes.</p></div>' +
+  '<div class="wk-card"><div class="wk-card-head"><div><h3>Compromiso por mes vs cuota</h3><p>Won, VC y Upside por mes · línea roja = cuota mensual</p></div></div><div class="fs-chart" id="fsChart"></div><div class="fs-lg"><span><i style="background:#0F5E9C"></i>Won</span><span><i style="background:#1F8A4C"></i>VC (Plan A)</span><span><i style="background:#9DD6EC"></i>Upside / Plan B</span></div></div></div>';
+}
+
+const ETQ_EST = { [VC]:'VC · Plan A', 'Top Upside =Plan B':'Top Upside · Plan B' };
+function selectOpts(lista, val, vacioLbl){ return '<option value="">' + (vacioLbl||'—') + '</option>' + lista.map(o => '<option value="' + esc(o) + '"' + (o === val ? ' selected' : '') + ' title="' + esc(o) + '">' + esc(ETQ_EST[o] || o) + '</option>').join(''); }
+function idLinks(id){ const ids = String(id||'').match(/\d{6,}/g) || []; return ids.map(x => '<a href="https://app.hubspot.com/contacts/6740520/record/0-3/' + x + '" target="_blank" rel="noopener" title="Abrir en HubSpot">↗</a>').join(' '); }
+
+function bloqueDeals(b, ed, conAe){
+  const e = ed || {}, ae = e.ae, ds = b.deals || [], tn = e.plano ? '' : 'ae';
+  const fila = (d,i) => {
+    if(ae) return '<tr class="fs-dr" data-i="' + i + '">' +
+      '<td class="ae"><input class="fs-in t" data-d="id" value="' + esc(d.id) + '" placeholder="ID HubSpot"></td>' +
+      '<td class="ae"><textarea class="fs-in t" data-d="cuenta" rows="2" placeholder="Cuenta — oportunidad">' + esc(d.cuenta) + '</textarea></td>' +
+      '<td class="ae"><select class="fs-in t" data-d="lob">' + selectOpts(LOBS, d.lob, 'Sin LOB') + '</select></td>' +
+      '<td class="ae"><input class="fs-in" data-d="sw" value="' + (d.sw||'') + '" inputmode="decimal" placeholder="0"></td>' +
+      '<td class="ae"><input class="fs-in" data-d="sv" value="' + (d.sv||'') + '" inputmode="decimal" placeholder="0"></td>' +
+      '<td class="calc">' + cv('dt.' + i) + '</td>' +
+      '<td class="ae"><select class="fs-in t" data-d="estatus">' + selectOpts(ESTATUS, d.estatus) + '</select></td>' +
+      '<td class="ae"><select class="fs-in t" data-d="mes">' + selectOpts(MESES, d.mes) + '</select></td>' +
+      '<td class="ae"><select class="fs-in t" data-d="plan">' + selectOpts(PLANES, d.plan) + '</select></td>' +
+      '<td class="ae" style="text-align:center"><input type="checkbox" class="fs-chk" data-d="enLob"' + (d.enLob ? ' checked' : '') + ' title="Casilla LOB del Excel (informativa)"></td>' +
+      '<td class="ae"><textarea class="fs-in t" data-d="next" rows="2" placeholder="Next steps">' + esc(d.next) + '</textarea></td>' +
+      '<td class="l"><button class="fs-x" data-del="' + i + '" title="Quitar deal">✕</button></td></tr>';
+    return '<tr class="fs-dr">' + (conAe ? '<td class="l"><span class="fs-tag">' + esc(nombreAe(d._ae)) + '</span></td>' : '') +
+      '<td class="' + tn + ' l">' + esc(d.id) + ' ' + idLinks(d.id) + '</td><td class="' + tn + ' l">' + esc(d.cuenta) + '</td><td class="' + tn + ' l">' + esc(d.lob || '—') + '</td>' +
+      '<td class="' + tn + '">' + numK(d.sw) + '</td><td class="' + tn + '">' + numK(d.sv) + '</td><td class="calc">' + numK(totalDeal(d)) + '</td><td class="' + tn + ' l">' + tagEst(d.estatus) + '</td><td class="' + tn + ' l">' + esc(d.mes || '—') + '</td><td class="' + tn + ' l">' + esc(d.plan || '—') + '</td><td class="' + tn + '" style="text-align:center">' + (d.enLob ? '✓' : '') + '</td><td class="' + tn + ' l" style="white-space:pre-wrap;font-size:12px">' + esc(d.next) + '</td></tr>';
+  };
+  const filas = ds.map((d,i) => d.estatus === 'Perdida' ? '' : fila(d,i)).join('');
+  const perdidas = ds.map((d,i) => d.estatus === 'Perdida' ? fila(d,i) : '').join('');
+  const nPerd = ds.filter(d => d.estatus === 'Perdida').length;
+  const anchos = conAe ? [9,8,15,6,6,6,6,14,7,6,4,13] : (ae ? [8,15,7,6,6,6,13,9,7,5,16,2] : [10,17,7,6,6,6,15,8,7,5,13]);
+  const colgroup = '<colgroup>' + anchos.map(w => '<col style="width:' + w + '%">').join('') + '</colgroup>';
+  const encabezado = (conAe ? '<th class="l">AE</th>' : '') + '<th class="l">ID HubSpot</th><th class="l">Cuenta</th><th class="l">LOB</th><th>SW</th><th>Servicios</th><th>Total</th><th class="l">Estatus</th><th class="l">Mes</th><th class="l">Plan A | B</th><th>En LOB ✓</th><th class="l">Next steps</th>' + (ae ? '<th></th>' : '');
+  const nCols = (conAe ? 1 : 0) + 4;
+  return '<div class="wk-band"><h2>3 · Top deals — los que cierran el GAP</h2><span>Detalle por oportunidad</span></div>' +
+  '<div id="fsAvisoLob"></div>' +
+  '<div class="wk-card"><div class="fs-tw"><table class="fs-t fs-deals">' + colgroup + '<thead><tr>' + encabezado + '</tr></thead><tbody>' + (filas || '<tr><td colspan="12" class="l" style="color:#7D8FAE;padding:18px">Sin deals capturados.</td></tr>') +
+  '<tr class="tot">' + (conAe ? '<td></td>' : '') + '<td class="l" colspan="3">TOTAL</td><td>' + cv('dtot.sw') + '</td><td>' + cv('dtot.sv') + '</td><td>' + cv('dtot.t') + '</td><td colspan="' + (ae ? 6 : 5) + '"></td></tr></tbody></table></div>' +
+  (ae ? '<div style="margin-top:12px"><button class="fs-btn" id="fsAddDeal">➕ Agregar deal</button></div>' : '') +
+  (nPerd ? '<div class="fs-lostbox"><div class="fs-losthd">🔴 Oportunidades perdidas <span>' + nPerd + ' · no cuentan en el forecast, Plan A/B, totales ni LOB</span></div><div class="fs-tw"><table class="fs-t fs-deals fs-lostt">' + colgroup + '<thead><tr>' + encabezado + '</tr></thead><tbody>' + perdidas + '</tbody></table></div></div>' : '') +
+  '<p class="fs-note"><b>Plan A</b> Probable = Compromiso (monto) · <b>Plan B</b> Top Upside = Cobertura del probable · <b>Upside</b> = Resto. Montos en miles de USD.</p></div>';
+}
+
+function bloqueLob(){
+  const cabs = LOBS.map(l => '<th>' + esc(l) + '</th>').join('');
+  const fila = (lbl, pre, cls) => '<tr class="' + (cls||'') + '"><td class="k">' + lbl + '</td>' + LOBS.map(l => '<td class="calc">' + cv(pre + '.' + l) + '</td>').join('') + '<td class="calc">' + cv(pre + '.t') + '</td></tr>';
+  return '<div class="wk-band"><h2>4 · Por LOB — vendido y por vender</h2><span>Cerrado vs pipeline abierto</span></div>' +
+  '<div class="fs-one"><div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th>Concepto</th>' + cabs + '<th>Total</th></tr></thead><tbody>' +
+    fila('Vendido (Cerrado)', 'lv') + fila('Por vender (VC + BC + Pipe)', 'lp') + fila('Total', 'lt', 'tot') + '</tbody></table></div>' +
+    '<p class="fs-note">Si un deal no tiene LOB asignado en Top deals, no aparece aquí — asígnalo.</p></div>' +
+  '<div class="wk-card"><div class="wk-card-head"><div><h3>Mezcla por LOB</h3><p>Vendido (azul) y por vender (celeste)</p></div></div><div id="fsLobBars"></div></div></div>';
+}
+
+/* ---------- refresco de valores calculados (sin perder el foco al teclear) ---------- */
+function refrescar(raiz, b, qi, prev){
+  const v = calc(b, qi.meses);
+  raiz.querySelectorAll('[data-c]').forEach(el => { const k = el.getAttribute('data-c'); el.textContent = fmtClave(k, v[k]); });
+  raiz.querySelectorAll('[data-bar]').forEach(el => { el.style.width = Math.max(0, Math.min(100, (v[el.getAttribute('data-bar')]||0) * 100)) + '%'; });
+  raiz.querySelectorAll('[data-sem]').forEach(el => el.setAttribute('data-s', semaforo(v[el.getAttribute('data-sem')]||0)));
+  raiz.querySelectorAll('[data-delta]').forEach(el => {
+    const k = el.getAttribute('data-delta'); if(!prev){ el.style.display = 'none'; return; }
+    const dlt = (v[k]||0) - (prev[k]||0); el.style.display = ''; el.className = 'fs-delta ' + (dlt > 0.0005 ? 'up' : dlt < -0.0005 ? 'down' : '');
+    el.textContent = (dlt > 0 ? '▲ +' : dlt < 0 ? '▼ ' : '= ') + numK(dlt).replace('-$','-$') + ' vs sem. ant.';
+  });
+  // gráfica mensual
+  const ch = raiz.querySelector('#fsChart');
+  if(ch){
+    const max = Math.max(1, ...[0,1,2].map(i => Math.max(v['qc.m'+i], v['qw.m'+i] + v['qp.m'+i]))) * 1.08;
+    ch.innerHTML = [0,1,2].map(i => {
+      const w = v['qw.m'+i], c = v['qv.m'+i], u = v['qu.m'+i], H = 170;
+      return '<div class="fs-col"><div class="fs-mark" style="bottom:' + (v['qc.m'+i]/max*H + 22) + 'px">' + numK(v['qc.m'+i]) + '</div><div class="fs-stack" style="height:' + ((w+c+u)/max*H) + 'px">' +
+        '<i style="background:#0F5E9C;height:' + (w/(w+c+u||1)*100) + '%" data-tip="Won ' + numK(w) + '"></i><i style="background:#1F8A4C;height:' + (c/(w+c+u||1)*100) + '%" data-tip="VC ' + numK(c) + '"></i><i style="background:#9DD6EC;height:' + (u/(w+c+u||1)*100) + '%" data-tip="Upside ' + numK(u) + '"></i></div><div class="fs-cl">' + qi.meses[i] + '</div></div>';
+    }).join('');
+  }
+  const lb = raiz.querySelector('#fsLobBars');
+  if(lb){
+    const mx = Math.max(1, ...LOBS.map(l => v['lt.'+l]));
+    lb.innerHTML = LOBS.map(l => '<div style="display:grid;grid-template-columns:120px 1fr 90px;gap:10px;align-items:center;margin:9px 0;font-size:12.5px"><b style="color:#fff">' + esc(l) + '</b><div class="fs-hbar" style="width:' + (v['lt.'+l]/mx*100) + '%;min-width:6px"><i style="background:#1E5BB8;width:' + (v['lv.'+l]/(v['lt.'+l]||1)*100) + '%"></i><i style="background:#9DD6EC;width:' + (v['lp.'+l]/(v['lt.'+l]||1)*100) + '%"></i></div><span style="text-align:right;color:var(--grey)">' + numK(v['lt.'+l]) + '</span></div>').join('');
+  }
+  const av = raiz.querySelector('#fsAvisoLob');
+  if(av) av.innerHTML = v['sinlob.n'] ? '<div class="fs-warn">⚠️ ' + v['sinlob.n'] + ' deal(s) sin LOB por ' + numK(v['sinlob.t']) + ' — no aparecen en el bloque 4 hasta que les asignes LOB.</div>' : '';
+  return v;
+}
+
+/* ---------- vistas ---------- */
+function barra(){
+  const tabs = (D.yo.soloPropio ? [] : ['<button class="fs-tab' + (vista === 'overview' ? ' on' : '') + '" data-v="overview"><span class="av">∑</span>Overview segmento</button>']).concat(AEs().map(a => {
+    const live = D.live[a.slug], okSem = live && live.semana === SEM;
+    return '<button class="fs-tab' + (vista === a.slug ? ' on' : '') + '" data-v="' + a.slug + '"><span class="av" data-av="' + a.slug + '">' + esc(iniciales(a.nombre)) + '</span>' + esc(a.nombre.split(' ')[0]) + '<span class="dot ' + (okSem ? 'ok' : (live && live.reportadoEn ? 'pend' : '')) + '" title="' + (okSem ? 'Reportó esta semana' : 'Sin reportar esta semana') + '"></span></button>';
+  })).join('');
+  return '<div class="fs-bar"><div class="fs-tabs">' + tabs + '</div><div class="fs-tools"><label class="fs-sem">Semana del lunes <input type="date" id="fsSem" value="' + SEM + '"></label>' + (puedeOps() ? '<button class="fs-btn" id="fsCfg" title="Asignar correo de cada AE">⚙️ Responsables</button>' : '') + '</div></div>';
+}
+function avatares(){
+  document.querySelectorAll('[data-av]').forEach(el => { const s = el.getAttribute('data-av'); [ '.png', '.jpg' ].forEach(ext => { const im = new Image(); im.onload = () => { if(!el.querySelector('img')){ el.textContent = ''; el.appendChild(im); } }; im.src = '/assets/owners/' + s + ext; }); });
+}
+function permisoTexto(){
+  if(D.yo.soloPropio) return '<span class="fs-pill ok">✏️ Eres ' + esc(nombreAe(D.yo.ae)) + ' — ves y editas solo tu tablero</span>';
+  if(puedeOps()) return '<span class="fs-pill ok">🛠️ Sales Ops — puedes editar todos los tableros</span>';
+  if(D.yo.ae) return '<span class="fs-pill ok">✏️ Eres ' + esc(nombreAe(D.yo.ae)) + ' — editas solo tu tablero (celdas amarillas)</span>';
+  return '<span class="fs-pill">👁️ Solo lectura</span>';
+}
+function leyenda(){ return '<div class="fs-legend"><span><i class="ae"></i>Celdas del AE</span><span><i class="ops"></i>Celdas de Sales Ops</span><span><i class="calc"></i>Se calcula solo</span><span>Montos en miles de USD</span></div>'; }
+
+function pintar(conservar){
+  if(!D) return;
+  const y = window.scrollY, root = document.getElementById('content'), qi = qDe(SEM);
+  const prevSem = semanasHist().find(s => s < SEM), prevBoards = prevSem ? boardsAl(prevSem) : null;
+  const prevV = prevBoards ? calc(sumar(prevBoards), qDe(prevSem).meses) : null;
+  let html = barra();
+  document.getElementById('fechaRevisionBadge').innerHTML = '<span class="fecha-revision">Semana del lunes ' + fFecha(SEM) + ' · Q' + qi.q + ' ' + qi.anio + '</span>';
+
+  if(vista === 'overview') {
+    const boards = corte === 'actual' ? AEs().map(a => liveDe(a.slug)) : boardsAl(corte);
+    const semOv = corte === 'actual' ? SEM : corte, qiOv = qDe(semOv);
+    const agg = sumar(boards), va = calc(agg, qiOv.meses);
+    const ps = semanasHist().find(s => s < semOv), pv = ps ? calc(sumar(boardsAl(ps)), qDe(ps).meses) : null;
+    html += '<div class="fs-info">' + permisoTexto() +
+      '<label class="fs-sem">Corte <select id="fsCorte"><option value="actual">Actual (en vivo)</option>' + semanasHist().map(s => '<option value="' + s + '"' + (corte === s ? ' selected' : '') + '>Reportado · semana del ' + fFecha(s) + '</option>').join('') + '</select></label>' +
+      '<span class="fs-pill">La suma de los ' + AEs().length + ' tableros da esta vista</span></div>';
+    // comparativo por AE
+    const filasAe = boards.map(b => {
+      const v = calc(b, qiOv.meses), live = D.live[b._ae], rep = corte === 'actual' ? live : (b._rep || null);
+      const ok = rep && rep.semana === semOv;
+      return '<tr class="fs-row-click" data-v="' + b._ae + '"><td class="k l">' + esc(nombreAe(b._ae)) + '</td><td>' + numK(v['a.t']) + '</td><td>' + numK(v['y.t']) + '</td><td><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div class="fs-hbar" style="width:80px"><i style="background:' + ({g:'#1F8A4C',a:'#D8A63A',r:'#B23A3A'})[semaforo(v['p.t'])] + ';width:' + Math.min(100, v['p.t']*100) + '%"></i></div><b>' + pct(v['p.t']) + '</b></div></td><td>' + numK(v['qc.t']) + '</td><td>' + numK(v['qf.t']) + '</td><td><b style="color:' + ({g:'#4CE8AB',a:'#FFD479',r:'#FF8CA2'})[semaforo(v['qa.t'])] + '">' + pct(v['qa.t']) + '</b></td><td>' + mult(v['qb.t']) + '</td><td class="l"><span class="fs-tag ' + (ok ? 'vc' : 'top') + '">' + (rep && rep.reportadoEn ? (ok ? '✓ ' : '⏳ ') + fFechaHora(rep.reportadoEn) : 'Sin reporte') + '</span></td></tr>';
+    }).join('');
+    html += '<div class="wk-band"><h2>Equipo — avance por AE</h2><span>Click en una fila para abrir su tablero</span></div>' +
+      '<div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th>AE</th><th>Cuota anual</th><th>Cerrado YTD</th><th>% Avance</th><th>Cuota Q</th><th>Forecast Q</th><th>Alcance</th><th>Cobertura</th><th class="l">Último reporte</th></tr></thead><tbody>' + filasAe +
+      '<tr class="tot"><td class="l">SEGMENTO</td><td>' + numK(va['a.t']) + '</td><td>' + numK(va['y.t']) + '</td><td>' + pct(va['p.t']) + '</td><td>' + numK(va['qc.t']) + '</td><td>' + numK(va['qf.t']) + '</td><td>' + pct(va['qa.t']) + '</td><td>' + mult(va['qb.t']) + '</td><td></td></tr></tbody></table></div></div>';
+    html += bloqueCuota({ b: agg, plano: true });
+    html += bloqueQ({ b: agg, plano: true }, qiOv);
+    const orden = ['Won', VC, 'Top Upside =Plan B', 'Upside', 'Perdida'];
+    agg.deals.sort((x,y) => (orden.indexOf(x.estatus) - orden.indexOf(y.estatus)) || (totalDeal(y) - totalDeal(x)));
+    html += bloqueDeals(agg, { plano: true }, true);
+    html += bloqueLob();
+    html += historialHtml(null);
+    html += pieExportar();
+    root.innerHTML = html;
+    refrescar(root, agg, qiOv, pv);
+  } else if(snap) {
+    const e = snap, qiS = qDe(e.semana), b = Object.assign({ _ae: e.ae }, e.board);
+    html += '<div class="fs-snap"><span>🕘 Reporte histórico de <b>' + esc(nombreAe(e.ae)) + '</b> · semana del ' + fFecha(e.semana) + ' · reportado el <b>' + fFechaHora(e.reportadoEn) + '</b> por ' + esc(e.reportadoPor) + ' (solo lectura)</span><button class="fs-btn" id="fsVolver">← Volver al tablero actual</button></div>';
+    html += bloqueCuota({ b, plano: true }) + bloqueQ({ b, plano: true }, qiS) + bloqueDeals(b, { plano: true }, false) + bloqueLob();
+    html += pieExportar();
+    root.innerHTML = html; refrescar(root, b, qiS, null);
+  } else {
+    const slug = vista, b = boardDe(slug), live = D.live[slug] || {};
+    const puedeEd = puedeAe(slug) || puedeOps();
+    const edOn = puedeEd && editando;
+    const ed = edOn ? { ae: puedeAe(slug), ops: puedeOps(), b } : { b, plano: true };
+    const rep = live.reportadoEn ? '<span class="fs-pill ' + (live.semana === SEM ? 'ok' : 'warn') + '">' + (live.semana === SEM ? '✓' : '⏳') + ' Reportado el ' + fFechaHora(live.reportadoEn) + ' por ' + esc(live.reportadoPor) + ' · semana del ' + fFecha(live.semana) + '</span>' : '<span class="fs-pill warn">⏳ Aún sin reportar</span>';
+    const vacioB = !b.deals.length && !b.cuota.swAnual && !b.cuota.svAnual;
+    html += '<div class="fs-info">' + permisoTexto() + rep + (live.editadoEn ? '<span class="fs-pill">Última edición ' + fFechaHora(live.editadoEn) + '</span>' : '') + '<span id="fsDirty"></span></div>';
+    if(puedeEd){
+      html += '<div class="fs-info"><div class="fs-seg"><button data-modo="ver" class="' + (edOn ? '' : 'on') + '">👁️ Visualizar</button><button data-modo="editar" class="' + (edOn ? 'on' : '') + '">✏️ Editar</button></div>' +
+        (edOn || dirty[slug] ? '<button class="fs-btn pri" id="fsGuardar">💾 Guardar cambios</button>' : '') +
+        (puedeOps() ? '<button class="fs-btn ok" id="fsReportar">📣 Reportar forecast de la semana</button>' : '') +
+        (edOn ? '<label class="fs-btn" for="fsImg" style="margin:0" title="Sube o pega (Ctrl+V) una captura de tu tabla de deals de HubSpot">📷 Cargar captura de HubSpot</label><input type="file" id="fsImg" accept="image/*" style="display:none">' : '') +
+        (edOn ? '<label class="fs-btn" for="fsXls" style="margin:0">⬆️ Cargar Excel del formato</label><input type="file" id="fsXls" accept=".xlsx,.xls" style="display:none">' : '') +
+        (edOn && slug === 'fernanda' && vacioB && puedeOps() ? '<button class="fs-btn" id="fsSeed">Cargar corte inicial de Fer (Excel 26/10)</button>' : '') + '</div>';
+    } else {
+      html += '<div class="fs-warn">No puedes editar este tablero. Si eres AE, pide a Sales Ops que asigne tu correo en ⚙️ Responsables y que tu rol tenga permiso de edición de AE.</div>';
+    }
+    html += (edOn ? leyenda() : '') + bloqueCuota(ed) + bloqueQ(ed, qi) + bloqueDeals(b, ed, false) + bloqueLob() + historialHtml(slug);
+    html += pieExportar();
+    root.innerHTML = html;
+    refrescar(root, b, qi, (() => { if(!prevSem) return null; const pb = boardsAl(prevSem).find(x => x._ae === slug); return calc(pb, qDe(prevSem).meses); })());
+    marcarDirty();
+  }
+  avatares();
+  dealsVista();
+  // retrato del encabezado
+  document.body.classList.toggle('fs-ov', vista === 'overview');
+  if(window.WK && WK.ownerSet){
+    if(vista === 'overview' || (snap && !D.yo.soloPropio)) WK.ownerSet(WK.OWNERS.forecastequipo);
+    else { const o = WK.OWNERS[vista]; WK.ownerSet({ etiqueta:'Dueño del tablero · Forecast Semanal', equipo:[{ nombre: nombreAe(vista), cargo:'Account Executive', foto: (o && o.foto) || ('/assets/owners/' + vista + '.png') }] }); }
+  }
+  if(conservar) window.scrollTo(0, y);
+}
+
+
+
+/* ---------- Top deals: ordenar y filtrar como en Excel (solo vista, no cambia los datos) ---------- */
+const DV = { sort: null, dir: 1, f: {} };
+const DV_SEL = ['AE','LOB','ESTATUS','MES','PLAN A | B','EN LOB ✓'], DV_TXT = ['ID HUBSPOT','CUENTA','NEXT STEPS'], DV_NUM = ['SW','SERVICIOS','TOTAL'];
+function dvCelda(td){
+  const es = td.querySelector('[data-est]'); if(es) return es.dataset.est;
+  const el = td.querySelector('select,textarea,input:not([type=checkbox])'), ck = td.querySelector('input[type=checkbox]');
+  if(ck) return ck.checked ? '✓' : '—';
+  if(el && el.dataset.d === 'estatus') return el.value || '—';
+  if(el) return el.tagName === 'SELECT' ? (el.selectedOptions[0] ? el.selectedOptions[0].text : '') : el.value;
+  const t = td.textContent.replace(/\s+/g,' ').trim(); return t || '—';
+}
+function dealsVista(){
+  const tb = document.querySelector('table.fs-deals:not(.fs-lostt)'); if(!tb) return;
+  const ths = [...tb.querySelectorAll('thead tr:first-child th')], tbody = tb.tBodies[0];
+  const rows = [...tbody.querySelectorAll('tr.fs-dr')]; if(!rows.length) return;
+  rows.forEach((r,i) => { if(r.dataset.o == null) r.dataset.o = i; });
+  const names = ths.map(th => th.dataset.k || (th.dataset.k = th.textContent.replace(/[▲▼]/g,'').trim().toUpperCase()));
+  const val = (r, c) => dvCelda(r.children[c]);
+  // fila de filtros (se reconstruye en cada pintado)
+  if(!tb.querySelector('tr.fs-frow')){
+    const fr = document.createElement('tr'); fr.className = 'fs-frow';
+    fr.innerHTML = names.map((n,c) => {
+      if(DV_SEL.includes(n)){ const cat = ({ 'ESTATUS':ESTATUS, 'LOB':LOBS, 'MES':MESES, 'PLAN A | B':PLANES })[n];
+        const u = [...new Set((cat || []).concat(rows.map(r => val(r,c))))].filter(v => v !== '—'); if(!cat) u.sort((a,b) => a.localeCompare(b,'es'));
+        return '<th><select data-fk="' + esc(n) + '"><option value="">Todos</option>' + u.map(v => '<option value="' + esc(v) + '"' + (DV.f[n] === v ? ' selected' : '') + '>' + esc(n === 'ESTATUS' ? (ETQ_EST[v] || v) : v) + '</option>').join('') + (cat ? '<option value="—"' + (DV.f[n] === '—' ? ' selected' : '') + '>(Sin definir)</option>' : '') + '</select></th>'; }
+      if(DV_TXT.includes(n)) return '<th><input data-fk="' + esc(n) + '" placeholder="Filtrar…" value="' + esc(DV.f[n] || '') + '"></th>';
+      return '<th></th>'; }).join('');
+    tb.querySelector('thead').appendChild(fr);
+  }
+  ths.forEach((th,c) => { const n = names[c]; th.classList.toggle('fs-sortable', DV_SEL.includes(n) || DV_TXT.includes(n) || DV_NUM.includes(n));
+    th.textContent = th.textContent.replace(/[▲▼]/g,'').trim(); if(DV.sort === n) th.textContent += DV.dir > 0 ? ' ▲' : ' ▼'; });
+  const num = x => { const m = String(x).replace(/[$,\s]/g,''); return m === '—' || m === '' ? -Infinity : (+m || 0); };
+  const ci = DV.sort ? names.indexOf(DV.sort) : -1;
+  rows.sort((a,b) => { if(ci >= 0){ const x = val(a,ci), y = val(b,ci); const d = DV_NUM.includes(DV.sort) ? num(x) - num(y) : x.localeCompare(y,'es',{numeric:true}); if(d) return d * DV.dir; } return a.dataset.o - b.dataset.o; });
+  const tot = tbody.querySelector('tr.tot');
+  let vis = 0;
+  rows.forEach(r => { tbody.insertBefore(r, tot);
+    const ok = Object.keys(DV.f).every(n => { const f = DV.f[n]; if(!f) return true; const c = names.indexOf(n); if(c < 0) return true; const v = val(r,c);
+      return DV_SEL.includes(n) ? v === f : v.toLowerCase().includes(f.toLowerCase()); });
+    r.style.display = ok ? '' : 'none'; if(ok) vis++; });
+  let nota = tb.closest('.wk-card').querySelector('.fs-fcount');
+  const activos = Object.keys(DV.f).filter(n => DV.f[n]).length;
+  if(!nota){ nota = document.createElement('div'); nota.className = 'fs-fcount'; tb.closest('.fs-tw').after(nota); }
+  nota.innerHTML = (activos || DV.sort) ? 'Mostrando <b>' + vis + '</b> de ' + rows.length + ' deals' + (activos ? ' · <a href="#" data-fclear>Quitar filtros</a>' : '') : '';
+}
+document.addEventListener('click', e => {
+  const th = e.target.closest && e.target.closest('table.fs-deals th.fs-sortable');
+  if(th && !th.closest('tr.fs-frow')){ const n = th.dataset.k; if(DV.sort === n){ if(DV.dir > 0) DV.dir = -1; else DV.sort = null; } else { DV.sort = n; DV.dir = 1; } dealsVista(); return; }
+  if(e.target.dataset && e.target.dataset.fclear != null){ e.preventDefault(); DV.f = {}; DV.sort = null; document.querySelectorAll('tr.fs-frow').forEach(r => r.remove()); dealsVista(); }
+});
+document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.fk; if(!k || e.target.tagName === 'SELECT') return; DV.f[k] = e.target.value; dealsVista(); });
+document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.fk; if(!k || e.target.tagName !== 'SELECT') return; DV.f[k] = e.target.value; dealsVista(); });
+
+
+/* ---------- Captura de HubSpot → Delfos lee la tabla → vista previa → crear/actualizar deals ---------- */
+document.addEventListener('paste', e => {
+  if(!D || snap || vista === 'overview' || !editando || document.getElementById('fsCapModal')) return;
+  const it = [...(e.clipboardData && e.clipboardData.items || [])].find(x => x.type && x.type.startsWith('image/'));
+  if(it){ e.preventDefault(); leerCaptura(it.getAsFile()); }
+});
+const mesDe = iso => iso ? MESES[+iso.slice(5,7) - 1] || '' : '';
+const norm = x => String(x || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+/* Reglas de mapeo HubSpot → tablero (acordadas con Sam) */
+function mapLob(sol){ // devuelve LOB, o '' si hay que preguntar
+  const n = norm(sol); if(!n.trim()) return '';
+  if(/\berp\b/.test(n)) return 'Rise';
+  const ask = /\bams\b|analytic|infra|d14|desarrollo|bolsa/.test(n);
+  const set = new Set(); if(/\bhcm\b|sfsf|ssff|successfactors|\bsf\b/.test(n)) set.add('SFSF'); if(/\bcrm\b|\bcx\b/.test(n)) set.add('LOB'); if(/\bb1\b|business one/.test(n)) set.add('B1');
+  return (!ask && set.size === 1) ? [...set][0] : '';
+}
+function mapEstatus(d){
+  const e = norm(d.etapa), f = norm(d.fcst);
+  if(/\bwon\b|ganad/.test(e)) return 'Won'; if(/\blost\b|perdid/.test(e)) return 'Perdida';
+  if(/commit|probable/.test(f)) return VC; if(/top\s*upside/.test(f)) return 'Top Upside =Plan B'; if(/upside/.test(f)) return 'Upside'; return '';
+}
+function mapCat(desc){ const n = norm(desc); if(/servicio|bolsa de horas|implementaci/.test(n)) return 'sv'; if(/licencia|suscripci/.test(n)) return 'sw'; return ''; }
+async function leerCaptura(file){
+  if(!file) return;
+  const cargando = document.createElement('div'); cargando.className = 'fs-toast'; cargando.textContent = '🔎 Delfos está leyendo tu captura… (puede tardar ~20 s)'; document.body.appendChild(cargando);
+  try{
+    const fd = new FormData(); fd.append('imagen', file, file.name || 'captura.png');
+    const r = await fetch('/api/forecast-captura', { method:'POST', body: fd }); const j = await r.json().catch(() => ({}));
+    if(!r.ok || !j.ok) throw new Error(j.error || 'No se pudo leer la captura.');
+    if(!j.deals.length) throw new Error('No encontré deals en la captura.');
+    capturaPreview(j.deals);
+  }catch(err){ toast(err.message || String(err), true); }
+  finally{ cargando.remove(); }
+}
+function capturaPreview(extra){
+  const b = boardDe(vista), prev = document.getElementById('fsCapModal'); if(prev) prev.remove();
+  const modal = document.createElement('div'); modal.id = 'fsCapModal'; modal.className = 'fs-modal';
+  const hayMx = extra.some(d => d.moneda === 'MXN'), sinId = extra.filter(d => !d.id).length;
+  const filas = extra.map((d, n) => {
+    const ex = d.id ? b.deals.findIndex(x => String(x.id) === d.id) : -1, o = ex >= 0 ? b.deals[ex] : null;
+    return { n, d, ex, o, lob: mapLob(d.solucion) || (o && o.lob) || '', lobAsk: !mapLob(d.solucion), cat: mapCat(d.descripcion) || (o ? ((+o.sw || 0) && !(+o.sv || 0) ? 'sw' : (+o.sv || 0) ? 'sv' : '') : ''), catAsk: !mapCat(d.descripcion), est: mapEstatus(d), mes: mesDe(d.cierre) };
+  });
+  const tc = () => parseFloat((document.getElementById('fsCapTc') || {}).value) || 18;
+  const kDe = f => Math.round((f.d.moneda === 'MXN' ? f.d.valor / tc() : f.d.valor) / 100) / 10;
+  const opt = (lista, v, ph) => '<option value="">' + ph + '</option>' + lista.map(([val, lbl]) => '<option value="' + val + '"' + (v === val ? ' selected' : '') + '>' + lbl + '</option>').join('');
+  const pend = f => !f.lob || !f.cat;
+  function pintarTabla(){
+    document.getElementById('fsCapBody').innerHTML = filas.map(f => {
+      const nuevo = !f.o, k = kDe(f), cam = [];
+      if(f.o){ const o = f.o; if(k && k !== totalDeal(o)) cam.push('monto ' + numK(totalDeal(o)) + ' → ' + numK(k)); if(f.mes && f.mes !== o.mes) cam.push('mes ' + (o.mes || '—') + ' → ' + f.mes); if(f.est && f.est !== o.estatus) cam.push('estatus → ' + (ETQ_EST[f.est] || f.est)); if(f.lob && f.lob !== o.lob) cam.push('LOB → ' + f.lob); if(f.d.cuenta && f.d.cuenta !== o.cuenta) cam.push('nombre'); }
+      const sin = f.o && !cam.length && !pend(f), bloq = pend(f);
+      const ck = f.sel === undefined ? (!sin && !bloq) : f.sel && !bloq;
+      return '<tr class="' + (bloq ? 'pend' : '') + '"><td><input type="checkbox" data-cap="' + f.n + '"' + (ck ? ' checked' : '') + (bloq || sin ? ' disabled' : '') + '></td><td><span class="fs-tag ' + (nuevo ? 'won' : (sin ? 'up' : 'top')) + '">' + (nuevo ? 'Nuevo' : (sin ? 'Sin cambios' : 'Actualiza')) + '</span></td><td>' + esc(f.d.id || '—') + '</td><td>' + esc(f.d.cuenta) + '</td>' +
+        '<td><select data-capl="' + f.n + '" class="' + (f.lob ? '' : 'need') + '">' + opt(LOBS.map(x => [x, x]), f.lob, '¿Qué LOB?') + '</select><div class="fs-orig">' + esc(f.d.solucion || '—') + '</div></td>' +
+        '<td>' + (f.est ? tagEst(f.est) : '<span class="fs-orig">sin estatus</span>') + '</td><td>' + esc(f.mes || '—') + '</td>' +
+        '<td><select data-capc="' + f.n + '" class="' + (f.cat ? '' : 'need') + '">' + opt([['sv','Servicios'],['sw','SW']], f.cat, '¿SW o Servicios?') + '</select><div class="fs-orig">' + esc(f.d.descripcion || '—') + '</div></td>' +
+        '<td style="text-align:right">' + numK(k) + (f.d.moneda !== 'USD' ? '<div class="fs-orig">' + esc(f.d.moneda) + ' ' + f.d.valor.toLocaleString('en-US') + '</div>' : '') + '</td>' +
+        '<td style="font-size:11.5px;color:#9FB2D3">' + (nuevo ? (f.d.id ? '' : 'sin ID: se agrega como nuevo') : esc(cam.join(' · '))) + '</td></tr>';
+    }).join('');
+    const np = filas.filter(pend).length;
+    const marcadas = [...document.querySelectorAll('#fsCapBody [data-cap]:checked')].map(x => +x.dataset.cap), aplic = filas.filter(f => marcadas.includes(f.n) && !pend(f));
+    const nNue = aplic.filter(f => !f.o).length, nAct = aplic.filter(f => f.o).length, nSin = filas.filter(f => f.o && !pend(f) && !marcadas.includes(f.n)).length, nOmi = filas.length - aplic.length - nSin;
+    document.getElementById('fsCapRes').innerHTML = '<div class="fs-cap"><b>' + filas.length + '</b><span>filas leídas de la imagen</span></div><div class="fs-cap nue"><b>' + nNue + '</b><span>se crearán</span></div><div class="fs-cap act"><b>' + nAct + '</b><span>se actualizarán</span></div><div class="fs-cap"><b>' + nSin + '</b><span>sin cambios</span></div>' + (nOmi > 0 ? '<div class="fs-cap omi"><b>' + nOmi + '</b><span>no se aplicarán' + (np ? ' (' + np + ' por definir)' : '') + '</span></div>' : '');
+    document.getElementById('fsCapOk').textContent = 'Aplicar ' + (nNue + nAct) + ' cambio(s) a mi tablero'; document.getElementById('fsCapOk').disabled = !(nNue + nAct);
+    document.getElementById('fsCapPend').innerHTML = np ? '⚠️ ' + np + ' fila(s) necesitan que elijas LOB o SW/Servicios antes de poder aplicarse.' : '';
+  }
+  modal.innerHTML = '<div class="fs-mbox"><h3>📷 Esto leyó Delfos de tu captura</h3><p class="fs-mp">Revisa antes de aplicar. Solo se crean o actualizan deals (nunca se borra nada). Plan A|B, Next steps y el check "En LOB" se conservan. Después presiona <b>Guardar cambios</b>.</p>' +
+    (sinId ? '<div class="fs-warn" style="margin-bottom:10px">' + sinId + ' fila(s) sin ID de registro: se agregarían como nuevas. Agrega la columna <b>ID de registro</b> a tu vista de HubSpot para poder actualizar deals existentes.</div>' : '') +
+    (hayMx ? '<div class="fs-mctl"><label>Tipo de cambio MXN→USD <input id="fsCapTc" type="number" step="0.01" value="18" style="width:70px"></label></div>' : '') +
+    '<div id="fsCapRes" class="fs-caps"></div><div id="fsCapPend" class="fs-capp"></div><div class="fs-mtw"><table class="fs-t"><thead><tr><th></th><th class="l">Acción</th><th class="l">ID</th><th class="l">Cuenta</th><th class="l">LOB</th><th class="l">Estatus</th><th class="l">Mes</th><th class="l">Categoría</th><th>Monto (K USD)</th><th class="l">Cambios</th></tr></thead><tbody id="fsCapBody"></tbody></table></div>' +
+    '<div class="fs-mbtn"><button class="fs-btn" id="fsCapNo">Cancelar</button><button class="fs-btn pri" id="fsCapOk">Aplicar a mi tablero</button></div></div>';
+  document.body.appendChild(modal); pintarTabla();
+  modal.addEventListener('change', e => { const t = e.target;
+    if(t.dataset.capl !== undefined){ const f = filas[+t.dataset.capl]; f.lob = t.value; f.sel = undefined; pintarTabla(); }
+    else if(t.dataset.capc !== undefined){ const f = filas[+t.dataset.capc]; f.cat = t.value; f.sel = undefined; pintarTabla(); }
+    else if(t.dataset.cap !== undefined){ filas[+t.dataset.cap].sel = t.checked; pintarTabla(); } });
+  modal.addEventListener('input', e => { if(e.target.id === 'fsCapTc'){ const mark = {}; modal.querySelectorAll('[data-cap]').forEach(c => mark[c.dataset.cap] = c.checked); filas.forEach(f => f.sel = mark[f.n]); pintarTabla(); } });
+  modal.querySelector('#fsCapNo').onclick = () => modal.remove();
+  modal.querySelector('#fsCapOk').onclick = () => {
+    const sel = [...modal.querySelectorAll('[data-cap]:checked')].map(x => +x.dataset.cap);
+    let nuevos = 0, act = 0;
+    filas.filter(f => sel.includes(f.n) && !pend(f)).forEach(f => { const k = kDe(f), sw = f.cat === 'sw' ? k : 0, sv = f.cat === 'sv' ? k : 0;
+      if(!f.o){ b.deals.push({ id: f.d.id, cuenta: f.d.cuenta, lob: f.lob, sw, sv, estatus: f.est, mes: f.mes, plan:'', enLob:false, next:'' }); nuevos++; }
+      else { const o = f.o; if(f.d.cuenta) o.cuenta = f.d.cuenta; o.lob = f.lob; if(k){ o.sw = sw; o.sv = sv; } if(f.mes) o.mes = f.mes; if(f.est) o.estatus = f.est; act++; } });
+    modal.remove(); if(nuevos || act){ dirty[vista] = true; pintar(true); toast('Listo: ' + nuevos + ' nuevo(s), ' + act + ' actualizado(s). Presiona Guardar cambios.'); }
+  };
+}
+
+/* ---------- Exportar a Excel (mismo formato del Excel de Fer: 4 pestañas, se puede volver a cargar) ---------- */
+function pieExportar(){
+  return '<div class="fs-foot"><button class="fs-btn pri" id="fsExport">⬇️ Exportar a Excel</button><span>Descarga lo que estás viendo en el formato del Excel de Forecast (Cuota año · Forecast CQ · Top deals · LOB). ' + (vista === 'overview' ? 'En el Overview incluye también la pestaña EQUIPO. ' : '') + 'Montos en miles de USD.</span></div>';
+}
+function ctxExport(){
+  if(vista === 'overview'){
+    const boards = corte === 'actual' ? AEs().map(a => liveDe(a.slug)) : boardsAl(corte);
+    const sem = corte === 'actual' ? SEM : corte, agg = sumar(boards);
+    const orden = ['Won', VC, 'Top Upside =Plan B', 'Upside', 'Perdida'];
+    agg.deals.sort((x,y) => (orden.indexOf(x.estatus) - orden.indexOf(y.estatus)) || (totalDeal(y) - totalDeal(x)));
+    return { b: agg, qi: qDe(sem), sem, nombre: 'Overview', conAe: true, boards };
+  }
+  if(snap){ return { b: Object.assign({ _ae: snap.ae }, snap.board), qi: qDe(snap.semana), sem: snap.semana, nombre: nombreAe(snap.ae).replace(/\s+/g,'_'), conAe: false }; }
+  return { b: boardDe(vista), qi: qDe(SEM), sem: SEM, nombre: nombreAe(vista).replace(/\s+/g,'_'), conAe: false };
+}
+async function exportarExcel(){
+  if(typeof ExcelJS === 'undefined'){ toast('No se pudo cargar la librería de Excel. Revisa tu conexión y vuelve a intentar.', true); return; }
+  const c = ctxExport(), v = calc(c.b, c.qi.meses), M = c.qi.meses, deals = c.b.deals || [];
+  const wb = new ExcelJS.Workbook(); wb.creator = 'Portal Presales · SEIDOR México'; wb.created = new Date();
+  const NAVY='FF0E1E3F', BLUE='FF1E5BB8', CYAN='FF33B4DD', CYANL='FFE3F4FB', ICE='FFEAF1FB', GREY='FFF3F6FA', LINE='FFD8E2EE', WHITE='FFFFFFFF', INK='FF16223A', MUTE='FF5E6B82';
+  const SEM = { g:{ bg:'FFE1F4E9', fg:'FF17703E' }, a:{ bg:'FFFBF1DE', fg:'FF8A6414' }, r:{ bg:'FFFBE7E7', fg:'FF9A2E2E' } };
+  const FONT = 'Calibri';
+  const K = '"$"#,##0.0;[Red]-"$"#,##0.0;"–"', PCT = '0.0%', MULT = '0.00"x"';
+  const quien = c.conAe ? 'Overview del segmento' : c.nombre.replace(/_/g,' ');
+  const meta = (c.conAe ? 'Suma de los ' + c.boards.length + ' tableros' : quien) + '  ·  Q' + c.qi.q + ' ' + c.qi.anio + '  ·  Semana del corte ' + fFecha(c.sem) + '  ·  Montos en miles de USD';
+  const fill = rgb => ({ type:'pattern', pattern:'solid', fgColor:{ argb: rgb } });
+  const bord = (rgb, st) => ({ style: st || 'thin', color:{ argb: rgb || LINE } });
+  const caja = rgb => ({ top:bord(rgb), left:bord(rgb), bottom:bord(rgb), right:bord(rgb) });
+  const nuevaHoja = (nombre, color, anchos) => { const ws = wb.addWorksheet(nombre, { views:[{ showGridLines:false, zoomScale:100 }], properties:{ tabColor:{ argb: color || BLUE } }, pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0, paperSize:9, margins:{ left:.4, right:.4, top:.5, bottom:.5, header:.3, footer:.3 } } });
+    ws.columns = anchos.map(w => ({ width: w })); return ws; };
+  const banda = (ws, titulo, sub, ultima) => { // filas 2-3: banner navy con línea cian
+    ws.mergeCells(2, 2, 2, ultima); ws.mergeCells(3, 2, 3, ultima);
+    for(let col = 2; col <= ultima; col++){ ws.getCell(2, col).fill = fill(NAVY); ws.getCell(3, col).fill = fill(NAVY); ws.getCell(3, col).border = { bottom: bord(CYAN, 'thick') }; }
+    const t = ws.getCell(2,2); t.value = titulo; t.font = { name:FONT, size:18, bold:true, color:{ argb: WHITE } }; t.alignment = { vertical:'middle', indent:1 };
+    const u = ws.getCell(3,2); u.value = sub; u.font = { name:FONT, size:10.5, color:{ argb:'FF8FE6FF' } }; u.alignment = { vertical:'middle', indent:1 };
+    ws.getRow(1).height = 8; ws.getRow(2).height = 34; ws.getRow(3).height = 22;
+  };
+  const cab = (ws, fila, col0, textos, opts) => { textos.forEach((tx, i) => { const x = ws.getCell(fila, col0 + i); x.value = tx; x.fill = fill((opts && opts.color) || NAVY); x.font = { name:FONT, size:10.5, bold:true, color:{ argb: WHITE } };
+    x.alignment = { vertical:'middle', horizontal: i === 0 ? 'left' : 'center', wrapText:true, indent: i === 0 ? 1 : 0 }; x.border = { bottom: bord(CYAN, 'medium') }; }); ws.getRow(fila).height = 24; };
+  const num = (cell, valor, fmt, o) => { o = o || {}; cell.value = (o.f ? { formula: o.f, result: valor } : valor); cell.numFmt = fmt; cell.alignment = { horizontal:'right', vertical:'middle', indent:1 };
+    cell.font = { name:FONT, size:11, bold: !!o.bold, color:{ argb: o.color || INK } }; cell.fill = fill(o.bg || WHITE); cell.border = { bottom: bord(LINE) }; };
+  const lbl = (cell, texto, o) => { o = o || {}; cell.value = texto; cell.font = { name:FONT, size:11, bold: o.bold !== false, color:{ argb: o.color || NAVY } }; cell.fill = fill(o.bg || GREY); cell.alignment = { vertical:'middle', indent:1 }; cell.border = { bottom: bord(LINE) }; };
+  const sem = (p) => SEM[semaforo(p)];
+  const barra = (p) => '█'.repeat(Math.max(0, Math.min(20, Math.round(p * 20)))) + '░'.repeat(20 - Math.max(0, Math.min(20, Math.round(p * 20))));
+  const tarjeta = (ws, fila, col0, ancho, etiqueta, valor, fmt, sub, tono, barraP) => { // tarjeta KPI: 4 filas
+    const c1 = col0, c2 = col0 + ancho - 1;
+    if(c2 > c1) for(let r = 0; r < 4; r++) ws.mergeCells(fila + r, c1, fila + r, c2);
+    for(let r = 0; r < 4; r++) for(let col = c1; col <= c2; col++){ const x = ws.getCell(fila + r, col); x.fill = fill(tono ? tono.bg : GREY); x.border = { left: col === c1 ? bord(tono ? tono.fg : BLUE, 'thick') : undefined, right: col === c2 ? bord(LINE) : undefined, top: r === 0 ? bord(LINE) : undefined, bottom: r === 3 ? bord(LINE) : undefined }; }
+    const a = ws.getCell(fila, c1); a.value = etiqueta.toUpperCase(); a.font = { name:FONT, size:9, bold:true, color:{ argb: MUTE } }; a.alignment = { indent:1, vertical:'bottom' };
+    const b = ws.getCell(fila + 1, c1); b.value = valor; b.numFmt = fmt; b.font = { name:FONT, size:22, bold:true, color:{ argb: tono ? tono.fg : NAVY } }; b.alignment = { horizontal:'left', indent:1, vertical:'middle' };
+    const d = ws.getCell(fila + 2, c1); d.value = sub; d.font = { name:FONT, size:9.5, color:{ argb: MUTE } }; d.alignment = { indent:1, vertical:'top' };
+    if(barraP != null){ const e = ws.getCell(fila + 3, c1); e.value = barra(barraP); e.font = { name:'Consolas', size:9, color:{ argb: tono ? tono.fg : BLUE } }; e.alignment = { indent:1, vertical:'middle' }; }
+    ws.getRow(fila + 1).height = 34;
+  };
+  const pie = (ws, fila, ultima) => { ws.mergeCells(fila, 2, fila, ultima); const x = ws.getCell(fila, 2); x.value = 'Generado desde el Portal Presales · SEIDOR México · ' + new Date().toLocaleString('es-MX') + (D.yo && D.yo.email ? ' · ' + D.yo.email : ''); x.font = { name:FONT, size:8.5, italic:true, color:{ argb:'FF8A97AC' } }; x.alignment = { indent:1 }; };
+  const imp = (ws, ult) => { ws.headerFooter.oddFooter = '&L&8Portal Presales · SEIDOR México&R&8Página &P de &N'; ws.pageSetup.printArea = undefined; };
+
+  /* ===== 0 · PORTADA ===== */
+  const wp = nuevaHoja('RESUMEN', NAVY, [2, 22, 22, 22, 22, 22, 22]);
+  banda(wp, 'Forecast Semanal — ' + (c.conAe ? 'Overview del segmento' : quien), meta, 7);
+  wp.mergeCells(5, 2, 5, 7); const t5 = wp.getCell(5,2); t5.value = 'LO QUE IMPORTA ESTA SEMANA'; t5.font = { name:FONT, size:11, bold:true, color:{ argb: BLUE } }; wp.getRow(5).height = 22;
+  tarjeta(wp, 6, 2, 2, 'Avance vs cuota anual', v['p.t'], PCT, 'Cerrado YTD $' + v['y.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K de $' + v['a.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K', sem(v['p.t']), v['p.t']);
+  tarjeta(wp, 6, 4, 2, 'Forecast del Q (Won + VC)', v['qf.t'], K, 'Won $' + v['qw.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K · VC $' + v['qv.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K', null, null);
+  tarjeta(wp, 6, 6, 2, 'Alcance vs cuota del Q', v['qa.t'], PCT, 'Cuota del Q $' + v['qc.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K', sem(v['qa.t']), v['qa.t']);
+  tarjeta(wp, 11, 2, 2, 'Cobertura de pipeline', v['qb.t'], MULT, 'Pipeline $' + v['qp.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K (VC + Upside)', null, Math.min(1, v['qb.t'] / 3));
+  tarjeta(wp, 11, 4, 2, 'GAP 2026', v['g.t'], K, 'Lo que falta para la cuota anual', v['g.t'] > 0 ? SEM.a : SEM.g, null);
+  tarjeta(wp, 11, 6, 2, 'Deals en Top deals', deals.length, '0', 'Pipeline total $' + v['dtot.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K', null, null);
+  wp.mergeCells(16, 2, 16, 7); const t16 = wp.getCell(16,2); t16.value = 'CONTENIDO DEL ARCHIVO'; t16.font = { name:FONT, size:11, bold:true, color:{ argb: BLUE } };
+  [['CUOTA AÑO','Cuota anual, cerrado YTD, % de avance y GAP'],['FORECAST CQ','Foto del trimestre: Won, VC, forecast, alcance y cobertura (Q general y mensual)'],['TOP DEALS','Detalle por oportunidad con estatus, mes, plan y next steps'],['LOB','Vendido y por vender por línea de oferta']].concat(c.conAe ? [['EQUIPO','Comparativo por AE']] : []).forEach((x, i) => {
+    const r = 17 + i; wp.mergeCells(r, 3, r, 7); lbl(wp.getCell(r,2), x[0], { bg: ICE }); const d = wp.getCell(r,3); d.value = x[1]; d.font = { name:FONT, size:10.5, color:{ argb: INK } }; d.alignment = { indent:1, vertical:'middle' }; d.border = { bottom: bord(LINE) }; wp.getRow(r).height = 20; });
+  wp.mergeCells(23, 2, 23, 7); const t23 = wp.getCell(23,2); t23.value = 'Estatus: Won = ganado · VC = Commit + Probable (Plan A) · Top Upside = Plan B · Upside = resto. Pipeline = VC + Upside. Cobertura = Pipeline ÷ cuota.'; t23.font = { name:FONT, size:9.5, italic:true, color:{ argb: MUTE } }; t23.alignment = { wrapText:true, indent:1, vertical:'top' }; wp.getRow(23).height = 30;
+  pie(wp, 25, 7);
+
+  /* ===== 1 · CUOTA AÑO (misma celdas que el formato original: C8:D9) ===== */
+  const w1 = nuevaHoja('CUOTA AÑO', BLUE, [2, 32, 18, 18, 18, 2]);
+  banda(w1, 'CUOTA DEL AÑO — ¿DÓNDE ESTOY?', meta, 5);
+  w1.mergeCells(5, 2, 5, 5); w1.getCell(5,2).value = 'Avance vs cuota anual · montos en miles de USD'; w1.getCell(5,2).font = { name:FONT, size:10.5, italic:true, color:{ argb: MUTE } };
+  cab(w1, 7, 2, ['CONCEPTO','SW','SERVICIOS','TOTAL']);
+  const cuotaF = [['Cuota Anual','a'],['Cerrado YTD','y']];
+  cuotaF.forEach((x, i) => { const r = 8 + i; lbl(w1.getCell(r,2), x[0]); num(w1.getCell(r,3), v[x[1]+'.sw'], K); num(w1.getCell(r,4), v[x[1]+'.sv'], K); num(w1.getCell(r,5), v[x[1]+'.t'], K, { bold:true, bg: ICE, f: 'C' + r + '+D' + r }); w1.getRow(r).height = 22; });
+  lbl(w1.getCell(10,2), '% Avance', { bg: ICE });
+  [['C','sw'],['D','sv'],['E','t']].forEach(([L,k]) => { const p = v['p.'+k], z = sem(p); num(w1.getCell(L+'10'), p, PCT, { bold:true, bg: z.bg, color: z.fg, f: 'IFERROR(' + L + '9/' + L + '8,0)' }); });
+  lbl(w1.getCell(11,2), 'GAP 2026'); [['C','sw'],['D','sv'],['E','t']].forEach(([L,k]) => num(w1.getCell(L+'11'), v['g.'+k], K, { bold: k === 't', f: L + '8-' + L + '9' }));
+  w1.getRow(10).height = 24; w1.getRow(11).height = 22;
+  tarjeta(w1, 13, 2, 1, 'Avance vs cuota anual', v['p.t'], PCT, 'Cerrado YTD vs cuota', sem(v['p.t']), v['p.t']);
+  tarjeta(w1, 13, 3, 2, 'Cerrado YTD', v['y.t'], K, 'SW + Servicios', null, null);
+  tarjeta(w1, 13, 5, 1, 'GAP 2026', v['g.t'], K, 'Por cerrar', v['g.t'] > 0 ? SEM.a : SEM.g, null);
+  pie(w1, 18, 5);
+
+  /* ===== 2 · FORECAST CQ (cuotas en C8:D8 y F8:H8) ===== */
+  const w2 = nuevaHoja('FORECAST CQ', BLUE, [2, 40, 14, 14, 14, 14, 14, 14, 2]);
+  banda(w2, 'FOTO DEL TRIMESTRE — Q' + c.qi.q + ' ' + c.qi.anio, meta, 8);
+  w2.mergeCells(5, 2, 5, 8); w2.getCell(5,2).value = 'El GAP y cómo lo cubro. Compromiso por mes = Cerrado + VC.'; w2.getCell(5,2).font = { name:FONT, size:10.5, italic:true, color:{ argb: MUTE } };
+  w2.mergeCells(6, 3, 6, 5); w2.mergeCells(6, 6, 6, 8);
+  const g1 = w2.getCell(6,3); g1.value = 'Q GENERAL'; g1.fill = fill(BLUE); g1.font = { name:FONT, size:10.5, bold:true, color:{ argb: WHITE } }; g1.alignment = { horizontal:'center', vertical:'middle' };
+  const g2 = w2.getCell(6,6); g2.value = 'MENSUAL'; g2.fill = fill('FF1B8FB5'); g2.font = { name:FONT, size:10.5, bold:true, color:{ argb: WHITE } }; g2.alignment = { horizontal:'center', vertical:'middle' };
+  for(let col = 3; col <= 8; col++) w2.getCell(6,col).fill = fill(col <= 5 ? BLUE : 'FF1B8FB5'); w2.getRow(6).height = 22;
+  cab(w2, 7, 2, ['CONCEPTO','SW','SERVICIOS','TOTAL', M[0], M[1], M[2]]);
+  ['F','G','H'].forEach(L => { w2.getCell(L+'7').fill = fill('FF1B8FB5'); });
+  const cols = ['sw','sv','t','m0','m1','m2'], LET = ['C','D','E','F','G','H'];
+  const filaQ = (r, etiqueta, pre, fmt, o) => { o = o || {}; lbl(w2.getCell(r,2), etiqueta, { bg: o.bg || GREY, color: o.fg || NAVY });
+    cols.forEach((k, i) => { const val = v[pre + '.' + k], L = LET[i]; const z = o.sem ? sem(val) : null;
+      num(w2.getCell(L + r), val, fmt, { bold: !!o.bold || k === 't', bg: z ? z.bg : (o.bg || (k === 't' ? ICE : WHITE)), color: z ? z.fg : (o.fg || INK), f: o.f && o.f(L) }); }); w2.getRow(r).height = 22; };
+  filaQ(8, 'Cuota del Q', 'qc', K, { bold:true, bg:'FFFFFFCC' }); w2.getCell('E8').value = { formula:'C8+D8', result: v['qc.t'] };
+  filaQ(9, 'Won en el Q', 'qw', K, { }); w2.getCell('E9').value = { formula:'C9+D9', result: v['qw.t'] };
+  filaQ(10, 'VC (Commit + Probable)', 'qv', K, { }); w2.getCell('E10').value = { formula:'C10+D10', result: v['qv.t'] };
+  filaQ(11, 'Forecast (Won + VC)', 'qf', K, { bold:true, bg: BLUE, fg: WHITE, f: L => L + '9+' + L + '10' });
+  filaQ(12, 'Alcance vs Cuota', 'qa', '0%', { sem:true, f: L => 'IFERROR(' + L + '11/' + L + '8,0)' });
+  filaQ(13, 'Pipeline (VC + Top Upside + Upside)', 'qp', K, { }); w2.getCell('E13').value = { formula:'C13+D13', result: v['qp.t'] };
+  filaQ(14, 'Cobertura (Pipeline vs Cuota)', 'qb', MULT, { f: L => 'IFERROR(' + L + '13/' + L + '8,0)' });
+  tarjeta(w2, 16, 2, 1, 'Forecast del Q', v['qf.t'], K, 'Won ' + '$' + v['qw.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K + VC $' + v['qv.t'].toLocaleString('es-MX', { maximumFractionDigits:1 }) + 'K', null, null);
+  tarjeta(w2, 16, 3, 3, 'Alcance vs cuota del Q', v['qa.t'], '0%', 'Forecast ÷ cuota', sem(v['qa.t']), v['qa.t']);
+  tarjeta(w2, 16, 6, 3, 'Cobertura de pipeline', v['qb.t'], MULT, 'Pipeline ÷ cuota (meta ≥ 3x)', v['qb.t'] >= 3 ? SEM.g : v['qb.t'] >= 2 ? SEM.a : SEM.r, Math.min(1, v['qb.t'] / 3));
+  pie(w2, 21, 8);
+
+  /* ===== 3 · TOP DEALS (B..L desde la fila 8, como el formato original) ===== */
+  const anch = [2, 15, 36, 10, 11, 12, 12, 26, 12, 11, 8, 54].concat(c.conAe ? [20] : []);
+  const w3 = nuevaHoja('TOP DEALS', BLUE, anch); const ult3 = c.conAe ? 13 : 12;
+  banda(w3, 'TOP DEALS — LOS QUE CIERRAN EL GAP', meta, ult3);
+  w3.mergeCells(5, 2, 5, ult3); w3.getCell(5,2).value = 'Plan A Probable = Compromiso · Plan B Top Upside = Cobertura del probable · Upside = Resto.'; w3.getCell(5,2).font = { name:FONT, size:10.5, italic:true, color:{ argb: MUTE } };
+  const ini = 8, fin = ini + Math.max(deals.length, 1) - 1;
+  cab(w3, 7, 2, ['ID HUBSPOT','CUENTA','LOB','SW','SERVICIOS','TOTAL','ESTATUS','MES','PLAN A | B','LOB','NEXT STEPS'].concat(c.conAe ? ['AE'] : []));
+  const ESTC = { 'Won':['FFDDF0FF','FF0F5E9C'], [VC]:['FFE1F4E9','FF17703E'], 'Top Upside =Plan B':['FFFBF1DE','FF8A6414'], 'Upside':['FFEEF2F8','FF5E6B82'], 'Perdida':['FFFBE3E3','FFB23A3A'] };
+  deals.forEach((d, i) => { const r = ini + i, zebra = i % 2 ? GREY : WHITE;
+    const t = (col, val, o) => { o = o || {}; const x = w3.getCell(r, col); x.value = val; x.font = { name:FONT, size:10.5, bold: !!o.bold, color:{ argb: o.color || INK } }; x.fill = fill(o.bg || zebra); x.border = { bottom: bord(LINE) };
+      x.alignment = { vertical:'top', wrapText: o.wrap !== false, horizontal: o.h || 'left', indent: o.h ? 0 : 0 }; return x; };
+    t(2, String(d.id || ''), { }); t(3, d.cuenta || '', { bold:true, color: NAVY }); t(4, d.lob || '', { h:'center' });
+    num(w3.getCell(r,5), +d.sw || 0, K); num(w3.getCell(r,6), +d.sv || 0, K); num(w3.getCell(r,7), totalDeal(d), K, { bold:true, bg: ICE, f: 'E' + r + '+F' + r });
+    [5,6,7].forEach(col => { w3.getCell(r,col).alignment = { horizontal:'right', vertical:'top', indent:1 }; if(col < 7) w3.getCell(r,col).fill = fill(zebra); });
+    const ec = ESTC[d.estatus] || ['FFEEF2F8','FF5E6B82']; t(8, ETQ_EST[d.estatus] || d.estatus || '', { bg: ec[0], color: ec[1], bold:true, h:'center' });
+    t(9, d.mes || '', { h:'center' }); t(10, d.plan || '', { h:'center' });
+    const ck = t(11, !!d.enLob, { h:'center', wrap:false }); ck.numFmt = '"✓";;"–"'; ck.value = d.enLob ? true : false; ck.font = { name:FONT, size:11, bold:true, color:{ argb: d.enLob ? 'FF17703E' : 'FFB0BACB' } };
+    t(12, d.next || '', { color: MUTE }); if(c.conAe) t(13, nombreAe(d._ae), { h:'center', bold:true, color: BLUE }); });
+  if(!deals.length){ w3.mergeCells(8, 2, 8, ult3); const x = w3.getCell(8,2); x.value = 'Sin deals capturados.'; x.font = { name:FONT, italic:true, color:{ argb: MUTE } }; x.alignment = { indent:1 }; }
+  // fila de totales (fila 6, excluye deals Perdida), como el formato original
+  w3.getRow(6).height = 24; ['B','C','D','E','F','G','H','I','J','K','L'].concat(c.conAe ? ['M'] : []).forEach(L => { const x = w3.getCell(L + '6'); x.fill = fill(ICE); x.border = { top: bord(BLUE, 'medium') }; });
+  const tt = w3.getCell('C6'); tt.value = 'TOTAL'; tt.font = { name:FONT, size:11, bold:true, color:{ argb: NAVY } }; tt.alignment = { indent:1, vertical:'middle' };
+  [['E','sw'],['F','sv'],['G','t']].forEach(([L,k]) => { const x = w3.getCell(L + '6'); x.value = { formula: 'SUMIFS(' + L + ini + ':' + L + fin + ',H' + ini + ':H' + fin + ',"<>Perdida")', result: v['dtot.' + k] }; x.numFmt = K; x.font = { name:FONT, size:11, bold:true, color:{ argb: NAVY } }; x.alignment = { horizontal:'right', vertical:'middle', indent:1 }; });
+  w3.views = [{ showGridLines:false, state:'frozen', ySplit:7, xSplit:3, topLeftCell:'D8' }];
+  w3.autoFilter = { from:{ row:7, column:2 }, to:{ row:fin, column: ult3 } };
+  pie(w3, fin + 2, ult3);
+
+  /* ===== 4 · LOB (encabezado en la fila 4) ===== */
+  const w4 = nuevaHoja('LOB', BLUE, [2, 30, 14, 14, 14, 14, 14, 16, 2]);
+  w4.mergeCells(2, 2, 2, 8); w4.mergeCells(3, 2, 3, 8);
+  for(let col = 2; col <= 8; col++){ w4.getCell(2,col).fill = fill(NAVY); w4.getCell(3,col).fill = fill(NAVY); w4.getCell(3,col).border = { bottom: bord(CYAN, 'thick') }; }
+  w4.getCell(2,2).value = 'POR LOB — VENDIDO Y POR VENDER'; w4.getCell(2,2).font = { name:FONT, size:18, bold:true, color:{ argb: WHITE } }; w4.getCell(2,2).alignment = { vertical:'middle', indent:1 };
+  w4.getCell(3,2).value = meta; w4.getCell(3,2).font = { name:FONT, size:10.5, color:{ argb:'FF8FE6FF' } }; w4.getCell(3,2).alignment = { vertical:'middle', indent:1 }; w4.getRow(1).height = 8; w4.getRow(2).height = 34; w4.getRow(3).height = 22;
+  cab(w4, 4, 2, ['CONCEPTO'].concat(LOBS.map(l => l.toUpperCase())).concat(['TOTAL']));
+  const filaL = (r, etiqueta, pre, o) => { o = o || {}; lbl(w4.getCell(r,2), etiqueta, { bg: o.bg || GREY, color: o.fg || NAVY });
+    LOBS.forEach((l, i) => num(w4.getCell(r, 3 + i), v[pre + '.' + l], K, { bg: o.bg || WHITE, color: o.fg || INK, bold: !!o.bold }));
+    num(w4.getCell(r, 8), v[pre + '.t'], K, { bold:true, bg: o.bg || ICE, color: o.fg || INK, f: 'SUM(C' + r + ':G' + r + ')' }); w4.getRow(r).height = 22; };
+  filaL(5, 'Vendido (Cerrado)', 'lv'); filaL(6, 'Por vender (VC + BC + Pipe)', 'lp'); filaL(7, 'Total', 'lt', { bold:true, bg: BLUE, fg: WHITE });
+  ['C','D','E','F','G'].forEach(L => { w4.getCell(L + '7').value = { formula: L + '5+' + L + '6', result: v['lt.' + LOBS[['C','D','E','F','G'].indexOf(L)]] }; });
+  w4.mergeCells(9, 2, 9, 8); const n9 = w4.getCell(9,2); n9.value = 'Si un deal no tiene LOB asignado en la pestaña TOP DEALS, no aparece aquí — asígnalo.'; n9.font = { name:FONT, size:9.5, italic:true, color:{ argb: MUTE } }; n9.alignment = { indent:1 };
+  // mezcla visual por LOB
+  cab(w4, 11, 2, ['MEZCLA POR LOB','Vendido','Por vender','% del total','','','']);
+  const totL = v['lt.t'] || 1;
+  LOBS.forEach((l, i) => { const r = 12 + i; lbl(w4.getCell(r,2), l.toUpperCase()); num(w4.getCell(r,3), v['lv.' + l], K); num(w4.getCell(r,4), v['lp.' + l], K); num(w4.getCell(r,5), v['lt.' + l] / totL, '0%', { bold:true, bg: ICE });
+    w4.mergeCells(r, 6, r, 8); const b = w4.getCell(r,6); b.value = barra(v['lt.' + l] / totL); b.font = { name:'Consolas', size:10, color:{ argb: BLUE } }; b.alignment = { indent:1, vertical:'middle' }; b.border = { bottom: bord(LINE) }; w4.getRow(r).height = 20; });
+  pie(w4, 18, 8);
+
+  /* ===== 5 · EQUIPO (solo Overview) ===== */
+  if(c.conAe){
+    const w5 = nuevaHoja('EQUIPO', NAVY, [2, 26, 14, 14, 14, 14, 14, 13, 13, 24, 2]);
+    banda(w5, 'EQUIPO — AVANCE POR AE', meta, 10);
+    cab(w5, 5, 2, ['AE','Cuota anual','Cerrado YTD','% Avance','Cuota Q','Forecast Q','Alcance','Cobertura','Último reporte']);
+    c.boards.forEach((b, i) => { const x = calc(b, c.qi.meses), live = D.live[b._ae] || {}, r = 6 + i;
+      lbl(w5.getCell(r,2), nombreAe(b._ae), { bg: i % 2 ? GREY : WHITE });
+      num(w5.getCell(r,3), x['a.t'], K); num(w5.getCell(r,4), x['y.t'], K); const z1 = sem(x['p.t']); num(w5.getCell(r,5), x['p.t'], PCT, { bold:true, bg: z1.bg, color: z1.fg });
+      num(w5.getCell(r,6), x['qc.t'], K); num(w5.getCell(r,7), x['qf.t'], K, { bold:true }); const z2 = sem(x['qa.t']); num(w5.getCell(r,8), x['qa.t'], '0%', { bold:true, bg: z2.bg, color: z2.fg }); num(w5.getCell(r,9), x['qb.t'], MULT);
+      const u = w5.getCell(r,10); u.value = live.reportadoEn ? fFechaHora(live.reportadoEn) : 'Sin reporte'; u.font = { name:FONT, size:10.5, color:{ argb: live.reportadoEn ? 'FF17703E' : 'FF9A2E2E' }, bold:true }; u.alignment = { horizontal:'center', vertical:'middle' }; u.border = { bottom: bord(LINE) }; w5.getRow(r).height = 22; });
+    const rt = 6 + c.boards.length; lbl(w5.getCell(rt,2), 'SEGMENTO', { bg: BLUE, color: WHITE });
+    [['C','a.t',K],['D','y.t',K],['E','p.t',PCT],['F','qc.t',K],['G','qf.t',K],['H','qa.t','0%'],['I','qb.t',MULT]].forEach(([L,k,f]) => num(w5.getCell(L + rt), v[k], f, { bold:true, bg: BLUE, color: WHITE }));
+    w5.getCell('J' + rt).fill = fill(BLUE); w5.getRow(rt).height = 24;
+    w5.views = [{ showGridLines:false, state:'frozen', ySplit:5 }]; pie(w5, rt + 2, 10);
+  }
+  // el resumen primero; "CUOTA AÑO / FORECAST CQ / TOP DEALS" conservan su nombre y celdas para poder volver a cargarlo
+  const buf = await wb.xlsx.writeBuffer();
+  const url = URL.createObjectURL(new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  const a = document.createElement('a'); a.href = url; a.download = 'Forecast_Semanal_' + c.nombre + '_' + c.sem + '.xlsx'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast('Excel exportado');
+}
+
+function historialHtml(slug){
+  const lista = D.historial.filter(h => !slug || h.ae === slug).sort((a,b) => b.reportadoEn.localeCompare(a.reportadoEn)).slice(0, 40);
+  const filas = lista.map(h => { const v = calc(h.board, qDe(h.semana).meses); return '<tr><td class="l">' + fFechaHora(h.reportadoEn) + '</td><td class="l">' + fFecha(h.semana) + '</td><td class="l">' + esc(nombreAe(h.ae)) + '</td><td class="l">' + esc(h.reportadoPor) + '</td><td>' + numK(v['qf.t']) + '</td><td>' + pct(v['qa.t']) + '</td><td>' + pct(v['p.t']) + '</td><td class="l"><button class="fs-btn" data-snap="' + D.historial.indexOf(h) + '">Ver reporte</button></td></tr>'; }).join('');
+  return '<div class="wk-band"><h2>Historial de reportes</h2><span>Cada reporte queda guardado con fecha y hora</span></div><div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th class="l">Reportado el</th><th class="l">Semana</th><th class="l">AE</th><th class="l">Reportó</th><th>Forecast Q</th><th>Alcance Q</th><th>% Avance anual</th><th></th></tr></thead><tbody>' + (filas || '<tr><td colspan="8" class="l" style="color:#7D8FAE;padding:18px">Todavía no hay reportes guardados.</td></tr>') + '</tbody></table></div></div>';
+}
+function marcarDirty(){ const el = document.getElementById('fsDirty'); if(el) el.innerHTML = dirty[vista] ? '<span class="fs-pill warn">● Cambios sin guardar</span>' : ''; }
+
+/* ---------- edición ---------- */
+function ponerRuta(obj, ruta, val){ const p = ruta.split('.'); let o = obj; for(let i = 0; i < p.length - 1; i++) o = o[p[i]]; o[p[p.length-1]] = val; }
+document.addEventListener('input', e => {
+  const t = e.target; if(!D || snap || vista === 'overview') return;
+  const slug = vista, b = boardDe(slug); let antes;
+  if(t.dataset.f){ ponerRuta(b, t.dataset.f, parseNum(t.value)); }
+  else if(t.dataset.d){ const i = +t.closest('tr').dataset.i, k = t.dataset.d; antes = b.deals[i].estatus; b.deals[i][k] = (k === 'sw' || k === 'sv') ? parseNum(t.value) : (k === 'enLob' ? t.checked : t.value); }
+  else return;
+  dirty[slug] = true; marcarDirty();
+  if(t.dataset.d === 'estatus' && ((antes === 'Perdida') !== (t.value === 'Perdida'))){ pintar(true); return; }
+  const prevSem = semanasHist().find(x => x < SEM), pb = prevSem ? boardsAl(prevSem).find(x => x._ae === slug) : null;
+  refrescar(document.getElementById('content'), b, qDe(SEM), pb ? calc(pb, qDe(prevSem).meses) : null);
+});
+document.addEventListener('click', async e => {
+  const t = e.target.closest('button,tr.fs-row-click'); if(!t || !D) return;
+  if(t.dataset.v && !t.dataset.snap){ snap = null; editando = false; vista = t.dataset.v; history.replaceState(null, '', vista === 'overview' ? location.pathname : '#' + vista); pintar(); window.scrollTo(0,0); return; }
+  if(t.id === 'fsAddDeal'){ boardDe(vista).deals.push({ id:'', cuenta:'', lob:'', sw:0, sv:0, estatus:'', mes:'', plan:'', enLob:false, next:'' }); dirty[vista] = true; pintar(true); return; }
+  if(t.dataset.del !== undefined){ if(!confirm('¿Quitar este deal del tablero?')) return; boardDe(vista).deals.splice(+t.dataset.del, 1); dirty[vista] = true; pintar(true); return; }
+  if(t.dataset.modo){ editando = t.dataset.modo === 'editar'; pintar(true); return; }
+  if(t.id === 'fsExport'){ await exportarExcel(); return; }
+  if(t.id === 'fsGuardar'){ await guardar(vista); return; }
+  if(t.id === 'fsReportar'){ await reportar(vista); return; }
+  if(t.id === 'fsVolver'){ snap = null; pintar(); return; }
+  if(t.dataset.snap !== undefined){ const h = D.historial[+t.dataset.snap]; if(h){ snap = h; vista = h.ae; pintar(); window.scrollTo(0,0); } return; }
+  if(t.id === 'fsCfg'){ configurar(); return; }
+  if(t.id === 'fsSeed'){ try{ const j = await (await fetch('/data/forecast-semanal-fernanda.json')).json(); B.fernanda = Object.assign(clonar(j)); dirty.fernanda = true; pintar(true); toast('Corte cargado — revisa y presiona Guardar'); }catch(err){ toast('No se pudo cargar el corte inicial', true); } return; }
+});
+document.addEventListener('change', async e => {
+  const t = e.target;
+  if(t.id === 'fsSem'){ if(t.value){ SEM = lunesDe(new Date(t.value + 'T12:00:00')); pintar(true); } }
+  else if(t.id === 'fsCorte'){ corte = t.value; pintar(true); }
+  else if(t.id === 'fsImg' && t.files[0]){ await leerCaptura(t.files[0]); t.value = ''; }
+  else if(t.id === 'fsXls' && t.files[0]){ await leerExcel(t.files[0]); t.value = ''; }
+});
+
+/* ---------- carga del Excel del formato (Cuota año · Forecast CQ · Top deals) ---------- */
+function canon(lista, v){ const s = String(v||'').trim().toLowerCase(); return lista.find(x => x.toLowerCase() === s) || ''; }
+function estCanon(v){ const s = String(v||'').toLowerCase(); if(!s) return ''; if(/perdid|lost/.test(s)) return 'Perdida'; if(/won|ganad|cerrad/.test(s)) return 'Won'; if(/top\s*upside|plan\s*b/.test(s)) return 'Top Upside =Plan B'; if(/upside/.test(s)) return 'Upside'; if(/perdid|lost/.test(s)) return 'Perdida'; if(/vc|commit|probable|plan\s*a/.test(s)) return VC; return ''; }
+async function leerExcel(file){
+  try{
+    const wb = XLSX.read(await file.arrayBuffer(), { type:'array', cellDates:true });
+    const hoja = re => wb.Sheets[wb.SheetNames.find(n => re.test(n.normalize('NFD').replace(/[̀-ͯ]/g,'')))];
+    const sc = hoja(/^cuota/i), sq = hoja(/^forecast/i), st = hoja(/top\s*deals/i);
+    if(!st) throw new Error('No encontré la pestaña TOP DEALS. ¿Es el formato "Forecast Ventas"?');
+    const g = (ws, a) => { const c = ws && ws[a]; return c ? c.v : null; }, n = x => (typeof x === 'number' ? x : parseNum(x));
+    const b = boardDe(vista), nuevo = clonar(b);
+    if(puedeOps()){
+      if(sc){ nuevo.cuota.swAnual = n(g(sc,'C8')); nuevo.cuota.svAnual = n(g(sc,'D8')); }
+      if(sq){ nuevo.q.swCuota = n(g(sq,'C8')); nuevo.q.svCuota = n(g(sq,'D8')); nuevo.q.mes = [n(g(sq,'F8')), n(g(sq,'G8')), n(g(sq,'H8'))]; }
+    }
+    if(sc){ nuevo.cuota.swYtd = n(g(sc,'C9')); nuevo.cuota.svYtd = n(g(sc,'D9')); }
+    const deals = [];
+    for(let r = 8; r <= 300; r++){
+      const idv = g(st,'B'+r), cu = g(st,'C'+r), lob = g(st,'D'+r), sw = g(st,'E'+r), sv = g(st,'F'+r), es = g(st,'H'+r), mes = g(st,'I'+r), pl = g(st,'J'+r), nx = g(st,'L'+r), kx = g(st,'K'+r);
+      if(![idv,cu,sw,sv,nx].some(x => x !== null && x !== '')) continue;
+      deals.push({ id: String(idv == null ? '' : idv), cuenta: String(cu||''), lob: canon(LOBS, lob), sw: n(sw), sv: n(sv), estatus: estCanon(es), mes: canon(MESES, mes), plan: canon(PLANES, pl), enLob: kx === true || /^(true|verdadero|1|x|si|sí)$/i.test(String(kx == null ? '' : kx).trim()), next: String(nx||'').replace(/^\s*Next Steps:\s*/i,'').trim() });
+    }
+    nuevo.deals = deals; B[vista] = nuevo; dirty[vista] = true; pintar(true);
+    toast('Excel cargado: ' + deals.length + ' deals. Revisa y presiona Guardar.');
+  }catch(err){ toast(err.message || 'No se pudo leer el Excel', true); }
+}
+
+/* ---------- responsables (correo de cada AE) ---------- */
+function configurar(){
+  const m = document.createElement('div'); m.className = 'fs-modal';
+  m.innerHTML = '<div><h3>⚙️ Responsables de cada tablero</h3><p>El correo SEIDOR de cada AE. Solo esa persona (con el rol de AE) podrá editar las celdas amarillas de su tablero.</p>' +
+    AEs().map(a => '<label>' + esc(a.nombre) + '</label><input data-cfg="' + a.slug + '" type="email" value="' + esc(a.email) + '" placeholder="nombre.apellido@seidor.com">').join('') +
+    '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px"><button class="fs-btn" id="cfgNo">Cancelar</button><button class="fs-btn pri" id="cfgSi">Guardar</button></div></div>';
+  document.body.appendChild(m);
+  m.querySelector('#cfgNo').onclick = () => m.remove();
+  m.querySelector('#cfgSi').onclick = async () => {
+    try{ const aes = AEs().map(a => ({ slug:a.slug, nombre:a.nombre, email: m.querySelector('[data-cfg="' + a.slug + '"]').value })); const j = await api({ accion:'config', aes }); D.config = j.config; m.remove(); toast('Responsables guardados ✓'); cargar(); }catch(err){ toast(err.message, true); }
+  };
+}
+
+window.WK_SEND_READY = () => !!D;
+window.WK_SEND_TITULO = () => 'Forecast_Semanal_' + (vista === 'overview' ? 'Overview' : vista);
+cargar();
+
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+</body>
+</html>

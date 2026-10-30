@@ -8,17 +8,11 @@
 <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
-<title>Contactos SAP · SEIDOR México</title>
+<title>Contactos importantes · SEIDOR México</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
-    --cyan:#33B4DD; --cyan-l:#6FD3F0;
-    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
-    --line:#D8E2EE; --card:#F4F8FC;
-    --shadow: 0 3px 9px rgba(159,179,204,0.35);
-  }
+  :root{ --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan-l:#6FD3F0; --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC; --shadow: 0 3px 9px rgba(159,179,204,0.35); }
   *{box-sizing:border-box;}
   body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
   .topnav{background:#fff; border-bottom:1px solid var(--line);}
@@ -26,11 +20,8 @@
   .topnav-logo img{height:26px; display:block;}
   .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
   .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
-  .nav-link:hover{color:var(--blue);}
-  .nav-link.active{color:var(--blue);}
   .nav-dropdown{position:relative;}
   .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
-  .nav-dropdown-btn:hover{color:var(--blue);}
   .nav-dropdown-btn.active{color:var(--blue);}
   .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
   .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
@@ -39,49 +30,76 @@
   .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
   .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
   .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
-  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
-
-  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:22px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;}
-  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
+  header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
   header p{margin:0; color:var(--cyan-l); font-size:13px;}
-  .btn{border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;}
-  .btn-primary{background:#fff; color:var(--navy2);}
-  .btn-ghost{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35);}
+  input[type=file]{display:none;}
+  .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
+  .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .st-ok{color:#2FE29B; font-size:14px; font-weight:600; padding:2px 0 10px;}
+  .st-err{color:#FF8CA2; font-size:14px; font-weight:600; padding:2px 0 10px;}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+  .nav-link:hover,.nav-dropdown-btn:hover{color:var(--blue);} .nav-link.active{color:var(--blue);}
+  .btn-add{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font:600 13.5px Poppins,sans-serif; cursor:pointer;} .btn-add:hover{background:rgba(255,255,255,.2);}
 
-  .tabbar{display:flex; gap:6px; padding:16px 24px 0; box-sizing:border-box;}
-  .tabbar button{background:var(--card); border:1px solid var(--line); border-bottom:none; border-radius:8px 8px 0 0; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; color:var(--grey); cursor:pointer;}
-  .tabbar button.active{background:#fff; color:var(--blue);}
+  /* Contactos importantes — organigramas en tema oscuro WBR */
+  .ci-cat{--oc:#3DD6FF;}
+  .ci-scroll{overflow:auto; padding:6px 4px 14px;}
+  .ci-wrap{position:relative; width:max-content; min-width:100%;}
+  .ci-wrap svg{position:absolute; left:0; top:0; pointer-events:none; overflow:visible;}
+  .ci-tree{display:flex; justify-content:flex-start; gap:30px; position:relative; z-index:1; padding:4px 10px;}
+  .ci-col{display:flex; flex-direction:column; align-items:center;}
+  .ci-children{display:flex; gap:18px; margin-top:46px; align-items:flex-start; justify-content:center;}
+  .ci-box{position:relative; width:206px; padding:13px 14px 12px; border-radius:16px; cursor:pointer; background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.14); box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 26px rgba(0,0,0,.35); transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease; text-align:left;}
+  .ci-box:before{content:""; position:absolute; left:14px; right:14px; top:0; height:3px; border-radius:0 0 4px 4px; background:var(--oc);}
+  .ci-box:hover{transform:translateY(-3px); border-color:var(--oc); box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 36px rgba(0,0,0,.5),0 0 30px -10px var(--oc);}
+  .ci-ini{width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font:700 13px Poppins,sans-serif; color:#04101F; background:linear-gradient(135deg,var(--oc),#fff); margin-bottom:8px;}
+  .ci-name{font-size:14px; font-weight:700; color:#fff; line-height:1.25; overflow-wrap:anywhere;}
+  .ci-emp{font-size:11.5px; font-weight:700; color:#fff; margin-top:6px; line-height:1.3; opacity:.92;}
+  .ci-puesto{font-size:12px; font-weight:500; color:#8FE6FF; margin-top:2px; line-height:1.35;}
+  .ci-area{display:inline-block; margin-top:7px; font-size:10.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--oc); background:rgba(255,255,255,.07); border-radius:999px; padding:2px 9px;}
+  .ci-contact{margin-top:7px; font-size:11px; color:var(--wk-grey,#A5B4CE); overflow-wrap:anywhere; line-height:1.4;}
+  .ci-toggle{position:absolute; left:50%; bottom:-13px; transform:translateX(-50%); width:26px; height:26px; border-radius:50%; background:#0E1A33; border:1.5px solid var(--oc); color:#fff; font:700 15px/22px Poppins,sans-serif; text-align:center; cursor:pointer; z-index:2;}
+  .ci-toggle:hover{background:var(--oc); color:#04101F;}
+  .ci-vacio{text-align:center; padding:40px 20px; color:var(--wk-grey,#A5B4CE);} .ci-vacio b{display:block; font-size:44px; margin-bottom:6px;}
+  .wk-tools{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
+  .st-err{color:#FF8CA2; font-size:14px; font-weight:600; padding:2px 0 10px;}
 
-  main{padding:24px 24px 60px;}
-  .empty{text-align:center; padding:60px 20px; color:var(--greyl); font-size:13.5px;}
-  .tree-scroll{overflow-x:auto; padding:30px 10px;}
+  /* Barra de herramientas + panel de detalle */
+  .ci-bar{position:sticky; top:0; z-index:20; display:flex; gap:10px 14px; flex-wrap:wrap; align-items:center; padding:12px 14px; margin-bottom:20px; border-radius:16px; background:rgba(12,22,44,.86); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.10); box-shadow:0 10px 30px rgba(0,0,0,.35);}
+  .ci-pills{display:flex; gap:8px; flex-wrap:wrap;}
+  .ci-pill{border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#C8D8F2; border-radius:999px; padding:8px 14px; font:600 13px Poppins,sans-serif; cursor:pointer; white-space:nowrap;} .ci-pill small{opacity:.7; margin-left:4px; font-weight:600;}
+  .ci-pill:hover{background:rgba(255,255,255,.12);} .ci-pill.on{background:linear-gradient(135deg,#1E5BB8,#3DD6FF); border-color:transparent; color:#fff;}
+  .ci-search{flex:1; min-width:190px; max-width:360px; margin-left:auto;} .ci-search input{width:100%; box-sizing:border-box; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.16); border-radius:999px; padding:9px 16px; color:#fff; font:400 13.5px Poppins,sans-serif;} .ci-search input:focus{outline:none; border-color:#3DD6FF;}
+  .ci-seg{display:flex; border:1px solid rgba(255,255,255,.16); border-radius:999px; overflow:hidden;} .ci-seg button{border:none; background:transparent; color:#C8D8F2; padding:8px 14px; font:600 13px Poppins,sans-serif; cursor:pointer;} .ci-seg button.on{background:rgba(61,214,255,.2); color:#fff;}
+  .ci-split{display:grid; grid-template-columns:minmax(0,1fr) 350px; gap:20px; align-items:start;}
+  @media(max-width:1000px){ .ci-split{grid-template-columns:1fr;} .ci-panel{display:none;} }
+  .ci-panel{position:sticky; top:84px; border-radius:20px; padding:24px 22px; background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.12); box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 16px 40px rgba(0,0,0,.4); --oc:#3DD6FF; min-height:120px;}
+  .ci-panel .ci-ini{width:64px; height:64px; font-size:22px; margin:0 0 12px;}
+  .ci-panel h3{margin:0; font-size:20px; line-height:1.25; color:#fff; overflow-wrap:anywhere;} .ci-panel .pu{margin-top:3px; font-size:13.5px; color:#8FE6FF;}
+  .ci-tags{display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 4px;} .ci-tag{font-size:11px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--oc); background:rgba(255,255,255,.07); border-radius:999px; padding:3px 10px;}
+  .ci-row{margin-top:14px;} .ci-row .k{font-size:11px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:#8A9BBE; margin-bottom:3px;}
+  .ci-row .v{font-size:14px; color:#E3ECFA; overflow-wrap:anywhere; display:flex; align-items:center; gap:8px; flex-wrap:wrap;} .ci-row .v a{color:#8FE6FF; text-decoration:none;} .ci-row .v a:hover{text-decoration:underline;}
+  .ci-copy{border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.07); color:#C8D8F2; border-radius:999px; padding:2px 10px; font:600 11px Poppins,sans-serif; cursor:pointer;} .ci-copy:hover{background:rgba(255,255,255,.15);}
+  .ci-link{border:none; background:none; color:#8FE6FF; font:500 14px Poppins,sans-serif; cursor:pointer; padding:2px 0; text-align:left;} .ci-link:hover{text-decoration:underline;}
+  .ci-sin{color:#6F82A8; font-size:13px;}
+  .ci-box.sel{border-color:var(--oc); box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 2px var(--oc),0 16px 36px rgba(0,0,0,.5);}
 
-  #treeWrap{position:relative; display:inline-block; min-width:100%;}
-  #treeLines{position:absolute; top:0; left:0; pointer-events:none; overflow:visible;}
-  .org-tree{display:flex; justify-content:center; position:relative; z-index:2;}
-  .org-col{display:flex; flex-direction:column; align-items:center; padding:0 16px;}
-  .org-children{display:flex; padding-top:40px;}
-  .org-box{display:inline-block; background:#fff; border:1px solid var(--line); border-radius:10px; padding:11px 15px; box-shadow:var(--shadow); cursor:pointer; min-width:165px; text-align:left; position:relative;}
-  .org-box:hover{border-color:var(--blue);}
-  .org-name{font-size:13.5px; font-weight:600; color:var(--navy2);}
-  .org-puesto{font-size:11.5px; color:var(--grey); margin-top:2px;}
-  .org-area{display:inline-block; margin-top:6px; background:var(--card); color:var(--blue); font-size:9.5px; font-weight:600; padding:2px 9px; border-radius:10px;}
-  .org-contact{font-size:10.5px; color:var(--greyl); margin-top:5px;}
-  .org-toggle{position:absolute; left:50%; bottom:-11px; transform:translateX(-50%); width:22px; height:22px; border-radius:50%; background:#fff; border:1px solid var(--line); color:var(--blue); font-size:11px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:3;}
-  .org-toggle:hover{border-color:var(--blue); background:var(--card);}
-
-  .overlay{display:none; position:fixed; inset:0; background:rgba(10,18,38,0.45); z-index:50; align-items:center; justify-content:center; padding:20px;}
-  .overlay.open{display:flex;}
-  .sheet{background:#fff; width:100%; max-width:480px; border-radius:16px; padding:22px; max-height:88vh; overflow-y:auto;}
-  @media (max-width:640px){ .overlay{align-items:flex-end; padding:0;} .sheet{border-radius:16px 16px 0 0; max-height:92vh;} }
-  .sheet label{display:block; font-size:12.5px; color:var(--grey); margin:12px 0 4px; font-weight:500;}
-  .sheet input, .sheet select, .sheet textarea{width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13.5px;}
-  .sheet-title{font-size:16px; font-weight:600; color:var(--navy2); margin:0;}
-  .close-x{float:right; background:none; border:none; font-size:20px; color:var(--greyl); cursor:pointer; line-height:1;}
-  .sheet-actions{display:flex; gap:8px; margin-top:20px;}
-  .btn-sheet-primary{background:var(--blue); color:#fff;}
-  .btn-sheet-ghost{background:#fff; color:var(--grey); border:1px solid var(--line);}
-  .btn-sheet-danger{background:#fff; color:#B23A3A; border:1px solid #E8C7C7;}
+  /* Ventana de edición */
+  .ci-ov{position:fixed; inset:0; background:rgba(3,7,18,.72); backdrop-filter:blur(4px); z-index:9000; display:none; align-items:center; justify-content:center; padding:20px;} .ci-ov.open{display:flex;}
+  .ci-sheet{position:relative; width:min(560px,100%); max-height:90vh; overflow:auto; background:#0E1A33; border:1px solid rgba(255,255,255,.12); border-radius:18px; padding:24px 26px; box-shadow:0 30px 80px rgba(0,0,0,.6); color:#E3ECFA;}
+  .ci-sheet h3{margin:0 34px 14px 0; font-size:18px; color:#fff;}
+  .ci-x{position:absolute; top:14px; right:16px; border:none; background:rgba(255,255,255,.08); color:#fff; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer;}
+  .ci-sheet label{display:block; margin:12px 0 5px; font-size:11.5px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:#8FE6FF;}
+  .ci-sheet input,.ci-sheet select,.ci-sheet textarea{width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.16); border-radius:10px; padding:10px 12px; color:#fff; font:400 14px Poppins,sans-serif;}
+  .ci-sheet select option{background:#0E1A33; color:#fff;}
+  .ci-sheet input:focus,.ci-sheet select:focus,.ci-sheet textarea:focus{outline:none; border-color:#3DD6FF;}
+  .ci-sheet input:disabled,.ci-sheet select:disabled,.ci-sheet textarea:disabled{opacity:.85;}
+  .ci-act{display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;}
+  .ci-btn{border:none; border-radius:999px; padding:10px 20px; font:600 13.5px Poppins,sans-serif; cursor:pointer; color:#fff; background:rgba(255,255,255,.10);} .ci-btn.p{background:linear-gradient(135deg,#1E5BB8,#3DD6FF);} .ci-btn.d{background:rgba(255,92,122,.18); color:#FF8CA2;}
+  @media(max-width:700px){ .ci-box{width:170px;} .ci-children{gap:12px;} }
 </style>
 </head>
 <body>
@@ -94,24 +112,10 @@
     const d = await r.json();
     if(!d.ok) return;
     window.ES_ADMIN = !!d.esAdmin;
-    function _desbloquearCamposAdmin(){
-      document.querySelectorAll('.admin-only-edit').forEach(function(el){
-        if(d.esAdmin){
-          el.removeAttribute('readonly');
-          var hint = el.parentElement.querySelector('.admin-lock-hint');
-          if(hint) hint.style.display = 'none';
-        }
-      });
-    }
-    if(document.readyState === 'loading'){
-      document.addEventListener('DOMContentLoaded', _desbloquearCamposAdmin);
-    }else{
-      _desbloquearCamposAdmin();
-    }
     if(d.permiso === 'ninguno'){
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
-      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías tenerlo, pide a un Administrador que revise tu rol en Roles y Permisos.</p>';
       document.body.appendChild(overlay);
       document.body.style.overflow = 'hidden';
     }else if(d.permiso === 'lectura'){
@@ -120,8 +124,9 @@
       banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
       banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
       document.body.insertBefore(banner, document.body.firstChild);
+      var b = document.getElementById('btnAdd'); if(b) b.style.display = 'none';
     }
-  }catch(e){ /* si falla el chequeo, no bloqueamos: evita dejar a todos fuera si el endpoint falla */ }
+  }catch(e){ /* si falla el chequeo no bloqueamos */ }
 })();
 </script>
 
@@ -134,14 +139,17 @@
         <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
           <a href="/wbr-finanzas.html">Finanzas</a>
           <a href="/wbr-ventas.html">Ventas & Pipeline</a>
           <a href="/wbr-operaciones.html">Operaciones</a>
-          <a href="/wbr-productos.html">Target de Clientes</a>
           <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
           <a href="/wbr-ccflex.html">CCFlex</a>
           <a href="/wbr-cta.html">Call to Action</a>
           <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -154,7 +162,9 @@
           <a href="/alta.html">Generador de Formato de Alta</a>
           <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
           <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
-          <a href="/contactos-sap.html" class="active">Contactos SAP</a>
+          <a href="/contactos-sap.html" class="active">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -168,11 +178,13 @@
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
           <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
         </div>
       </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
           <a href="/dias-habiles.html">Días Hábiles México</a>
           <a href="/minutas.html">Generador de Minutas / Status</a>
           <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
@@ -190,10 +202,17 @@
         </div>
       </div>
       <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
           <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
         </div>
       </div>
     </div>
@@ -202,247 +221,214 @@
 
 <header>
   <div>
-    <h1>Contactos</h1>
-    <p id="headerSub">Directorio de las personas clave para el negocio, organizadas por organigrama</p>
+    <h1>👥 Contactos importantes</h1>
+    <p>Las personas clave para el negocio — SAP, partners y equipo extendido SEIDOR — organizadas por organigrama</p>
   </div>
-  <div style="display:flex; gap:10px;">
-    <button class="btn btn-ghost" onclick="openSheet(null)">+ Agregar contacto</button>
-  </div>
+  <button type="button" class="btn-add" id="btnAdd" onclick="openSheet(null)">+ Agregar contacto</button>
 </header>
 
-<div class="tabbar" id="tabbar"></div>
-
-<main>
-  <div class="tree-scroll">
-    <div id="treeWrap">
-      <svg id="treeLines"></svg>
-      <div class="org-tree" id="tree"></div>
-    </div>
-  </div>
-  <div class="empty" id="emptyMsg" style="display:none;">Todavía no hay contactos en esta categoría — dale "+ Agregar contacto" para empezar.</div>
+<main class="wk-main">
+  <div id="statusBox"></div>
+  <div class="ci-bar" id="ciBar"></div>
+  <div class="ci-split"><div id="ciBody"><div class="loading">Cargando contactos…</div></div><aside class="ci-panel" id="ciPanel"></aside></div>
 </main>
 
-<div class="overlay" id="overlay" onclick="if(event.target===this) closeSheet()">
-  <div class="sheet" id="sheet"></div>
-</div>
+<div class="ci-ov" id="overlay" onclick="if(event.target===this) closeSheet()"><div class="ci-sheet" id="sheet"></div></div>
+
+<script src="/wbr-kit.js?v=20261012a"></script>
 
 <script>
-const CATEGORIAS = ['Equipo SAP', 'Partners', 'Equipo extendido SEIDOR'];
-const CATEGORIA_SUB = {
-  'Equipo SAP': 'Organigrama de las personas de SAP (el fabricante) a las que recurre el equipo comercial',
-  'Partners': 'Organigrama de contactos en empresas socias/partners de implementación',
-  'Equipo extendido SEIDOR': 'Organigrama de gente dentro de SEIDOR fuera del equipo inmediato, relevante para temas SAP'
-};
-let personas = [];
-let currentId = null;
-let categoriaActual = CATEGORIAS[0];
-let colapsados = new Set();
-
-function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-
-function renderTabbar(){
-  const bar = document.getElementById('tabbar');
-  bar.innerHTML = CATEGORIAS.map(c => `<button class="${c===categoriaActual?'active':''}" onclick="setCategoria('${c}')">${esc(c)}</button>`).join('');
-  document.getElementById('headerSub').textContent = CATEGORIA_SUB[categoriaActual];
-}
-
-function setCategoria(c){
-  categoriaActual = c;
-  renderTabbar();
-  render();
-}
+const CATS = [
+  { id:'sap', nombre:'Equipo SAP', ico:'🏢', color:'#3DD6FF', sub:'Organigrama de las personas de SAP (el fabricante) a las que recurre el equipo comercial' },
+  { id:'partners', nombre:'Partners', ico:'🤝', color:'#8B7CFF', sub:'Organigrama de contactos en empresas socias / partners de implementación' },
+  { id:'seidor', nombre:'Equipo extendido SEIDOR', ico:'🧩', color:'#2FE29B', sub:'Organigrama de gente dentro de SEIDOR fuera del equipo inmediato, relevante para temas SAP' }
+];
+let personas = [], currentId = null, formCat = null, confirmaBorrar = false;
+const colapsados = new Set();
+const esc = s => WK.esc(s);
+// Empresa: en Partners = empresa partner; en Equipo extendido = a qué SEIDOR pertenece
+const EMP_LABEL = { 'Partners': 'Empresa partner', 'Equipo extendido SEIDOR': 'SEIDOR a la que pertenece' };
+const EMP_PH = { 'Partners': 'Ej. Accenture, Deloitte, IBM', 'Equipo extendido SEIDOR': 'Ej. SEIDOR México, SEIDOR España' };
+const empDe = p => (EMP_LABEL[p.categoria] && p.empresa) ? p.empresa : '';
+const catDe = p => (CATS.find(c => c.nombre === p.categoria) || CATS[0]);
+const iniciales = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 
 async function loadData(){
-  try{
-    const r = await fetch('/api/contactos-sap');
-    const d = await r.json();
-    personas = d.personas || [];
-  }catch(e){ personas = []; }
-  renderTabbar();
+  try{ const r = await fetch('/api/contactos-sap'); const d = await r.json(); personas = d.personas || []; }
+  catch(e){ personas = []; }
   render();
 }
-
 async function saveData(){
   try{
-    const r = await fetch('/api/contactos-sap', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ personas })
-    });
+    const r = await fetch('/api/contactos-sap', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ personas }) });
+    if(!r.ok){ const eg = await r.json().catch(() => ({})); return { ok:false, error:eg.error || ('No se pudo guardar (error ' + r.status + ')') }; }
     return await r.json();
-  }catch(e){ console.error(e); return null; }
+  }catch(e){ console.error(e); return { ok:false, error:'No se pudo guardar. Revisa tu conexión.' }; }
 }
 
-function toggleColapso(id, event){
-  event.stopPropagation();
-  if(colapsados.has(id)) colapsados.delete(id); else colapsados.add(id);
-  render();
+/* ---------- Organigrama ---------- */
+function colHtml(p, delCat, color){
+  const hijos = delCat.filter(x => x.reportaA === p.id);
+  const cont = [p.email, p.telefono].filter(Boolean).join(' · ');
+  const cerrado = colapsados.has(p.id);
+  return '<div class="ci-col"><div class="ci-box" data-id="' + esc(p.id) + '" onclick="selecciona(\'' + esc(p.id) + '\')" data-tip="' + esc(p.nombre + (p.puesto ? '\n' + p.puesto : '') + (empDe(p) ? '\n' + empDe(p) : '') + (p.area ? '\n' + p.area : '') + (p.notas ? '\n\n' + p.notas : '') + '\n\nClic para ' + (window.SOLO_LECTURA ? 'ver' : 'ver o editar')) + '">' +
+    '<div class="ci-ini">' + esc(iniciales(p.nombre)) + '</div>' +
+    '<div class="ci-name">' + esc(p.nombre) + '</div>' + (p.puesto ? '<div class="ci-puesto">' + esc(p.puesto) + '</div>' : '') +
+    (empDe(p) ? '<div class="ci-emp">🏢 ' + esc(empDe(p)) + '</div>' : '') +
+    (p.area ? '<span class="ci-area">' + esc(p.area) + '</span>' : '') + (cont ? '<div class="ci-contact">' + esc(cont) + '</div>' : '') +
+    (hijos.length ? '<div class="ci-toggle" title="' + (cerrado ? 'Mostrar' : 'Ocultar') + ' ' + hijos.length + ' reporte(s)" onclick="toggleColapso(\'' + esc(p.id) + '\', event)">' + (cerrado ? '+' : '−') + '</div>' : '') +
+    '</div>' + (hijos.length && !cerrado ? '<div class="ci-children">' + hijos.map(h => colHtml(h, delCat, color)).join('') + '</div>' : '') + '</div>';
 }
-
-function buildCol(persona, personasCat){
-  const hijos = personasCat.filter(p => p.reportaA === persona.id);
-  const contacto = [persona.email, persona.telefono].filter(Boolean).join(' · ');
-  const estaColapsado = colapsados.has(persona.id);
-  const col = document.createElement('div');
-  col.className = 'org-col';
-  const box = document.createElement('div');
-  box.className = 'org-box';
-  box.dataset.id = persona.id;
-  box.onclick = () => openSheet(persona.id);
-  box.innerHTML = `
-    <div class="org-name">${esc(persona.nombre)}</div>
-    <div class="org-puesto">${esc(persona.puesto)}</div>
-    ${persona.area ? `<div class="org-area">${esc(persona.area)}</div>` : ''}
-    ${contacto ? `<div class="org-contact">${esc(contacto)}</div>` : ''}
-    ${hijos.length ? `<div class="org-toggle" title="${estaColapsado ? 'Mostrar' : 'Ocultar'} ${hijos.length} reporte(s)" onclick="toggleColapso('${persona.id}', event)">${estaColapsado ? '+' : '−'}</div>` : ''}
-  `;
-  col.appendChild(box);
-  if(hijos.length && !estaColapsado){
-    const childrenRow = document.createElement('div');
-    childrenRow.className = 'org-children';
-    hijos.forEach(h => childrenRow.appendChild(buildCol(h, personasCat)));
-    col.appendChild(childrenRow);
-  }
-  return col;
+function toggleColapso(id, ev){ ev.stopPropagation(); if(colapsados.has(id)) colapsados.delete(id); else colapsados.add(id); render(); }
+function arbolHtml(cat){
+  const delCat = personas.filter(p => catDe(p).id === cat.id);
+  if(!delCat.length) return '<div class="ci-vacio"><b>' + cat.ico + '</b>Todavía no hay contactos en esta categoría.' + (window.SOLO_LECTURA ? '' : ' Usa "+ Agregar contacto" para empezar.') + '</div>';
+  const ids = new Set(delCat.map(p => p.id));
+  const raices = delCat.filter(p => !p.reportaA || !ids.has(p.reportaA));
+  return '<div class="ci-scroll"><div class="ci-wrap" data-cat="' + cat.id + '" style="--oc:' + cat.color + '"><svg></svg><div class="ci-tree">' + raices.map(r => colHtml(r, delCat, cat.color)).join('') + '</div></div></div>';
 }
-
-function drawLines(){
-  const wrap = document.getElementById('treeWrap');
-  const svg = document.getElementById('treeLines');
-  const wrapRect = wrap.getBoundingClientRect();
-  svg.setAttribute('width', wrap.scrollWidth);
-  svg.setAttribute('height', wrap.scrollHeight);
-  svg.innerHTML = '';
-
-  personas.forEach(p => {
-    if(!p.reportaA) return;
-    const childBox = document.querySelector(`.org-box[data-id="${p.id}"]`);
-    const parentBox = document.querySelector(`.org-box[data-id="${p.reportaA}"]`);
-    if(!childBox || !parentBox) return;
-    const c = childBox.getBoundingClientRect();
-    const pa = parentBox.getBoundingClientRect();
-    const x1 = pa.left - wrapRect.left + pa.width/2;
-    const y1 = pa.bottom - wrapRect.top;
-    const x2 = c.left - wrapRect.left + c.width/2;
-    const y2 = c.top - wrapRect.top;
-    const midY = (y1 + y2) / 2;
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d', `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`);
-    path.setAttribute('stroke', '#D8E2EE');
-    path.setAttribute('stroke-width', '2');
-    path.setAttribute('fill', 'none');
-    svg.appendChild(path);
+function posEn(el, wrap){ let x = 0, y = 0, n = el; while(n && n !== wrap){ x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; } return { x, y, w:el.offsetWidth, h:el.offsetHeight }; }
+function dibujaLineas(){
+  document.querySelectorAll('.ci-wrap').forEach(wrap => {
+    const svg = wrap.querySelector('svg'); svg.setAttribute('width', wrap.scrollWidth); svg.setAttribute('height', wrap.scrollHeight); svg.innerHTML = '';
+    wrap.querySelectorAll('.ci-box').forEach(hijo => {
+      const p = personas.find(x => x.id === hijo.dataset.id); if(!p || !p.reportaA) return;
+      const padre = wrap.querySelector('.ci-box[data-id="' + CSS.escape(p.reportaA) + '"]'); if(!padre) return;
+      const a = posEn(padre, wrap), b = posEn(hijo, wrap);
+      const x1 = a.x + a.w / 2, y1 = a.y + a.h, x2 = b.x + b.w / 2, y2 = b.y, my = (y1 + y2) / 2;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M ' + x1 + ' ' + y1 + ' L ' + x1 + ' ' + my + ' L ' + x2 + ' ' + my + ' L ' + x2 + ' ' + y2);
+      path.setAttribute('stroke', 'rgba(143,230,255,.42)'); path.setAttribute('stroke-width', '2'); path.setAttribute('fill', 'none'); path.setAttribute('stroke-linejoin', 'round');
+      svg.appendChild(path);
+    });
   });
 }
+window.addEventListener('resize', () => { if(personas.length) dibujaLineas(); });
 
+/* ---------- Tablero ---------- */
+let vista = 'org', catAct = 'sap', consulta = '', selId = null;
+const angosto = () => window.matchMedia('(max-width:1000px)').matches;
+function selecciona(id){ if(angosto()) return openSheet(id); selId = id; document.querySelectorAll('.ci-box').forEach(b => b.classList.toggle('sel', b.dataset.id === id)); panel(); }
+function setVista(v){ vista = v; render(); }
+function setCat(id){ catAct = id; vista = 'org'; consulta = ''; render(); }
+function buscar(v){
+  consulta = v; const q = v.trim();
+  if(q && vista !== 'dir'){ vista = 'dir'; render(); const i = document.getElementById('ciQ'); if(i){ i.focus(); i.setSelectionRange(v.length, v.length); } return; }
+  const t = document.getElementById('tablaContactos'); if(t) WK.filtrar(t, v);
+}
+function copiar(txt, btn){ try{ navigator.clipboard.writeText(txt); const o = btn.textContent; btn.textContent = '¡Copiado!'; setTimeout(() => btn.textContent = o, 1200); }catch(e){} }
+function panel(){
+  const el = document.getElementById('ciPanel'), p = personas.find(x => x.id === selId);
+  if(!p){ el.style.setProperty('--oc', '#3DD6FF'); el.innerHTML = '<div class="ci-sin">Selecciona a una persona para ver su ficha, correo y teléfono.</div>'; return; }
+  const c = catDe(p), jefe = personas.find(x => x.id === p.reportaA), reportes = personas.filter(x => x.reportaA === p.id);
+  const fila = (k, v) => v ? '<div class="ci-row"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>' : '';
+  el.style.setProperty('--oc', c.color);
+  el.innerHTML = '<div class="ci-ini" style="background:' + c.color + '22;border-color:' + c.color + '">' + esc(iniciales(p.nombre)) + '</div><h3>' + esc(p.nombre) + '</h3>' + (p.puesto ? '<div class="pu">' + esc(p.puesto) + '</div>' : '') +
+    '<div class="ci-tags"><span class="ci-tag">' + c.ico + ' ' + esc(c.nombre) + '</span>' + (p.area ? '<span class="ci-tag">' + esc(p.area) + '</span>' : '') + '</div>' +
+    fila('Correo', p.email ? '<a href="mailto:' + esc(p.email) + '">' + esc(p.email) + '</a><button class="ci-copy" onclick="copiar(' + esc(JSON.stringify(p.email)) + ',this)">Copiar</button>' : '<span class="ci-sin">Sin correo</span>') +
+    fila('Teléfono', p.telefono ? '<a href="tel:' + esc(p.telefono.replace(/[^\d+]/g, '')) + '">' + esc(p.telefono) + '</a><button class="ci-copy" onclick="copiar(' + esc(JSON.stringify(p.telefono)) + ',this)">Copiar</button>' : '<span class="ci-sin">Sin teléfono</span>') +
+    fila(EMP_LABEL[p.categoria] || 'Empresa', empDe(p) ? esc(empDe(p)) : '') +
+    fila('Reporta a', jefe ? '<button class="ci-link" onclick="selecciona(\'' + esc(jefe.id) + '\')">' + esc(jefe.nombre) + '</button>' : '') +
+    fila('Le reportan', reportes.map(r => '<button class="ci-link" onclick="selecciona(\'' + esc(r.id) + '\')">' + esc(r.nombre) + '</button>').join('')) +
+    fila('Notas', p.notas ? esc(p.notas) : '') +
+    '<button class="ci-pill on" style="margin-top:20px;width:100%" onclick="openSheet(\'' + esc(p.id) + '\')">' + (window.SOLO_LECTURA ? 'Ver ficha completa' : 'Editar ficha') + '</button>';
+}
 function render(){
-  const tree = document.getElementById('tree');
-  const empty = document.getElementById('emptyMsg');
-  const personasCat = personas.filter(p => (p.categoria || CATEGORIAS[0]) === categoriaActual);
-  if(!personasCat.length){
-    tree.innerHTML = '';
-    document.getElementById('treeLines').innerHTML = '';
-    empty.style.display = 'block';
+  const content = document.getElementById('ciBody'), bar = document.getElementById('ciBar'), N = personas.length;
+  if(!N){
+    bar.style.display = 'none'; document.getElementById('ciPanel').style.display = 'none';
+    content.innerHTML = '<div class="wk-card"><div class="ci-vacio"><b>👥</b><h2 style="margin:0 0 8px;color:#fff">Aún no hay contactos</h2>' + (window.SOLO_LECTURA ? 'Todavía no se ha capturado a nadie.' : 'Agrega a las personas clave con "+ Agregar contacto".') + '</div></div>';
     return;
   }
-  empty.style.display = 'none';
-  // Raíces: sin reportaA, o cuyo reportaA ya no existe o quedó en otra categoría
-  const idsCat = new Set(personasCat.map(p=>p.id));
-  const raices = personasCat.filter(p => !p.reportaA || !idsCat.has(p.reportaA));
-  tree.innerHTML = '';
-  raices.forEach(r => tree.appendChild(buildCol(r, personasCat)));
-  requestAnimationFrame(drawLines);
+  bar.style.display = ''; document.getElementById('ciPanel').style.display = '';
+  const porCat = CATS.map(c => ({ c, items:personas.filter(p => catDe(p).id === c.id) }));
+  if(!CATS.some(c => c.id === catAct)) catAct = CATS[0].id;
+  const cat = CATS.find(c => c.id === catAct);
+  bar.innerHTML = '<div class="ci-pills">' + porCat.map(x => '<button class="ci-pill' + (vista === 'org' && x.c.id === catAct ? ' on' : '') + '" onclick="setCat(\'' + x.c.id + '\')">' + x.c.ico + ' ' + esc(x.c.nombre) + '<small>' + x.items.length + '</small></button>').join('') + '</div>' +
+    '<div class="ci-seg"><button class="' + (vista === 'org' ? 'on' : '') + '" onclick="setVista(\'org\')">Organigrama</button><button class="' + (vista === 'dir' ? 'on' : '') + '" onclick="setVista(\'dir\')">Directorio</button></div>' +
+    '<div class="ci-search"><input id="ciQ" type="search" placeholder="Buscar por nombre, puesto, área o correo…" value="' + esc(consulta) + '" oninput="buscar(this.value)"></div>';
+  if(vista === 'org'){
+    content.innerHTML = WK.card({ ico:cat.ico, titulo:cat.nombre, sub:cat.sub + ' · ' + (window.SOLO_LECTURA ? 'clic en una persona para ver su ficha' : 'clic en una persona para ver su ficha o editarla') + ' · − / + oculta reportes', count:porCat.find(x => x.c.id === catAct).items.length, body:arbolHtml(cat) });
+  }else{
+    const filas = personas.map(p => { const jefe = personas.find(x => x.id === p.reportaA); return { id:p.id, nombre:p.nombre, cat:catDe(p).ico + ' ' + catDe(p).nombre, puesto:p.puesto || '—', empresa:empDe(p) || '—', area:p.area || '—',
+      email:p.email ? '<a href="mailto:' + esc(p.email) + '" onclick="event.stopPropagation()" style="color:#8FE6FF">' + esc(p.email) + '</a>' : '—', tel:p.telefono || '—', jefe:jefe ? jefe.nombre : '—' }; });
+    content.innerHTML = WK.card({ ico:'📇', titulo:'Todos los contactos', sub:'Clic en una fila para ver la ficha · clic en un encabezado para ordenar', count:N,
+      body:WK.table([
+        { k:'nombre', label:'Nombre', tipo:'strong' }, { k:'cat', label:'Categoría', tipo:'tag' }, { k:'puesto', label:'Puesto', tipo:'text' }, { k:'empresa', label:'Empresa', tipo:'text' }, { k:'area', label:'Área', tipo:'text' },
+        { k:'email', label:'Correo', tipo:'html' }, { k:'tel', label:'Teléfono', tipo:'text' }, { k:'jefe', label:'Reporta a', tipo:'text' }
+      ], filas, { id:'tablaContactos', rowAttrs:f => 'onclick="selecciona(\'' + esc(f.id) + '\')" style="cursor:pointer"' }) });
+    WK.sortable(content); if(consulta) WK.filtrar(document.getElementById('tablaContactos'), consulta);
+  }
+  if(selId && !personas.some(x => x.id === selId)) selId = null;
+  panel();
+  if(selId) document.querySelectorAll('.ci-box').forEach(b => b.classList.toggle('sel', b.dataset.id === selId));
+  requestAnimationFrame(() => { dibujaLineas(); setTimeout(dibujaLineas, 400); });
 }
 
-window.addEventListener('resize', () => { if(personas.length) drawLines(); });
-
-function reportaOptionsHtml(categoria, excludeId, selectedId){
-  return personas
-    .filter(x => x.id !== excludeId && (x.categoria || CATEGORIAS[0]) === categoria)
-    .map(x => `<option value="${x.id}" ${selectedId===x.id?'selected':''}>${esc(x.nombre)} — ${esc(x.puesto)}</option>`)
-    .join('');
+/* ---------- Ficha (ver / editar) ---------- */
+function opcionesJefe(catNombre, excluyeId, sel){
+  return personas.filter(x => x.id !== excluyeId && catDe(x).nombre === catNombre).map(x => '<option value="' + esc(x.id) + '"' + (sel === x.id ? ' selected' : '') + '>' + esc(x.nombre) + (x.puesto ? ' — ' + esc(x.puesto) : '') + '</option>').join('');
 }
-
-function onCategoriaFormChange(){
-  const categoria = document.getElementById('f-categoria').value;
-  document.getElementById('f-reportaA').innerHTML = '<option value="">— Nadie (nivel más alto) —</option>' + reportaOptionsHtml(categoria, currentId, null);
+function onCatChange(){
+  const c = document.getElementById('f-categoria').value;
+  document.getElementById('f-reportaA').innerHTML = '<option value="">— Nadie (nivel más alto) —</option>' + opcionesJefe(c, currentId, null);
+  const w = document.getElementById('f-empresa-wrap'), inp = document.getElementById('f-empresa');
+  w.style.display = EMP_LABEL[c] ? '' : 'none';
+  document.getElementById('f-empresa-lbl').textContent = EMP_LABEL[c] || 'Empresa';
+  inp.placeholder = EMP_PH[c] || '';
+  document.getElementById('dl-empresa').innerHTML = [...new Set(personas.filter(x => x.categoria === c && x.empresa).map(x => x.empresa))].map(e => '<option value="' + esc(e) + '">').join('');
 }
-
 function openSheet(id){
-  currentId = id;
-  const p = id ? personas.find(x=>x.id===id) : { nombre:'', puesto:'', area:'', email:'', telefono:'', reportaA:'', notas:'', categoria: categoriaActual };
-  const categoriaInicial = p.categoria || categoriaActual;
-  const opcionesReporta = reportaOptionsHtml(categoriaInicial, id, p.reportaA);
-  const opcionesCategoria = CATEGORIAS.map(c => `<option value="${c}" ${categoriaInicial===c?'selected':''}>${esc(c)}</option>`).join('');
-
-  document.getElementById('sheet').innerHTML = `
-    <button class="close-x" onclick="closeSheet()">&times;</button>
-    <p class="sheet-title">${id ? 'Editar contacto' : 'Nuevo contacto'}</p>
-    <label>Categoría</label>
-    <select id="f-categoria" onchange="onCategoriaFormChange()">${opcionesCategoria}</select>
-    <label>Nombre</label><input type="text" id="f-nombre" value="${esc(p.nombre)}" placeholder="Ej. Laura Méndez">
-    <label>Puesto</label><input type="text" id="f-puesto" value="${esc(p.puesto)}" placeholder="Ej. Account Executive, Public Cloud">
-    <label>Área / especialidad</label><input type="text" id="f-area" value="${esc(p.area)}" placeholder="Ej. Public Cloud, BTP, Partner Management">
-    <label>Reporta a</label>
-    <select id="f-reportaA">
-      <option value="">— Nadie (nivel más alto) —</option>
-      ${opcionesReporta}
-    </select>
-    <label>Correo</label><input type="text" id="f-email" value="${esc(p.email)}" placeholder="nombre@sap.com">
-    <label>Teléfono</label><input type="text" id="f-telefono" value="${esc(p.telefono)}" placeholder="+52 55 1234 5678">
-    <label>Notas</label><textarea id="f-notas" rows="2" placeholder="Ej. Contactar para temas de licenciamiento Public Cloud">${esc(p.notas)}</textarea>
-    <div class="sheet-actions">
-      <button class="btn-sheet-primary" style="border:none; border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;" onclick="saveContacto()">Guardar</button>
-      ${id ? '<button class="btn-sheet-ghost" style="border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;" onclick="closeSheet()">Cancelar</button>' : ''}
-      ${id ? '<button class="btn-sheet-danger" style="border-radius:8px; padding:10px 16px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer;" onclick="deleteContacto()">Eliminar</button>' : ''}
-    </div>
-  `;
+  currentId = id; confirmaBorrar = false;
+  const ro = !!window.SOLO_LECTURA, dis = ro ? ' disabled' : '';
+  const p = id ? personas.find(x => x.id === id) : { nombre:'', puesto:'', area:'', email:'', telefono:'', reportaA:'', notas:'', categoria:CATS[0].nombre, empresa:'' };
+  if(!p) return;
+  const cat = catDe(p).nombre;
+  document.getElementById('sheet').innerHTML =
+    '<button class="ci-x" onclick="closeSheet()" aria-label="Cerrar">&times;</button><h3>' + (id ? (ro ? 'Contacto' : 'Editar contacto') : 'Nuevo contacto') + '</h3>' +
+    '<label>Categoría</label><select id="f-categoria" onchange="onCatChange()"' + dis + '>' + CATS.map(c => '<option value="' + esc(c.nombre) + '"' + (c.nombre === cat ? ' selected' : '') + '>' + esc(c.nombre) + '</option>').join('') + '</select>' +
+    '<label>Nombre</label><input type="text" id="f-nombre" value="' + esc(p.nombre) + '" placeholder="Ej. Laura Méndez"' + dis + '>' +
+    '<label>Puesto</label><input type="text" id="f-puesto" value="' + esc(p.puesto) + '" placeholder="Ej. Account Executive, Public Cloud"' + dis + '>' +
+    '<div id="f-empresa-wrap"' + (EMP_LABEL[cat] ? '' : ' style="display:none"') + '><label id="f-empresa-lbl">' + esc(EMP_LABEL[cat] || 'Empresa') + '</label><input type="text" id="f-empresa" list="dl-empresa" value="' + esc(p.empresa || '') + '" placeholder="' + esc(EMP_PH[cat] || '') + '"' + dis + '><datalist id="dl-empresa">' + [...new Set(personas.filter(x => x.categoria === cat && x.empresa).map(x => x.empresa))].map(e => '<option value="' + esc(e) + '">').join('') + '</datalist></div>' +
+    '<label>Área / especialidad</label><input type="text" id="f-area" value="' + esc(p.area) + '" placeholder="Ej. Public Cloud, BTP, Partner Management"' + dis + '>' +
+    '<label>Reporta a</label><select id="f-reportaA"' + dis + '><option value="">— Nadie (nivel más alto) —</option>' + opcionesJefe(cat, id, p.reportaA) + '</select>' +
+    '<label>Correo</label><input type="text" id="f-email" value="' + esc(p.email) + '" placeholder="nombre@sap.com"' + dis + '>' +
+    '<label>Teléfono</label><input type="text" id="f-telefono" value="' + esc(p.telefono) + '" placeholder="+52 55 1234 5678"' + dis + '>' +
+    '<label>Notas</label><textarea id="f-notas" rows="2" placeholder="Ej. Contactar para temas de licenciamiento Public Cloud"' + dis + '>' + esc(p.notas) + '</textarea>' +
+    '<div id="ciErr" class="st-err"></div>' +
+    (ro ? '' : '<div class="ci-act"><button class="ci-btn p" onclick="saveContacto()">Guardar</button>' + (id ? '<button class="ci-btn" onclick="closeSheet()">Cancelar</button><button class="ci-btn d" id="btnDel" onclick="deleteContacto()">Eliminar</button>' : '') + '</div>');
   document.getElementById('overlay').classList.add('open');
 }
-
-function closeSheet(){
-  document.getElementById('overlay').classList.remove('open');
-  currentId = null;
-}
+function closeSheet(){ document.getElementById('overlay').classList.remove('open'); currentId = null; }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeSheet(); });
+const errSheet = t => { const e = document.getElementById('ciErr'); if(e) e.textContent = t || ''; };
 
 async function saveContacto(){
+  if(window.SOLO_LECTURA) return;
   const nombre = document.getElementById('f-nombre').value.trim();
-  if(!nombre){ alert('Falta el nombre'); return; }
-  const categoria = document.getElementById('f-categoria').value;
-  const item = {
-    id: currentId || ('sap-'+Date.now().toString(36)),
-    categoria,
-    nombre,
-    puesto: document.getElementById('f-puesto').value.trim(),
-    area: document.getElementById('f-area').value.trim(),
-    reportaA: document.getElementById('f-reportaA').value || null,
-    email: document.getElementById('f-email').value.trim(),
-    telefono: document.getElementById('f-telefono').value.trim(),
-    notas: document.getElementById('f-notas').value.trim(),
-  };
-  if(item.reportaA === item.id){ alert('Una persona no puede reportarse a sí misma.'); return; }
-  if(currentId){
-    personas[personas.findIndex(x=>x.id===currentId)] = item;
-  }else{
-    personas.push(item);
-  }
-  await saveData();
-  closeSheet();
-  categoriaActual = categoria;
-  renderTabbar();
-  render();
-}
-
-async function deleteContacto(){
-  if(!confirm('¿Eliminar este contacto? Si alguien más le reporta, quedará al nivel más alto.')) return;
-  personas = personas.filter(x=>x.id!==currentId);
+  if(!nombre) return errSheet('Falta el nombre.');
+  const item = { id:currentId || ('sap-' + Date.now().toString(36)), categoria:document.getElementById('f-categoria').value, nombre,
+    puesto:document.getElementById('f-puesto').value.trim(), empresa:EMP_LABEL[document.getElementById('f-categoria').value] ? document.getElementById('f-empresa').value.trim() : '', area:document.getElementById('f-area').value.trim(), reportaA:document.getElementById('f-reportaA').value || null,
+    email:document.getElementById('f-email').value.trim(), telefono:document.getElementById('f-telefono').value.trim(), notas:document.getElementById('f-notas').value.trim() };
+  if(item.reportaA === item.id) return errSheet('Una persona no puede reportarse a sí misma.');
+  const antes = personas.slice();
+  if(currentId) personas[personas.findIndex(x => x.id === currentId)] = item; else personas.push(item);
   const resp = await saveData();
+  if(!resp || resp.ok === false){ personas = antes; return errSheet((resp && resp.error) || 'No se pudo guardar.'); }
+  closeSheet(); render();
+  document.getElementById('statusBox').innerHTML = '';
+}
+async function deleteContacto(){
+  if(!confirmaBorrar){ confirmaBorrar = true; const b = document.getElementById('btnDel'); if(b) b.textContent = 'Confirmar: eliminar'; return errSheet('Si alguien le reporta, pasará al nivel más alto.'); }
+  const antes = personas.slice();
+  personas = personas.filter(x => x.id !== currentId);
+  const resp = await saveData();
+  if(!resp || resp.ok === false){ personas = antes; return errSheet((resp && resp.error) || 'No se pudo eliminar.'); }
   closeSheet();
-  if(resp && resp.restaurados && resp.restaurados.length){
+  if(resp.restaurados && resp.restaurados.length){
     await loadData();
-    alert('Solo un Administrador puede borrar contactos, así que se restauró: ' + resp.restaurados.join(', '));
-  }else{
-    render();
-  }
+    document.getElementById('statusBox').innerHTML = '<div class="st-err">Solo un Administrador puede borrar contactos, así que se restauró: ' + esc(resp.restaurados.join(', ')) + '</div>';
+  }else{ render(); }
 }
 
 loadData();
@@ -480,5 +466,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="/asistente.js?v=1" defer></script>
 </body>
 </html>

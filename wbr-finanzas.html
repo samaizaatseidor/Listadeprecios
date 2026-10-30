@@ -12,18 +12,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="/wbr-kit.js?v=20261028a"></script>
 <style>
   :root{
-    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
-    --cyan:#33B4DD; --cyan-l:#6FD3F0;
-    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
-    --line:#D8E2EE; --card:#F4F8FC;
-    --green:#1F8A4C; --amber:#8A6414; --red:#B23A3A;
-    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC;
+    --green:#1F8A4C; --amber:#8A6414; --red:#B23A3A; --shadow: 0 3px 9px rgba(159,179,204,0.35);
   }
   *{box-sizing:border-box;}
   body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+
   .topnav{background:#fff; border-bottom:1px solid var(--line);}
   .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
   .topnav-logo img{height:26px; display:block;}
@@ -41,6 +39,7 @@
   .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
   .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
   .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
 
   header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
   header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
@@ -52,51 +51,70 @@
   .upload-label{background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-block;}
 
   main{max-width:1600px; margin:0 auto; padding:24px 24px 60px;}
-  .section{background:#fff; border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:var(--shadow);}
-  .section h2{font-size:15px; color:var(--navy2); margin:0 0 4px; display:flex; align-items:center; gap:8px;}
-  .sub{font-size:12px; color:var(--greyl); margin:0 0 14px;}
-  .empty{text-align:center; padding:70px 20px; color:var(--greyl);}
-  .empty h2{color:var(--navy2); font-size:18px; margin-bottom:8px;}
-
-  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-bottom:18px;}
-  .kpi-card{background:#fff; border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); position:relative; overflow:hidden;}
-  .kpi-card .label{font-size:11px; color:var(--greyl); text-transform:uppercase; letter-spacing:0.5px; font-weight:700;}
-  .kpi-card .value{font-size:26px; font-weight:800; color:var(--navy2); margin-top:6px;}
-  .kpi-card .sub-value{font-size:12px; color:var(--grey); margin-top:2px;}
-  .kpi-bar{height:6px; border-radius:4px; background:var(--card); margin-top:12px; overflow:hidden;}
-  .kpi-bar-fill{height:100%; border-radius:4px;}
-  .kpi-card.verde .value{color:var(--green);} .kpi-bar-fill.verde{background:var(--green);}
-  .kpi-card.ambar .value{color:var(--amber);} .kpi-bar-fill.ambar{background:#D8A63A;}
-  .kpi-card.rojo .value{color:var(--red);} .kpi-bar-fill.rojo{background:var(--red);}
-
-  .charts-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
-  .chart-wrap{position:relative; height:260px;}
-  @media (max-width:900px){ .charts-grid{grid-template-columns:1fr;} }
-
-  .insight-box{background:linear-gradient(135deg, #F4F8FC 0%, #EAF3FB 100%); border:1px solid var(--line); border-radius:12px; padding:18px 20px; display:flex; gap:14px; align-items:flex-start;}
-  .insight-icon{font-size:26px; flex-shrink:0;}
-  .insight-text{font-size:13.5px; line-height:1.6; color:var(--ink); white-space:pre-wrap;}
-  .alert-chip{display:inline-flex; align-items:center; gap:6px; background:#FBE7E7; color:var(--red); font-size:11.5px; font-weight:700; padding:5px 12px; border-radius:20px; margin:4px 6px 0 0;}
-  .alert-chip.ambar{background:#FBF1DE; color:var(--amber);}
-
-  table{width:100%; border-collapse:collapse; font-size:12.5px;}
-  th{text-align:left; color:var(--grey); border-bottom:1px solid var(--line); padding:8px 6px; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:0.3px;}
-  td{padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top;}
-  tr:hover td{background:var(--card);}
-  .num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
-  .dias-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px;}
-  .dias-ok{background:#E7F7EE; color:var(--green);}
-  .dias-warn{background:#FBF1DE; color:var(--amber);}
-  .dias-bad{background:#FBE7E7; color:var(--red);}
-  .comentario-cell{max-width:280px; font-size:11.5px; color:var(--grey);}
-
-  .tabbar{display:flex; gap:6px; margin-bottom:14px;}
-  .tabbar button{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:7px 14px; font-family:inherit; font-size:12.5px; font-weight:600; color:var(--grey); cursor:pointer;}
-  .tabbar button.active{background:var(--navy2); color:#fff; border-color:var(--navy2);}
-
   .loading{color:var(--grey); font-size:13px; text-align:center; padding:20px;}
   .spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--line); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px;}
   @keyframes spin{ to { transform:rotate(360deg); } }
+
+  /* ---------- Finanzas: estilos locales (tema oscuro del kit) ---------- */
+  .wk-area text{font-size:15px;}
+  .wk-cols text{font-size:14px;} .wk-cols .val{font-size:13px;}
+  .fin-alerts{display:flex; flex-wrap:wrap; gap:10px; margin:6px 0 20px;}
+  .fin-alerts .wk-b{font-size:14px; padding:8px 16px;}
+  /* tendencia semanal */
+  .fin-trend{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px;}
+  .fin-tc{padding:16px 18px 10px; border-radius:18px; background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02)); border:1px solid var(--wk-line); box-shadow:inset 0 1px 0 rgba(255,255,255,.08);}
+  .fin-tc small{display:block; font-size:12.5px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--wk-grey);}
+  .fin-tc b{display:block; font-size:34px; font-weight:800; color:#fff; letter-spacing:-1px; margin:2px 0 6px;}
+  .fin-tc .wk-area{max-height:120px;}
+  /* periodos (facturación / cobranza) */
+  .fin-per{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-top:18px;}
+  .fin-p{position:relative; padding:14px 16px 12px; border-radius:16px; background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02)); border:1px solid var(--wk-line); overflow:hidden;}
+  .fin-p:before{content:""; position:absolute; left:0; right:0; top:0; height:4px; background:var(--tc,#3DD6FF); box-shadow:0 0 16px var(--tc,#3DD6FF);}
+  .fin-p small{display:block; font-size:12.5px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--wk-grey);}
+  .fin-p b{display:block; font-size:34px; font-weight:800; line-height:1.1; color:var(--tc,#fff); margin:4px 0 2px; letter-spacing:-1px;}
+  .fin-p span{display:block; font-size:14px; color:#E3ECFA; font-weight:600;}
+  .fin-p em{display:block; font-style:normal; margin-top:6px; font-size:13.5px; color:var(--wk-grey); line-height:1.4;}
+  .fin-p.g{--tc:#2FE29B;} .fin-p.a{--tc:#FFC857;} .fin-p.r{--tc:#FF5C7A;}
+  /* distribución: dona grande + leyenda + estadísticas */
+  .fin-dist{display:flex; flex-wrap:wrap; gap:30px 44px; align-items:center; justify-content:center;}
+  .fin-dist .wk-donut-wrap{flex:0 0 auto;}
+  .fin-lg-wrap{flex:1 1 340px; min-width:280px; display:grid; gap:14px;}
+  .fin-lg{display:grid; grid-template-columns:16px 1fr 92px 52px; gap:14px; align-items:center; padding:6px 8px; border-radius:12px; transition:background .15s;}
+  .fin-lg:hover{background:rgba(255,255,255,.06);}
+  .fin-lg>i{width:16px; height:16px; border-radius:5px; box-shadow:0 0 12px currentColor;}
+  .fin-lg .nm span{display:block; font-size:16px; font-weight:600; color:#E3ECFA; margin-bottom:6px;}
+  .fin-lg .nm .wk-bar{height:8px; margin-top:0;}
+  .fin-lg b{font-size:17px; font-weight:700; color:#fff; font-variant-numeric:tabular-nums; text-align:right;}
+  .fin-lg u{text-decoration:none; font-size:15px; font-weight:700; color:var(--wk-grey); text-align:right; font-variant-numeric:tabular-nums;}
+  .fin-side{flex:1 1 300px; min-width:260px;}
+  .fin-side .wk-stat-row{grid-template-columns:1fr 1fr;}
+  .fin-side .wk-stat{padding:16px 18px;} .fin-side .wk-stat b{font-size:30px;} .fin-side .wk-stat span{font-size:13.5px;}
+  /* barras apiladas de antigüedad: números solo en tooltip */
+  .ag-row{display:grid; grid-template-columns:minmax(220px,360px) 1fr 96px; gap:16px; align-items:center; font-size:15.5px; margin-bottom:14px; padding:2px 6px; border-radius:12px;}
+  .ag-row:hover{background:rgba(255,255,255,.04);}
+  .ag-row .n{font-weight:600; color:#E3ECFA; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .ag-row b{text-align:right; font-variant-numeric:tabular-nums; color:#fff; font-size:16px;}
+  .ag-bar{display:flex; height:26px; border-radius:99px; overflow:hidden; background:rgba(255,255,255,.07); box-shadow:inset 0 2px 6px rgba(0,0,0,.35); animation:wkgrowx 1.4s cubic-bezier(.2,.8,.2,1) both; animation-play-state:paused;}
+  .wk-vis .ag-bar{animation-play-state:running;}
+  .ag-bar i{display:block; height:100%; border-right:2px solid rgba(5,10,24,.55); cursor:pointer; transition:filter .15s;}
+  .ag-bar i:hover{filter:brightness(1.35) drop-shadow(0 0 8px rgba(255,255,255,.45));}
+  .ag-leg{display:flex; flex-wrap:wrap; gap:10px 24px; font-size:14px; color:var(--wk-grey); margin-top:20px;}
+  .ag-leg i{display:inline-block; width:14px; height:14px; border-radius:4px; margin-right:7px; vertical-align:-2px;}
+  .wk-table td.z{color:rgba(255,255,255,.25);} .wk-table td.neg{color:#8FE6FF;}
+  #top10Content .wk-tablewrap{max-height:none;}
+  .fin-gap{height:18px;}
+  body.wk-dark .wk-delta{font-size:13.5px; padding:4px 11px;} body.wk-dark .wk-b{font-size:13.5px;} body.wk-dark .wk-tag{font-size:13.5px;} body.wk-dark .wk-count{font-size:13.5px;} body.wk-dark .wk-hint,body.wk-dark .wk-foot{font-size:13.5px;} body.wk-dark .wk-chip small{font-size:12.5px;} body.wk-dark .wk-table th{font-size:12.5px;} body.wk-dark .wk-stat span{font-size:13.5px;} body.wk-dark .wk-band span{font-size:13px;}
+  .fin-dist .wk-donut .v{font-size:24px!important;} .fin-dist .wk-donut .l{font-size:12.5px!important;}
+  body.wk-dark .wk-rank-row{grid-template-columns:minmax(200px,360px) 1fr auto;}
+  /* simulador */
+  .wk-wi{grid-template-columns:minmax(300px,1fr) minmax(380px,1.1fr); gap:40px;}
+  .wk-wi-row label{font-size:16px;} .wk-wi-row label b{font-size:18px;}
+  .wk-wi-out{justify-items:stretch; width:100%;}
+  .wk-wi-out .wk-gauge{max-width:380px; margin:0 auto;}
+  .wk-wi-out .wk-stat-row{grid-template-columns:1fr 1fr; width:100%;}
+  .wk-wi-out .wk-stat{padding:16px 18px;} .wk-wi-out .wk-stat b{font-size:30px;} .wk-wi-out .wk-stat span{font-size:13.5px; line-height:1.4;}
+  .wk-wi-note{font-size:15.5px; margin:0 auto;}
+.fin-del{background:none;border:1px solid rgba(255,255,255,.15);color:#FF8CA2;border-radius:8px;padding:3px 8px;cursor:pointer;font-size:13px;} .fin-del:hover{background:rgba(255,77,106,.18);}
 </style>
 </head>
 <body>
@@ -149,14 +167,17 @@
         <button type="button" class="nav-dropdown-btn active">📋 WBR <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
           <a href="/wbr-finanzas.html" class="active">Finanzas</a>
           <a href="/wbr-ventas.html">Ventas & Pipeline</a>
           <a href="/wbr-operaciones.html">Operaciones</a>
-          <a href="/wbr-productos.html">Target de Clientes</a>
           <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
           <a href="/wbr-ccflex.html">CCFlex</a>
           <a href="/wbr-cta.html">Call to Action</a>
           <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -168,7 +189,9 @@
           <a href="/alta.html">Generador de Formato de Alta</a>
           <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
           <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
-          <a href="/contactos-sap.html">Contactos SAP</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -181,11 +204,13 @@
           <a href="/handover.html">Handover Comercial → Operaciones</a>
           <a href="/estimador.html">Estimador de Esfuerzo</a>
           <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
         </div>
       </div>
       <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
           <a href="/dias-habiles.html">Días Hábiles México</a>
           <a href="/minutas.html">Generador de Minutas / Status</a>
           <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
@@ -203,10 +228,17 @@
         </div>
       </div>
       <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
         <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
         <div class="nav-dropdown-menu">
           <a href="/auditoria.html">Auditoría</a>
           <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
         </div>
       </div>
     </div>
@@ -223,27 +255,33 @@
   <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
 </header>
 
-<main>
+<main class="wk-main">
   <div id="statusBox"></div>
   <div id="content"></div>
 </main>
 
 <script>
+WK.setMoneda('€');
 let historial = [];
 let actual = null;
 let snapshotVisto = null;
 let mostrando = null;
+let tabTop10 = 'SAP';
 
-function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-function fmtEUR(n){ return '€' + (n||0).toLocaleString('es-MX', {minimumFractionDigits:0, maximumFractionDigits:0}) + 'K'; }
-function fmtPct(n){ return Math.round((n||0)*100) + '%'; }
-function claseAvance(pct){ return pct >= 0.85 ? 'verde' : (pct >= 0.6 ? 'ambar' : 'rojo'); }
-function claseDias(d){ return d <= 30 ? 'dias-ok' : (d <= 90 ? 'dias-warn' : 'dias-bad'); }
+const esc = WK.esc;
+const TONO_AV = p => p >= 0.85 ? 'green' : (p >= 0.6 ? 'amber' : 'red');
+const COLOR_BUCKET = ['#FF4D6A','#FF7A59','#FFA94D','#FFD166','#B8E986','#3DD6FF','#2FE29B'];
 
 /* ---------- Parseo del Excel (mismo motor validado en sandbox) ---------- */
 function encontrarFila(matriz, textoAncla){
   for(let i=0; i<matriz.length; i++){
     if(matriz[i].some(c => typeof c === 'string' && c.trim().toUpperCase().includes(textoAncla.toUpperCase()))) return i;
+  }
+  return -1;
+}
+function encontrarFilaRx(matriz, rx){
+  for(let i=0; i<matriz.length; i++){
+    if(matriz[i].some(c => typeof c === 'string' && rx.test(c.trim()))) return i;
   }
   return -1;
 }
@@ -257,11 +295,15 @@ function parsearBloquePeriodos(matriz, idxHeader){
   return periodos;
 }
 function parsearTop10(matriz, idxHeader){
+  // Salta filas en blanco intermedias (el Excel suele dejar huecos dentro del Top 10) y se detiene en el TOTAL o en el siguiente bloque.
   const clientes = [];
+  let vaciasSeguidas = 0;
   for(let i=idxHeader+1; i<matriz.length; i++){
     const fila = matriz[i];
-    if(!fila || !fila[0]) break;
-    if(String(fila[0]).toUpperCase().includes('TOTAL')) break;
+    if(!fila || !fila[0]){ if(++vaciasSeguidas > 3) break; continue; }
+    vaciasSeguidas = 0;
+    const c0 = String(fila[0]).toUpperCase();
+    if(c0.includes('TOTAL') || c0.includes('TOP 10') || c0.includes('TOP CLIENTES') || c0.trim() === 'CLIENTE' || c0.trim().startsWith('*')) break;
     clientes.push({ cliente: fila[0], lob: fila[1]||'', montoEUR: fila[2]||0, montoMXN: fila[3]||0, diasVencidos: fila[4]||0, nextStep: fila[5]||'' });
   }
   return clientes;
@@ -271,11 +313,19 @@ function parsearFinanzas(wb){
   if(!ws) throw new Error('El archivo no tiene una pestaña llamada "Finanzas"');
   const m = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true });
   const idxFecha = encontrarFila(m, 'Semana de revisión');
-  const fechaRevision = idxFecha>=0 ? (m[idxFecha].find(c => c instanceof Date) || null) : null;
+  let fechaRevision = idxFecha>=0 ? (m[idxFecha].find(c => c instanceof Date) || null) : null;
+  if(!fechaRevision){ // la celda de fecha de esta pestaña no es válida (p. ej. texto): se toma la de otra pestaña que tenga "Semana de revisión"
+    for(const nombre of wb.SheetNames){
+      const mm = XLSX.utils.sheet_to_json(wb.Sheets[nombre], { header:1, defval:null, raw:true });
+      const k = encontrarFila(mm, 'Semana de revisión');
+      const d = k>=0 ? mm[k].find(c => c instanceof Date) : null;
+      if(d){ fechaRevision = d; break; }
+    }
+  }
   const facturacion = parsearBloquePeriodos(m, encontrarFila(m,'FACTURACIÓN')+1);
   const cobranza = parsearBloquePeriodos(m, encontrarFila(m,'COBRANZA')+1);
-  const top10SAP = parsearTop10(m, encontrarFila(m,'TOP 10 CLIENTES POR COBRAR SAP')+1);
-  const top10B1 = parsearTop10(m, encontrarFila(m,'TOP 10 CLIENTES POR COBRAR B1')+1);
+  const top10SAP = parsearTop10(m, encontrarFilaRx(m,/^TOP\s*(10\s*)?CLIENTES\s+POR\s+COBRAR\s+SAP/i)+1);
+  const top10B1 = parsearTop10(m, encontrarFilaRx(m,/^TOP\s*(10\s*)?CLIENTES\s+POR\s+COBRAR\s+B1/i)+1);
   return { fechaRevision: fechaRevision ? fechaRevision.toISOString() : new Date().toISOString(), facturacion, cobranza, top10SAP, top10B1 };
 }
 function parsearAging(wb){
@@ -294,7 +344,9 @@ function parsearAging(wb){
     filas.push({ cliente, valores });
   }
   filas.sort((a,b) => b.valores[7] - a.valores[7]); // por TOTAL descendente
-  return { buckets, filas, totalGeneral: totalGeneral || buckets.map(()=>0) };
+  // Si el Excel no trae renglón de total general, se calcula sumando los clientes
+  if(!totalGeneral) totalGeneral = buckets.map((_,j) => filas.reduce((t,f) => t + (f.valores[j]||0), 0));
+  return { buckets, filas, totalGeneral };
 }
 
 /* ---------- Carga y guardado ---------- */
@@ -313,15 +365,16 @@ async function handleFile(file){
 
     statusBox.innerHTML = '<div class="loading"><span class="spinner"></span>Guardando el corte de esta semana…</div>';
     const anterior = historial.length ? historial[historial.length-1] : null;
-    await fetch('/api/wbr-finanzas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
+    const rGuardar = await fetch('/api/wbr-finanzas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) });
+    if(!rGuardar.ok){ const eg = await rGuardar.json().catch(()=>({})); throw new Error(eg.error || ('No se pudo guardar (error ' + rGuardar.status + ')')); }
     await cargarHistorial();
 
     render();
     pedirInsight(anterior);
-    statusBox.innerHTML = '<div style="color:#1F8A4C; font-size:13px;">Corte del ' + new Date(actual.fechaRevision).toLocaleDateString('es-MX') + ' guardado.</div>';
+    statusBox.innerHTML = '<div style="color:#2FE29B; font-size:14.5px; font-weight:600; margin-bottom:12px;">Corte del ' + WK.fecha(new Date(actual.fechaRevision)) + ' guardado.</div>';
   }catch(e){
     console.error(e);
-    statusBox.innerHTML = `<div style="color:#B23A3A; font-size:13px;">No se pudo leer el archivo: ${esc(e.message||String(e))}</div>`;
+    statusBox.innerHTML = '<div style="color:#FF8CA2; font-size:14.5px; font-weight:600; margin-bottom:12px;">No se pudo cargar el archivo: ' + esc(e.message||String(e)) + '</div>';
   }
 }
 
@@ -329,40 +382,53 @@ async function cargarHistorial(){
   try{
     const r = await fetch('/api/wbr-finanzas');
     const d = await r.json();
-    historial = d.historial || [];
+    historial = (d.historial || []).filter(h => h && Array.isArray(h.facturacion) && h.facturacion.length && Array.isArray(h.cobranza) && h.cobranza.length && h.aging && h.aging.totalGeneral && Array.isArray(h.aging.filas));
     if(historial.length) actual = historial[historial.length-1];
   }catch(e){ historial = []; }
 }
 
 async function pedirInsight(anterior){
-  const box = document.getElementById('insightBox');
+  const box = document.getElementById('insightText');
   if(!box) return;
-  box.innerHTML = '<div class="loading"><span class="spinner"></span>Delfos está analizando el corte…</div>';
+  box.textContent = 'Delfos está analizando el corte…';
   try{
     const r = await fetch('/api/wbr-finanzas-insight', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ actual, anterior })
     });
     const d = await r.json();
-    box.innerHTML = d.ok
-      ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(d.resumen)}</div></div>`
-      : `<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">${esc(d.error||'No se pudo generar el insight.')}</div></div>`;
+    if(!d.ok){ box.textContent = d.error || 'No se pudo generar el insight.'; return; }
+    box.textContent = d.resumen;
     // Guardamos el insight junto con el corte, para que si alguien lo revisita después en la bitácora, vea el mismo análisis de esa semana
-    if(d.ok){
-      actual.insightGuardado = d.resumen;
-      fetch('/api/wbr-finanzas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
-    }
+    actual.insightGuardado = d.resumen;
+    fetch('/api/wbr-finanzas', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ snapshot: actual }) }).catch(()=>{});
   }catch(e){
-    box.innerHTML = '<div class="insight-box"><div class="insight-icon">⚠️</div><div class="insight-text">No se pudo conectar con Delfos.</div></div>';
+    box.textContent = 'No se pudo conectar con Delfos.';
   }
 }
 
-function verSnapshotHistorico(fechaRevision){
-  const encontrado = historial.find(h => h.fechaRevision === fechaRevision);
+function etiquetaCarga(h){ return h && h.guardadoEn ? 'cargado por ' + (h.guardadoPor || 'desconocido') + ' el ' + WK.hora(h.guardadoEn) : ''; }
+
+function verSnapshotHistorico(idCarga){
+  const encontrado = historial.find(h => h.guardadoEn === idCarga);
   if(!encontrado) return;
   snapshotVisto = encontrado;
   render();
   window.scrollTo({top:0, behavior:'smooth'});
+}
+
+async function eliminarCorte(id){
+  const h = historial.find(x => x.guardadoEn === id); if(!h) return;
+  if(!confirm('¿Eliminar el corte de la semana ' + WK.fecha(new Date(h.fechaRevision)) + ' (' + WK.hora(h.guardadoEn) + ')? No se puede deshacer.')) return;
+  try{
+    const r = await fetch('/api/wbr-finanzas', { method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ guardadoEn:id }) });
+    const d = await r.json();
+    if(!d.ok) throw new Error(d.error || 'No se pudo eliminar');
+    historial = historial.filter(x => x.guardadoEn !== id);
+    if(snapshotVisto && snapshotVisto.guardadoEn === id) snapshotVisto = null;
+    if(actual && actual.guardadoEn === id) actual = historial.length ? historial[historial.length-1] : null;
+    render();
+  }catch(e){ alert('No se pudo eliminar el corte: ' + (e.message||e)); }
 }
 
 function volverActual(){
@@ -371,8 +437,62 @@ function volverActual(){
   pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
 }
 
+/* ---------- Datos derivados ---------- */
+const periodoYTD = lista => (lista||[]).find(p => String(p.periodo).toUpperCase().includes('YTD')) || (lista||[])[(lista||[]).length-1] || { periodo:'', objetivo:0, real:0, avance:0, comentario:'' };
+function resumenCorte(h){
+  const tg = h.aging.totalGeneral || [];
+  const vencido = tg.slice(0,6).reduce((s,v) => s + (v||0), 0); // todo menos Current
+  const crit = tg[0] || 0; // +6 MONTHS
+  return { f:periodoYTD(h.facturacion), c:periodoYTD(h.cobranza), vencido, cartera:tg[7]||0, crit, pctCrit: vencido ? crit/vencido : 0,
+           nCrit: h.aging.filas.filter(x => x.valores[0] > 0).length };
+}
+const claseDias = d => d <= 30 ? 'green' : (d <= 90 ? 'amber' : 'red');
+const pillDias = d => '<span class="wk-b ' + claseDias(d) + '">' + (d==null?'—':d) + '</span>';
+const dpp = (a, b) => WK.delta((a||0)*100, (b||0)*100, { bueno:'up', fmt: x => Math.round(x*10)/10 + ' pp' });
+const dppMenos = (a, b) => WK.delta((a||0)*100, (b||0)*100, { bueno:'down', fmt: x => Math.round(x*10)/10 + ' pp' });
+const compacto = n => Math.abs(n) >= 1000 ? (n<0?'-':'') + '€' + (Math.abs(n)/1000).toFixed(2).replace(/0$/,'') + 'M' : WK.usdK(n);
+const nombreBucket = (i) => (mostrando.aging.buckets[i] || ('Rango ' + (i+1)));
+
 /* ---------- Render ---------- */
-let chartFacturacion, chartCobranza, chartAging;
+const MID_DIAS = [210,165,120,75,45,15,0]; // días vencidos estimados (punto medio) de cada rango del Aging, solo para la simulación
+const fmtC = n => n === 0 ? '€0' : (Math.abs(n) >= 1000 ? (n<0?'-':'') + '€' + (+(Math.abs(n)/1000).toFixed(1)) + 'M' : (n<0?'-':'') + '€' + Math.round(Math.abs(n)) + 'K');
+const diasPromedio = vals => { let s = 0, w = 0; for(let i=0; i<6; i++){ const v = Math.max(0, vals[i]||0); s += v*MID_DIAS[i]; w += v; } return w ? s/w : 0; };
+
+function stackAging(filas){
+  const sumaPos = f => f.valores.slice(0,7).reduce((s,v) => s + (v>0 ? v : 0), 0);
+  const max = Math.max.apply(null, filas.map(sumaPos).concat([1]));
+  const filasHtml = filas.map(f => {
+    const pos = sumaPos(f) || 1;
+    const segs = f.valores.slice(0,7).map((v,i) => v > 0 ? '<i data-tip="' + esc(f.cliente + ' · ' + nombreBucket(i) + '\n' + WK.usdK(v) + '\n' + Math.round(v/pos*100) + '% del saldo positivo del cliente') + '" style="width:' + (v/max*100).toFixed(2) + '%;background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,0) 62%),' + COLOR_BUCKET[i] + '"></i>' : '').join('');
+    const detalle = f.valores.slice(0,7).map((v,i) => v ? nombreBucket(i) + ': ' + WK.usdK(v) : '').filter(Boolean).join('\n');
+    const tipFila = f.cliente + '\nTotal ' + WK.usdK(f.valores[7]) + (detalle ? '\n' + detalle : '');
+    return '<div class="ag-row" data-tip="' + esc(tipFila) + '"><span class="n">' + esc(f.cliente) + '</span><div class="ag-bar">' + segs + '</div><b>' + WK.usdK(f.valores[7]) + '</b></div>';
+  }).join('');
+  const leyenda = '<div class="ag-leg">' + COLOR_BUCKET.map((c,i) => '<span><i style="background:' + c + '"></i>' + esc(nombreBucket(i)) + '</span>').join('') + '</div>';
+  return '<div class="wk-anim">' + filasHtml + '</div>' + leyenda;
+}
+
+/* Dona grande + leyenda legible (monto, %, barra) + estadísticas al lado */
+function distribucion(items, o){
+  const tot = items.reduce((s,i) => s + (i.value > 0 ? i.value : 0), 0) || 1;
+  const dona = WK.donut(items, { centro:o.centro, sub:o.sub, fmt:WK.usdK, sinLeyenda:true, tamano:'clamp(240px,23vw,380px)' });
+  const leyenda = '<div class="fin-lg-wrap wk-anim">' + items.map(it => {
+    const pct = it.value > 0 ? it.value/tot : 0;
+    return '<div class="fin-lg" data-tip="' + esc(it.label + '\n' + WK.usdK(it.value) + ' · ' + Math.round(pct*100) + '% del total') + '"><i style="background:' + it.color + ';color:' + it.color + '"></i><div class="nm"><span>' + esc(it.label) + '</span><div class="wk-bar"><i style="width:' + (pct*100).toFixed(1) + '%;background:' + it.color + '"></i></div></div><b>' + WK.usdK(it.value) + '</b><u>' + Math.round(pct*100) + '%</u></div>';
+  }).join('') + '</div>';
+  return '<div class="fin-dist">' + dona + leyenda + '<div class="fin-side">' + o.stats + '</div></div>';
+}
+
+function cardPeriodos(ico, titulo, sub, lista, nomReal, colorReal, id){
+  if(!lista.length) return WK.card({ ico, titulo, sub, body:WK.empty('Sin datos.') });
+  const chart = WK.columns(lista.map(p => p.periodo), [
+    { nombre:'Objetivo', valores:lista.map(p => p.objetivo||0), color:'#8B7CFF', extra:lista.map(p => 'Exacto ' + WK.usdK(p.objetivo||0)) },
+    { nombre:nomReal, valores:lista.map(p => p.real||0), color:colorReal, extra:lista.map(p => 'Exacto ' + WK.usdK(p.real||0) + '\nAvance ' + WK.pct(p.avance) + ' · Falta ' + WK.usdK(Math.max(0, (p.objetivo||0) - (p.real||0)))) }
+  ], { fmt:fmtC, id, h:320 });
+  const tonos = { green:'g', amber:'a', red:'r' };
+  const chips = '<div class="fin-per">' + lista.map(p => '<div class="fin-p ' + tonos[TONO_AV(p.avance)] + '" data-tip="' + esc(p.periodo + '\nObjetivo ' + WK.usdK(p.objetivo) + ' · ' + nomReal + ' ' + WK.usdK(p.real) + (p.comentario ? '\n' + p.comentario : '')) + '"><small>' + esc(p.periodo) + '</small><b>' + WK.pct(p.avance) + '</b><span>Falta ' + WK.usdK(Math.max(0, (p.objetivo||0) - (p.real||0))) + '</span>' + (p.comentario ? '<em>' + esc(p.comentario) + '</em>' : '') + '</div>').join('') + '</div>';
+  return WK.card({ ico, titulo, sub, body:chart + chips });
+}
 
 function render(){
   const content = document.getElementById('content');
@@ -380,182 +500,212 @@ function render(){
   mostrando = snapshotVisto || actual;
   if(!mostrando){
     badge.innerHTML = '';
-    content.innerHTML = `<div class="section"><div class="empty"><h2>Todavía no hay ningún corte cargado</h2><p>Sube el Excel semanal (con las pestañas "Finanzas" y "Aging") para generar el primer dashboard.</p></div></div>`;
+    content.innerHTML = '<div class="wk-card">' + WK.empty('Todavía no hay ningún corte cargado. Sube el Excel semanal (con las pestañas “Finanzas” y “Aging”) para generar el primer dashboard.') + '</div>';
     return;
   }
-  badge.innerHTML = `<span class="fecha-revision">Semana de revisión: ${new Date(mostrando.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</span>`;
+  const semana = WK.fecha(new Date(mostrando.fechaRevision));
+  badge.innerHTML = '<span class="fecha-revision">Semana de revisión: ' + esc(semana || '—') + '</span>';
+  const banner = snapshotVisto ? '<div class="wk-banner"><span>📅 Estás viendo el corte del <b>' + esc(semana) + '</b> (' + esc(etiquetaCarga(snapshotVisto)) + ') — no es la semana actual.</span><button class="wk-btn" onclick="volverActual()">Volver a la semana actual</button></div>' : '';
 
-  const bannerHistorico = snapshotVisto ? `
-    <div class="section" style="background:#FBF1DE; border:1px solid #E9D9AE; display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
-      <span style="font-size:13px; color:#8A6414;">📅 Estás viendo el corte del <b>${new Date(snapshotVisto.fechaRevision).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</b> — no es la semana actual.</span>
-      <button class="btn btn-primary" style="background:#8A6414; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; cursor:pointer;" onclick="volverActual()">Volver a la semana actual</button>
-    </div>
-  ` : '';
+  const R = resumenCorte(mostrando);
+  const { f:factYTD, c:cobrYTD, vencido:totalVencido, cartera:totalCartera, crit:totalCritico, pctCrit:pctCritico, nCrit:clientesCriticos } = R;
+  const idx = historial.findIndex(h => h.guardadoEn === mostrando.guardadoEn);
+  const prev = idx > 0 ? historial[idx-1] : null;
+  const P = prev ? resumenCorte(prev) : null;
+  const hasta = idx < 0 ? historial.length : idx + 1;
+  const ventana = historial.slice(Math.max(0, hasta - 8), hasta);
+  const serie = ventana.map(resumenCorte);
+  const lbl = ventana.map(h => (WK.fecha(new Date(h.fechaRevision)) || '').slice(0,5));
 
-  const factYTD = mostrando.facturacion.find(p => p.periodo.toUpperCase().includes('YTD')) || mostrando.facturacion[mostrando.facturacion.length-1];
-  const cobrYTD = mostrando.cobranza.find(p => p.periodo.toUpperCase().includes('YTD')) || mostrando.cobranza[mostrando.cobranza.length-1];
-  const totalVencido = mostrando.aging.totalGeneral.slice(0,6).reduce((s,v)=>s+v,0); // todo menos Current
-  const totalCartera = mostrando.aging.totalGeneral[7];
-  const totalCritico = mostrando.aging.totalGeneral[0]; // +6 MONTHS
-  const pctCritico = totalVencido ? totalCritico/totalVencido : 0;
-  const clientesCriticos = mostrando.aging.filas.filter(f => f.valores[0] > 0).length;
+  const tonoVenc = totalCartera && totalVencido > totalCartera*0.5 ? 'red' : 'amber';
+  const tonoCrit = pctCritico > 0.3 ? 'red' : (pctCritico > 0.15 ? 'amber' : 'green');
+
+  const kpis = WK.heroGrid([
+    WK.hero({ label:'Facturación YTD', ir:'fact', ico:'🧾', value:WK.pct(factYTD.avance), tono:TONO_AV(factYTD.avance), sub:'Objetivo ' + WK.usdK(factYTD.objetivo), delta:P ? dpp(factYTD.avance, P.f.avance) : '',
+      chart:WK.gauge({ valor:factYTD.real, max:factYTD.objetivo || 1, tono:TONO_AV(factYTD.avance), texto:fmtC(factYTD.real), label:'emitido (EUR)', dark:true, tip:'Facturación YTD\nEmitido ' + WK.usdK(factYTD.real) + ' de ' + WK.usdK(factYTD.objetivo) + '\nAvance ' + WK.pct(factYTD.avance) }) }),
+    WK.hero({ label:'Cobranza YTD', ir:'fact', ico:'💵', value:WK.pct(cobrYTD.avance), tono:TONO_AV(cobrYTD.avance), sub:'Objetivo ' + WK.usdK(cobrYTD.objetivo), delta:P ? dpp(cobrYTD.avance, P.c.avance) : '',
+      chart:WK.gauge({ valor:cobrYTD.real, max:cobrYTD.objetivo || 1, tono:TONO_AV(cobrYTD.avance), texto:fmtC(cobrYTD.real), label:'cobrado (EUR)', dark:true, tip:'Cobranza YTD\nCobrado ' + WK.usdK(cobrYTD.real) + ' de ' + WK.usdK(cobrYTD.objetivo) + '\nAvance ' + WK.pct(cobrYTD.avance) }) }),
+    WK.hero({ label:'Cartera vencida', ir:'aging', ico:'⏳', value:WK.usdK(totalVencido), tono:tonoVenc, sub:'de ' + WK.usdK(totalCartera) + ' en cartera total',
+      delta:P ? WK.delta(totalVencido, P.vencido, { bueno:'down', fmt:x => WK.usdK(x) }) : '',
+      chart: WK.area(serie.map(s => s.vencido), { labels:lbl, color: tonoVenc === 'red' ? '#FF5C7A' : '#FFC857', fmt:WK.usdK, nombre:'Vencido' }) ||
+             WK.gauge({ valor:totalVencido, max:totalCartera || 1, tono:tonoVenc, texto:WK.pct(totalCartera ? totalVencido/totalCartera : 0), label:'de la cartera está vencida', dark:true, tip:'Cartera vencida\n' + WK.usdK(totalVencido) + ' de ' + WK.usdK(totalCartera) }) }),
+    WK.hero({ label:'Zona crítica (+6 meses)', ir:'aging', ico:'🚨', value:WK.pct(pctCritico), tono:tonoCrit, sub:clientesCriticos + ' cliente(s) con saldo ahí', delta:P ? dppMenos(pctCritico, P.pctCrit) : '',
+      chart:WK.gauge({ valor:totalCritico, max:totalVencido || 1, tono:tonoCrit, texto:WK.usdK(totalCritico), label:'del vencido (EUR)', dark:true, tip:'Zona crítica (+6 meses)\n' + WK.usdK(totalCritico) + ' de ' + WK.usdK(totalVencido) + ' vencidos\n' + WK.pct(pctCritico) + ' del vencido' }) })
+  ]);
 
   const alertas = [];
-  if(factYTD.avance < 0.7) alertas.push({ tipo:'rojo', texto:`Facturación YTD al ${fmtPct(factYTD.avance)}, por debajo del 70% del objetivo` });
-  if(cobrYTD.avance < 0.7) alertas.push({ tipo:'ambar', texto:`Cobranza YTD al ${fmtPct(cobrYTD.avance)}` });
+  if(factYTD.avance < 0.7) alertas.push({ tipo:'red', texto:'Facturación YTD al ' + WK.pct(factYTD.avance) + ', por debajo del 70% del objetivo' });
+  if(cobrYTD.avance < 0.7) alertas.push({ tipo:'amber', texto:'Cobranza YTD al ' + WK.pct(cobrYTD.avance) });
   const peorCliente = mostrando.aging.filas[0];
-  if(peorCliente && peorCliente.valores[0] > 0) alertas.push({ tipo:'rojo', texto:`${peorCliente.cliente} tiene cartera en zona +6 meses` });
-  const masVencidoSAP = mostrando.top10SAP.slice().sort((a,b)=>b.diasVencidos-a.diasVencidos)[0];
-  if(masVencidoSAP && masVencidoSAP.diasVencidos > 180) alertas.push({ tipo:'rojo', texto:`${masVencidoSAP.cliente}: ${masVencidoSAP.diasVencidos} días vencidos` });
+  if(peorCliente && peorCliente.valores[0] > 0) alertas.push({ tipo:'red', texto:peorCliente.cliente + ' tiene cartera en zona +6 meses' });
+  const masVencidoSAP = (mostrando.top10SAP||[]).slice().sort((a,b) => b.diasVencidos - a.diasVencidos)[0];
+  if(masVencidoSAP && masVencidoSAP.diasVencidos > 180) alertas.push({ tipo:'red', texto:masVencidoSAP.cliente + ': ' + masVencidoSAP.diasVencidos + ' días vencidos' });
+  const alertasHtml = alertas.length ? '<div class="fin-alerts">' + alertas.map(a => WK.badge('⚠ ' + a.texto, a.tipo)).join('') + '</div>' : '';
 
-  content.innerHTML = `
-    ${bannerHistorico}
-    <div class="kpi-grid">
-      <div class="kpi-card ${claseAvance(factYTD.avance)}">
-        <div class="label">Facturación YTD</div>
-        <div class="value">${fmtPct(factYTD.avance)}</div>
-        <div class="sub-value">${fmtEUR(factYTD.real)} de ${fmtEUR(factYTD.objetivo)} objetivo</div>
-        <div class="kpi-bar"><div class="kpi-bar-fill ${claseAvance(factYTD.avance)}" style="width:${Math.min(100, factYTD.avance*100)}%"></div></div>
-      </div>
-      <div class="kpi-card ${claseAvance(cobrYTD.avance)}">
-        <div class="label">Cobranza YTD</div>
-        <div class="value">${fmtPct(cobrYTD.avance)}</div>
-        <div class="sub-value">${fmtEUR(cobrYTD.real)} de ${fmtEUR(cobrYTD.objetivo)} objetivo</div>
-        <div class="kpi-bar"><div class="kpi-bar-fill ${claseAvance(cobrYTD.avance)}" style="width:${Math.min(100, cobrYTD.avance*100)}%"></div></div>
-      </div>
-      <div class="kpi-card ${totalVencido > totalCartera*0.5 ? 'rojo' : 'ambar'}">
-        <div class="label">Total cartera vencida</div>
-        <div class="value">${fmtEUR(totalVencido)}</div>
-        <div class="sub-value">de ${fmtEUR(totalCartera)} en cartera total</div>
-      </div>
-      <div class="kpi-card ${pctCritico > 0.3 ? 'rojo' : (pctCritico > 0.15 ? 'ambar' : 'verde')}">
-        <div class="label">En zona crítica (+6 meses)</div>
-        <div class="value">${fmtPct(pctCritico)}</div>
-        <div class="sub-value">${clientesCriticos} cliente(s) con saldo ahí</div>
-      </div>
-    </div>
+  const insight = snapshotVisto
+    ? (mostrando.insightGuardado ? esc(mostrando.insightGuardado) : 'Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para esta semana.')
+    : 'Generando…';
 
-    ${alertas.length ? `<div class="section" style="padding-bottom:14px;">${alertas.map(a=>`<span class="alert-chip ${a.tipo==='ambar'?'ambar':''}">⚠️ ${esc(a.texto)}</span>`).join('')}</div>` : ''}
+  const celda = (label, valor, vals, color, fmt, nombre) => '<div class="fin-tc"><small>' + esc(label) + '</small><b>' + valor + '</b>' + WK.area(vals, { labels:lbl, color, fmt, nombre }) + '</div>';
+  const tendencia = serie.length >= 2 ? WK.card({ ico:'📈', titulo:'Tendencia semanal', sub:'Últimos ' + serie.length + ' cortes guardados · pasa el mouse sobre los puntos', body:'<div class="fin-trend">' +
+    celda('Facturación YTD', WK.pct(factYTD.avance), serie.map(s => s.f.avance), '#3DD6FF', WK.pct, 'Avance') +
+    celda('Cobranza YTD', WK.pct(cobrYTD.avance), serie.map(s => s.c.avance), '#2FE29B', WK.pct, 'Avance') +
+    celda('Cartera vencida (EUR)', WK.usdK(totalVencido), serie.map(s => s.vencido), '#FF5C7A', WK.usdK, 'Vencido') +
+    celda('En zona crítica', WK.pct(pctCritico), serie.map(s => s.pctCrit), '#FFC857', WK.pct, 'Del vencido') + '</div>' }) : '';
 
-    <div class="section">
-      <h2>🤖 Insight de Delfos</h2>
-      ${snapshotVisto
-        ? (mostrando.insightGuardado
-            ? `<div class="insight-box"><div class="insight-icon">🤖</div><div class="insight-text">${esc(mostrando.insightGuardado)}</div></div>`
-            : `<div class="insight-box"><div class="insight-icon">🗂️</div><div class="insight-text">Este corte se guardó antes de que empezáramos a grabar el insight junto con la bitácora — no está disponible para esta semana.</div></div>`)
-        : `<div id="insightBox"><div class="loading">Generando…</div></div>`}
-    </div>
+  /* Facturación y cobranza */
+  const statsFC = WK.stats([
+    { valor:WK.usdK(Math.max(0, factYTD.objetivo - factYTD.real)), label:'Por facturar para la meta YTD' },
+    { valor:WK.usdK(Math.max(0, cobrYTD.objetivo - cobrYTD.real)), label:'Por cobrar para la meta YTD' },
+    { valor:factYTD.real ? WK.pct(cobrYTD.real / factYTD.real) : '—', label:'Cobrado / emitido (YTD)' },
+    { valor:WK.usdK(totalCartera), label:'Cartera total' }
+  ]);
+  const filasPeriodos = [].concat(
+    mostrando.facturacion.map(p => ({ concepto:'Facturación', periodo:p.periodo, objetivo:p.objetivo, real:p.real, avance:p.avance, falta:Math.max(0, p.objetivo - p.real), comentario:p.comentario })),
+    mostrando.cobranza.map(p => ({ concepto:'Cobranza', periodo:p.periodo, objetivo:p.objetivo, real:p.real, avance:p.avance, falta:Math.max(0, p.objetivo - p.real), comentario:p.comentario }))
+  );
+  const tablaPeriodos = WK.table([
+    { k:'concepto', label:'Concepto', tipo:'tag' }, { k:'periodo', label:'Periodo', tipo:'strong' }, { k:'objetivo', label:'Objetivo (EUR)', tipo:'usdK' },
+    { k:'real', label:'Real (EUR)', tipo:'usdK' }, { k:'avance', label:'Avance', tipo:'pct' }, { k:'falta', label:'Por alcanzar (EUR)', tipo:'usdK' }, { k:'comentario', label:'Comentarios', tipo:'note' }
+  ], filasPeriodos, { vacio:'Sin datos.' });
 
-    <div class="section">
-      <h2>Facturación y Cobranza vs. Objetivo</h2>
-      <p class="sub">Mes en curso, trimestre en curso y acumulado del año.</p>
-      <div class="charts-grid">
-        <div class="chart-wrap"><canvas id="chartFacturacion"></canvas></div>
-        <div class="chart-wrap"><canvas id="chartCobranza"></canvas></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>Antigüedad de cartera (Aging)</h2>
-      <div class="charts-grid">
-        <div class="chart-wrap"><canvas id="chartAging"></canvas></div>
-        <div style="overflow-y:auto; max-height:260px;">
-          <table>
-            <tr><th>Cliente</th><th class="num">Total</th></tr>
-            ${mostrando.aging.filas.slice(0,10).map(f => `<tr><td>${esc(f.cliente)}</td><td class="num">${fmtEUR(f.valores[7])}</td></tr>`).join('')}
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>Top clientes por cobrar</h2>
-      <div class="tabbar" id="tabbarTop10">
-        <button class="active" onclick="setTabTop10('SAP')">SAP (${mostrando.top10SAP.length})</button>
-        <button onclick="setTabTop10('B1')">B1 (${mostrando.top10B1.length})</button>
-      </div>
-      <div id="top10Content"></div>
-    </div>
-
-    <div class="section">
-      <h2>📅 Bitácora semanal</h2>
-      <p class="sub">Haz clic en una semana para ver el dashboard completo tal como se veía entonces.</p>
-      <table>
-        <tr><th>Semana</th><th class="num">Facturación %</th><th class="num">Cobranza %</th><th class="num">Cartera vencida</th></tr>
-        ${historial.slice().reverse().map(h => {
-          const f = h.facturacion.find(p=>p.periodo.toUpperCase().includes('YTD')) || h.facturacion[h.facturacion.length-1];
-          const c = h.cobranza.find(p=>p.periodo.toUpperCase().includes('YTD')) || h.cobranza[h.cobranza.length-1];
-          const v = h.aging.totalGeneral.slice(0,6).reduce((s,x)=>s+x,0);
-          const esEsta = mostrando.fechaRevision === h.fechaRevision;
-          return `<tr style="cursor:pointer; ${esEsta?'background:#EDF3FA;':''}" onclick="verSnapshotHistorico('${h.fechaRevision}')" title="Ver el dashboard completo de esta semana"><td>${esEsta?'▸ ':''}${new Date(h.fechaRevision).toLocaleDateString('es-MX')}</td><td class="num">${fmtPct(f.avance)}</td><td class="num">${fmtPct(c.avance)}</td><td class="num">${fmtEUR(v)}</td></tr>`;
-        }).join('')}
-      </table>
-    </div>
-  `;
-
-  renderCharts(factYTD, cobrYTD);
-  setTabTop10('SAP');
-}
-
-function renderCharts(factYTD, cobrYTD){
-  if(chartFacturacion) chartFacturacion.destroy();
-  if(chartCobranza) chartCobranza.destroy();
-  if(chartAging) chartAging.destroy();
-
-  const ctxColors = { objetivo:'#D8E2EE', real:'#1E5BB8' };
-
-  chartFacturacion = new Chart(document.getElementById('chartFacturacion'), {
-    type:'bar',
-    data:{
-      labels: mostrando.facturacion.map(p=>p.periodo),
-      datasets:[
-        { label:'Objetivo', data: mostrando.facturacion.map(p=>p.objetivo), backgroundColor: ctxColors.objetivo },
-        { label:'Emitida', data: mostrando.facturacion.map(p=>p.real), backgroundColor: ctxColors.real },
-      ]
-    },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Facturación' } } }
+  /* Aging */
+  const tg = mostrando.aging.totalGeneral;
+  const itemsDonut = mostrando.aging.buckets.slice(0,7).map((b,i) => ({ label:nombreBucket(i), value:tg[i] || 0, color:COLOR_BUCKET[i] }));
+  const top5 = mostrando.aging.filas.slice().map(f => ({ n:f.cliente, v:f.valores.slice(0,6).reduce((s,x) => s + (x>0?x:0), 0) })).sort((a,b) => b.v - a.v).slice(0,5);
+  const pctTop5 = totalVencido ? top5.reduce((s,x) => s + x.v, 0) / totalVencido : 0;
+  const statsAging = WK.stats([
+    { valor:mostrando.aging.filas.length, label:'Clientes con saldo' },
+    { valor:WK.pct(totalCartera ? totalVencido/totalCartera : 0), label:'Cartera vencida / total' },
+    { valor:WK.pct(pctTop5), label:'Concentración del vencido en 5 clientes' },
+    { valor:WK.usdK(tg[6] || 0), label:'Corriente (Current)' }
+  ]);
+  const filasAging = mostrando.aging.filas.map(f => {
+    const o = { cliente:f.cliente, vencido:f.valores.slice(0,6).reduce((s,x) => s + x, 0), total:f.valores[7] };
+    f.valores.slice(0,7).forEach((v,i) => { o['b'+i] = v; });
+    return o;
   });
+  const colsAging = [{ k:'cliente', label:'Cliente', tipo:'strong' }]
+    .concat(mostrando.aging.buckets.slice(0,7).map((b,i) => ({ k:'b'+i, label:nombreBucket(i), tipo:'usdK' })))
+    .concat([{ k:'vencido', label:'Vencido', tipo:'usdK' }, { k:'total', label:'Total (EUR)', tipo:'usdKbar' }]);
+  const footAging = '<tr><td>Total</td>' + tg.slice(0,7).map(v => '<td class="wk-num">' + WK.usdK(v) + '</td>').join('') + '<td class="wk-num">' + WK.usdK(totalVencido) + '</td><td class="wk-num">' + WK.usdK(totalCartera) + '</td></tr>';
+  const tablaAging = WK.table(colsAging, filasAging, { id:'tablaAging', vacio:'Sin cartera registrada.', footer:footAging });
+  const bodyAging = filasAging.length
+    ? '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar cliente…" oninput="WK.filtrar(document.getElementById(\'tablaAging\'), this.value)"><span class="wk-hint">Montos en miles de EUR · en celeste = saldo a favor del cliente</span></div>' + tablaAging
+    : tablaAging;
 
-  chartCobranza = new Chart(document.getElementById('chartCobranza'), {
-    type:'bar',
-    data:{
-      labels: mostrando.cobranza.map(p=>p.periodo),
-      datasets:[
-        { label:'Objetivo', data: mostrando.cobranza.map(p=>p.objetivo), backgroundColor: ctxColors.objetivo },
-        { label:'Cobrado', data: mostrando.cobranza.map(p=>p.real), backgroundColor: '#33B4DD' },
-      ]
-    },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{ display:true, text:'Cobranza' } } }
-  });
+  /* Simulador de cartera */
+  const cobrable = tg.slice(0,6).map(v => Math.max(0, v||0));
+  const sanaHoy = totalCartera ? 1 - totalVencido/totalCartera : 0;
+  const diasHoy = diasPromedio(tg);
+  const simCartera = WK.whatif({ id:'finCartera', sliders:[
+    { k:'rec', label:'% de la cartera vencida (hasta 6 meses) que se cobra', min:0, max:100, step:5, val:30, fmt:x => x + '%' },
+    { k:'crit', label:'% de la zona crítica (+6 meses) que se recupera', min:0, max:100, step:5, val:20, fmt:x => x + '%' } ],
+    calc: vals => {
+      const cobrado = cobrable[0]*vals.crit/100 + cobrable.slice(1).reduce((s,v) => s + v*vals.rec/100, 0);
+      const res = tg.slice(0,6).map((v,i) => (v||0) - cobrable[i]*(i === 0 ? vals.crit : vals.rec)/100);
+      const vencRes = totalVencido - cobrado, carteraRes = totalCartera - cobrado;
+      const sana = carteraRes > 0 ? Math.max(0, Math.min(1, 1 - vencRes/carteraRes)) : 0;
+      const cobrProy = cobrYTD.objetivo ? (cobrYTD.real + cobrado)/cobrYTD.objetivo : 0;
+      const dias = diasPromedio(res);
+      return { gauge:{ valor:sana, max:1, meta:sanaHoy, tono: sana >= 0.6 ? 'green' : (sana >= 0.4 ? 'amber' : 'red'), texto:WK.pct(sana), label:'de la cartera está sana',
+          tip:'Cartera sana (no vencida)\nHoy ' + WK.pct(sanaHoy) + ' → simulado ' + WK.pct(sana) + '\nLa marca blanca es el nivel actual' },
+        stats:[ { valor:WK.usdK(vencRes), label:'Vencido resultante (hoy ' + WK.usdK(totalVencido) + ')' }, { valor:WK.usdK(cobrado), label:'Efectivo recuperado' },
+                { valor:WK.pct(cobrProy), label:'Cobranza YTD proyectada (hoy ' + WK.pct(cobrYTD.avance) + ')' }, { valor:Math.round(dias) + ' d', label:'Días vencidos prom. est. (hoy ' + Math.round(diasHoy) + ' d)' } ],
+        nota:'Si cobramos ' + vals.rec + '% de lo vencido hasta 6 meses y ' + vals.crit + '% de la zona crítica, entran ' + WK.usdK(cobrado) + ': la cartera vencida baja a ' + WK.usdK(vencRes) + ' y la cartera sana pasa de ' + WK.pct(sanaHoy) + ' a ' + WK.pct(sana) + '.' + (dias > diasHoy + 1 ? ' El promedio de días sube porque lo que queda vencido es lo más antiguo.' : '') }; } });
 
-  chartAging = new Chart(document.getElementById('chartAging'), {
-    type:'bar',
-    data:{
-      labels: mostrando.aging.buckets,
-      datasets:[{ label:'Monto', data: mostrando.aging.totalGeneral, backgroundColor: mostrando.aging.buckets.map((b,i) => i<=2 ? '#B23A3A' : (i<=4 ? '#D8A63A' : '#1F8A4C')) }]
-    },
-    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ title:{ display:true, text:'Distribución por antigüedad' }, legend:{ display:false } } }
-  });
+  /* Bitácora */
+  const filasBit = historial.slice().reverse().map(h => { const r = resumenCorte(h), hc = WK.hora(h.guardadoEn).split(' ');
+    return { semana:WK.fecha(new Date(h.fechaRevision)), cargo:h.guardadoPor || '—', cuando:hc[0] === '—' ? '' : hc[0], hora:hc[1] || '', fact:r.f.avance, cobr:r.c.avance, venc:r.vencido, del:'<button type="button" class="fin-del" title="Eliminar este corte" onclick="event.stopPropagation(); eliminarCorte(\'' + h.guardadoEn + '\')">🗑</button>', _id:h.guardadoEn }; });
+  const bitacora = WK.table([
+    { k:'semana', label:'Semana', tipo:'date' }, { k:'cargo', label:'Cargó', tipo:'text' }, { k:'cuando', label:'Cargado el', tipo:'date' }, { k:'hora', label:'Hora', tipo:'text' },
+    { k:'fact', label:'Facturación %', tipo:'pct' }, { k:'cobr', label:'Cobranza %', tipo:'pct' }, { k:'venc', label:'Cartera vencida', tipo:'usdK' }, { k:'del', label:'', tipo:'html' }
+  ], filasBit, { id:'tablaBitacora', rowAttrs: f => 'onclick="verSnapshotHistorico(\'' + f._id + '\')" title="Ver el dashboard completo de esta semana"' + (mostrando.guardadoEn === f._id ? ' class="wk-on"' : '') });
+  const bodyBit = filasBit.length > 6
+    ? '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar semana o persona…" oninput="WK.filtrar(document.getElementById(\'tablaBitacora\'), this.value)"></div>' + bitacora
+    : bitacora;
+
+  const nSAP = (mostrando.top10SAP||[]).length, nB1 = (mostrando.top10B1||[]).length;
+  const barraTabs = '<div class="wk-tools" id="tabbarTop10">' +
+    '<button class="wk-chip" data-tab="SAP" onclick="setTabTop10(\'SAP\')">SAP <small>' + nSAP + '</small></button>' +
+    '<button class="wk-chip" data-tab="B1" onclick="setTabTop10(\'B1\')">B1 <small>' + nB1 + '</small></button></div>';
+
+  content.innerHTML = banner +
+    WK.chips([{ id:'resumen', label:'Resumen' }, { id:'fact', label:'Facturación y cobranza' }, { id:'aging', label:'Cartera (Aging)' }, { id:'top10', label:'Top por cobrar', n:nSAP + nB1 }, { id:'bitacora', label:'Bitácora', n:historial.length }]) +
+    '<div id="resumen" style="scroll-margin-top:70px">' + kpis + alertasHtml + WK.callout('Insight de Delfos', insight, 'insightText') + '</div>' +
+    '<div class="fin-gap"></div>' + tendencia +
+    WK.band('fact', 'Facturación y cobranza', 'Montos en miles de EUR · objetivo vs. real de cada periodo') +
+    '<div class="wk-grid2">' + cardPeriodos('🧾', 'Facturación vs. objetivo', 'Pasa el mouse sobre las columnas', mostrando.facturacion, 'Emitida', '#3DD6FF', 'F') +
+      cardPeriodos('💵', 'Cobranza vs. objetivo', 'Pasa el mouse sobre las columnas', mostrando.cobranza, 'Cobrada', '#2FE29B', 'C') + '</div>' +
+    '<div class="fin-gap"></div>' + WK.card({ ico:'🎯', titulo:'Brechas del año', body:statsFC }) +
+    WK.card({ ico:'📋', titulo:'Detalle por periodo', sub:'Haz clic en un encabezado para ordenar.', body:tablaPeriodos }) +
+    WK.band('aging', 'Cartera por antigüedad (Aging)', 'Montos en miles de EUR · del rango más antiguo (rojo) al corriente (verde)') +
+    WK.card({ ico:'🍩', titulo:'Distribución por antigüedad', sub:'Cartera total por rango (EUR) · pasa el mouse sobre la dona', body:distribucion(itemsDonut, { centro:compacto(totalCartera), sub:'cartera total', stats:statsAging }) }) +
+    WK.card({ ico:'📊', titulo:'Antigüedad de los 10 clientes con más saldo', sub:'Pasa el mouse sobre una barra para ver los montos por rango', body:stackAging(mostrando.aging.filas.slice(0,10)) }) +
+    WK.card({ ico:'🧪', titulo:'Simulador: ¿y si cobramos…?', sub:'Mueve los controles y mira cómo cambia la cartera. Es una simulación, no se guarda.', body:simCartera }) +
+    WK.card({ ico:'🔎', titulo:'Cartera por cliente', sub:'Ordena por cualquier columna y filtra por texto.', count:filasAging.length, body:bodyAging }) +
+    WK.band('top10', 'Top clientes por cobrar', 'Montos en miles de EUR · días vencidos con semáforo') +
+    barraTabs + '<div id="top10Content"></div>' +
+    WK.band('bitacora', 'Bitácora semanal', 'Haz clic en una semana para ver el dashboard completo tal como se veía entonces') +
+    WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bodyBit }) +
+    '<div class="wk-foot">Montos en EUR (miles) · Fechas en DD/MM/AA.</div>';
+  setTabTop10(tabTop10);
+  WK.sortable(content);
+  content.querySelectorAll('#tablaAging td[data-v]').forEach(td => { const v = Number(td.getAttribute('data-v')); if(v === 0) td.classList.add('z'); else if(v < 0) td.classList.add('neg'); });
+  WK.observarSecciones();
 }
 
 function setTabTop10(cual){
-  document.querySelectorAll('#tabbarTop10 button').forEach((b,i) => b.classList.toggle('active', (cual==='SAP'&&i===0)||(cual==='B1'&&i===1)));
-  const lista = cual === 'SAP' ? mostrando.top10SAP : mostrando.top10B1;
-  document.getElementById('top10Content').innerHTML = `
-    <table>
-      <tr><th>Cliente</th><th>LOB</th><th class="num">Monto €</th><th class="num">Monto MXN</th><th class="num">Días vencidos</th><th>Next Step</th></tr>
-      ${lista.map(c => `
-        <tr>
-          <td>${esc(c.cliente)}</td>
-          <td>${esc(c.lob)}</td>
-          <td class="num">${fmtEUR(c.montoEUR)}</td>
-          <td class="num">${(c.montoMXN||0).toLocaleString('es-MX')}</td>
-          <td class="num"><span class="dias-tag ${claseDias(c.diasVencidos)}">${c.diasVencidos}</span></td>
-          <td class="comentario-cell">${esc(c.nextStep)}</td>
-        </tr>
-      `).join('')}
-    </table>
-  `;
+  tabTop10 = cual;
+  document.querySelectorAll('#tabbarTop10 button').forEach(b => b.classList.toggle('on', b.dataset.tab === cual));
+  const cont = document.getElementById('top10Content');
+  if(!cont || !mostrando) return;
+  const lista = (cual === 'SAP' ? mostrando.top10SAP : mostrando.top10B1) || [];
+  if(!lista.length){ cont.innerHTML = WK.card({ titulo:'Top 10 ' + cual, body:WK.empty('Este corte no trae clientes en el Top 10 ' + cual + '.') }); return; }
+  const monto = c => Number(c.montoEUR)||0, dias = c => Number(c.diasVencidos)||0;
+  const total = lista.reduce((s,c) => s + monto(c), 0);
+  const ponderado = total ? lista.reduce((s,c) => s + monto(c) * dias(c), 0) / total : 0;
+  const m180 = lista.filter(c => c.diasVencidos > 180).reduce((s,c) => s + monto(c), 0);
+  const stats = WK.stats([
+    { valor:WK.usdK(total), label:'Total Top 10 ' + cual + ' (EUR)' },
+    { valor:Math.round(ponderado) + ' d', label:'Días vencidos promedio (ponderado)' },
+    { valor:WK.usdK(m180), label:'Con más de 180 días' },
+    { valor:WK.pct(total ? m180/total : 0), label:'% del monto con +180 días' }
+  ]);
+  const grupos = [['0–30 días', c => c.diasVencidos <= 30, '#2FE29B'], ['31–90 días', c => c.diasVencidos > 30 && c.diasVencidos <= 90, '#FFD166'], ['91–180 días', c => c.diasVencidos > 90 && c.diasVencidos <= 180, '#FFA94D'], ['+180 días', c => c.diasVencidos > 180, '#FF5C7A']];
+  const itemsDona = grupos.map(g => ({ label:g[0], value:lista.filter(g[1]).reduce((s,c) => s + monto(c), 0), color:g[2] })).filter(i => i.value > 0);
+  const dist = distribucion(itemsDona, { centro:compacto(total), sub:'por cobrar', stats });
+  const recorta = t => { t = String(t||'').trim(); return t.length > 150 ? t.slice(0,147) + '…' : t; };
+  const ranking = WK.ranked(lista.slice().sort((a,b) => b.montoEUR - a.montoEUR).map(c => ({ label:c.cliente, value:c.montoEUR, tono:claseDias(c.diasVencidos),
+    tip:c.cliente + '\n' + WK.usdK(c.montoEUR) + ' · ' + dias(c) + ' días vencidos' + (c.nextStep ? '\nNext step: ' + recorta(c.nextStep) : '') })), { fmt:WK.usdK });
+  const filas = lista.map(c => ({ cliente:c.cliente, lob:c.lob, monto:c.montoEUR, mxn:Math.round(c.montoMXN||0), dias:pillDias(c.diasVencidos), diasN:dias(c), next:c.nextStep }));
+  const tabla = WK.table([
+    { k:'cliente', label:'Cliente', tipo:'strong' }, { k:'lob', label:'LOB', tipo:'tag' }, { k:'monto', label:'Monto (EUR)', tipo:'usdKbar' },
+    { k:'mxn', label:'Monto MXN (miles)', tipo:'num' }, { k:'dias', label:'Días vencidos', tipo:'html' }, { k:'next', label:'Next step', tipo:'note' }
+  ], filas, { id:'tablaTop10', footer:'<tr><td>Total Top 10</td><td></td><td class="wk-num">' + WK.usdK(total) + '</td><td class="wk-num">' + WK.num(Math.round(lista.reduce((s,c) => s + (Number(c.montoMXN)||0), 0))) + '</td><td colspan="2"></td></tr>' });
+
+  /* Simulador Top 10: cobrar primero a los más atrasados */
+  const orden = lista.slice().sort((a,b) => dias(b) - dias(a));
+  const sim = WK.whatif({ id:'finTop10', sliders:[
+    { k:'n', label:'Clientes que pagan (empezando por los más atrasados)', min:0, max:lista.length, step:1, val:Math.min(3, lista.length), fmt:x => x + ' de ' + lista.length },
+    { k:'p', label:'% de cada saldo que se cobra', min:10, max:100, step:10, val:100, fmt:x => x + '%' } ],
+    calc: vals => {
+      const rest = orden.map((c,i) => monto(c) * (1 - (i < vals.n ? vals.p/100 : 0)));
+      const restante = rest.reduce((s,v) => s + v, 0), cobrado = total - restante;
+      const dProm = restante ? rest.reduce((s,v,i) => s + v*dias(orden[i]), 0) / restante : 0;
+      const r180 = rest.reduce((s,v,i) => s + (dias(orden[i]) > 180 ? v : 0), 0);
+      const pc = total ? cobrado/total : 0;
+      return { gauge:{ valor:cobrado, max:total || 1, tono: pc >= 0.5 ? 'green' : (pc > 0 ? 'amber' : 'cyan'), texto:WK.pct(pc), label:'del Top 10 cobrado', tip:'Top 10 ' + cual + ' cobrado\n' + WK.usdK(cobrado) + ' de ' + WK.usdK(total) },
+        stats:[ { valor:WK.usdK(restante), label:'Por cobrar restante (hoy ' + WK.usdK(total) + ')' }, { valor:WK.usdK(cobrado), label:'Efectivo recuperado' },
+                { valor:Math.round(dProm) + ' d', label:'Días vencidos promedio (hoy ' + Math.round(ponderado) + ' d)' }, { valor:WK.usdK(r180), label:'Con +180 días (hoy ' + WK.usdK(m180) + ')' } ],
+        nota: vals.n ? 'Si pagan los ' + vals.n + ' clientes más atrasados (' + vals.p + '% de su saldo), entran ' + WK.usdK(cobrado) + ' y el promedio de días vencidos pasa de ' + Math.round(ponderado) + ' a ' + Math.round(dProm) + '.' : 'Sube el número de clientes que pagan para ver el efecto.' }; } });
+
+  cont.innerHTML = WK.card({ ico:'🍩', titulo:'Monto por días vencidos — Top 10 ' + cual, sub:'Pasa el mouse sobre la dona para ver cada rango', body:dist }) +
+    WK.card({ ico:'🏁', titulo:'Clientes por monto', sub:'Color según días vencidos · pasa el mouse para ver el next step', body:ranking }) +
+    WK.card({ ico:'🧪', titulo:'Simulador: ¿y si cobramos a los más atrasados?', sub:'Es una simulación sobre el Top 10 ' + cual + ', no se guarda.', body:sim }) +
+    WK.card({ ico:'📋', titulo:'Detalle Top 10 ' + cual, sub:'Ordena por cualquier columna y filtra por texto.', count:lista.length,
+      body:'<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar cliente, next step…" oninput="WK.filtrar(document.getElementById(\'tablaTop10\'), this.value)"></div>' + tabla });
+  WK.sortable(cont);
 }
 
 async function init(){
@@ -598,5 +748,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="/asistente.js?v=1" defer></script>
 </body>
 </html>
