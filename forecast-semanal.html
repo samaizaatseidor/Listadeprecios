@@ -397,6 +397,7 @@ function calc(b, meses){
   v['qw.t'] = v['qw.sw'] + v['qw.sv']; v['qv.t'] = v['qv.sw'] + v['qv.sv']; v['qp.t'] = v['qp.sw'] + v['qp.sv'];
   [0,1,2].forEach(i => { const m = meses[i]; v['qw.m'+i] = S(won,'t',m); v['qv.m'+i] = S(vc,'t',m); v['qp.m'+i] = S(up,'t',m) + S(vc,'t',m); v['qu.m'+i] = S(up,'t',m); });
   cols.forEach(k => { v['qf.'+k] = v['qw.'+k] + v['qv.'+k]; v['qa.'+k] = div(v['qf.'+k], v['qc.'+k]); v['qb.'+k] = div(v['qp.'+k], v['qc.'+k]); });
+  v['pa.t'] = div(v['qf.t'] + v['y.t'], v['a.t']); // Pronóstico de alcance anual = (Forecast Q + Cerrado YTD) / Cuota anual
   // 3) Top deals
   ds.forEach((d,i) => v['dt.'+i] = totalDeal(d));
   const act = ds.filter(d => d.estatus !== 'Perdida');
@@ -652,11 +653,11 @@ function pintar(conservar){
     const filasAe = boards.map(b => {
       const v = calc(b, qiOv.meses), live = D.live[b._ae], rep = corte === 'actual' ? live : (b._rep || null);
       const ok = rep && rep.semana === semOv;
-      return '<tr class="fs-row-click" data-v="' + b._ae + '"><td class="k l">' + esc(nombreAe(b._ae)) + '</td><td>' + numK(v['a.t']) + '</td><td>' + numK(v['y.t']) + '</td><td><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div class="fs-hbar" style="width:80px"><i style="background:' + ({g:'#1F8A4C',a:'#D8A63A',r:'#B23A3A'})[semaforo(v['p.t'])] + ';width:' + Math.min(100, v['p.t']*100) + '%"></i></div><b>' + pct(v['p.t']) + '</b></div></td><td>' + numK(v['qc.t']) + '</td><td>' + numK(v['qf.t']) + '</td><td><b style="color:' + ({g:'#4CE8AB',a:'#FFD479',r:'#FF8CA2'})[semaforo(v['qa.t'])] + '">' + pct(v['qa.t']) + '</b></td><td>' + mult(v['qb.t']) + '</td><td class="l"><span class="fs-tag ' + (ok ? 'vc' : 'top') + '">' + (rep && rep.reportadoEn ? (ok ? '✓ ' : '⏳ ') + fFechaHora(rep.reportadoEn) : 'Sin reporte') + '</span></td></tr>';
+      return '<tr class="fs-row-click" data-v="' + b._ae + '"><td class="k l">' + esc(nombreAe(b._ae)) + '</td><td>' + numK(v['a.t']) + '</td><td>' + numK(v['y.t']) + '</td><td><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div class="fs-hbar" style="width:80px"><i style="background:' + ({g:'#1F8A4C',a:'#D8A63A',r:'#B23A3A'})[semaforo(v['p.t'])] + ';width:' + Math.min(100, v['p.t']*100) + '%"></i></div><b>' + pct(v['p.t']) + '</b></div></td><td>' + numK(v['qc.t']) + '</td><td>' + numK(v['qf.t']) + '</td><td><b style="color:' + ({g:'#4CE8AB',a:'#FFD479',r:'#FF8CA2'})[semaforo(v['qa.t'])] + '">' + pct(v['qa.t']) + '</b></td><td>' + mult(v['qb.t']) + '</td><td><b style="color:' + ({g:'#4CE8AB',a:'#FFD479',r:'#FF8CA2'})[semaforo(v['pa.t'])] + '">' + pct(v['pa.t']) + '</b></td><td class="l"><span class="fs-tag ' + (ok ? 'vc' : 'top') + '">' + (rep && rep.reportadoEn ? (ok ? '✓ ' : '⏳ ') + fFechaHora(rep.reportadoEn) : 'Sin reporte') + '</span></td></tr>';
     }).join('');
     html += '<div class="wk-band"><h2>Equipo — avance por AE</h2><span>Click en una fila para abrir su tablero</span></div>' +
-      '<div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th>AE</th><th>Cuota anual</th><th>Cerrado YTD</th><th>% Avance</th><th>Cuota Q</th><th>Forecast Q</th><th>Alcance</th><th>Cobertura</th><th class="l">Último reporte</th></tr></thead><tbody>' + filasAe +
-      '<tr class="tot"><td class="l">SEGMENTO</td><td>' + numK(va['a.t']) + '</td><td>' + numK(va['y.t']) + '</td><td>' + pct(va['p.t']) + '</td><td>' + numK(va['qc.t']) + '</td><td>' + numK(va['qf.t']) + '</td><td>' + pct(va['qa.t']) + '</td><td>' + mult(va['qb.t']) + '</td><td></td></tr></tbody></table></div></div>';
+      '<div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th>AE</th><th>Cuota anual</th><th>Cerrado YTD</th><th>% Avance</th><th>Cuota Q</th><th>Forecast Q</th><th>Alcance</th><th>Cobertura</th><th title="(Forecast Q + Cerrado YTD) ÷ Cuota anual">Pronóstico alcance anual</th><th class="l">Último reporte</th></tr></thead><tbody>' + filasAe +
+      '<tr class="tot"><td class="l">SEGMENTO</td><td>' + numK(va['a.t']) + '</td><td>' + numK(va['y.t']) + '</td><td>' + pct(va['p.t']) + '</td><td>' + numK(va['qc.t']) + '</td><td>' + numK(va['qf.t']) + '</td><td>' + pct(va['qa.t']) + '</td><td>' + mult(va['qb.t']) + '</td><td>' + pct(va['pa.t']) + '</td><td></td></tr></tbody></table></div></div>';
     html += bloqueCuota({ b: agg, plano: true });
     html += bloqueQ({ b: agg, plano: true }, qiOv);
     const orden = ['Won', VC, 'Top Upside =Plan B', 'Upside', 'Perdida'];
@@ -1016,18 +1017,18 @@ async function exportarExcel(){
 
   /* ===== 5 · EQUIPO (solo Overview) ===== */
   if(c.conAe){
-    const w5 = nuevaHoja('EQUIPO', NAVY, [2, 26, 14, 14, 14, 14, 14, 13, 13, 24, 2]);
-    banda(w5, 'EQUIPO — AVANCE POR AE', meta, 10);
-    cab(w5, 5, 2, ['AE','Cuota anual','Cerrado YTD','% Avance','Cuota Q','Forecast Q','Alcance','Cobertura','Último reporte']);
+    const w5 = nuevaHoja('EQUIPO', NAVY, [2, 26, 14, 14, 14, 14, 14, 13, 13, 18, 24, 2]);
+    banda(w5, 'EQUIPO — AVANCE POR AE', meta, 11);
+    cab(w5, 5, 2, ['AE','Cuota anual','Cerrado YTD','% Avance','Cuota Q','Forecast Q','Alcance','Cobertura','Pronóstico alcance anual','Último reporte']);
     c.boards.forEach((b, i) => { const x = calc(b, c.qi.meses), live = D.live[b._ae] || {}, r = 6 + i;
       lbl(w5.getCell(r,2), nombreAe(b._ae), { bg: i % 2 ? GREY : WHITE });
       num(w5.getCell(r,3), x['a.t'], K); num(w5.getCell(r,4), x['y.t'], K); const z1 = sem(x['p.t']); num(w5.getCell(r,5), x['p.t'], PCT, { bold:true, bg: z1.bg, color: z1.fg });
-      num(w5.getCell(r,6), x['qc.t'], K); num(w5.getCell(r,7), x['qf.t'], K, { bold:true }); const z2 = sem(x['qa.t']); num(w5.getCell(r,8), x['qa.t'], '0%', { bold:true, bg: z2.bg, color: z2.fg }); num(w5.getCell(r,9), x['qb.t'], MULT);
-      const u = w5.getCell(r,10); u.value = live.reportadoEn ? fFechaHora(live.reportadoEn) : 'Sin reporte'; u.font = { name:FONT, size:10.5, color:{ argb: live.reportadoEn ? 'FF17703E' : 'FF9A2E2E' }, bold:true }; u.alignment = { horizontal:'center', vertical:'middle' }; u.border = { bottom: bord(LINE) }; w5.getRow(r).height = 22; });
+      num(w5.getCell(r,6), x['qc.t'], K); num(w5.getCell(r,7), x['qf.t'], K, { bold:true }); const z2 = sem(x['qa.t']); num(w5.getCell(r,8), x['qa.t'], '0%', { bold:true, bg: z2.bg, color: z2.fg }); num(w5.getCell(r,9), x['qb.t'], MULT); const z3 = sem(x['pa.t']); num(w5.getCell(r,10), x['pa.t'], '0%', { bold:true, bg: z3.bg, color: z3.fg });
+      const u = w5.getCell(r,11); u.value = live.reportadoEn ? fFechaHora(live.reportadoEn) : 'Sin reporte'; u.font = { name:FONT, size:10.5, color:{ argb: live.reportadoEn ? 'FF17703E' : 'FF9A2E2E' }, bold:true }; u.alignment = { horizontal:'center', vertical:'middle' }; u.border = { bottom: bord(LINE) }; w5.getRow(r).height = 22; });
     const rt = 6 + c.boards.length; lbl(w5.getCell(rt,2), 'SEGMENTO', { bg: BLUE, color: WHITE });
-    [['C','a.t',K],['D','y.t',K],['E','p.t',PCT],['F','qc.t',K],['G','qf.t',K],['H','qa.t','0%'],['I','qb.t',MULT]].forEach(([L,k,f]) => num(w5.getCell(L + rt), v[k], f, { bold:true, bg: BLUE, color: WHITE }));
-    w5.getCell('J' + rt).fill = fill(BLUE); w5.getRow(rt).height = 24;
-    w5.views = [{ showGridLines:false, state:'frozen', ySplit:5 }]; pie(w5, rt + 2, 10);
+    [['C','a.t',K],['D','y.t',K],['E','p.t',PCT],['F','qc.t',K],['G','qf.t',K],['H','qa.t','0%'],['I','qb.t',MULT],['J','pa.t','0%']].forEach(([L,k,f]) => num(w5.getCell(L + rt), v[k], f, { bold:true, bg: BLUE, color: WHITE }));
+    w5.getCell('K' + rt).fill = fill(BLUE); w5.getRow(rt).height = 24;
+    w5.views = [{ showGridLines:false, state:'frozen', ySplit:5 }]; pie(w5, rt + 2, 11);
   }
   // el resumen primero; "CUOTA AÑO / FORECAST CQ / TOP DEALS" conservan su nombre y celdas para poder volver a cargarlo
   const buf = await wb.xlsx.writeBuffer();
