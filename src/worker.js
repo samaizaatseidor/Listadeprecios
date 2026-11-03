@@ -634,7 +634,9 @@ function fcsLimpiar(b){
       mes: FCS_MESES.includes(d.mes) ? d.mes : '',
       plan: FCS_PLANES.includes(d.plan) ? d.plan : '',
       enLob: d.enLob === true,
-      next: fcsTxt(d.next, 1500)
+      next: fcsTxt(d.next, 1500),
+      chk: ['prop','pres','dec','ctr'].reduce((o, k) => { const v = d.chk && d.chk[k]; o[k] = ['si','no','na'].includes(v) ? v : ''; return o; }, {}),
+      firma: /^\d{4}-\d{2}-\d{2}$/.test(String(d.firma || '')) ? d.firma : ''
     };
   }).filter(d => d.id || d.cuenta || d.sw || d.sv || d.next);
   return {

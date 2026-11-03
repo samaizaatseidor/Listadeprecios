@@ -207,6 +207,12 @@
   .fs-caps{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;} .fs-cap{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:8px 14px; display:flex; flex-direction:column; min-width:110px;} .fs-cap b{font-size:20px;} .fs-cap span{font-size:11px; color:#9FB2D3;} .fs-cap.nue b{color:#8FD0FF;} .fs-cap.act b{color:#FFD479;} .fs-cap.omi b{color:#FF8C8C;}
   .fs-mbtn button:disabled{opacity:.45; cursor:not-allowed;}
   .fs-mbtn{display:flex; justify-content:flex-end; gap:10px; margin-top:14px;}
+  .fs-chip{position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#C9D6EE; font:700 11.5px/1 inherit; font-family:inherit; border-radius:99px; padding:5px 9px; cursor:pointer; min-width:44px;}
+  .fs-chip i{position:absolute; left:0; bottom:0; height:3px; background:#7D8FAE;} .fs-chip.full{color:#4CE8AB; border-color:rgba(76,232,171,.5);} .fs-chip.full i{background:#4CE8AB;} .fs-chip.part{color:#FFD479;} .fs-chip.part i{background:#FFD479;}
+  .fs-chip.warn{border-color:#FF8CA2; color:#FF8CA2;} .fs-chip:hover{background:rgba(255,255,255,.14);}
+  .fs-modal>.fs-clbox{width:560px !important;} .fs-clrow{display:flex; justify-content:space-between; align-items:center; gap:14px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.08); font-size:13.5px;}
+  .fs-clrow select,.fs-clrow input{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18); color:#E6EEFB; border-radius:6px; padding:5px 8px; font-family:inherit;} .fs-clrow option{background:#0E1A34;}
+  .cl-si{color:#4CE8AB;} .cl-no{color:#FF8CA2;} .cl-na,.cl-x{color:#7D8FAE;}
   .fs-fcount{margin-top:10px; font-size:12px; color:#9FB2D3;} .fs-fcount a{color:#3DD6FF;}
   .fs-seg{display:inline-flex; border:1px solid rgba(255,255,255,.18); border-radius:10px; overflow:hidden;}
   .fs-seg button{font:600 12.5px Poppins,sans-serif; padding:8px 14px; border:none; background:rgba(255,255,255,.05); color:#A5B4CE; cursor:pointer;}
@@ -537,8 +543,64 @@ const ETQ_EST = { [VC]:'VC · Plan A', 'Top Upside =Plan B':'Top Upside · Plan 
 function selectOpts(lista, val, vacioLbl){ return '<option value="">' + (vacioLbl||'—') + '</option>' + lista.map(o => '<option value="' + esc(o) + '"' + (o === val ? ' selected' : '') + ' title="' + esc(o) + '">' + esc(ETQ_EST[o] || o) + '</option>').join(''); }
 function idLinks(id){ const ids = String(id||'').match(/\d{6,}/g) || []; return ids.map(x => '<a href="https://app.hubspot.com/contacts/6740520/record/0-3/' + x + '" target="_blank" rel="noopener" title="Abrir en HubSpot">↗</a>').join(' '); }
 
+
+/* ---------- Checklist de cierre por deal ---------- */
+const CHK_KEYS = [['prop','¿Propuesta final enviada y aprobada?'],['pres','¿Presupuesto confirmado para el proyecto?'],['dec','¿Confirmación verbal de quién decide?'],['ctr','¿Mandamos contrato?']];
+const CHK_LBL = { si:'Sí', no:'No', na:'N/A', '':'—' };
+function clProg(d){ const c = d.chk || {}; let tot = 5, done = 0; CHK_KEYS.forEach(([k]) => { if(c[k] === 'na') tot--; else if(c[k] === 'si') done++; }); if(d.firma) done++; return { done, tot }; }
+function clAlertas(d){
+  const a = []; if(d.estatus === 'Perdida') return a; const p = clProg(d);
+  if(d.estatus === VC && p.done < Math.min(3, p.tot)) a.push('Commit sin respaldo (' + p.done + '/' + p.tot + ')');
+  if(d.estatus === 'Won' && !d.firma) a.push('Won sin fecha de firma');
+  if(d.firma && d.mes){ const m = MESES[+d.firma.slice(5,7) - 1]; if(m && m !== d.mes) a.push('Firma en ' + m + ' ≠ mes de cierre ' + d.mes); }
+  return a;
+}
+let DEALS_VISTA = [];
+function clChip(d, i){
+  const p = clProg(d), al = clAlertas(d), est = p.done >= p.tot ? 'Completo' : (p.done ? 'Parcial' : 'Sin avance');
+  return '<button class="fs-chip ' + (p.done >= p.tot ? 'full' : (p.done ? 'part' : 'none')) + (al.length ? ' warn' : '') + '" data-cl="' + i + '" data-clx="' + est + '" data-sc="' + p.done + '" title="' + esc(al.length ? al.join(' · ') : 'Checklist de cierre') + '">' + (al.length ? '⚠ ' : '') + p.done + '/' + p.tot + '<i style="width:' + Math.round(100 * p.done / p.tot) + '%"></i></button>';
+}
+function clAvisoHtml(ds, conAe){
+  const items = []; ds.forEach(d => clAlertas(d).forEach(m => items.push((conAe && d._ae ? nombreAe(d._ae) + ' · ' : '') + (d.cuenta || d.id || 'Deal') + ' — ' + m)));
+  if(!items.length) return '';
+  return '<div class="fs-warn" style="margin-bottom:10px">⚠️ <b>' + items.length + ' alerta(s) de cierre</b><br><span style="font-size:12px">' + items.slice(0, 6).map(esc).join('<br>') + (items.length > 6 ? '<br>… y ' + (items.length - 6) + ' más (filtra la columna Cierre para verlos)' : '') + '</span></div>';
+}
+function abrirChecklist(i){
+  const d = DEALS_VISTA[+i]; if(!d) return;
+  const edit = editando && vista !== 'overview' && !snap;
+  const prev = document.getElementById('fsClModal'); if(prev) prev.remove();
+  const m = document.createElement('div'); m.id = 'fsClModal'; m.className = 'fs-modal';
+  const pintarM = () => {
+    const p = clProg(d), al = clAlertas(d);
+    m.innerHTML = '<div class="fs-mbox fs-clbox"><h3>✅ Checklist de cierre</h3><p class="fs-mp"><b>' + esc(d.cuenta || d.id) + '</b> · ' + esc(ETQ_EST[d.estatus] || d.estatus || 'Sin estatus') + ' · ' + esc(d.mes || 'Sin mes') + ' · Avance <b>' + p.done + '/' + p.tot + '</b>' + (edit ? '' : ' · <i>solo lectura (presiona Editar en el tablero para llenarlo)</i>') + '</p>' +
+      (al.length ? '<div class="fs-warn" style="margin-bottom:12px">⚠️ ' + al.map(esc).join('<br>⚠️ ') + '</div>' : '') +
+      CHK_KEYS.map(([k, lbl]) => '<div class="fs-clrow"><span>' + lbl + '</span>' + (edit ? '<select data-clk="' + k + '">' + ['', 'si', 'no', 'na'].map(v => '<option value="' + v + '"' + (((d.chk || {})[k] || '') === v ? ' selected' : '') + '>' + (v === '' ? 'Sin definir' : CHK_LBL[v]) + '</option>').join('') + '</select>' : '<b class="cl-' + ((d.chk || {})[k] || 'x') + '">' + CHK_LBL[(d.chk || {})[k] || ''] + '</b>') + '</div>').join('') +
+      '<div class="fs-clrow"><span>Fecha de firma confirmada</span>' + (edit ? '<input type="date" data-clk="firma" value="' + esc(d.firma || '') + '">' : '<b>' + (d.firma ? fFecha(d.firma) : '—') + '</b>') + '</div>' +
+      '<div class="fs-mbtn"><button class="fs-btn pri" id="fsClOk">Cerrar</button></div></div>';
+    m.querySelector('#fsClOk').onclick = () => m.remove();
+  };
+  pintarM(); document.body.appendChild(m);
+  m.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.clk; if(!k) return; if(k === 'firma') d.firma = e.target.value; else { d.chk = d.chk || {}; d.chk[k] = e.target.value; }
+    dirty[vista] = true; marcarDirty(); pintarM(); pintar(true); });
+  m.addEventListener('mousedown', e => { if(e.target === m) m.remove(); });
+}
+
+
+function bloqueSalud(deals){
+  const vc = deals.filter(d => d.estatus === VC), tot = vc.reduce((a,d) => a + totalDeal(d), 0);
+  const comp = vc.filter(d => { const p = clProg(d); return p.done >= p.tot; }), mc = comp.reduce((a,d) => a + totalDeal(d), 0);
+  const sinResp = vc.filter(d => clAlertas(d).some(m => /^Commit sin/.test(m))), ms = sinResp.reduce((a,d) => a + totalDeal(d), 0);
+  const nAl = deals.reduce((a,d) => a + clAlertas(d).length, 0), pct0 = tot ? mc / tot : 0;
+  const porAe = AEs().map(a => ({ n: a.nombre, c: deals.filter(d => d._ae === a.slug).reduce((x,d) => x + clAlertas(d).length, 0) })).filter(x => x.c);
+  const kp = (l, v, sub) => '<div class="fs-kpi"><div class="l">' + l + '</div><div class="v">' + v + '</div><div class="s">' + sub + '</div></div>';
+  return '<div class="wk-band"><h2>Salud del cierre — respaldo de los deals en Commit</h2><span>Checklist de cierre de los deals VC</span></div>' +
+    '<div class="fs-grid">' + kp('Commit con checklist completo', pct(pct0), numK(mc) + ' de ' + numK(tot) + ' en VC') +
+    kp('Commit sin respaldo', String(sinResp.length), numK(ms) + ' en riesgo (menos de 3 checks)') +
+    kp('Alertas de cierre', String(nAl), porAe.length ? esc(porAe.map(x => x.n.split(' ')[0] + ' ' + x.c).join(' · ')) : 'Sin alertas') + '</div>';
+}
+
 function bloqueDeals(b, ed, conAe){
-  const e = ed || {}, ae = e.ae, ds = b.deals || [], tn = e.plano ? '' : 'ae';
+  const e = ed || {}, ae = e.ae, ds = b.deals || [], tn = e.plano ? '' : 'ae'; DEALS_VISTA = ds;
   const fila = (d,i) => {
     if(ae) return '<tr class="fs-dr" data-i="' + i + '">' +
       '<td class="ae"><input class="fs-in t" data-d="id" value="' + esc(d.id) + '" placeholder="ID HubSpot"></td>' +
@@ -551,23 +613,24 @@ function bloqueDeals(b, ed, conAe){
       '<td class="ae"><select class="fs-in t" data-d="mes">' + selectOpts(MESES, d.mes) + '</select></td>' +
       '<td class="ae"><select class="fs-in t" data-d="plan">' + selectOpts(PLANES, d.plan) + '</select></td>' +
       '<td class="ae" style="text-align:center"><input type="checkbox" class="fs-chk" data-d="enLob"' + (d.enLob ? ' checked' : '') + ' title="Casilla LOB del Excel (informativa)"></td>' +
+      '<td class="l">' + clChip(d, i) + '</td>' +
       '<td class="ae"><textarea class="fs-in t" data-d="next" rows="2" placeholder="Next steps">' + esc(d.next) + '</textarea></td>' +
       '<td class="l"><button class="fs-x" data-del="' + i + '" title="Quitar deal">✕</button></td></tr>';
     return '<tr class="fs-dr">' + (conAe ? '<td class="l"><span class="fs-tag">' + esc(nombreAe(d._ae)) + '</span></td>' : '') +
       '<td class="' + tn + ' l">' + esc(d.id) + ' ' + idLinks(d.id) + '</td><td class="' + tn + ' l">' + esc(d.cuenta) + '</td><td class="' + tn + ' l">' + esc(d.lob || '—') + '</td>' +
-      '<td class="' + tn + '">' + numK(d.sw) + '</td><td class="' + tn + '">' + numK(d.sv) + '</td><td class="calc">' + numK(totalDeal(d)) + '</td><td class="' + tn + ' l">' + tagEst(d.estatus) + '</td><td class="' + tn + ' l">' + esc(d.mes || '—') + '</td><td class="' + tn + ' l">' + esc(d.plan || '—') + '</td><td class="' + tn + '" style="text-align:center">' + (d.enLob ? '✓' : '') + '</td><td class="' + tn + ' l" style="white-space:pre-wrap;font-size:12px">' + esc(d.next) + '</td></tr>';
+      '<td class="' + tn + '">' + numK(d.sw) + '</td><td class="' + tn + '">' + numK(d.sv) + '</td><td class="calc">' + numK(totalDeal(d)) + '</td><td class="' + tn + ' l">' + tagEst(d.estatus) + '</td><td class="' + tn + ' l">' + esc(d.mes || '—') + '</td><td class="' + tn + ' l">' + esc(d.plan || '—') + '</td><td class="' + tn + '" style="text-align:center">' + (d.enLob ? '✓' : '') + '</td><td class="l">' + clChip(d, i) + '</td><td class="' + tn + ' l" style="white-space:pre-wrap;font-size:12px">' + esc(d.next) + '</td></tr>';
   };
   const filas = ds.map((d,i) => d.estatus === 'Perdida' ? '' : fila(d,i)).join('');
   const perdidas = ds.map((d,i) => d.estatus === 'Perdida' ? fila(d,i) : '').join('');
   const nPerd = ds.filter(d => d.estatus === 'Perdida').length;
-  const anchos = conAe ? [9,8,15,6,6,6,6,14,7,6,4,13] : (ae ? [8,15,7,6,6,6,13,9,7,5,16,2] : [10,17,7,6,6,6,15,8,7,5,13]);
+  const anchos = conAe ? [7,9,15,5,5,5,5,13,7,5,4,6,14] : (ae ? [8,14,7,6,6,6,12,8,7,5,6,13,2] : [9,16,7,6,6,6,14,8,7,5,6,10]);
   const colgroup = '<colgroup>' + anchos.map(w => '<col style="width:' + w + '%">').join('') + '</colgroup>';
-  const encabezado = (conAe ? '<th class="l">AE</th>' : '') + '<th class="l">ID HubSpot</th><th class="l">Cuenta</th><th class="l">LOB</th><th>SW</th><th>Servicios</th><th>Total</th><th class="l">Estatus</th><th class="l">Mes</th><th class="l">Plan A | B</th><th>En LOB ✓</th><th class="l">Next steps</th>' + (ae ? '<th></th>' : '');
+  const encabezado = (conAe ? '<th class="l">AE</th>' : '') + '<th class="l">ID HubSpot</th><th class="l">Cuenta</th><th class="l">LOB</th><th>SW</th><th>Servicios</th><th>Total</th><th class="l">Estatus</th><th class="l">Mes</th><th class="l">Plan A | B</th><th>En LOB ✓</th><th class="l">Cierre</th><th class="l">Next steps</th>' + (ae ? '<th></th>' : '');
   const nCols = (conAe ? 1 : 0) + 4;
   return '<div class="wk-band"><h2>3 · Top deals — los que cierran el GAP</h2><span>Detalle por oportunidad</span></div>' +
-  '<div id="fsAvisoLob"></div>' +
+  '<div id="fsAvisoLob"></div>' + clAvisoHtml(ds.filter(d => d.estatus !== 'Perdida'), conAe) +
   '<div class="wk-card"><div class="fs-tw"><table class="fs-t fs-deals">' + colgroup + '<thead><tr>' + encabezado + '</tr></thead><tbody>' + (filas || '<tr><td colspan="12" class="l" style="color:#7D8FAE;padding:18px">Sin deals capturados.</td></tr>') +
-  '<tr class="tot">' + (conAe ? '<td></td>' : '') + '<td class="l" colspan="3">TOTAL</td><td>' + cv('dtot.sw') + '</td><td>' + cv('dtot.sv') + '</td><td>' + cv('dtot.t') + '</td><td colspan="' + (ae ? 6 : 5) + '"></td></tr></tbody></table></div>' +
+  '<tr class="tot">' + (conAe ? '<td></td>' : '') + '<td class="l" colspan="3">TOTAL</td><td>' + cv('dtot.sw') + '</td><td>' + cv('dtot.sv') + '</td><td>' + cv('dtot.t') + '</td><td colspan="' + (ae ? 7 : 6) + '"></td></tr></tbody></table></div>' +
   (ae ? '<div style="margin-top:12px"><button class="fs-btn" id="fsAddDeal">➕ Agregar deal</button></div>' : '') +
   (nPerd ? '<div class="fs-lostbox"><div class="fs-losthd">🔴 Oportunidades perdidas <span>' + nPerd + ' · no cuentan en el forecast, Plan A/B, totales ni LOB</span></div><div class="fs-tw"><table class="fs-t fs-deals fs-lostt">' + colgroup + '<thead><tr>' + encabezado + '</tr></thead><tbody>' + perdidas + '</tbody></table></div></div>' : '') +
   '<p class="fs-note"><b>Plan A</b> Probable = Compromiso (monto) · <b>Plan B</b> Top Upside = Cobertura del probable · <b>Upside</b> = Resto. Montos en miles de USD.</p></div>';
@@ -658,6 +721,7 @@ function pintar(conservar){
     html += '<div class="wk-band"><h2>Equipo — avance por AE</h2><span>Click en una fila para abrir su tablero</span></div>' +
       '<div class="wk-card"><div class="fs-tw"><table class="fs-t"><thead><tr><th>AE</th><th>Cuota anual</th><th>Cerrado YTD</th><th>% Avance</th><th>Cuota Q</th><th>Forecast Q</th><th>Alcance</th><th>Cobertura</th><th title="(Forecast Q + Cerrado YTD) ÷ Cuota anual">Pronóstico alcance anual</th><th class="l">Último reporte</th></tr></thead><tbody>' + filasAe +
       '<tr class="tot"><td class="l">SEGMENTO</td><td>' + numK(va['a.t']) + '</td><td>' + numK(va['y.t']) + '</td><td>' + pct(va['p.t']) + '</td><td>' + numK(va['qc.t']) + '</td><td>' + numK(va['qf.t']) + '</td><td>' + pct(va['qa.t']) + '</td><td>' + mult(va['qb.t']) + '</td><td>' + pct(va['pa.t']) + '</td><td></td></tr></tbody></table></div></div>';
+    html += bloqueSalud(agg.deals);
     html += bloqueCuota({ b: agg, plano: true });
     html += bloqueQ({ b: agg, plano: true }, qiOv);
     const orden = ['Won', VC, 'Top Upside =Plan B', 'Upside', 'Perdida'];
@@ -713,8 +777,9 @@ function pintar(conservar){
 
 /* ---------- Top deals: ordenar y filtrar como en Excel (solo vista, no cambia los datos) ---------- */
 const DV = { sort: null, dir: 1, f: {} };
-const DV_SEL = ['AE','LOB','ESTATUS','MES','PLAN A | B','EN LOB ✓'], DV_TXT = ['ID HUBSPOT','CUENTA','NEXT STEPS'], DV_NUM = ['SW','SERVICIOS','TOTAL'];
+const DV_SEL = ['AE','LOB','ESTATUS','MES','PLAN A | B','EN LOB ✓','CIERRE'], DV_TXT = ['ID HUBSPOT','CUENTA','NEXT STEPS'], DV_NUM = ['SW','SERVICIOS','TOTAL'];
 function dvCelda(td){
+  const cx = td.querySelector('[data-clx]'); if(cx) return cx.dataset.clx;
   const es = td.querySelector('[data-est]'); if(es) return es.dataset.est;
   const el = td.querySelector('select,textarea,input:not([type=checkbox])'), ck = td.querySelector('input[type=checkbox]');
   if(ck) return ck.checked ? '✓' : '—';
@@ -733,7 +798,7 @@ function dealsVista(){
   if(!tb.querySelector('tr.fs-frow')){
     const fr = document.createElement('tr'); fr.className = 'fs-frow';
     fr.innerHTML = names.map((n,c) => {
-      if(DV_SEL.includes(n)){ const cat = ({ 'ESTATUS':ESTATUS, 'LOB':LOBS, 'MES':MESES, 'PLAN A | B':PLANES })[n];
+      if(DV_SEL.includes(n)){ const cat = ({ 'ESTATUS':ESTATUS, 'LOB':LOBS, 'MES':MESES, 'PLAN A | B':PLANES, 'CIERRE':['Completo','Parcial','Sin avance'] })[n];
         const u = [...new Set((cat || []).concat(rows.map(r => val(r,c))))].filter(v => v !== '—'); if(!cat) u.sort((a,b) => a.localeCompare(b,'es'));
         return '<th><select data-fk="' + esc(n) + '"><option value="">Todos</option>' + u.map(v => '<option value="' + esc(v) + '"' + (DV.f[n] === v ? ' selected' : '') + '>' + esc(n === 'ESTATUS' ? (ETQ_EST[v] || v) : v) + '</option>').join('') + (cat ? '<option value="—"' + (DV.f[n] === '—' ? ' selected' : '') + '>(Sin definir)</option>' : '') + '</select></th>'; }
       if(DV_TXT.includes(n)) return '<th><input data-fk="' + esc(n) + '" placeholder="Filtrar…" value="' + esc(DV.f[n] || '') + '"></th>';
@@ -744,7 +809,7 @@ function dealsVista(){
     th.textContent = th.textContent.replace(/[▲▼]/g,'').trim(); if(DV.sort === n) th.textContent += DV.dir > 0 ? ' ▲' : ' ▼'; });
   const num = x => { const m = String(x).replace(/[$,\s]/g,''); return m === '—' || m === '' ? -Infinity : (+m || 0); };
   const ci = DV.sort ? names.indexOf(DV.sort) : -1;
-  rows.sort((a,b) => { if(ci >= 0){ const x = val(a,ci), y = val(b,ci); const d = DV_NUM.includes(DV.sort) ? num(x) - num(y) : x.localeCompare(y,'es',{numeric:true}); if(d) return d * DV.dir; } return a.dataset.o - b.dataset.o; });
+  rows.sort((a,b) => { if(ci >= 0){ const x = val(a,ci), y = val(b,ci); const d = DV.sort === 'CIERRE' ? (+(a.querySelector('[data-sc]') || {dataset:{sc:0}}).dataset.sc) - (+(b.querySelector('[data-sc]') || {dataset:{sc:0}}).dataset.sc) : DV_NUM.includes(DV.sort) ? num(x) - num(y) : x.localeCompare(y,'es',{numeric:true}); if(d) return d * DV.dir; } return a.dataset.o - b.dataset.o; });
   const tot = tbody.querySelector('tr.tot');
   let vis = 0;
   rows.forEach(r => { tbody.insertBefore(r, tot);
@@ -969,12 +1034,12 @@ async function exportarExcel(){
   pie(w2, 21, 8);
 
   /* ===== 3 · TOP DEALS (B..L desde la fila 8, como el formato original) ===== */
-  const anch = [2, 15, 36, 10, 11, 12, 12, 26, 12, 11, 8, 54].concat(c.conAe ? [20] : []);
-  const w3 = nuevaHoja('TOP DEALS', BLUE, anch); const ult3 = c.conAe ? 13 : 12;
+  const anch = [2, 15, 36, 10, 11, 12, 12, 26, 12, 11, 8, 54].concat(c.conAe ? [20] : []).concat([13, 13, 13, 13, 13]);
+  const w3 = nuevaHoja('TOP DEALS', BLUE, anch); const ult3 = (c.conAe ? 13 : 12) + 5;
   banda(w3, 'TOP DEALS — LOS QUE CIERRAN EL GAP', meta, ult3);
   w3.mergeCells(5, 2, 5, ult3); w3.getCell(5,2).value = 'Plan A Probable = Compromiso · Plan B Top Upside = Cobertura del probable · Upside = Resto.'; w3.getCell(5,2).font = { name:FONT, size:10.5, italic:true, color:{ argb: MUTE } };
   const ini = 8, fin = ini + Math.max(deals.length, 1) - 1;
-  cab(w3, 7, 2, ['ID HUBSPOT','CUENTA','LOB','SW','SERVICIOS','TOTAL','ESTATUS','MES','PLAN A | B','LOB','NEXT STEPS'].concat(c.conAe ? ['AE'] : []));
+  cab(w3, 7, 2, ['ID HUBSPOT','CUENTA','LOB','SW','SERVICIOS','TOTAL','ESTATUS','MES','PLAN A | B','LOB','NEXT STEPS'].concat(c.conAe ? ['AE'] : []).concat(['PROPUESTA FINAL','PRESUPUESTO','DECISOR','CONTRATO','FIRMA']));
   const ESTC = { 'Won':['FFDDF0FF','FF0F5E9C'], [VC]:['FFE1F4E9','FF17703E'], 'Top Upside =Plan B':['FFFBF1DE','FF8A6414'], 'Upside':['FFEEF2F8','FF5E6B82'], 'Perdida':['FFFBE3E3','FFB23A3A'] };
   deals.forEach((d, i) => { const r = ini + i, zebra = i % 2 ? GREY : WHITE;
     const t = (col, val, o) => { o = o || {}; const x = w3.getCell(r, col); x.value = val; x.font = { name:FONT, size:10.5, bold: !!o.bold, color:{ argb: o.color || INK } }; x.fill = fill(o.bg || zebra); x.border = { bottom: bord(LINE) };
@@ -985,7 +1050,8 @@ async function exportarExcel(){
     const ec = ESTC[d.estatus] || ['FFEEF2F8','FF5E6B82']; t(8, ETQ_EST[d.estatus] || d.estatus || '', { bg: ec[0], color: ec[1], bold:true, h:'center' });
     t(9, d.mes || '', { h:'center' }); t(10, d.plan || '', { h:'center' });
     const ck = t(11, !!d.enLob, { h:'center', wrap:false }); ck.numFmt = '"✓";;"–"'; ck.value = d.enLob ? true : false; ck.font = { name:FONT, size:11, bold:true, color:{ argb: d.enLob ? 'FF17703E' : 'FFB0BACB' } };
-    t(12, d.next || '', { color: MUTE }); if(c.conAe) t(13, nombreAe(d._ae), { h:'center', bold:true, color: BLUE }); });
+    t(12, d.next || '', { color: MUTE }); if(c.conAe) t(13, nombreAe(d._ae), { h:'center', bold:true, color: BLUE });
+    const c0 = c.conAe ? 13 : 12; CHK_KEYS.forEach(([k], j) => { const v = (d.chk || {})[k] || ''; t(c0 + 1 + j, CHK_LBL[v] === '—' ? '' : CHK_LBL[v], { h:'center', bold:true, color: v === 'si' ? 'FF17703E' : (v === 'no' ? 'FF9A2E2E' : MUTE) }); }); t(c0 + 5, d.firma || '', { h:'center' }); });
   if(!deals.length){ w3.mergeCells(8, 2, 8, ult3); const x = w3.getCell(8,2); x.value = 'Sin deals capturados.'; x.font = { name:FONT, italic:true, color:{ argb: MUTE } }; x.alignment = { indent:1 }; }
   // fila de totales (fila 6, excluye deals Perdida), como el formato original
   w3.getRow(6).height = 24; ['B','C','D','E','F','G','H','I','J','K','L'].concat(c.conAe ? ['M'] : []).forEach(L => { const x = w3.getCell(L + '6'); x.fill = fill(ICE); x.border = { top: bord(BLUE, 'medium') }; });
@@ -1061,6 +1127,7 @@ document.addEventListener('input', e => {
 document.addEventListener('click', async e => {
   const t = e.target.closest('button,tr.fs-row-click'); if(!t || !D) return;
   if(t.dataset.v && !t.dataset.snap){ snap = null; editando = false; vista = t.dataset.v; history.replaceState(null, '', vista === 'overview' ? location.pathname : '#' + vista); pintar(); window.scrollTo(0,0); return; }
+  if(t.dataset.cl !== undefined){ abrirChecklist(t.dataset.cl); return; }
   if(t.id === 'fsAddDeal'){ boardDe(vista).deals.push({ id:'', cuenta:'', lob:'', sw:0, sv:0, estatus:'', mes:'', plan:'', enLob:false, next:'' }); dirty[vista] = true; pintar(true); return; }
   if(t.dataset.del !== undefined){ if(!confirm('¿Quitar este deal del tablero?')) return; boardDe(vista).deals.splice(+t.dataset.del, 1); dirty[vista] = true; pintar(true); return; }
   if(t.dataset.modo){ editando = t.dataset.modo === 'editar'; pintar(true); return; }
@@ -1100,7 +1167,11 @@ async function leerExcel(file){
     for(let r = 8; r <= 300; r++){
       const idv = g(st,'B'+r), cu = g(st,'C'+r), lob = g(st,'D'+r), sw = g(st,'E'+r), sv = g(st,'F'+r), es = g(st,'H'+r), mes = g(st,'I'+r), pl = g(st,'J'+r), nx = g(st,'L'+r), kx = g(st,'K'+r);
       if(![idv,cu,sw,sv,nx].some(x => x !== null && x !== '')) continue;
-      deals.push({ id: String(idv == null ? '' : idv), cuenta: String(cu||''), lob: canon(LOBS, lob), sw: n(sw), sv: n(sv), estatus: estCanon(es), mes: canon(MESES, mes), plan: canon(PLANES, pl), enLob: kx === true || /^(true|verdadero|1|x|si|sí)$/i.test(String(kx == null ? '' : kx).trim()), next: String(nx||'').replace(/^\s*Next Steps:\s*/i,'').trim() });
+      const hdrCl = ['M','N','O','P','Q','R'].find(L => /^propuesta/i.test(String(g(st, L + '7') || ''))), colN = L => String.fromCharCode(L.charCodeAt(0) + 1);
+      const prevD = b.deals.find(x => idv && String(x.id) === String(idv)), chkIn = {}; let firmaIn = '';
+      if(hdrCl){ let L = hdrCl; ['prop','pres','dec','ctr'].forEach(k => { const v = norm(g(st, L + r)); chkIn[k] = /^si/.test(v) ? 'si' : (v === 'no' ? 'no' : (/^n\/?a/.test(v) ? 'na' : '')); L = colN(L); }); const fv = g(st, L + r); firmaIn = fv instanceof Date ? fv.toISOString().slice(0, 10) : (/^\d{4}-\d{2}-\d{2}/.test(String(fv || '')) ? String(fv).slice(0, 10) : ''); }
+      else if(prevD){ Object.assign(chkIn, prevD.chk || {}); firmaIn = prevD.firma || ''; }
+      deals.push({ chk: chkIn, firma: firmaIn, id: String(idv == null ? '' : idv), cuenta: String(cu||''), lob: canon(LOBS, lob), sw: n(sw), sv: n(sv), estatus: estCanon(es), mes: canon(MESES, mes), plan: canon(PLANES, pl), enLob: kx === true || /^(true|verdadero|1|x|si|sí)$/i.test(String(kx == null ? '' : kx).trim()), next: String(nx||'').replace(/^\s*Next Steps:\s*/i,'').trim() });
     }
     nuevo.deals = deals; B[vista] = nuevo; dirty[vista] = true; pintar(true);
     toast('Excel cargado: ' + deals.length + ' deals. Revisa y presiona Guardar.');
