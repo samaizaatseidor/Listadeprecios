@@ -442,7 +442,10 @@ function semaforo(p){ return p >= 0.85 ? 'g' : (p >= 0.6 ? 'a' : 'r'); }
 const AEs = () => (D && D.config ? D.config.aes : []);
 const nombreAe = slug => (AEs().find(a => a.slug === slug) || {}).nombre || slug;
 const puedeOps = () => !!(D && D.yo.esOps);
-const puedeAe = slug => !!(D && (D.yo.esOps || D.yo.ae === slug));
+/* Bloqueo de AEs: lunes 9:00–11:30 hora CDMX (el servidor también lo valida) */
+function ventanaLunes(){ const p = {}; new Intl.DateTimeFormat('en-US', { timeZone:'America/Mexico_City', weekday:'short', hour:'2-digit', minute:'2-digit', hourCycle:'h23' }).formatToParts(new Date()).forEach(x => { p[x.type] = x.value; }); const m = (+p.hour) * 60 + (+p.minute); return p.weekday === 'Mon' && m >= 540 && m < 690; }
+const bloqueadoAhora = () => !!(D && !D.yo.esOps && ventanaLunes());
+const puedeAe = slug => !!(D && (D.yo.esOps || (D.yo.ae === slug && !bloqueadoAhora())));
 function boardDe(slug){ return B[slug] || (B[slug] = clonar(D.live[slug])); }
 function liveDe(slug){ return D.live[slug] ? Object.assign({ _ae: slug }, D.live[slug]) : Object.assign(vacio(), { _ae: slug }); }
 
@@ -462,6 +465,8 @@ async function api(body){
 }
 function toast(msg, err){ const t = document.createElement('div'); t.className = 'fs-toast' + (err ? ' err' : ''); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), err ? 6000 : 3200); }
 
+let _bloq = null;
+setInterval(() => { if(!D) return; const b = bloqueadoAhora(); if(_bloq !== null && b !== _bloq){ if(b && editando && !D.yo.esOps) editando = false; pintar(true); } _bloq = b; }, 30000);
 async function cargar(){
   const sb = document.getElementById('statusBox');
   try{
@@ -754,7 +759,7 @@ function pintar(conservar){
         (edOn ? '<label class="fs-btn" for="fsXls" style="margin:0">⬆️ Cargar Excel del formato</label><input type="file" id="fsXls" accept=".xlsx,.xls" style="display:none">' : '') +
         (edOn && slug === 'fernanda' && vacioB && puedeOps() ? '<button class="fs-btn" id="fsSeed">Cargar corte inicial de Fer (Excel 26/10)</button>' : '') + '</div>';
     } else {
-      html += '<div class="fs-warn">No puedes editar este tablero. Si eres AE, pide a Sales Ops que asigne tu correo en ⚙️ Responsables y que tu rol tenga permiso de edición de AE.</div>';
+      html += bloqueadoAhora() && D.yo.ae === slug ? '<div class="fs-warn">🔒 <b>Tablero bloqueado durante la sesión de forecast</b> (lunes de 9:00 a 11:30 am). Puedes consultarlo; a partir de las 11:30 podrás editar de nuevo.' + (dirty[slug] ? ' Tus cambios sin guardar se conservan en esta pantalla, pero guárdalos después de las 11:30.' : '') + '</div>' : '<div class="fs-warn">No puedes editar este tablero. Si eres AE, pide a Sales Ops que asigne tu correo en ⚙️ Responsables y que tu rol tenga permiso de edición de AE.</div>';
     }
     html += (edOn ? leyenda() : '') + bloqueCuota(ed) + bloqueQ(ed, qi) + bloqueDeals(b, ed, false) + bloqueLob() + historialHtml(slug);
     html += pieExportar();

@@ -651,6 +651,13 @@ async function fcsConfig(env){
   const porSlug = {}; (Array.isArray(guardado.aes) ? guardado.aes : []).forEach(a => { if (a && a.slug) porSlug[a.slug] = a; });
   return { aes: FCS_AES.map(a => ({ slug:a.slug, nombre:(porSlug[a.slug]||{}).nombre || a.nombre, email: (porSlug[a.slug] && 'email' in porSlug[a.slug]) ? fcsTxt(porSlug[a.slug].email, 120).toLowerCase() : a.email })) };
 }
+// Ventana de bloqueo: los lunes de 9:00 a 11:30 (hora de Ciudad de México) los AEs no pueden guardar; Sales Ops y Admin sí.
+const FCS_BLOQUEO = { dia: 'Mon', desde: 9 * 60, hasta: 11 * 60 + 30 };
+function fcsBloqueado(fecha) {
+  const p = {}; new Intl.DateTimeFormat('en-US', { timeZone: 'America/Mexico_City', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(fecha || new Date()).forEach(x => { p[x.type] = x.value; });
+  const min = (+p.hour) * 60 + (+p.minute);
+  return p.weekday === FCS_BLOQUEO.dia && min >= FCS_BLOQUEO.desde && min < FCS_BLOQUEO.hasta;
+}
 async function fcsManejar(request, env, url){
   const json = (o, status) => new Response(JSON.stringify(o), { status: status || 200, headers: { 'Content-Type': 'application/json' } });
   const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
@@ -660,6 +667,7 @@ async function fcsManejar(request, env, url){
   const fcfg = await fcsConfig(env);
   const miAe = (email && puedeAe) ? ((fcfg.aes.find(a => a.email && a.email === email) || {}).slug || null) : null;
   const yo = { email, esOps, ae: miAe };
+  const bloqueado = !esOps && fcsBloqueado();
   const rawLive = await env.PM_KV.get('fcs_live');
   const live = rawLive ? JSON.parse(rawLive) : {};
 
@@ -689,7 +697,7 @@ async function fcsManejar(request, env, url){
       histOut = histOut.filter(h => miAe && h.ae === miAe);
       cfgOut = { aes: fcfg.aes.filter(a => miAe && a.slug === miAe).map(a => ({ slug: a.slug, nombre: a.nombre, email: '' })) };
     }
-    return json({ ok:true, live: liveOut, historial: histOut, config: cfgOut, yo: { ...yo, soloPropio }, catalogos:{ estatus:FCS_ESTATUS, lobs:FCS_LOBS, meses:FCS_MESES, planes:FCS_PLANES } });
+    return json({ ok:true, live: liveOut, historial: histOut, config: cfgOut, yo: { ...yo, soloPropio, bloqueado }, catalogos:{ estatus:FCS_ESTATUS, lobs:FCS_LOBS, meses:FCS_MESES, planes:FCS_PLANES } });
   }
   if (request.method !== 'POST') return json({ ok:false, error:'Método no permitido' }, 405);
   let body; try { body = await request.json(); } catch (e) { return json({ ok:false, error:'JSON inválido' }, 400); }
@@ -709,6 +717,7 @@ async function fcsManejar(request, env, url){
   const ahora = new Date().toISOString();
 
   if (accion === 'guardar') {
+    if (bloqueado) return json({ ok:false, bloqueado:true, error:'🔒 Los tableros se bloquean los lunes de 9:00 a 11:30 am (sesión de forecast). Podrás guardar de nuevo a partir de las 11:30.' }, 423);
     if (Number(body.version || 0) !== Number(actual.version || 0)) return json({ ok:false, conflicto:true, error:'Alguien más guardó este tablero mientras lo editabas. Se recargó la versión más reciente.', board: actual }, 409);
     const nuevo = fcsLimpiar(body.board);
     const fusion = esOps ? nuevo : { cuota: { ...actual.cuota, swYtd: nuevo.cuota.swYtd, svYtd: nuevo.cuota.svYtd }, q: actual.q, deals: nuevo.deals };
