@@ -357,6 +357,33 @@ FUENTES CONSULTADAS
 
 Si no encuentras información confiable sobre algún punto, dilo explícitamente en vez de inventar datos.`;
 
+
+/* ==================== PARTNERS ==================== */
+// Registro de partners: alta documental, NDA, contactos, proyectos y tarifas.
+// Semilla inicial (solo se usa si aún no hay nada guardado en KV).
+function partnersSemilla(){
+  const P = (id, nombre, tags, c) => ({
+    id, nombre, logo: '/assets/partners/' + id + '.png', tags, carpeta: '',
+    duenoInterno: 'Emer', usuarios: ['Sam', 'Rogelio', 'Yurima'],
+    nda: { estado: 'Por enviar', fecha: '', notas: '' }, docs: {},
+    contactos: c ? [Object.assign({ clave: true, tel: '' }, c)] : [],
+    proyectos: [], notas: ''
+  });
+  return [
+    P('kyndryl','Kyndryl',[],{ nombre:'Mishelle Velez', cargo:'Directora comercial', correo:'mishelle.velez@kyndryl.com' }),
+    P('sapindex','Sapindex',[],{ nombre:'Tamara Ferreyra', cargo:'Executive Manager', correo:'tamara.ferreyra@sapindex.es' }),
+    P('mindtech','Mindtech',[],{ nombre:'José Echeverri', cargo:'Head of Partnerships', correo:'jose.echeverri@mindtechcompany.com' }),
+    P('iquant','Iquant',[],{ nombre:'Patricio Radeljak', cargo:'Socio Director', correo:'pradeljak@iquantconsulting.com' }),
+    P('zaga','ZAGA Systems',[],{ nombre:'Roberto Zanetti', cargo:'Director ejecutivo', correo:'r.zanetti@zagasystem.com' }),
+    P('vistex','Vistex',[],{ nombre:'Luis Ernesto Reyes', cargo:'Regional Sales Director', correo:'luis.reyes@vistex.com' }),
+    P('msg','MSG',[],{ nombre:'Miguel Blasco', cargo:'Sales Manager and Business Development', correo:'Miguel.Blasco@msg-global.com' }),
+    P('tam','TAM',[],{ nombre:'Pamela Seyler', cargo:'Business Development Manager', correo:'pseyler@tamtraining.com' }),
+    P('olivia','Olivia',['Adopción del cambio'],{ nombre:'Irene Marques', cargo:'Socia directora', correo:'irene.marques@olivia-global.com' }),
+    P('nousfera','Nousfera',[],{ nombre:'Erika Flores', cargo:'Partner & Resource Manager', correo:'' }),
+    P('sofos','SOFOS',[],{ nombre:'David Ruiz', cargo:'Director comercial', correo:'david.ruiz@sofoscorp.com' }),
+  ];
+}
+
 /* ======================= ROLES Y PERMISOS ======================= */
 // Correo con acceso de Admin garantizado siempre, sin importar lo que diga la
 // configuración guardada — así una mala edición en /roles.html nunca puede
@@ -403,6 +430,7 @@ const PAGINAS_REGISTRO = {
   'bx-base-instalada': 'Business Experience — Base Instalada',
   'forecast-semanal': 'Forecast Semanal (ver · Sales Ops edita)',
   'forecast-semanal-ae': 'Forecast Semanal — AE edita su propio tablero',
+  'partners': 'Partners (registro, alta documental y tarifas)',
   'auditoria': 'Auditoría',
   'agentes': 'Agentes',
 };
@@ -415,6 +443,19 @@ async function getRolesConfig(env){
     roles: cfg.roles && typeof cfg.roles === 'object' ? cfg.roles : {},
     asignaciones: cfg.asignaciones && typeof cfg.asignaciones === 'object' ? cfg.asignaciones : {},
   };
+}
+
+// Una persona puede tener uno o varios roles. Se acepta el formato anterior (texto)
+// y el nuevo (arreglo); el permiso final es el más alto entre todos sus roles.
+function rolesDe(cfg, email){
+  const v = cfg.asignaciones[(email||'').toLowerCase()];
+  if (!v) return [];
+  return (Array.isArray(v) ? v : [v]).filter(r => cfg.roles[r]);
+}
+function nivelMax(cfg, email, paginas){
+  let mejor = 0;
+  for (const r of rolesDe(cfg, email)) for (const p of paginas) mejor = Math.max(mejor, NIVEL_RANGO[cfg.roles[r][p]] || 0);
+  return mejor;
 }
 
 function esAdmin(email, cfg){
@@ -431,12 +472,8 @@ async function getPermiso(env, email, pageId){
   const cfg = await getRolesConfig(env);
   if (esAdmin(email, cfg)) return 'completo';
   if (!email) return 'ninguno';
-  const rolNombre = cfg.asignaciones[(email||'').toLowerCase()];
-  if (!rolNombre) return 'ninguno';
-  const rol = cfg.roles[rolNombre];
-  if (!rol) return 'ninguno';
-  const nivel = rol[pageId];
-  return nivel || 'ninguno';
+  const m = nivelMax(cfg, email, [pageId]);
+  return m >= 2 ? 'completo' : m === 1 ? 'lectura' : 'ninguno';
 }
 
 const NIVEL_RANGO = { 'ninguno': 0, 'lectura': 1, 'completo': 2 };
@@ -461,6 +498,7 @@ const RUTAS_PERMISO = {
   '/api/documentos': { modo:'datos', paginas:['documentos'] },
   '/api/docs/file': { modo:'datos', paginas:['documentos'] },
   '/api/contactos-sap': { modo:'datos', paginas:['contactos-sap'] },
+  '/api/partners': { modo:'datos', paginas:['partners'], escritura:['partners'] },
   '/api/bx-base-instalada': { modo:'datos', paginas:['bx-base-instalada'] },
   '/api/forecast-semanal': { modo:'datos', paginas:['forecast-semanal','forecast-semanal-ae'], escritura:['forecast-semanal','forecast-semanal-ae'] }, // el detalle (Sales Ops vs AE propio) se valida dentro
   '/api/wbr-finanzas': { modo:'datos', paginas:['wbr-finanzas'] },
@@ -527,9 +565,7 @@ async function autorizarRuta(request, env, pathname){
   const esEscritura = regla.modo === 'accion' || (regla.modo === 'datos' && !esLectura);
   const nivelMin = esEscritura ? 'completo' : 'lectura';
   const paginas = (esEscritura && regla.escritura) ? regla.escritura : regla.paginas;
-  const rolNombre = cfg.asignaciones[email.toLowerCase()];
-  const rol = rolNombre ? cfg.roles[rolNombre] : null;
-  const mejor = rol ? Math.max(0, ...paginas.map(p => NIVEL_RANGO[rol[p]] || 0)) : 0;
+  const mejor = nivelMax(cfg, email, paginas);
   if (mejor >= NIVEL_RANGO[nivelMin]) return null;
   return respuestaDenegada(esEscritura
     ? 'No tienes permiso de edición para esta página. Pide a un Administrador que revise tu rol en Roles y Permisos.'
@@ -1780,6 +1816,38 @@ ${JSON.stringify(checklist || [])}`;
           'Content-Disposition': `attachment; filename="Respaldo KV - ${fecha}.json"`
         }
       });
+    }
+
+    if (url.pathname === '/api/partners' && request.method === 'GET') {
+      const raw = await env.PM_KV.get('partners');
+      const data = raw ? JSON.parse(raw) : { partners: partnersSemilla(), semilla: true };
+      return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (url.pathname === '/api/partners' && request.method === 'POST') {
+      let body;
+      try { body = await request.json(); } catch (e) { return new Response('JSON inválido', { status: 400 }); }
+      const entrantes = Array.isArray(body.partners) ? body.partners.filter(p => p && p.id) : [];
+      const eliminar = Array.isArray(body.eliminar) ? body.eliminar : [];
+      const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+      const cfgRoles = await getRolesConfig(env);
+      if (eliminar.length && !esAdmin(email, cfgRoles)) {
+        return new Response(JSON.stringify({ ok:false, error:'Solo un Administrador puede eliminar partners.' }), { status:403, headers:{'Content-Type':'application/json'} });
+      }
+      // Se combina partner por partner: gana la versión editada más recientemente (campo u),
+      // así dos personas editando partners distintos no se pisan.
+      const raw = await env.PM_KV.get('partners');
+      const existentes = raw ? (JSON.parse(raw).partners || []) : partnersSemilla();
+      const mapa = new Map(existentes.map(p => [p.id, p]));
+      let conflictos = [];
+      for (const p of entrantes) {
+        const ex = mapa.get(p.id);
+        if (!ex || (p.u || 0) >= (ex.u || 0)) mapa.set(p.id, p);
+        else conflictos.push(ex.nombre);
+      }
+      eliminar.forEach(id => mapa.delete(id));
+      await env.PM_KV.put('partners', JSON.stringify({ partners: [...mapa.values()] }));
+      return new Response(JSON.stringify({ ok: true, conflictos }), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname === '/api/contactos-sap' && request.method === 'GET') {

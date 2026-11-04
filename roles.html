@@ -196,6 +196,7 @@
           <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
           <a href="/vista-general.html">Vista General del Proyecto</a>
           <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+          <a href="/partners.html">Partners</a>
         </div>
       </div>
       <div class="nav-dropdown">
@@ -255,7 +256,14 @@ function norm(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLower
 // Acceso cerrado por defecto: lo que un rol no menciona es "Sin acceso" (igual que en el servidor).
 function nivelDe(rol, pageId){ return (cfg.roles[rol] && cfg.roles[rol][pageId]) || 'ninguno'; }
 function esAdminCorreo(email){ const e=(email||'').toLowerCase(); return e===(bootstrapAdmin||'').toLowerCase() || cfg.admins.some(a=>a.toLowerCase()===e); }
-function miembros(rol){ return Object.values(cfg.asignaciones).filter(r=>r===rol).length; }
+// Una persona puede tener varios roles (el acceso final es el más alto entre ellos).
+function rolesDe(email){ const v = cfg.asignaciones[email]; return Array.isArray(v) ? v : (v ? [v] : []); }
+function miembros(rol){ return Object.keys(cfg.asignaciones).filter(e=>rolesDe(e).includes(rol)).length; }
+function mejorNivel(email, pageId){
+  const rango = { ninguno:0, lectura:1, completo:2 }; let m = 0;
+  rolesDe(email).forEach(r=>{ m = Math.max(m, rango[nivelDe(r,pageId)]||0); });
+  return ['ninguno','lectura','completo'][m];
+}
 
 async function init(){
   const main = document.getElementById('mainContent');
@@ -267,6 +275,7 @@ async function init(){
       return;
     }
     cfg = { admins: d.admins, roles: d.roles, asignaciones: d.asignaciones };
+    Object.keys(cfg.asignaciones).forEach(e=>{ const v = cfg.asignaciones[e]; cfg.asignaciones[e] = Array.isArray(v) ? v : (v ? [v] : []); });
     paginas = d.paginas;
     bootstrapAdmin = d.bootstrapAdmin;
     rolSeleccionado = Object.keys(cfg.roles)[0] || null;
@@ -318,7 +327,7 @@ function borrarRol(){
   const n = miembros(nombre);
   if(!confirm(`¿Borrar el rol "${nombre}"?`+(n?` ${n} persona(s) quedarán sin rol y sin acceso a ninguna página.`:''))) return;
   delete cfg.roles[nombre];
-  Object.keys(cfg.asignaciones).forEach(e=>{ if(cfg.asignaciones[e]===nombre) delete cfg.asignaciones[e]; });
+  Object.keys(cfg.asignaciones).forEach(e=>{ cfg.asignaciones[e] = rolesDe(e).filter(r=>r!==nombre); if(!cfg.asignaciones[e].length) delete cfg.asignaciones[e]; });
   rolSeleccionado = Object.keys(cfg.roles)[0] || null; seleccion.clear();
   rerender(); guardar(`Rol "${nombre}" eliminado.`);
 }
@@ -351,14 +360,25 @@ function asignarVarios(){
   if(!rol){ alert('Primero crea un rol.'); return; }
   if(!validos.length){ alert('No encontré correos válidos. Pégalos separados por salto de línea, coma o espacio.'); return; }
   let cambiados = 0;
-  validos.forEach(e=>{ if(cfg.asignaciones[e] && cfg.asignaciones[e]!==rol) cambiados++; cfg.asignaciones[e] = rol; });
+  validos.forEach(e=>{ const ya = rolesDe(e); if(ya.length && !ya.includes(rol)) cambiados++; if(!ya.includes(rol)) cfg.asignaciones[e] = ya.concat(rol); });
   document.getElementById('nuevosCorreos').value = '';
   rerender();
-  guardar(`${validos.length} correo(s) asignados a "${rol}"`+(cambiados?` (${cambiados} cambiaron de rol)`:'')+(invalidos.length?` — ignorados por inválidos: ${invalidos.join(', ')}`:'')+'.');
+  guardar(`${validos.length} correo(s) asignados a "${rol}"`+(cambiados?` (${cambiados} ya tenían otros roles; se les sumó este)`:'')+(invalidos.length?` — ignorados por inválidos: ${invalidos.join(', ')}`:'')+'.');
 }
-function cambiarRolPersona(email, rol){
-  if(!rol){ delete cfg.asignaciones[email]; } else cfg.asignaciones[email] = rol;
-  rerender(); guardar(rol?`${email} ahora es "${rol}".`:`Se quitó el rol de ${email}.`);
+function agregarRolPersona(email, rol){
+  if(!rol) return;
+  const ya = rolesDe(email); if(ya.includes(rol)) return;
+  cfg.asignaciones[email] = ya.concat(rol);
+  rerender(); guardar(`${email} ahora también tiene "${rol}".`);
+}
+function quitarRolPersona(email, rol){
+  const resto = rolesDe(email).filter(r=>r!==rol);
+  if(resto.length) cfg.asignaciones[email] = resto; else delete cfg.asignaciones[email];
+  rerender(); guardar(`Se quitó "${rol}" a ${email}.`);
+}
+function quitarPersona(email){
+  delete cfg.asignaciones[email];
+  rerender(); guardar(`Se quitaron todos los roles de ${email}.`);
 }
 function toggleAdmin(email){
   cfg.admins = cfg.admins.filter(e=>e.toLowerCase()!==email.toLowerCase());
@@ -376,12 +396,12 @@ function consultaHtml(){
   const email = consultaCorreo.trim().toLowerCase();
   if(!email) return '<p class="sub">Escribe un correo para ver a qué páginas puede entrar.</p>';
   if(esAdminCorreo(email)) return `<p><b>${esc(email)}</b> es Administrador: acceso completo a todas las páginas.</p>`;
-  const rol = cfg.asignaciones[email];
-  if(!rol) return `<p><b>${esc(email)}</b> no tiene rol asignado: <b>no puede abrir ninguna página</b> (solo ve la pantalla de "sin acceso").</p>`;
-  const entradas = Object.entries(paginas).map(([id,n])=>[n, nivelDe(rol,id)]);
+  const rol = rolesDe(email);
+  if(!rol.length) return `<p><b>${esc(email)}</b> no tiene rol asignado: <b>no puede abrir ninguna página</b> (solo ve la pantalla de "sin acceso").</p>`;
+  const entradas = Object.entries(paginas).map(([id,n])=>[n, mejorNivel(email,id)]);
   const comp = entradas.filter(x=>x[1]==='completo'), lect = entradas.filter(x=>x[1]==='lectura'), sin = entradas.filter(x=>x[1]==='ninguno').length;
   const chips = (arr,c)=>arr.map(x=>`<span class="chip ${c}">${esc(x[0])}</span>`).join('') || '<span class="sub">Ninguna</span>';
-  return `<p><b>${esc(email)}</b> tiene el rol <b>${esc(rol)}</b>.</p>
+  return `<p><b>${esc(email)}</b> tiene ${rol.length>1?'los roles':'el rol'} <b>${esc(rol.join(' + '))}</b>${rol.length>1?' (se aplica el acceso más alto de cada página)':''}.</p>
     <p class="resumen">Acceso completo (${comp.length})</p><div>${chips(comp,'completo')}</div>
     <p class="resumen" style="margin-top:8px;">Solo lectura (${lect.length})</p><div>${chips(lect,'lectura')}</div>
     <p class="resumen" style="margin-top:8px;">Sin acceso a ${sin} página(s).</p>`;
@@ -395,7 +415,7 @@ function render(){
   let cuentaC=0, cuentaL=0;
   if(rolSeleccionado) Object.keys(paginas).forEach(id=>{ const n=nivelDe(rolSeleccionado,id); if(n==='completo') cuentaC++; else if(n==='lectura') cuentaL++; });
   const q = norm(filtroPersonas.trim());
-  const personas = Object.entries(cfg.asignaciones).filter(([e,r])=>!q || norm(e).includes(q) || norm(r).includes(q)).sort((a,b)=>a[0].localeCompare(b[0]));
+  const personas = Object.keys(cfg.asignaciones).map(e=>[e, rolesDe(e)]).filter(([e,r])=>!q || norm(e).includes(q) || norm(r.join(' ')).includes(q)).sort((a,b)=>a[0].localeCompare(b[0]));
 
   main.innerHTML = `
     <div class="section">
@@ -448,7 +468,7 @@ function render(){
 
     <div class="section">
       <h2>Asignar personas a un rol</h2>
-      <p class="sub">Pega uno o varios correos (separados por salto de línea, coma o espacio) y elige el rol. Quien no aparezca aquí no puede abrir ninguna página.</p>
+      <p class="sub">Pega uno o varios correos (separados por salto de línea, coma o espacio) y elige el rol. Una persona puede tener varios roles: asignar otro rol se suma al que ya tiene, y el acceso final es el más alto entre sus roles. Quien no aparezca aquí no puede abrir ninguna página.</p>
       <textarea id="nuevosCorreos" placeholder="ana@seidor.com&#10;luis@seidor.com" aria-label="Correos a asignar"></textarea>
       <div class="asig-row" style="margin-top:8px;">
         <select id="nuevoRolSelect" aria-label="Rol a asignar">${nombresRoles.map(r=>`<option value="${esc(r)}" ${r===rolSeleccionado?'selected':''}>${esc(r)}</option>`).join('')}</select>
@@ -459,12 +479,13 @@ function render(){
         <span class="resumen" style="margin:0;">${Object.keys(cfg.asignaciones).length} persona(s) con rol</span>
       </div>
       <table>
-        <tr><th>Correo</th><th>Rol asignado</th><th></th></tr>
-        ${personas.map(([email, rol]) => `
+        <tr><th>Correo</th><th>Roles asignados</th><th></th></tr>
+        ${personas.map(([email, roles]) => `
           <tr>
             <td>${esc(email)}</td>
-            <td><select data-act="rol-persona" data-email="${esc(email)}" aria-label="Rol de ${esc(email)}">${nombresRoles.map(r=>`<option value="${esc(r)}" ${r===rol?'selected':''}>${esc(r)}</option>`).join('')}</select></td>
-            <td><button class="del-row" data-act="quitar-persona" data-email="${esc(email)}" title="Quitar rol" aria-label="Quitar rol a ${esc(email)}">×</button></td>
+            <td>${roles.map(r=>`<span class="chip completo" style="display:inline-flex; align-items:center; gap:6px;">${esc(r)}<button class="del-row" data-act="quitar-rol" data-email="${esc(email)}" data-rol="${esc(r)}" title="Quitar este rol" aria-label="Quitar ${esc(r)} a ${esc(email)}" style="padding:0 2px;">×</button></span>`).join('')}
+              <select data-act="rol-persona" data-email="${esc(email)}" aria-label="Agregar otro rol a ${esc(email)}"><option value="">+ rol…</option>${nombresRoles.filter(r=>!roles.includes(r)).map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select></td>
+            <td><button class="del-row" data-act="quitar-persona" data-email="${esc(email)}" title="Quitar todos los roles" aria-label="Quitar todos los roles a ${esc(email)}">×</button></td>
           </tr>`).join('') || '<tr><td colspan="3" class="sub">Sin personas asignadas.</td></tr>'}
       </table>
     </div>
@@ -489,7 +510,8 @@ document.addEventListener('click', function(e){
   else if(act==='nivel'){ setNivel(el.dataset.page, el.dataset.nivel); rerender(); guardar('Permiso actualizado.'); }
   else if(act==='aplicar') aplicarSeleccion(el.dataset.nivel);
   else if(act==='asignar') asignarVarios();
-  else if(act==='quitar-persona') cambiarRolPersona(el.dataset.email, '');
+  else if(act==='quitar-persona') quitarPersona(el.dataset.email);
+  else if(act==='quitar-rol') quitarRolPersona(el.dataset.email, el.dataset.rol);
   else if(act==='add-admin') addAdmin();
   else if(act==='quitar-admin') toggleAdmin(el.dataset.email);
 });
@@ -497,7 +519,7 @@ document.addEventListener('change', function(e){
   const el = e.target.closest('[data-act]'); if(!el || !cfg) return;
   if(el.dataset.act==='sel-pagina'){ el.checked ? seleccion.add(el.dataset.page) : seleccion.delete(el.dataset.page); rerender(); }
   else if(el.dataset.act==='sel-todas'){ const vis = paginasVisibles(); vis.forEach(([id])=> el.checked ? seleccion.add(id) : seleccion.delete(id)); rerender(); }
-  else if(el.dataset.act==='rol-persona') cambiarRolPersona(el.dataset.email, el.value);
+  else if(el.dataset.act==='rol-persona') agregarRolPersona(el.dataset.email, el.value);
 });
 document.addEventListener('input', function(e){
   if(!cfg) return;
