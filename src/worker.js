@@ -428,6 +428,7 @@ const PAGINAS_REGISTRO = {
   'wbr-ejecutivo': 'WBR — Centro de Mando',
   'wbr-vop': 'WBR — Tablero VOP',
   'bx-base-instalada': 'Business Experience — Base Instalada',
+  'simulador-margen': 'Simulador de Margen',
   'forecast-semanal': 'Forecast Semanal (ver · Sales Ops edita)',
   'forecast-semanal-ae': 'Forecast Semanal — AE edita su propio tablero',
   'partners': 'Partners (registro, alta documental y tarifas)',

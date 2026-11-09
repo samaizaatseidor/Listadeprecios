@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A1226">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16.png">
+<title>Simulador de Margen · SEIDOR México</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8;
+    --cyan:#33B4DD; --cyan-l:#6FD3F0;
+    --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC;
+    --line:#D8E2EE; --card:#F4F8FC;
+    --shadow: 0 3px 9px rgba(159,179,204,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Poppins',"Segoe UI",sans-serif; color:var(--ink); background:var(--card); min-height:100vh;}
+  .topnav{background:#fff; border-bottom:1px solid var(--line);}
+  .topnav-wrap{max-width:none; margin:0; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .topnav-logo img{height:26px; display:block;}
+    .topnav-links{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+  .nav-link{color:var(--navy2); text-decoration:none; font-size:14px; font-weight:500; padding:8px 8px; border-radius:6px;}
+  .nav-link:hover{color:var(--blue);}
+  .nav-link.active{color:var(--blue);}
+  .nav-dropdown{position:relative;}
+  .nav-dropdown-btn{background:none; border:none; font-family:inherit; color:var(--navy2); font-size:14px; font-weight:500; padding:8px 8px; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:6px;}
+  .nav-dropdown-btn:hover{color:var(--blue);}
+  .nav-dropdown-btn.active{color:var(--blue);}
+  .nav-dropdown-btn .caret{font-size:10px; margin-top:1px; transition:transform 0.15s ease;}
+  .nav-dropdown.open .nav-dropdown-btn .caret{transform:rotate(180deg);}
+  .nav-dropdown-menu{display:none; position:absolute; top:100%; left:0; margin-top:6px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 28px rgba(10,18,38,0.14); padding:8px; min-width:240px; z-index:60;}
+  .nav-dropdown.open .nav-dropdown-menu{display:block;}
+  .nav-dropdown-menu a{display:block; padding:8px 10px; color:var(--navy2); text-decoration:none; font-size:13.5px; border-radius:6px; white-space:nowrap;}
+  .nav-dropdown-menu a:hover{background:var(--card); color:var(--blue);}
+  .nav-dropdown-menu a.active{color:var(--blue); font-weight:600; background:var(--card);}
+  .nav-dropdown-sep{height:1px; background:var(--line); margin:6px 4px;}
+
+  header{background:radial-gradient(circle at 85% -10%, var(--blue) 0%, var(--navy2) 45%, var(--navy) 100%); color:#fff; padding:26px 24px;}
+  header h1{margin:0 0 4px; font-size:20px; font-weight:600;}
+  header p{margin:0; color:var(--cyan-l); font-size:13px;}
+  main{max-width:880px; margin:0 auto; padding:20px 16px 60px;}
+  .card{background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .card h2{font-size:15px; color:var(--navy2); margin:0 0 4px;}
+  .card .sub{font-size:12.5px; color:var(--greyl); margin:0 0 14px;}
+  .tabs{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+  .tabs button{flex:1 1 200px; padding:11px 10px; border-radius:10px; border:1px solid var(--line); background:#fff; font-family:inherit; font-size:13px; cursor:pointer; color:var(--navy2); line-height:1.3;}
+  .tabs button b{display:block; font-size:12px; color:var(--greyl); font-weight:500;}
+  .tabs button.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+  .tabs button.active b{color:var(--cyan-l);}
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  @media(max-width:700px){.grid{grid-template-columns:1fr;}}
+  .fld{border:1.5px solid var(--line); border-radius:12px; padding:12px 14px; background:#fff;}
+  .fld label{display:block; font-size:12px; color:var(--grey); font-weight:600; letter-spacing:.3px; text-transform:uppercase; margin-bottom:6px;}
+  .fld .row{display:flex; align-items:center; gap:6px;}
+  .fld .pre,.fld .suf{color:var(--greyl); font-weight:600;}
+  .fld input[type=text]{width:100%; border:none; outline:none; font-family:inherit; font-size:24px; font-weight:700; color:var(--navy2); background:transparent; min-width:0;}
+  .fld.calc{background:linear-gradient(135deg,#EAF4FD,#F4FAFF); border-color:var(--cyan);}
+  .fld.calc input{color:var(--blue);}
+  .fld.calc label::after{content:" · calculado"; color:var(--cyan); text-transform:none; letter-spacing:0;}
+  .fld input:focus{background:#F4F8FC;}
+  .fld:focus-within{border-color:var(--blue);}
+  .fld .hint{font-size:11.5px; color:var(--greyl); margin-top:4px;}
+  .slider{margin-top:18px;}
+  .slider label{font-size:12.5px; color:var(--grey); font-weight:500; display:flex; justify-content:space-between;}
+  .slider input[type=range]{width:100%; accent-color:var(--blue);}
+  .kpis{display:flex; gap:12px; flex-wrap:wrap; margin-top:16px;}
+  .kpi{flex:1 1 150px; background:var(--card); border-radius:10px; padding:12px 14px;}
+  .kpi .l{font-size:12px; color:var(--grey);} .kpi .n{font-size:19px; font-weight:700; color:var(--navy2);}
+  .kpi.warn .n{color:#B4452A;} .kpi.ok .n{color:#1D7F4E;}
+  .bar{height:10px; border-radius:6px; background:#E3EBF5; overflow:hidden; margin-top:16px; display:flex;}
+  .bar span{display:block; height:100%; transition:width .2s;}
+  .bar .c{background:var(--navy2);} .bar .u{background:var(--cyan);}
+  .legend{display:flex; gap:16px; font-size:12px; color:var(--grey); margin-top:6px;}
+  .legend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px;}
+  table.t{width:100%; border-collapse:collapse; font-size:13px; margin-top:6px;}
+  table.t th{text-align:right; font-size:11.5px; color:var(--grey); font-weight:600; padding:7px 8px; border-bottom:1px solid var(--line); text-transform:uppercase; letter-spacing:.3px;}
+  table.t td{text-align:right; padding:7px 8px; border-bottom:1px solid #EEF3F9; font-variant-numeric:tabular-nums;}
+  table.t th:first-child,table.t td:first-child{text-align:left;}
+  table.t tr.cur td{background:#EAF4FD; font-weight:700; color:var(--navy2);}
+  table.t td.neg{color:#B4452A;}
+  .tools{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;}
+  .btn{border:1px solid var(--line); background:#fff; border-radius:8px; padding:9px 14px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; color:var(--navy2);}
+  .btn:hover{border-color:var(--blue); color:var(--blue);}
+  .err{background:#FBEAE6; color:#9C3A22; border-radius:8px; padding:9px 12px; font-size:12.5px; margin-top:12px; display:none;}
+  .note{font-size:12px; color:var(--greyl); margin-top:10px; line-height:1.5;}
+</style>
+</head>
+<body>
+<script>
+(async function(){
+  const m = location.pathname.match(/\/([a-z0-9-]+)\.html$/i);
+  if(!m) return;
+  try{
+    const r = await fetch('/api/mi-permiso?page=' + m[1]);
+    const d = await r.json();
+    if(!d.ok) return;
+    window.ES_ADMIN = !!d.esAdmin;
+    function _desbloquearCamposAdmin(){
+      document.querySelectorAll('.admin-only-edit').forEach(function(el){
+        if(d.esAdmin){
+          el.removeAttribute('readonly');
+          var hint = el.parentElement.querySelector('.admin-lock-hint');
+          if(hint) hint.style.display = 'none';
+        }
+      });
+    }
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', _desbloquearCamposAdmin);
+    }else{
+      _desbloquearCamposAdmin();
+    }
+    if(d.permiso === 'ninguno'){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:#F4F8FC; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:Poppins,sans-serif; text-align:center; padding:20px;';
+      overlay.innerHTML = '<div style="font-size:40px; margin-bottom:12px;">🔒</div><h2 style="color:#0E1E3F; margin:0 0 8px; font-size:18px;">No tienes acceso a esta página</h2><p style="color:#8A97AC; font-size:13.5px; max-width:380px; margin:0;">Si crees que deberías verla, pide a un Administrador que revise tu rol en Roles y Permisos.</p><a href="/index.html" style="margin-top:16px; color:#1E5BB8; font-weight:600; text-decoration:none; font-size:13.5px;">← Volver al inicio</a>';
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+    }else if(d.permiso === 'lectura'){
+      window.SOLO_LECTURA = true;
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#FBF1DE; color:#8A6414; font-size:12.5px; font-weight:600; text-align:center; padding:8px 16px;';
+      banner.textContent = '👁️ Modo solo lectura — puedes ver esta página pero no guardar cambios';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }catch(e){ /* si falla el chequeo, no bloqueamos: evita dejar a todos fuera si el endpoint falla */ }
+})();
+</script>
+
+<nav class="topnav">
+  <div class="topnav-wrap">
+    <a href="/index.html" class="topnav-logo"><img src="/assets/logo_light.png" alt="SEIDOR"></a>
+    <div class="topnav-links">
+      <a href="/index.html" class="nav-link">Inicio</a>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">📋 WBR <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr.html">Resumen — Todas las áreas</a>
+          <a href="/wbr-ejecutivo.html">🛰️ Centro de Mando</a>
+          <a href="/wbr-finanzas.html">Finanzas</a>
+          <a href="/wbr-ventas.html">Ventas & Pipeline</a>
+          <a href="/wbr-operaciones.html">Operaciones</a>
+          <a href="/wbr-bx.html">Business Experience</a>
+          <a href="/wbr-cultura-talento.html">Cultura y Talento</a>
+          <a href="/wbr-ccflex.html">CCFlex</a>
+          <a href="/wbr-cta.html">Call to Action</a>
+          <a href="/wbr-anuncios.html">Anuncios</a>
+          <a href="/wbr-marketing.html">Marketing</a>
+          <a href="/wbr-vop.html">Tablero VOP</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn active">Comercial <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/precios.html">Lista de Precios</a>
+          <a href="/ficha.html">Ficha del Cliente</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/prospecto.html">Investigación de Prospecto</a>
+          <a href="/alta.html">Generador de Formato de Alta</a>
+          <a href="/metricas-sap.html">Explicador de Métricas SAP</a>
+          <a href="/kyc.html">Formularios KYC / Diligencia Debida</a>
+          <a href="/contactos-sap.html">Contactos importantes</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/forecast-semanal.html">Forecast Semanal</a>
+          <a href="/simulador-margen.html" class="active">Simulador de Margen</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Presales <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/pipeline.html">CRM PresalesMX</a>
+          <a href="/documentos.html">Documentos de Apoyo</a>
+          <a href="/kpis.html">Tablero de Control</a>
+          <div class="nav-dropdown-sep"></div>
+          <a href="/sow-review.html">Revisor de SOW y Estimaciones</a>
+          <a href="/handover.html">Handover Comercial → Operaciones</a>
+          <a href="/estimador.html">Estimador de Esfuerzo</a>
+          <a href="/tecnicas-presentacion.html">Técnicas de Presentación</a>
+          <a href="/meddpicc.html">Guía MEDDPICC Presales</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Operaciones <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/wbr-operaciones-b1.html">Dashboard Operaciones B1</a>
+          <a href="/dias-habiles.html">Días Hábiles México</a>
+          <a href="/minutas.html">Generador de Minutas / Status</a>
+          <a href="/correo-cliente.html">Redactor de Correos a Cliente</a>
+          <a href="/proyecto.html">Dashboard de Proyecto</a>
+          <a href="/checklist.html">Checklist de Quality Gates y Cutover</a>
+          <a href="/iniciar-proyecto.html">Iniciar Proyecto desde SOW/DDA</a>
+          <a href="/vista-general.html">Vista General del Proyecto</a>
+          <a href="/reporte-cuenta.html">Reporte de Cuenta (QBR)</a>
+          <a href="/partners.html">Partners</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Finanzas <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/cartera.html">Cartera Vencida</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Business Experience <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/bx-base-instalada.html">Base Instalada — Resumen BX</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button type="button" class="nav-dropdown-btn">Administración <span class="caret">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="/auditoria.html">Auditoría</a>
+          <a href="/roles.html">Roles y Permisos</a>
+          <a href="/saludos.html">Saludos de Bienvenida</a>
+        </div>
+      </div>
+    </div>
+  </div></nav>
+
+<header>
+  <h1>Simulador de Margen</h1>
+  <p>Juega con venta, costo y margen: captura dos valores y el tercero se calcula al instante.</p>
+</header>
+<main>
+  <div class="tabs" id="tabs">
+    <button data-m="costo" class="active">Calcular Costo<b>con Venta y Margen</b></button>
+    <button data-m="margen">Calcular Margen<b>con Venta y Costo</b></button>
+    <button data-m="venta">Calcular Venta<b>con Costo y Margen</b></button>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <div class="fld" id="fVenta"><label for="iVenta">Venta</label><div class="row"><span class="pre">$</span><input type="text" id="iVenta" inputmode="decimal" autocomplete="off"></div><div class="hint">Precio al cliente</div></div>
+      <div class="fld" id="fCosto"><label for="iCosto">Costo</label><div class="row"><span class="pre">$</span><input type="text" id="iCosto" inputmode="decimal" autocomplete="off"></div><div class="hint">Lo que nos cuesta</div></div>
+      <div class="fld" id="fMargen"><label for="iMargen">Margen</label><div class="row"><input type="text" id="iMargen" inputmode="decimal" autocomplete="off"><span class="suf">%</span></div><div class="hint">(Venta − Costo) ÷ Venta</div></div>
+    </div>
+    <div class="slider" id="sl"><label><span>Mueve el margen</span><span id="slv"></span></label><input type="range" id="rMargen" min="0" max="90" step="0.5"></div>
+    <div class="err" id="err"></div>
+    <div class="kpis">
+      <div class="kpi"><div class="l">Utilidad ($)</div><div class="n" id="kUtil">—</div></div>
+      <div class="kpi"><div class="l">Markup sobre costo</div><div class="n" id="kMark">—</div></div>
+      <div class="kpi" id="kBox"><div class="l">Margen</div><div class="n" id="kMarg">—</div></div>
+    </div>
+    <div class="bar"><span class="c" id="bC"></span><span class="u" id="bU"></span></div>
+    <div class="legend"><span><i style="background:var(--navy2)"></i>Costo</span><span><i style="background:var(--cyan)"></i>Utilidad</span></div>
+    <div class="tools"><button class="btn" id="bCopiar">📋 Copiar resumen</button><button class="btn" id="bLimpiar">↺ Limpiar</button></div>
+    <p class="note">Margen sobre venta: Costo = Venta × (1 − Margen) · Venta = Costo ÷ (1 − Margen) · Margen = (Venta − Costo) ÷ Venta. No es lo mismo que el markup sobre el costo.</p>
+  </div>
+
+  <div class="card">
+    <h2 id="sTitulo"></h2><p class="sub" id="sSub"></p>
+    <div style="overflow-x:auto"><table class="t" id="sTabla"></table></div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var modo = 'costo';
+  var $ = function(i){ return document.getElementById(i); };
+  var iV=$('iVenta'), iC=$('iCosto'), iM=$('iMargen'), rM=$('rMargen');
+  var fmt = new Intl.NumberFormat('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
+  function money(n){ return '$' + fmt.format(n); }
+  function pct(n){ return fmt.format(n) + '%'; }
+  function num(s){ var t = String(s||'').replace(/[$,%\s]/g,''); if(t==='' ) return NaN; var n = Number(t); return isFinite(n) ? n : NaN; }
+  function r2(n){ return Math.round(n*100)/100; }
+  function ponerNum(el,n,dec){ el.value = isFinite(n) ? (dec===0 ? String(n) : fmt.format(n)) : ''; }
+
+  // Valores iniciales = ejemplo del Excel
+  iV.value = fmt.format(51993.6); iC.value = fmt.format(33795.84); iM.value = '35';
+
+  function setModo(m){
+    modo = m;
+    document.querySelectorAll('#tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.m===m); });
+    [['costo','fCosto','iCosto'],['margen','fMargen','iMargen'],['venta','fVenta','iVenta']].forEach(function(x){
+      $(x[1]).classList.toggle('calc', x[0]===m);
+      $(x[2]).readOnly = (x[0]===m);
+    });
+    $('sl').style.display = (m==='margen') ? 'none' : '';
+    calcular();
+  }
+
+  function calcular(){
+    var v=num(iV.value), c=num(iC.value), m=num(iM.value), msg='';
+    if(modo==='costo'){
+      if(isFinite(v)&&isFinite(m)){ if(m>=100){ msg='El margen debe ser menor a 100%.'; iC.value=''; c=NaN; } else { c=v*(1-m/100); ponerNum(iC,r2(c)); } } else { iC.value=''; c=NaN; }
+    } else if(modo==='venta'){
+      if(isFinite(c)&&isFinite(m)){ if(m>=100){ msg='El margen debe ser menor a 100%.'; v=NaN; iV.value=''; } else { v=c/(1-m/100); ponerNum(iV,r2(v)); } } else { iV.value=''; v=NaN; }
+    } else {
+      if(isFinite(v)&&isFinite(c)){ if(v===0){ msg='La venta no puede ser 0 para calcular el margen.'; iM.value=''; m=NaN; } else { m=(v-c)/v*100; iM.value = String(Math.round(m*100)/100); } } else { iM.value=''; m=NaN; }
+    }
+    $('err').style.display = msg ? 'block' : 'none'; $('err').textContent = msg;
+    var ok = isFinite(v)&&isFinite(c)&&isFinite(m)&&!msg;
+    $('kUtil').textContent = ok ? money(v-c) : '—';
+    $('kMark').textContent = ok && c>0 ? pct((v-c)/c*100) : '—';
+    $('kMarg').textContent = ok ? pct(m) : '—';
+    $('kBox').className = 'kpi' + (ok ? (m<0 ? ' warn' : '') : '');
+    if(ok && v>0){ var pc=Math.max(0,Math.min(100,c/v*100)); $('bC').style.width=pc+'%'; $('bU').style.width=(c>v?0:100-pc)+'%'; } else { $('bC').style.width='0'; $('bU').style.width='0'; }
+    if(isFinite(m)){ rM.value=Math.max(0,Math.min(90,m)); $('slv').textContent=pct(m); } else { $('slv').textContent=''; }
+    sensibilidad(ok?{v:v,c:c,m:m}:null);
+  }
+
+  function fila(cols,cur){ return '<tr'+(cur?' class="cur"':'')+'>'+cols.map(function(x){ return '<td'+(x.neg?' class="neg"':'')+'>'+x.t+'</td>'; }).join('')+'</tr>'; }
+  function sensibilidad(s){
+    var t=$('sTabla'), h='';
+    if(modo==='margen'){
+      $('sTitulo').textContent='¿Y si cambio el precio?'; $('sSub').textContent='Con el costo fijo, cómo cambia el margen al subir o bajar la venta.';
+      h='<tr><th>Cambio en venta</th><th>Venta</th><th>Costo</th><th>Utilidad</th><th>Margen</th></tr>';
+      if(s){ [10,5,0,-5,-10,-15,-20,-25].forEach(function(d){ var v=s.v*(1+d/100), mm=v?(v-s.c)/v*100:NaN; h+=fila([{t:(d>0?'+':'')+d+'%'},{t:money(v)},{t:money(s.c)},{t:money(v-s.c),neg:v-s.c<0},{t:pct(mm),neg:mm<0}],d===0); }); }
+    } else {
+      var fijo = modo==='costo' ? 'venta' : 'costo';
+      $('sTitulo').textContent='Escenarios de margen'; $('sSub').textContent = fijo==='venta' ? 'Con la venta fija, cuánto puede costar el proyecto según el margen que busques.' : 'Con el costo fijo, a cuánto hay que vender según el margen que busques.';
+      h='<tr><th>Margen</th><th>Venta</th><th>Costo</th><th>Utilidad</th></tr>';
+      if(s){ var lista=[20,25,30,35,40,45,50]; var cur=Math.round(s.m*100)/100; if(lista.indexOf(cur)<0){ lista.push(cur); lista.sort(function(a,b){return a-b;}); }
+        lista.forEach(function(mm){ var v=fijo==='venta'?s.v:s.c/(1-mm/100), c=fijo==='venta'?s.v*(1-mm/100):s.c; h+=fila([{t:pct(mm)},{t:money(v)},{t:money(c)},{t:money(v-c)}],mm===cur); }); }
+    }
+    t.innerHTML=h;
+  }
+
+  [iV,iC,iM].forEach(function(el){ el.addEventListener('input',calcular); el.addEventListener('blur',function(){ if(!el.readOnly){ var n=num(el.value); if(isFinite(n)) el.value = el===iM ? String(n) : fmt.format(n); } }); el.addEventListener('focus',function(){ if(!el.readOnly){ var n=num(el.value); if(isFinite(n)) el.value=String(n); el.select(); } }); });
+  rM.addEventListener('input',function(){ if(modo==='margen') return; iM.value=String(rM.value); calcular(); });
+  document.getElementById('tabs').addEventListener('click',function(e){ var b=e.target.closest('button'); if(b) setModo(b.dataset.m); });
+  $('bLimpiar').addEventListener('click',function(){ iV.value='';iC.value='';iM.value=''; calcular(); });
+  $('bCopiar').addEventListener('click',function(){
+    var v=num(iV.value),c=num(iC.value),m=num(iM.value); if(!(isFinite(v)&&isFinite(c)&&isFinite(m))) return;
+    var txt='Venta: '+money(v)+'\nCosto: '+money(c)+'\nUtilidad: '+money(v-c)+'\nMargen: '+pct(m);
+    var done=function(){ var b=$('bCopiar'); b.textContent='✓ Copiado'; setTimeout(function(){ b.textContent='📋 Copiar resumen'; },1500); };
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done,function(){}); 
+  });
+  setModo('costo');
+})();
+</script>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
+</script>
+<script>
+(function(){
+  document.querySelectorAll('.nav-dropdown-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var dd = btn.closest('.nav-dropdown');
+      var wasOpen = dd.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+      if(!wasOpen) dd.classList.add('open');
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+</script>
+<script src="/asistente.js?v=1" defer></script>
+</body>
+</html>
