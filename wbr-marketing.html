@@ -282,7 +282,7 @@
 #pe tr.sel td{background:var(--pos-bg)}
 
 /* ===== Pestaña Iniciativas (captura directa) ===== */
-#pe.ini-mode .fbar{display:none}
+#pe.ini-mode .fbar,#pe.cal-mode .fbar{display:none}
 #pe .ini-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 #pe .ini-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--pos-bg);color:var(--pos-fg)}
 #pe .ini-pill.warn{background:#4A3A12;color:#F0B64A}
@@ -382,6 +382,50 @@
 #pe .ini-chk input{accent-color:#66B6FF;margin:0}
 #pe .ini-chk.on{background:var(--pos-bg);border-color:var(--accent);color:var(--pos-fg)}
 #pe .ini-btn.on{border-color:var(--accent);color:var(--brand);background:var(--pos-bg)}
+/* ===== Pestaña Calendario (línea de tiempo editable) ===== */
+#pe #v-calendario,#pe #calBox{min-width:0;max-width:100%}
+#pe #calBox{display:grid;gap:14px}
+#pe #calBox>div{min-width:0;max-width:100%}
+#pe #calBox .card{overflow:hidden}
+#pe .cal-bar-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#pe .cal-hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#pe .cal-hd h2{margin:0;font-size:22px;line-height:1.2}
+#pe .cal-tag{display:inline-block;background:#FFF200;color:#111;font-weight:800;padding:1px 9px;border-radius:5px;font-size:.62em;letter-spacing:.02em;vertical-align:middle}
+#pe .cal-sub{color:var(--ink2);font-size:14px;margin-top:4px}
+#pe .cal-scroll{overflow-x:auto;margin-top:14px;padding-bottom:6px}
+#pe .cal{min-width:980px}
+#pe .cal-row{display:grid;grid-template-columns:170px 1fr;gap:0}
+#pe .cal-lbl{padding:10px 12px 0 2px;display:flex;flex-direction:column;gap:1px;min-width:0}
+#pe .cal-lbl b{color:var(--brand);font-size:14.5px;font-weight:700;line-height:1.25}
+#pe .cal-lbl span{color:var(--ink2);font-size:12.5px}
+#pe .cal-qs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 2px}
+#pe .cal-q{text-align:center;background:var(--neu-bg);color:var(--ink);font-weight:700;font-size:13px;border-radius:8px;padding:7px 0}
+#pe .cal-ms{display:grid;grid-template-columns:repeat(12,1fr);padding:8px 0 10px}
+#pe .cal-ms span{text-align:center;font-size:12.5px;color:var(--ink2)}
+#pe .cal-track{position:relative;background-image:linear-gradient(to right,rgba(150,170,220,.28) 1px,transparent 1px),linear-gradient(to right,rgba(150,170,220,.10) 1px,transparent 1px);background-size:25% 100%,calc(100%/12) 100%;border-top:1px solid var(--line2)}
+#pe .cal-lane:last-child .cal-track{border-bottom:1px solid var(--line2)}
+#pe .cal.edit .cal-track{cursor:copy}
+#pe .cal-bar{position:absolute;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 10px;font-size:12.5px;font-weight:700;line-height:1.15;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s,box-shadow .15s}
+#pe .cal-bar span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-width:0}
+#pe .cal-bar.tent{outline:1.5px dashed currentColor;outline-offset:-3px}
+#pe .cal.edit .cal-bar{cursor:pointer}
+#pe .cal.edit .cal-bar:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.4)}
+#pe .cal-bar.sel{box-shadow:0 0 0 3px #FFF200,0 4px 14px rgba(0,0,0,.5)}
+#pe .cal-bar:focus-visible{outline:3px solid #33B4DD;outline-offset:2px}
+#pe .cal-today{position:absolute;top:0;bottom:0;width:2px;background:#FF6B6B;opacity:.85;pointer-events:none;z-index:2}
+#pe .cal-today:before{content:'';position:absolute;top:-1px;left:-3px;width:8px;height:8px;border-radius:50%;background:#FF6B6B}
+#pe .cal-note{margin-top:12px;font-size:12.5px;color:var(--ink3)}
+#pe .cal-leg{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--ink3)}
+#pe .cal-leg i{display:inline-block;width:18px;height:10px;border-radius:3px;border:1.5px dashed var(--ink3);vertical-align:middle;margin-right:5px}
+#pe .cal-leg u{display:inline-block;width:2px;height:12px;background:#FF6B6B;vertical-align:middle;margin-right:6px;text-decoration:none}
+#pe .cal-pl{display:grid;gap:8px 12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:10px}
+#pe .cal-pil{display:grid;grid-template-columns:minmax(120px,1fr) minmax(120px,1.2fr) auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line2)}
+#pe .cal-sw{display:flex;gap:5px;flex-wrap:wrap}
+#pe .cal-sw button{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.35);cursor:pointer;padding:0}
+#pe .cal-sw button.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px #66B6FF}
+#pe .cal-mv{display:flex;gap:4px}
+@media(max-width:760px){#pe .cal-row{grid-template-columns:120px 1fr}#pe .cal-pil{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){#pe .cal-bar{transition:none}}
 @media print{#pe .ini-btn,#pe .ini-x{display:none}}
 </style>
 </head>
@@ -536,6 +580,7 @@
   <button class="tab" role="tab" id="t-cambios" data-v="cambios" aria-selected="false">Cambios y calidad</button>
   <button class="tab" role="tab" id="t-glosario" data-v="glosario" aria-selected="false">Glosario</button>
   <button class="tab" role="tab" id="t-iniciativas" data-v="iniciativas" aria-selected="false">Iniciativas</button>
+  <button class="tab" role="tab" id="t-calendario" data-v="calendario" aria-selected="false">Calendario</button>
 </nav>
 
 <div class="pe-main">
@@ -693,6 +738,11 @@
 <!-- VIEW 6 · Iniciativas (captura directa de la dueña del tablero) -->
 <section class="view" id="v-iniciativas" role="tabpanel" aria-labelledby="t-iniciativas" hidden>
   <div id="iniBox"><div class="card"><div class="ini-empty">Cargando iniciativas…</div></div></div>
+</section>
+
+<!-- VIEW 7 · Calendario (línea de tiempo editable) -->
+<section class="view" id="v-calendario" role="tabpanel" aria-labelledby="t-calendario" hidden>
+  <div id="calBox"><div class="card"><div class="ini-empty">Cargando calendario…</div></div></div>
 </section>
 
 </div>
@@ -910,6 +960,7 @@ function render(){
   if(v === 'cambios') renderCambios(R);
   if(v === 'glosario') renderGlosario(R);
   if(v === 'iniciativas') iniRender();
+  if(v === 'calendario') calRender();
 }
 
 /* ===== VIEW 1 ===== */
@@ -1270,7 +1321,7 @@ function renderGlosario(R){
 }
 
 /* ---------- navigation & events ---------- */
-function go(v){ S.view = v; document.getElementById('pe').classList.toggle('ini-mode', v === 'iniciativas'); document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.v === v)); document.querySelectorAll('.view').forEach(s => s.hidden = s.id !== 'v-' + v); store.set('view', v); render(); requestAnimationFrame(() => Object.values(charts).forEach(c => c.resize())); }
+function go(v){ S.view = v; document.getElementById('pe').classList.toggle('ini-mode', v === 'iniciativas'); document.getElementById('pe').classList.toggle('cal-mode', v === 'calendario'); document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.v === v)); document.querySelectorAll('.view').forEach(s => s.hidden = s.id !== 'v-' + v); store.set('view', v); render(); requestAnimationFrame(() => Object.values(charts).forEach(c => c.resize())); }
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => go(t.dataset.v));
 document.querySelectorAll('#pe .pe-tools .seg button').forEach(b => b.onclick = () => { S.period = b.dataset.p; store.set('period', S.period); render(); });
 document.querySelectorAll('#measure button').forEach(b => b.onclick = () => { S.measure = b.dataset.m; document.querySelectorAll('#measure button').forEach(x => { x.setAttribute('aria-pressed', x === b); x.style.background = x === b ? 'var(--card)' : 'transparent'; }); render(); });
@@ -1280,7 +1331,7 @@ window.addEventListener('resize', () => Object.values(charts).forEach(c => c.res
 const rerender = () => { Object.values(charts).forEach(c => { try{ c.__ro && c.__ro.disconnect(); }catch(e){} c.dispose(); }); for(const k in charts) delete charts[k]; render(); };
 
 S.period = ['W','4W','Q','S','Y'].includes(store.get('period', '4W')) ? store.get('period', '4W') : '4W';
-const VIEWS = ['resumen','apuestas','motores','cambios','glosario','iniciativas'];
+const VIEWS = ['resumen','apuestas','motores','cambios','glosario','iniciativas','calendario'];
 const hv = (location.hash || '').slice(1), sv0 = VIEWS.includes(hv) ? hv : store.get('view', 'resumen'), sv = VIEWS.includes(sv0) ? sv0 : 'resumen';
 PE_START(sv);
 
@@ -1842,6 +1893,180 @@ document.addEventListener('click', async e => {
   }
 });
 window.addEventListener('beforeunload', e => { if(INI.dirty){ e.preventDefault(); e.returnValue = ''; } });
+</script>
+<script>
+/* ===== Calendario de iniciativas de Marketing: línea de tiempo editable ===== */
+var CAL = { board: null, version: 0, puede: false, dirty: false, edit: false, sel: '', cfg: false, cargado: false, cargando: false, error: '', delArm: '', editadoEn: '', editadoPor: '' };
+const CAL_PAL = ['#3D5A99','#66B6FF','#2F62C4','#1E3A7A','#9CCBFF','#FFFFFF','#3DD6FF','#2FE29B','#F0B64A','#FF8A8A','#B28CFF'];
+const CAL_MES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const calId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+const calOk = f => /^\d{4}-\d{2}-\d{2}$/.test(f || '');
+function calPos(f, anio, fin){ // posición en meses (0..12) de una fecha; fin=true cuenta el día completo
+  if(!calOk(f)) return 0; const [y, m, d] = f.split('-').map(Number);
+  if(y < anio) return 0; if(y > anio) return 12;
+  const dim = new Date(y, m, 0).getDate();
+  return Math.max(0, Math.min(12, (m - 1) + (d - 1 + (fin ? 1 : 0)) / dim));
+}
+function calTxt(hex){ const h = (hex || '#66B6FF').replace('#', ''), n = parseInt(h, 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.58 ? '#0B1B3A' : '#FFFFFF'; }
+function calFechaTxt(f){ if(!calOk(f)) return ''; const [y, m, d] = f.split('-').map(Number); return d + ' ' + CAL_MES[m - 1].toLowerCase() + (y !== (CAL.board && CAL.board.anio) ? ' ' + y : ''); }
+
+async function calCargar(){
+  if(CAL.cargando) return; CAL.cargando = true;
+  try{
+    const r = await fetch('/api/wbr-marketing-calendario'); const d = await r.json();
+    if(!r.ok || !d.ok) throw new Error(d.error || 'No se pudo cargar');
+    CAL.board = JSON.parse(JSON.stringify(d.live)); CAL.version = d.live.version || 0; CAL.editadoEn = d.live.editadoEn || ''; CAL.editadoPor = d.live.editadoPor || '';
+    CAL.puede = !!(d.yo && d.yo.puedeEditar); CAL.cargado = true; CAL.dirty = false; CAL.error = '';
+  }catch(e){ CAL.error = String(e.message || e); }
+  CAL.cargando = false; calRender(true);
+}
+function calRender(forzar){
+  const box = document.getElementById('calBox'); if(!box) return;
+  if(!CAL.cargado && !CAL.error){ calCargar(); return; }
+  if(CAL.dirty && !forzar && box.dataset.pintado) return;
+  if(!CAL.cargado){ box.innerHTML = '<div class="card"><div class="ini-empty">No se pudo cargar el calendario: ' + esc(CAL.error) + ' <button class="ini-btn sm" data-ca="reintentar">Reintentar</button></div></div>'; box.dataset.pintado = '1'; return; }
+  const sy = window.scrollY, sx = (box.querySelector('.cal-scroll') || {}).scrollLeft || 0;
+  box.innerHTML = '<div id="calBar"></div><div id="calEd"></div><div id="calCf"></div><div id="calCard"></div>';
+  calBarra(); calEditor(); calConfig(); calCard(); box.dataset.pintado = '1';
+  const sc = box.querySelector('.cal-scroll'); if(sc) sc.scrollLeft = sx; window.scrollTo(0, sy);
+}
+function calBarra(){
+  const el = document.getElementById('calBar'); if(!el) return;
+  const ed = CAL.puede;
+  let h = '<div class="card"><div class="cal-bar-tools">';
+  h += CAL.edit ? '<span class="ini-pill">✏️ Editando</span>' : (ed ? '<span class="ini-pill">✏️ Puedes editar</span>' : '<span class="ini-pill ro">👁️ Solo lectura</span>');
+  h += '<span id="calDirty">' + (CAL.dirty ? '<span class="ini-pill warn">● Cambios sin guardar</span>' : '') + '</span>';
+  if(CAL.edit){
+    h += '<button class="ini-btn sm" data-ca="add">➕ Agregar elemento</button><button class="ini-btn sm' + (CAL.cfg ? ' on' : '') + '" data-ca="cfg">⚙️ Pilares y datos</button><span style="flex:1"></span>' +
+      '<button class="ini-btn" data-ca="descartar">↺ Descartar</button><button class="ini-btn pri" data-ca="guardar" id="calGuardar"' + (CAL.dirty ? '' : ' disabled') + '>💾 Guardar cambios</button><button class="ini-btn" data-ca="salir">✓ Salir de edición</button>';
+  } else if(ed){ h += '<span style="flex:1"></span><button class="ini-btn pri" data-ca="editar">✏️ Editar calendario</button>'; }
+  if(CAL.edit) h += '</div><div class="cal-note" style="margin-top:8px">Clic en una barra para editarla · clic en un espacio vacío de un pilar para agregar un elemento en ese mes.</div></div>'; else h += '</div></div>';
+  el.innerHTML = h;
+}
+function calEditor(){
+  const el = document.getElementById('calEd'); if(!el) return;
+  const B = CAL.board, x = CAL.edit && B.items.find(i => i.id === CAL.sel);
+  if(!x){ el.innerHTML = ''; return; }
+  const I = 'data-ct="i" data-id="' + esc(x.id) + '"';
+  el.innerHTML = '<div class="card"><div class="ch"><h2>Elemento seleccionado</h2><span class="sub">Los cambios se ven al instante en el calendario</span></div>' +
+    '<div class="ini-fields">' +
+    '<label class="ini-l" style="grid-column:span 2">Título<input class="ini-in" ' + I + ' data-f="titulo" value="' + esc(x.titulo) + '" placeholder="Nombre de la iniciativa o evento"></label>' +
+    '<label class="ini-l">Pilar<select class="ini-sel" ' + I + ' data-f="carril">' + B.carriles.map(c => '<option value="' + esc(c.id) + '"' + (c.id === x.carril ? ' selected' : '') + '>' + esc(c.nombre + ' · ' + c.sub) + '</option>').join('') + '</select></label>' +
+    '<label class="ini-l">Inicio<input class="ini-in" type="date" ' + I + ' data-f="inicio" value="' + esc(x.inicio) + '"></label>' +
+    '<label class="ini-l">Fin<input class="ini-in" type="date" ' + I + ' data-f="fin" value="' + esc(x.fin) + '"></label>' +
+    '<label class="ini-l">Fecha<span class="ini-chk' + (x.tentativo ? ' on' : '') + '" style="height:32px"><input type="checkbox" ' + I + ' data-f="tentativo"' + (x.tentativo ? ' checked' : '') + '> Tentativa (por confirmar)</span></label></div>' +
+    '<label class="ini-l" style="margin-top:10px">Nota (se ve al pasar el cursor)<input class="ini-in" ' + I + ' data-f="nota" value="' + esc(x.nota) + '" placeholder="Opcional"></label>' +
+    '<div class="cal-bar-tools" style="margin-top:12px"><button class="ini-btn sm" data-ca="dup">⧉ Duplicar</button><button class="ini-btn sm dng" data-ca="del-i" data-id="' + esc(x.id) + '">' + (CAL.delArm === x.id ? '¿Quitar?' : '✕ Quitar') + '</button><span style="flex:1"></span><button class="ini-btn sm" data-ca="cerrar-sel">Cerrar</button></div></div>';
+}
+function calConfig(){
+  const el = document.getElementById('calCf'); if(!el) return;
+  if(!(CAL.edit && CAL.cfg)){ el.innerHTML = ''; return; }
+  const B = CAL.board;
+  const pil = B.carriles.map((c, i) => '<div class="cal-pil"><input class="ini-in" data-ct="k" data-id="' + esc(c.id) + '" data-f="nombre" value="' + esc(c.nombre) + '" placeholder="Pilar"><input class="ini-in" data-ct="k" data-id="' + esc(c.id) + '" data-f="sub" value="' + esc(c.sub) + '" placeholder="Descripción">' +
+    '<div class="cal-sw">' + CAL_PAL.map(p => '<button style="background:' + p + '" class="' + (c.color.toUpperCase() === p ? 'on' : '') + '" data-ca="color" data-id="' + esc(c.id) + '" data-c="' + p + '" title="' + p + '"></button>').join('') + '</div>' +
+    '<div class="cal-mv"><button class="ini-btn sm" data-ca="up" data-id="' + esc(c.id) + '"' + (i === 0 ? ' disabled' : '') + '>↑</button><button class="ini-btn sm" data-ca="dn" data-id="' + esc(c.id) + '"' + (i === B.carriles.length - 1 ? ' disabled' : '') + '>↓</button>' +
+    '<button class="ini-btn sm dng" data-ca="del-k" data-id="' + esc(c.id) + '">' + (CAL.delArm === c.id ? '¿Quitar con sus ' + B.items.filter(x => x.carril === c.id).length + ' elementos?' : '✕') + '</button></div></div>').join('');
+  el.innerHTML = '<div class="card"><div class="ch"><h2>Pilares y datos del calendario</h2><span class="sub">Encabezado, año y los carriles en que se agrupan las iniciativas</span></div>' +
+    '<div class="ini-fields"><label class="ini-l" style="grid-column:span 2">Título<input class="ini-in" data-ct="c" data-f="titulo" value="' + esc(B.titulo) + '"></label>' +
+    '<label class="ini-l">Etiqueta (ej. WIP)<input class="ini-in" data-ct="c" data-f="etiqueta" value="' + esc(B.etiqueta) + '" maxlength="20"></label>' +
+    '<label class="ini-l">Año<input class="ini-in" type="number" min="2020" max="2040" data-ct="c" data-f="anio" data-n="1" value="' + B.anio + '"></label>' +
+    '<label class="ini-l" style="grid-column:span 2">Subtítulo<input class="ini-in" data-ct="c" data-f="subtitulo" value="' + esc(B.subtitulo) + '"></label>' +
+    '<label class="ini-l" style="grid-column:span 2">Nota al pie<input class="ini-in" data-ct="c" data-f="nota" value="' + esc(B.nota) + '"></label></div>' +
+    '<div class="cal-bar-tools" style="margin:16px 0 2px"><b style="font-size:13px">Pilares</b><span style="flex:1"></span><button class="ini-btn sm" data-ca="add-k">➕ Agregar pilar</button></div>' + pil + '</div>';
+}
+function calCard(){
+  const el = document.getElementById('calCard'); if(!el) return;
+  const B = CAL.board, an = B.anio, yy = String(an).slice(2);
+  const hoy = new Date(), hoyPos = hoy.getFullYear() === an ? (hoy.getMonth() + (hoy.getDate() - 1) / new Date(an, hoy.getMonth() + 1, 0).getDate()) : null;
+  const lanes = B.carriles.map(c => {
+    const its = B.items.filter(x => x.carril === c.id).map(x => ({ x, a: calPos(x.inicio, an, false), z: calPos(x.fin || x.inicio, an, true) })).filter(o => o.z > 0 && o.a < 12 && o.z > o.a).sort((p, q) => p.a - q.a || p.z - q.z);
+    const filas = [];
+    its.forEach(o => { let r = filas.findIndex(f => f <= o.a + 0.001); if(r < 0){ r = filas.length; filas.push(0); } filas[r] = o.z; o.r = r; });
+    const n = Math.max(1, filas.length), alto = n * 48 + 16, col = c.color, tx = calTxt(col);
+    const bars = its.map(o => {
+      const w = (o.z - o.a) / 12 * 100, tip = o.x.titulo + ' · ' + calFechaTxt(o.x.inicio) + (o.x.fin && o.x.fin !== o.x.inicio ? ' → ' + calFechaTxt(o.x.fin) : '') + (o.x.tentativo ? ' (tentativa)' : '') + (o.x.nota ? ' — ' + o.x.nota : '');
+      return '<div class="cal-bar' + (o.x.tentativo ? ' tent' : '') + (CAL.edit && CAL.sel === o.x.id ? ' sel' : '') + '" data-bar="' + esc(o.x.id) + '" style="left:' + (o.a / 12 * 100).toFixed(3) + '%;width:' + w.toFixed(3) + '%;top:' + (8 + o.r * 48) + 'px;background:' + esc(col) + ';color:' + tx + '" title="' + esc(tip) + '"' + (CAL.edit ? ' role="button" tabindex="0"' : '') + '><span>' + esc(o.x.titulo || 'Sin título') + '</span></div>';
+    }).join('');
+    return '<div class="cal-row cal-lane"><div class="cal-lbl"><b>' + esc(c.nombre) + '</b><span>' + esc(c.sub) + '</span></div><div class="cal-track" data-lane="' + esc(c.id) + '" style="height:' + alto + 'px">' + bars + (hoyPos != null ? '<i class="cal-today" style="left:' + (hoyPos / 12 * 100).toFixed(3) + '%"></i>' : '') + '</div></div>';
+  }).join('');
+  const hayTent = B.items.some(x => x.tentativo);
+  el.innerHTML = '<div class="card"><div class="cal-hd"><h2>' + esc(B.titulo || 'Calendario') + (B.etiqueta ? ' <span class="cal-tag">' + esc(B.etiqueta) + '</span>' : '') + '</h2></div>' +
+    (B.subtitulo ? '<div class="cal-sub">' + esc(B.subtitulo) + '</div>' : '') +
+    '<div class="cal-scroll"><div class="cal' + (CAL.edit ? ' edit' : '') + '">' +
+    '<div class="cal-row"><div></div><div class="cal-qs">' + [1, 2, 3, 4].map(q => '<div class="cal-q">Q' + q + ' ’' + yy + '</div>').join('') + '</div></div>' +
+    '<div class="cal-row"><div></div><div class="cal-ms">' + CAL_MES.map(m => '<span>' + m + '</span>').join('') + '</div></div>' + (lanes || '<div class="ini-empty">Sin pilares. Agrega el primero en “Pilares y datos”.</div>') + '</div></div>' +
+    '<div class="cal-leg">' + (hayTent ? '<span><i></i>Fecha tentativa</span>' : '') + (hoyPos != null ? '<span><u></u>Hoy</span>' : '') + '</div>' +
+    (B.nota ? '<div class="cal-note">*' + esc(B.nota) + '*</div>' : '') +
+    (CAL.editadoEn ? '<div class="cal-note">Última edición ' + esc(new Date(CAL.editadoEn).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })) + (CAL.editadoPor ? ' por ' + esc(CAL.editadoPor) : '') + '</div>' : '') + '</div>';
+}
+function calMarcar(){ CAL.dirty = true; CAL.delArm = ''; const d = document.getElementById('calDirty'); if(d) d.innerHTML = '<span class="ini-pill warn">● Cambios sin guardar</span>'; const g = document.getElementById('calGuardar'); if(g) g.disabled = false; }
+function calFind(t, id){ const B = CAL.board; return t === 'i' ? B.items.find(x => x.id === id) : t === 'k' ? B.carriles.find(x => x.id === id) : B; }
+function calMes(i){ const an = CAL.board.anio, m = String(i + 1).padStart(2, '0'); return [an + '-' + m + '-01', an + '-' + m + '-' + String(new Date(an, i + 1, 0).getDate()).padStart(2, '0')]; }
+function calNuevo(carril, mes){
+  const B = CAL.board; if(!B.carriles.length) return; const [a, z] = calMes(mes == null ? new Date().getMonth() : mes);
+  const x = { id: calId('a'), carril: carril || B.carriles[0].id, titulo: '', inicio: a, fin: z, tentativo: false, nota: '' };
+  B.items.push(x); CAL.sel = x.id; CAL.dirty = true; calRender(true);
+  setTimeout(() => { const t = document.querySelector('#calEd [data-f="titulo"]'); if(t){ t.focus(); t.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }, 30);
+}
+document.addEventListener('input', e => {
+  const el = e.target; if(!el.closest || !el.closest('#calBox') || !CAL.puede || !el.dataset.ct || el.type === 'checkbox') return;
+  const o = calFind(el.dataset.ct, el.dataset.id); if(!o) return; const f = el.dataset.f;
+  o[f] = el.dataset.n ? (Math.max(2020, Math.min(2040, parseInt(el.value, 10) || new Date().getFullYear()))) : el.value;
+  if(el.dataset.ct === 'i' && f === 'inicio' && o.fin && o.fin < o.inicio && calOk(o.inicio)) o.fin = o.inicio;
+  calMarcar(); calCard();
+});
+document.addEventListener('change', e => {
+  const el = e.target; if(!el.closest || !el.closest('#calBox') || !CAL.puede || !el.dataset.ct) return;
+  const o = calFind(el.dataset.ct, el.dataset.id); if(!o) return;
+  if(el.type === 'checkbox'){ o[el.dataset.f] = el.checked; calMarcar(); calCard(); const l = el.closest('.ini-chk'); if(l) l.classList.toggle('on', el.checked); return; }
+  if(el.dataset.f === 'carril'){ o.carril = el.value; calMarcar(); calCard(); }
+  if(el.dataset.f === 'fin' && o.inicio && o.fin && o.fin < o.inicio){ o.inicio = o.fin; calEditor(); calCard(); }
+});
+document.addEventListener('keydown', e => { const b = e.target.closest && e.target.closest('#calBox .cal-bar'); if(b && CAL.edit && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); b.click(); } });
+document.addEventListener('click', async e => {
+  const root = e.target.closest ? e.target.closest('#calBox') : null; if(!root) return;
+  const btn = e.target.closest('[data-ca]'), B = CAL.board;
+  if(!btn){
+    if(!CAL.edit || !CAL.puede) return;
+    const bar = e.target.closest('[data-bar]');
+    if(bar){ CAL.sel = bar.dataset.bar; CAL.delArm = ''; calRender(true); const ed = document.getElementById('calEd'); if(ed) ed.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+    const tr = e.target.closest('.cal-track[data-lane]');
+    if(tr){ const r = tr.getBoundingClientRect(); calNuevo(tr.dataset.lane, Math.max(0, Math.min(11, Math.floor((e.clientX - r.left) / r.width * 12)))); }
+    return;
+  }
+  const a = btn.dataset.ca, id = btn.dataset.id;
+  if(a === 'reintentar'){ CAL.error = ''; CAL.cargado = false; calCargar(); return; }
+  if(!CAL.puede) return;
+  if(a === 'editar'){ CAL.edit = true; calRender(true); return; }
+  if(a === 'salir'){ CAL.edit = false; CAL.sel = ''; CAL.cfg = false; calRender(true); return; }
+  if(a === 'cfg'){ CAL.cfg = !CAL.cfg; calRender(true); return; }
+  if(a === 'add'){ calNuevo(CAL.sel && B.items.find(x => x.id === CAL.sel) ? B.items.find(x => x.id === CAL.sel).carril : '', null); return; }
+  if(a === 'cerrar-sel'){ CAL.sel = ''; calRender(true); return; }
+  if(a === 'dup'){ const x = B.items.find(i => i.id === CAL.sel); if(!x) return; const c = { ...x, id: calId('a'), titulo: (x.titulo || '') + ' (copia)' }; B.items.push(c); CAL.sel = c.id; CAL.dirty = true; calRender(true); return; }
+  if(a === 'color'){ const k = B.carriles.find(c => c.id === id); if(k){ k.color = btn.dataset.c; CAL.dirty = true; calRender(true); } return; }
+  if(a === 'up' || a === 'dn'){ const i = B.carriles.findIndex(c => c.id === id), j = a === 'up' ? i - 1 : i + 1; if(i < 0 || j < 0 || j >= B.carriles.length) return; const t = B.carriles[i]; B.carriles[i] = B.carriles[j]; B.carriles[j] = t; CAL.dirty = true; calRender(true); return; }
+  if(a === 'add-k'){ B.carriles.push({ id: calId('l'), nombre: 'Nuevo pilar', sub: '', color: '#66B6FF' }); CAL.dirty = true; calRender(true); return; }
+  if(a === 'del-i' || a === 'del-k'){
+    if(CAL.delArm !== id){ CAL.delArm = id; calRender(true); setTimeout(() => { if(CAL.delArm === id){ CAL.delArm = ''; calRender(true); } }, 4000); return; }
+    if(a === 'del-i'){ B.items = B.items.filter(x => x.id !== id); if(CAL.sel === id) CAL.sel = ''; }
+    else { B.carriles = B.carriles.filter(c => c.id !== id); B.items = B.items.filter(x => x.carril !== id); }
+    CAL.delArm = ''; CAL.dirty = true; calRender(true); return;
+  }
+  if(a === 'descartar'){ if(!CAL.dirty) return; CAL.cargado = false; CAL.board = null; CAL.sel = ''; CAL.cfg = false; await calCargar(); toast('Cambios descartados'); return; }
+  if(a === 'guardar'){
+    if(!CAL.dirty) return; btn.disabled = true; btn.textContent = 'Guardando…';
+    try{
+      const r = await fetch('/api/wbr-marketing-calendario', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accion: 'guardar', version: CAL.version, board: B }) });
+      const d = await r.json().catch(() => ({}));
+      if(r.status === 409 && d.board){ CAL.board = JSON.parse(JSON.stringify(d.board)); CAL.version = d.board.version || 0; CAL.dirty = false; CAL.sel = ''; calRender(true); toast(d.error || 'Se recargó la versión más reciente'); return; }
+      if(!r.ok || !d.ok) throw new Error(d.error || ('HTTP ' + r.status));
+      CAL.board = JSON.parse(JSON.stringify(d.board)); CAL.version = d.board.version; CAL.editadoEn = d.board.editadoEn; CAL.editadoPor = d.board.editadoPor; CAL.dirty = false; CAL.cfg = false;
+      if(!CAL.board.items.some(x => x.id === CAL.sel)) CAL.sel = '';
+      calRender(true); toast('Calendario guardado');
+    }catch(err){ toast('No se pudo guardar: ' + (err.message || err)); calRender(true); }
+  }
+});
+window.addEventListener('beforeunload', e => { if(CAL.dirty){ e.preventDefault(); e.returnValue = ''; } });
 </script>
 <script src="/asistente.js?v=1" defer></script>
 </body>

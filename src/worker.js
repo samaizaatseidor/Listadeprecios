@@ -513,6 +513,7 @@ const RUTAS_PERMISO = {
   '/api/wbr-cta': { modo:'datos', paginas:['wbr-cta'] },
   '/api/wbr-marketing': { modo:'datos', paginas:['wbr-marketing'], escritura:['wbr-marketing'] },
   '/api/wbr-marketing-iniciativas': { modo:'datos', paginas:['wbr-marketing'], escritura:['wbr-marketing'] },
+  '/api/wbr-marketing-calendario': { modo:'datos', paginas:['wbr-marketing'], escritura:['wbr-marketing'] },
   '/api/forecast-captura': { modo:'ia', paginas:['forecast-semanal','forecast-semanal-ae'] }, // lee una captura de la tabla de deals de HubSpot con Delfos (no guarda nada)
   '/api/wbr-resumen': { modo:'ia', paginas:['wbr-ejecutivo'] }, // resumen ejecutivo de Delfos para el Centro de Mando
   '/api/wbr-ejecutivo': { modo:'datos', paginas:['wbr-ejecutivo'] }, // vista de solo lectura; el permiso de esta página cubre el resumen de todos los tableros
@@ -924,6 +925,51 @@ async function miManejar(request, env){
   return json({ ok:false, error:'Acción desconocida.' }, 400);
 }
 /* ================== FIN WBR MARKETING · INICIATIVAS ================== */
+
+/* ================== WBR MARKETING · CALENDARIO (captura directa de la dueña del tablero) ================== */
+const CAL_SEED = {"anio": 2027, "titulo": "Marketing Initiatives Calendar 2027", "etiqueta": "WIP", "subtitulo": "Campañas, iniciativas y eventos por pilar a lo largo del año", "nota": "Fechas tentativas; por confirmar algunas iniciativas", "carriles": [{"id": "l1", "nombre": "Brand", "sub": "Always-on", "color": "#3D5A99"}, {"id": "l2", "nombre": "Brand", "sub": "Programas", "color": "#66B6FF"}, {"id": "l3", "nombre": "AI Demand Gen", "sub": "ABM y campañas", "color": "#2F62C4"}, {"id": "l4", "nombre": "Growth & Revenue", "sub": "Ventas y alianzas", "color": "#1E3A7A"}, {"id": "l5", "nombre": "Customer", "sub": "Clientes", "color": "#9CCBFF"}, {"id": "l6", "nombre": "Eventos", "sub": "Industria y propios", "color": "#FFFFFF"}], "items": [{"id": "a1", "carril": "l1", "titulo": "Contenido always-on, voceros, LinkedIn, SEO/GEO", "inicio": "2027-01-01", "fin": "2027-12-31", "tentativo": false, "nota": ""}, {"id": "a2", "carril": "l2", "titulo": "SEIDOR Winning Pitch", "inicio": "2027-01-01", "fin": "2027-03-29", "tentativo": false, "nota": ""}, {"id": "a3", "carril": "l2", "titulo": "We are all S(EIDOR)ales", "inicio": "2027-04-14", "fin": "2027-07-24", "tentativo": false, "nota": ""}, {"id": "a4", "carril": "l2", "titulo": "Social Selling", "inicio": "2027-08-08", "fin": "2027-11-06", "tentativo": false, "nota": ""}, {"id": "a5", "carril": "l3", "titulo": "Campañas de performance + Nurturing", "inicio": "2027-01-01", "fin": "2027-12-31", "tentativo": false, "nota": ""}, {"id": "a6", "carril": "l3", "titulo": "Setup ABM", "inicio": "2027-01-02", "fin": "2027-03-16", "tentativo": false, "nota": ""}, {"id": "a7", "carril": "l3", "titulo": "ABM Activation", "inicio": "2027-03-19", "fin": "2027-12-16", "tentativo": false, "nota": ""}, {"id": "a8", "carril": "l4", "titulo": "Sales Toolkit", "inicio": "2027-01-01", "fin": "2027-03-28", "tentativo": false, "nota": ""}, {"id": "a9", "carril": "l4", "titulo": "Aceleración de deals", "inicio": "2027-04-02", "fin": "2027-09-24", "tentativo": false, "nota": ""}, {"id": "a10", "carril": "l4", "titulo": "War room de cierre", "inicio": "2027-10-03", "fin": "2027-12-31", "tentativo": false, "nota": ""}, {"id": "a11", "carril": "l5", "titulo": "SEIDOR Customer Days", "inicio": "2027-02-09", "fin": "2027-04-24", "tentativo": false, "nota": ""}, {"id": "a12", "carril": "l5", "titulo": "SEIDOR Customer Days", "inicio": "2027-06-22", "fin": "2027-09-06", "tentativo": false, "nota": ""}, {"id": "a13", "carril": "l6", "titulo": "SAPPHIRE", "inicio": "2027-02-18", "fin": "2027-05-03", "tentativo": false, "nota": ""}, {"id": "a14", "carril": "l6", "titulo": "SAP FEST", "inicio": "2027-05-10", "fin": "2027-07-12", "tentativo": false, "nota": ""}, {"id": "a15", "carril": "l6", "titulo": "SAP NOW", "inicio": "2027-07-20", "fin": "2027-08-29", "tentativo": false, "nota": ""}, {"id": "a16", "carril": "l6", "titulo": "Eventos B1 y ERP Cloud TBC", "inicio": "2027-01-02", "fin": "2027-03-16", "tentativo": true, "nota": ""}, {"id": "a17", "carril": "l6", "titulo": "Eventos B1 y ERP Cloud TBC", "inicio": "2027-04-02", "fin": "2027-06-17", "tentativo": true, "nota": ""}, {"id": "a18", "carril": "l6", "titulo": "Eventos B1 y ERP Cloud TBC", "inicio": "2027-07-09", "fin": "2027-09-24", "tentativo": true, "nota": ""}, {"id": "a19", "carril": "l6", "titulo": "Eventos B1 y ERP Cloud TBC", "inicio": "2027-10-14", "fin": "2027-12-30", "tentativo": true, "nota": ""}]};
+function calLimpiar(b){
+  b = b && typeof b === 'object' ? b : {};
+  const arr = (x, n) => Array.isArray(x) ? x.slice(0, n) : [];
+  const f = v => /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? String(v) : '';
+  const col = v => /^#[0-9a-fA-F]{6}$/.test(String(v || '')) ? String(v).toUpperCase() : '#66B6FF';
+  const anio = Math.max(2020, Math.min(2040, parseInt(b.anio, 10) || new Date().getFullYear()));
+  const carriles = arr(b.carriles, 16).map((c, i) => ({ id: ctId(c && c.id, 'l', i), nombre: fcsTxt(c && c.nombre, 40) || 'Pilar ' + (i + 1), sub: fcsTxt(c && c.sub, 60), color: col(c && c.color) }));
+  const ids = new Set(carriles.map(c => c.id));
+  const items = arr(b.items, 250).map((x, i) => {
+    let a = f(x && x.inicio), z = f(x && x.fin); if(!a && z) a = z; if(!z && a) z = a; if(a && z && z < a){ const t = a; a = z; z = t; }
+    return { id: ctId(x && x.id, 'a', i), carril: String((x && x.carril) || ''), titulo: fcsTxt(x && x.titulo, 80), inicio: a, fin: z, tentativo: !!(x && x.tentativo), nota: fcsTxt(x && x.nota, 300) };
+  }).filter(x => ids.has(x.carril) && x.inicio);
+  return { anio, titulo: fcsTxt(b.titulo, 100), etiqueta: fcsTxt(b.etiqueta, 20), subtitulo: fcsTxt(b.subtitulo, 160), nota: fcsTxt(b.nota, 200), carriles, items };
+}
+async function calManejar(request, env){
+  const json = (o, status) => new Response(JSON.stringify(o), { status: status || 200, headers: { 'Content-Type': 'application/json' } });
+  const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
+  const cfgRoles = await getRolesConfig(env);
+  const puedeEditar = esAdmin(email, cfgRoles) || (await getPermiso(env, email, 'wbr-marketing')) === 'completo';
+  const raw = await env.PM_KV.get('wbr_marketing_calendario');
+  let live = raw ? JSON.parse(raw) : null;
+  if (request.method === 'GET') return json({ ok:true, live: live || { ...CAL_SEED, version: 0, semilla: true }, yo: { email, puedeEditar } });
+  if (request.method !== 'POST') return json({ ok:false, error:'Método no permitido' }, 405);
+  if (!puedeEditar) return json({ ok:false, error:'Solo la Gerente de Marketing (o un Administrador) puede editar el calendario.' }, 403);
+  let body; try { body = await request.json(); } catch (e) { return json({ ok:false, error:'JSON inválido' }, 400); }
+  const actual = live || { ...CAL_SEED, version: 0 };
+  if (body.accion === 'guardar') {
+    if (Number(body.version || 0) !== Number(actual.version || 0)) return json({ ok:false, conflicto:true, error:'Alguien más guardó el calendario mientras editabas. Se recargó la versión más reciente.', board: actual }, 409);
+    live = { ...calLimpiar(body.board), version: (actual.version || 0) + 1, editadoEn: new Date().toISOString(), editadoPor: email || 'desconocido' };
+    await env.PM_KV.put('wbr_marketing_calendario', JSON.stringify(live));
+    try {
+      const rawH = await env.PM_KV.get('wbr_marketing_calendario_hist');
+      let hist = rawH ? JSON.parse(rawH) : [];
+      hist.push({ version: live.version, editadoEn: live.editadoEn, editadoPor: live.editadoPor, board: calLimpiar(live) });
+      if (hist.length > 40) hist = hist.slice(hist.length - 40);
+      await env.PM_KV.put('wbr_marketing_calendario_hist', JSON.stringify(hist));
+    } catch (e) { /* la bitácora es best-effort */ }
+    return json({ ok:true, board: live });
+  }
+  return json({ ok:false, error:'Acción desconocida.' }, 400);
+}
+/* ================== FIN WBR MARKETING · CALENDARIO ================== */
 
 
 export default {
@@ -2607,6 +2653,7 @@ ${JSON.stringify(checklist || [])}`;
 
     if (url.pathname === '/api/wbr-cultura-talento') { return ctManejar(request, env, url); }
     if (url.pathname === '/api/wbr-marketing-iniciativas') { return miManejar(request, env); }
+    if (url.pathname === '/api/wbr-marketing-calendario') { return calManejar(request, env); }
     if (url.pathname === '/api/forecast-captura' && request.method === 'POST') {
       const JH = { 'Content-Type': 'application/json' };
       const j = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: JH });
