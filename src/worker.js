@@ -432,6 +432,8 @@ const PAGINAS_REGISTRO = {
   'forecast-semanal': 'Forecast Semanal (ver · Sales Ops edita)',
   'forecast-semanal-ae': 'Forecast Semanal — AE edita su propio tablero',
   'partners': 'Partners (registro, alta documental y tarifas)',
+  'rentabilidad': 'Rentabilidad de Proyectos (Operaciones: ver y capturar)',
+  'rentabilidad-finanzas': 'Rentabilidad de Proyectos — Finanzas (facturación, tipo de cambio, carga SAP, validación)',
   'auditoria': 'Auditoría',
   'agentes': 'Agentes',
 };
@@ -500,6 +502,7 @@ const RUTAS_PERMISO = {
   '/api/docs/file': { modo:'datos', paginas:['documentos'] },
   '/api/contactos-sap': { modo:'datos', paginas:['contactos-sap'] },
   '/api/partners': { modo:'datos', paginas:['partners'], escritura:['partners'] },
+  '/api/rentabilidad': { modo:'datos', paginas:['rentabilidad','rentabilidad-finanzas'], escritura:['rentabilidad','rentabilidad-finanzas'] }, // el detalle (qué campos edita Operaciones y cuáles Finanzas) se valida dentro
   '/api/bx-base-instalada': { modo:'datos', paginas:['bx-base-instalada'] },
   '/api/forecast-semanal': { modo:'datos', paginas:['forecast-semanal','forecast-semanal-ae'], escritura:['forecast-semanal','forecast-semanal-ae'] }, // el detalle (Sales Ops vs AE propio) se valida dentro
   '/api/wbr-finanzas': { modo:'datos', paginas:['wbr-finanzas'] },
@@ -577,6 +580,111 @@ async function autorizarRuta(request, env, pathname){
 // Se conserva por compatibilidad con los endpoints existentes; la validación real ya ocurrió en autorizarRuta.
 async function requierePermiso(request, env, nivelMinimo){ return null; }
 /* ==================== FIN ROLES Y PERMISOS ==================== */
+
+
+/* ==================== RENTABILIDAD DE PROYECTOS ==================== */
+// Operaciones captura (avance, costo futuro, partners, hitos planeados); Finanzas controla
+// (estatus de facturación y cobro, tipo de cambio mensual, % de indirectos/bad debt/SG&A,
+// carga del EERR de SAP y validación). Todo en USD como moneda base.
+// KV: rent_proyectos {proyectos:[]}, rent_config {tc,pct,diasCobro}, rent_real {lineas:{"PEP|cuenta|AAAA-MM":monto}, meta, cargas}
+const RENT_PCT_DEFAULT = [{ desde: '2020-01', ind: 15, bd: 0.5, sga: 22.4 }];
+async function rentManejar(request, env){
+  const JH = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
+  const j = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: JH });
+  const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase();
+  const cfgRoles = await getRolesConfig(env);
+  const admin = esAdmin(email, cfgRoles);
+  const nOps = await getPermiso(env, email, 'rentabilidad');
+  const nFin = await getPermiso(env, email, 'rentabilidad-finanzas');
+  const esFin = admin || nFin === 'completo';
+  const puedeOps = esFin || nOps === 'completo';
+  const rd = async (k, d) => { try { const r = await env.PM_KV.get(k); return r ? JSON.parse(r) : d; } catch (e) { return d; } };
+
+  if (request.method === 'GET') {
+    const [pr, cfg, real] = await Promise.all([rd('rent_proyectos', { proyectos: [] }), rd('rent_config', {}), rd('rent_real', { lineas: {}, meta: { peps: {}, cuentas: {} }, cargas: [] })]);
+    return j({ ok: true, proyectos: pr.proyectos || [], config: { tc: cfg.tc || {}, pct: (Array.isArray(cfg.pct) && cfg.pct.length) ? cfg.pct : RENT_PCT_DEFAULT, diasCobro: cfg.diasCobro || 30 }, real, yo: { email, admin, esFin, puedeOps } });
+  }
+  if (request.method !== 'POST') return j({ ok: false, error: 'Método no permitido' }, 405);
+  let body; try { body = await request.json(); } catch (e) { return j({ ok: false, error: 'JSON inválido' }, 400); }
+  const accion = String(body.accion || '');
+  const num = (x, d) => { const n = Number(x); return isFinite(n) ? n : d; };
+
+  if (accion === 'proyectos') {
+    if (!puedeOps) return j({ ok: false, error: 'No tienes permiso de edición para esta página.' }, 403);
+    const entrantes = Array.isArray(body.proyectos) ? body.proyectos.filter(p => p && typeof p.id === 'string' && p.id && p.id.length < 60) : [];
+    const eliminar = Array.isArray(body.eliminar) ? body.eliminar.map(String) : [];
+    if (eliminar.length && !admin) return j({ ok: false, error: 'Solo un Administrador puede eliminar proyectos.' }, 403);
+    const pr = await rd('rent_proyectos', { proyectos: [] });
+    const mapa = new Map((pr.proyectos || []).map(p => [p.id, p]));
+    const conflictos = [], revertidos = [];
+    const BASE = ['venta', 'costoVend', 'tcVenta', 'moneda'];
+    for (const p of entrantes) {
+      const ex = mapa.get(p.id);
+      if (ex && (p.u || 0) < (ex.u || 0)) { conflictos.push((ex.cliente || '') + ' · ' + (ex.nombre || '')); continue; }
+      let n; try { n = JSON.parse(JSON.stringify(p)); } catch (e) { continue; }
+      if (JSON.stringify(n).length > 250000) continue;
+      if (!esFin) {
+        // Operaciones: la línea base solo cambia con un change order nuevo; la facturación/cobro y la validación son de Finanzas.
+        if (ex) {
+          const cambio = BASE.some(k => n[k] !== ex[k]);
+          const coNuevo = (n.co || []).length > (ex.co || []).length;
+          if (cambio && !coNuevo) { BASE.forEach(k => { n[k] = ex[k]; }); revertidos.push((ex.cliente || '') + ' · ' + (ex.nombre || '')); }
+          const exH = new Map((ex.hitos || []).map(h => [h.id, h]));
+          n.hitos = (n.hitos || []).map(h => { const e = exH.get(h.id) || {}; return Object.assign({}, h, { estatus: e.estatus || 'Pendiente', factura: e.factura || '', fFact: e.fFact || '', fCobro: e.fCobro || '' }); });
+        } else {
+          n.hitos = (n.hitos || []).map(h => Object.assign({}, h, { estatus: 'Pendiente', factura: '', fFact: '', fCobro: '' }));
+        }
+        n.val = { estado: 'Capturado', por: email, en: new Date().toISOString() };
+      } else if (n.val && n.val.estado === 'Validado') {
+        n.val = { estado: 'Validado', mes: String(n.val.mes || ''), por: email, en: new Date().toISOString() };
+      }
+      mapa.set(n.id, n);
+    }
+    eliminar.forEach(id => mapa.delete(id));
+    await env.PM_KV.put('rent_proyectos', JSON.stringify({ proyectos: [...mapa.values()] }));
+    return j({ ok: true, conflictos, revertidos });
+  }
+
+  if (accion === 'config') {
+    if (!esFin) return j({ ok: false, error: 'Solo Finanzas puede cambiar el tipo de cambio y los porcentajes.' }, 403);
+    const tc = {};
+    if (body.tc && typeof body.tc === 'object') for (const k of Object.keys(body.tc)) { const v = num(body.tc[k], 0); if (/^\d{4}-\d{2}$/.test(k) && v > 0 && v < 1000) tc[k] = Math.round(v * 10000) / 10000; }
+    const pct = (Array.isArray(body.pct) ? body.pct : []).map(x => ({ desde: String(x && x.desde || ''), ind: num(x && x.ind, 0), bd: num(x && x.bd, 0), sga: num(x && x.sga, 0) })).filter(x => /^\d{4}-\d{2}$/.test(x.desde) && x.ind >= 0 && x.bd >= 0 && x.sga >= 0 && x.ind + x.bd + x.sga < 100).sort((a, b) => a.desde.localeCompare(b.desde));
+    const diasCobro = Math.min(365, Math.max(0, Math.round(num(body.diasCobro, 30))));
+    await env.PM_KV.put('rent_config', JSON.stringify({ tc, pct: pct.length ? pct : RENT_PCT_DEFAULT, diasCobro, u: Date.now(), por: email }));
+    return j({ ok: true });
+  }
+
+  if (accion === 'real') {
+    if (!esFin) return j({ ok: false, error: 'Solo Finanzas puede cargar el EERR de SAP.' }, 403);
+    const lineas = Array.isArray(body.lineas) ? body.lineas : [];
+    if (lineas.length > 40000) return j({ ok: false, error: 'El archivo trae demasiadas líneas (máx. 40,000).' }, 413);
+    const divs = new Set((Array.isArray(body.divisiones) ? body.divisiones : []).map(x => String(x).toUpperCase()));
+    const meses = new Set((Array.isArray(body.meses) ? body.meses : []).map(String));
+    if (!divs.size || !meses.size) return j({ ok: false, error: 'No se detectaron divisiones o meses en el archivo.' }, 400);
+    const real = await rd('rent_real', { lineas: {}, meta: { peps: {}, cuentas: {} }, cargas: [] });
+    real.lineas = real.lineas || {}; real.meta = real.meta || { peps: {}, cuentas: {} }; real.meta.peps = real.meta.peps || {}; real.meta.cuentas = real.meta.cuentas || {}; real.cargas = real.cargas || [];
+    // Recargar reemplaza lo anterior de esas divisiones y esos meses (no duplica).
+    for (const k of Object.keys(real.lineas)) { const t = k.split('|'); if (divs.has(String(t[0]).split('-')[0].toUpperCase()) && meses.has(t[2])) delete real.lineas[k]; }
+    let n = 0;
+    for (const l of lineas) {
+      const pep = String(l && l.pep || '').trim().toUpperCase().slice(0, 60), cta = String(l && l.cuenta || '').trim().slice(0, 8), mes = String(l && l.mes || ''), monto = num(l && l.monto, NaN);
+      if (!pep || !cta || !/^\d{4}-\d{2}$/.test(mes) || !isFinite(monto) || !divs.has(pep.split('-')[0]) || !meses.has(mes)) continue;
+      const k = pep + '|' + cta + '|' + mes;
+      real.lineas[k] = Math.round(((real.lineas[k] || 0) + monto) * 100) / 100;
+      if (l.cliente) real.meta.peps[pep] = String(l.cliente).slice(0, 60);
+      if (l.nombreCuenta) real.meta.cuentas[cta] = String(l.nombreCuenta).slice(0, 80);
+      n++;
+    }
+    real.cargas.push({ en: new Date().toISOString(), por: email, archivo: String(body.archivo || '').slice(0, 120), divisiones: [...divs], meses: [...meses].sort(), lineas: n });
+    real.cargas = real.cargas.slice(-30);
+    await env.PM_KV.put('rent_real', JSON.stringify(real));
+    return j({ ok: true, lineas: n });
+  }
+
+  return j({ ok: false, error: 'Acción no válida' }, 400);
+}
+/* ==================== FIN RENTABILIDAD DE PROYECTOS ==================== */
 
 /* ==================== INICIO: CONTENIDO DE seidor.com/es-mx ==================== */
 // seidor.com guarda el contenido de su home como datos dentro de la página (__NEXT_DATA__).
@@ -2709,6 +2817,10 @@ ${JSON.stringify(checklist || [])}`;
 
     if (url.pathname === '/api/forecast-semanal') {
       return fcsManejar(request, env, url);
+    }
+
+    if (url.pathname === '/api/rentabilidad') {
+      return rentManejar(request, env);
     }
 
     if (url.pathname === '/api/mi-permiso' && request.method === 'GET') {
