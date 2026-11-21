@@ -192,7 +192,7 @@
   .prev{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:10px 0 4px;} .prev div{background:#F4F8FC; border-radius:12px; padding:10px 12px;} .prev small{display:block; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--greyl);} .prev b{font-size:17px; color:var(--navy2);}
   .fchips{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
   select.sm{padding:7px 12px; border:1px solid var(--line); border-radius:999px; font:600 12.5px Poppins,sans-serif; background:#fff; color:var(--navy2);}
-  .par{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(420px,1fr));}
+  .par{display:grid; gap:16px; grid-template-columns:minmax(0,1fr);} .par>.sec{min-width:0; margin-bottom:0;} .par .tw2 table{min-width:640px;}
   .tcg{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
   .tcg label{display:block; font-size:11px; font-weight:700; color:var(--greyl); text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px;}
   svg text{font-family:Poppins,sans-serif;}
@@ -814,8 +814,8 @@ function renderParams(){
       <div class="tcg">${meses.map(mes=>`<div><label>${MESES_L[+mes.slice(5)-1]}</label><input class="in" type="number" step="0.0001" min="0" data-tc="${mes}" value="${tc[mes]||''}" ${ed?'':'disabled'} placeholder="—"></div>`).join('')}</div>
       ${ed?'<div style="margin-top:14px;"><button class="btn" data-a="guardar-config">Guardar tipo de cambio y porcentajes</button></div>':''}</div>
     <div class="sec"><h4>Indirectos, bad debt y SG&A</h4><p class="hint">Porcentajes sobre la venta que restan del margen directo para llegar al margen bruto. Cada fila rige desde el mes indicado, así un cambio no reescribe el histórico.</p>
-      <table class="dt" style="min-width:0;"><thead><tr><th>Vigente desde</th><th>Indirectos %</th><th>Bad debt %</th><th>SG&A %</th><th>Total</th><th></th></tr></thead><tbody>
-      ${pct.map((x,i)=>`<tr><td><input class="in" type="month" data-pc="${i}:desde" value="${esc(x.desde)}" ${ed?'':'disabled'}></td><td><input class="in" type="number" step="0.1" data-pc="${i}:ind" value="${x.ind}" ${ed?'':'disabled'}></td><td><input class="in" type="number" step="0.1" data-pc="${i}:bd" value="${x.bd}" ${ed?'':'disabled'}></td><td><input class="in" type="number" step="0.1" data-pc="${i}:sga" value="${x.sga}" ${ed?'':'disabled'}></td><td class="num"><b>${(x.ind+x.bd+x.sga).toFixed(1)}%</b></td><td>${ed&&pct.length>1?`<button class="x" data-a="del-pct" data-v="${i}">×</button>`:''}</td></tr>`).join('')}</tbody></table>
+      <div class="tw2"><table class="dt"><thead><tr><th>Vigente desde</th><th>Indirectos %</th><th>Bad debt %</th><th>SG&A %</th><th>Total</th><th></th></tr></thead><tbody>
+      ${pct.map((x,i)=>`<tr><td><input class="in" type="month" data-pc="${i}:desde" value="${esc(x.desde)}" ${ed?'':'disabled'}></td><td><input class="in" type="number" step="0.1" data-pc="${i}:ind" value="${x.ind}" ${ed?'':'disabled'}></td><td><input class="in" type="number" step="0.1" data-pc="${i}:bd" value="${x.bd}" ${ed?'':'disabled'}></td><td><input class="in" type="number" step="0.1" data-pc="${i}:sga" value="${x.sga}" ${ed?'':'disabled'}></td><td class="num"><b>${(x.ind+x.bd+x.sga).toFixed(1)}%</b></td><td>${ed&&pct.length>1?`<button class="x" data-a="del-pct" data-v="${i}">×</button>`:''}</td></tr>`).join('')}</tbody></table></div>
       ${ed?'<div style="margin-top:10px;"><button class="btn g s" data-a="add-pct">+ Agregar vigencia</button></div>':''}
       <div style="margin-top:16px;"><label class="f">Días de cobro estimados (para el flujo de caja)</label><input class="in" type="number" min="0" max="365" id="diasCobro" value="${ST.config.diasCobro||30}" style="max-width:140px;" ${ed?'':'disabled'}></div></div>
     <div class="sec"><h4>Cargas de SAP</h4><p class="hint">Historial de las últimas cargas del EERR.</p>
@@ -1103,23 +1103,22 @@ async function leerImport(file){
       let div = String(g(r,'division','bu')).trim().toUpperCase(); if(!div && /^D\d+/.test(pep)) div = pep.split('-')[0];
       const mon = String(g(r,'moneda')).trim().toUpperCase()==='MXN' ? 'MXN' : 'USD';
       const venta = num(g(r,'monto vendido','venta','precio venta')), costo = num(g(r,'costo vendido','costo','costo alta')), tc = num(g(r,'tc venta','tipo de cambio','tc'));
-      if(!(venta>0)) return;
       const lobRaw = String(g(r,'lob')).trim().toLowerCase();
       const fact = num(g(r,'facturado a la fecha','facturado'));
       const hitos = [];
-      if(fact>0) hitos.push({ id:nidh(), n:'Facturado a la fecha', pct:Math.round(Math.min(fact,venta)/venta*10000)/100, monto:Math.min(fact,venta), f:hoy, estatus:'Facturado', factura:'', fFact:hoy, fCobro:'' });
-      if(venta-fact>0.5) hitos.push({ id:nidh(), n:'Por facturar', pct:Math.round((venta-Math.min(fact,venta))/venta*10000)/100, monto:venta-Math.min(fact,venta), f:'', estatus:'Pendiente', factura:'', fFact:'', fCobro:'' });
+      if(venta>0 && fact>0) hitos.push({ id:nidh(), n:'Facturado a la fecha', pct:Math.round(Math.min(fact,venta)/venta*10000)/100, monto:Math.min(fact,venta), f:hoy, estatus:'Facturado', factura:'', fFact:hoy, fCobro:'' });
+      if(venta>0 && venta-fact>0.5) hitos.push({ id:nidh(), n:'Por facturar', pct:Math.round((venta-Math.min(fact,venta))/venta*10000)/100, monto:venta-Math.min(fact,venta), f:'', estatus:'Pendiente', factura:'', fFact:'', fCobro:'' });
       const av = g(r,'% avance','avance');
       IMP.push({ id:nid(), u:Date.now(), cliente:cli, nombre:nom, peps:pep?pep.split(/[,;\s]+/).filter(Boolean):[], division:div, lob:lobRaw.startsWith('priv')?'Private':lobRaw.startsWith('pub')?'Public':'Otro', tipo:TIPOS.find(t=>norm(t)===norm(g(r,'tipo')))||'Proyecto', moneda:mon, tcVenta:tc||tcUlt()||18, venta, costoVend:costo, alta:fechaX(g(r,'fecha de cierre','fecha alta','alta'))||hoy, goLive:fechaX(g(r,'go live','golive','go-live')), pmo:String(g(r,'pmo')).trim(), financiero:String(g(r,'financiero')).trim(), estatus:'Abierto', avance:hasNum(av)?num(av):'', costoFut:'', act:hoy, hitos, partners:[], co:[], bit:[{ f:hoy, t:'Alta por importación de Excel', por:yo }], notas:'' });
     });
-    const ya = new Set(ST.proyectos.map(p => cliKey(p)+'|'+norm(p.nombre)));
-    const nuevos = IMP.filter(p => !ya.has(cliKey(p)+'|'+norm(p.nombre))), dup = IMP.length-nuevos.length;
+    const ya = new Set(ST.proyectos.map(p => cliKey(p)+'|'+norm(p.nombre))), yaPep = new Set(ST.proyectos.flatMap(p => p.peps||[]));
+    const nuevos = IMP.filter(p => !ya.has(cliKey(p)+'|'+norm(p.nombre)) && !(p.peps.length && p.peps.every(x => yaPep.has(x)))), dup = IMP.length-nuevos.length;
     IMP = nuevos;
     $('impPrev').innerHTML = IMP.length ? `<div class="prev"><div><small>Proyectos nuevos</small><b>${IMP.length}</b></div><div><small>Ya existían (se omiten)</small><b>${dup}</b></div><div><small>Venta total (USD)</small><b>${fk(IMP.reduce((s,p)=>s+(p.moneda==='USD'?p.venta:p.venta/p.tcVenta),0))}</b></div></div><div class="tw2" style="max-height:220px;overflow:auto;margin-top:8px;"><table class="dt" style="min-width:0"><tbody>${IMP.slice(0,30).map(p=>`<tr><td><b>${esc(p.cliente)}</b></td><td>${esc(p.nombre)}</td><td>${esc(p.division)}</td><td class="num">${fm(p.venta)} ${p.moneda}</td></tr>`).join('')}</tbody></table></div><div style="display:flex;justify-content:flex-end;margin-top:12px;"><button class="btn" data-a="imp-confirmar">Importar ${IMP.length} proyectos</button></div>` : `<div class="note">No encontré proyectos nuevos en el archivo. Revisa que tenga las columnas de la plantilla (Cliente, Proyecto, Monto vendido…).${dup?` ${dup} ya existían.`:''}</div>`;
   } catch(e){ $('impPrev').innerHTML = `<div class="note bad">No pude leer el archivo: ${esc(e.message||e)}</div>`; }
 }
 function abrirImport(){
-  $('dlgBody').innerHTML = `<h3>Importar proyectos desde Excel</h3><p class="hint">Sube un Excel o CSV con una fila por proyecto. Si el proyecto ya tiene facturado a la fecha, se crea el hito “Facturado a la fecha”. Los datos viven en el sitio, no en el archivo.</p>
+  $('dlgBody').innerHTML = `<h3>Importar proyectos desde Excel</h3><p class="hint">Sube un Excel o CSV con una fila por proyecto. Si el proyecto ya tiene facturado a la fecha, se crea el hito “Facturado a la fecha”. Se importan todos, aun sin monto vendido (quedan “sin línea base” hasta que Operaciones o Finanzas lo capturen). Los datos viven en el sitio, no en el archivo.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;"><input type="file" id="impFile" accept=".xlsx,.xls,.csv" class="in" style="max-width:340px;"><button class="btn g s" data-a="plantilla-xlsx">Descargar plantilla</button></div><div id="impPrev"></div>
     <div style="display:flex;justify-content:flex-end;margin-top:8px;"><button class="btn g" data-a="dlg-cerrar">Cerrar</button></div>`;
   $('dlg').classList.add('open');
