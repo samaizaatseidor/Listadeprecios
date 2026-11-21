@@ -1165,7 +1165,7 @@ async function leerSAP(file){
     const anio = parseInt($('sapAnio').value)||UI.anio;
     const wb = XLSX.read(await file.arrayBuffer(), { type:'array' });
     const r = parseEERR(wb, anio);
-    if(!r.lineas.length){ $('sapPrev').innerHTML = '<div class="note bad">No encontré una hoja con las columnas Cuenta, Elemento PEP y meses (enero…diciembre).</div>'; return; }
+    if(!r.lineas.length){ const esProy = wb.SheetNames.some(sn => (XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1})[0]||[]).map(norm).includes('monto vendido')); if(esProy){ $('sapPrev').innerHTML = '<div class="note bad">Este archivo es de <b>proyectos</b>, no del EERR. Ciérralo y usa el botón <b>Importar Excel</b>.</div>'; return; } $('sapPrev').innerHTML = '<div class="note bad">No encontré una hoja con las columnas Cuenta, Elemento PEP y meses (enero…diciembre).</div>'; return; }
     r.archivo = file.name; EERR = r;
     let ing = 0, cos = 0; r.lineas.forEach(l => { if(catDe(l.cuenta)==='ingreso') ing += l.monto; else if(catDe(l.cuenta)!=='cambiario') cos -= l.monto; });
     const peps = new Set(r.lineas.map(l=>l.pep)), lig = new Set(); ST.proyectos.forEach(p=>(p.peps||[]).forEach(x=>lig.add(x)));
