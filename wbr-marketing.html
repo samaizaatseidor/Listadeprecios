@@ -2070,5 +2070,15 @@ document.addEventListener('click', async e => {
 window.addEventListener('beforeunload', e => { if(CAL.dirty){ e.preventDefault(); e.returnValue = ''; } });
 </script>
 <script src="/asistente.js?v=1" defer></script>
+<script>
+(function(){
+  var esProduccion = location.hostname === 'crmpresalesmx.com' || location.hostname === 'www.crmpresalesmx.com';
+  if(!esProduccion) return;
+  var ocultar = ['/proyecto.html','/iniciar-proyecto.html','/vista-general.html','/reporte-cuenta.html','/checklist.html'];
+  ocultar.forEach(function(href){
+    document.querySelectorAll('a[href="'+href+'"]').forEach(function(a){ a.style.display = 'none'; });
+  });
+})();
+</script>
 </body>
 </html>
