@@ -495,7 +495,7 @@ WK.table = function(cols, filas, opts){
         case 'tag':  vis = v ? '<span class="wk-tag">'+WK.esc(v)+'</span>' : '—'; dv = v||''; break;
         case 'strong': vis = WK.esc(v==null||v===''?'—':v); cls += ' wk-strong'; break;
         case 'note': vis = WK.esc(v==null||v===''?'—':v); cls += ' wk-note'; break;
-        case 'html': vis = v==null?'':v; break;
+        case 'html': vis = v==null?'':v; if(f['_v_'+c.k] != null) dv = f['_v_'+c.k]; break;
         default:     vis = WK.esc(v==null||v===''?'—':v);
       }
       return '<td class="'+cls.trim()+'"'+(dv!==''?' data-v="'+WK.esc(dv)+'"':'')+'>'+vis+'</td>';

@@ -12,8 +12,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="/wbr-kit.js?v=20261028a"></script>
+<script src="/wbr-kit.js?v=20261125a"></script>
 <style>
+  .mg-w{display:inline-flex; align-items:center; gap:3px; justify-content:flex-end;}
+  .mg-in{width:92px; padding:6px 8px; border:1px solid rgba(255,255,255,.22); border-radius:8px; font:600 12.5px Poppins,sans-serif; text-align:right; color:#fff; background:rgba(255,255,255,.07);}
+  .mg-in::placeholder{color:rgba(255,255,255,.35);} .mg-in:hover{border-color:#3DD6FF;} .mg-in:focus{outline:2px solid #3DD6FF; border-color:transparent; background:rgba(255,255,255,.12);} .mg-in:disabled{opacity:.55; cursor:not-allowed;}
+  .mg-w b{font-size:11.5px; color:#A5B4CE; font-weight:600;}
   :root{
     --navy:#0A1226; --navy2:#0E1E3F; --blue:#1E5BB8; --cyan:#33B4DD; --cyan-l:#6FD3F0;
     --ink:#16223A; --grey:#5E6B82; --greyl:#8A97AC; --line:#D8E2EE; --card:#F4F8FC;
@@ -406,20 +410,36 @@ function filasOps(lista){
   return (lista||[]).map(o => ({
     cliente:o.cliente, linea:[o.lineaSAP, o.tipo].filter(Boolean).join(' · '), total:o.total, etapa:o.etapa,
     estatus: o.estatus ? WK.badge(o.estatus, tonoEstatus(o.estatus)) : '', _est:o.estatus||'',
-    cierre:fechaOp(o), vendedor:(o.vendedor ? _c[WK.norm(String(o.vendedor).trim())] : ''), comentario:o.comentario
+    cierre:fechaOp(o), vendedor:(o.vendedor ? _c[WK.norm(String(o.vendedor).trim())] : ''), comentario:o.comentario,
+    md:celdaMarg(o,'md'), mb:celdaMarg(o,'mb'), ebitda:celdaMarg(o,'ebitda'),
+    _v_md:(MARG[llaveDeal(o)]||{}).md, _v_mb:(MARG[llaveDeal(o)]||{}).mb, _v_ebitda:(MARG[llaveDeal(o)]||{}).ebitda
   }));
 }
 const COLS_OPS = [
   { k:'cliente', label:'Cliente', tipo:'strong' }, { k:'linea', label:'Línea', tipo:'text' }, { k:'total', label:'Total (USD)', tipo:'usdK' },
   { k:'etapa', label:'Etapa', tipo:'tag' }, { k:'estatus', label:'Estatus', tipo:'html' }, { k:'cierre', label:'Cierre est.', tipo:'date' },
-  { k:'vendedor', label:'KAM', tipo:'text' }, { k:'comentario', label:'Comentario', tipo:'note' }
+  { k:'vendedor', label:'KAM', tipo:'text' }, { k:'comentario', label:'Comentario', tipo:'note' },
+  { k:'md', label:'Margen directo %', tipo:'html', cls:'wk-num' }, { k:'mb', label:'Margen bruto %', tipo:'html', cls:'wk-num' }, { k:'ebitda', label:'EBITDA (USD)', tipo:'html', cls:'wk-num' }
 ];
+/* Margen directo / bruto / EBITDA: se capturan a mano después de cargar el Excel. Se guardan por cliente + línea
+   (no por semana), así el dato sigue ahí cuando el deal aparece en cortes posteriores. */
+let MARG = {}, MARG_OK = false;
+const llaveDeal = o => WK.norm(String(o.cliente||'').trim()) + '|' + WK.norm(String(o.lineaSAP||'').trim());
+async function cargarMargenes(){ try{ const r = await fetch('/api/wbr-ventas-margenes'); const d = await r.json(); if(d.ok){ MARG = d.margenes || {}; MARG_OK = true; } }catch(e){} }
+const fmtN = (n, dec) => n == null ? '' : Number(n).toLocaleString('es-MX', { maximumFractionDigits: dec });
+function celdaMarg(o, campo){
+  const m = MARG[llaveDeal(o)] || {}, v = m[campo];
+  const ro = (window.SOLO_LECTURA || snapshotVisto || !MARG_OK) ? ' disabled' : '';
+  const ph = campo === 'ebitda' ? '0' : '—';
+  return '<span class="mg-w"><input class="mg-in" inputmode="decimal" data-key="' + WK.esc(llaveDeal(o)) + '" data-f="' + campo + '" value="' + WK.esc(fmtN(v, campo === 'ebitda' ? 0 : 1)) + '" placeholder="' + ph + '" aria-label="' + (campo === 'md' ? 'Margen directo %' : campo === 'mb' ? 'Margen bruto %' : 'EBITDA en USD') + '"' + ro + '>' + (campo === 'ebitda' ? '' : '<b>%</b>') + '</span>';
+}
 function sumaTotal(lista){ return (lista||[]).reduce((a,o) => a + (Number(o.total)||0), 0); }
 function tablaOportunidades(lista){
   const filas = filasOps(lista);
   const tabla = WK.table(COLS_OPS, filas, { id:'tablaOps', vacio:'Sin registros en esta lista.',
-    footer:'<tr><td class="wk-strong">Total</td><td></td><td class="wk-num">' + WK.usdK(sumaTotal(lista)) + '</td><td colspan="5"></td></tr>' });
+    footer:'<tr><td class="wk-strong">Total</td><td></td><td class="wk-num">' + WK.usdK(sumaTotal(lista)) + '</td><td colspan="5"></td><td class="wk-num" id="mgPromD" title="Promedio ponderado por monto, solo deals con dato"></td><td class="wk-num" id="mgPromB" title="Promedio ponderado por monto, solo deals con dato"></td><td class="wk-num" id="mgSumE"></td></tr>' });
   if(!filas.length) return tabla;
+  window.__listaMarg = lista;
   return '<div class="wk-tools"><input class="wk-search" type="search" placeholder="Buscar cliente, vendedor, comentario…" oninput="WK.filtrar(document.getElementById(\'tablaOps\'), this.value)"></div>' + tabla;
 }
 function kpiVentas(h){ return h.ventas.find(v => v.nombre.toLowerCase().includes('totales')) || h.ventas[0]; }
@@ -523,7 +543,7 @@ function render(){
     WK.card({ ico:'📋', titulo:'Detalle de metas', sub:'Haz clic en un encabezado para ordenar.', body:tablaMetas }) +
     WK.band('ops', 'Oportunidades', 'Detalle del pipeline') +
     (mov ? '<div class="wk-kpis">' + mov + '</div>' : '') +
-    WK.card({ ico:'🔎', titulo:'Detalle de oportunidades', sub:'Ordena por cualquier columna y filtra por texto.', body: barraTabs + '<div id="opsContent"></div>' }) +
+    WK.card({ ico:'🔎', titulo:'Detalle de oportunidades', sub:'Ordena por cualquier columna y filtra por texto. Margen directo, margen bruto y EBITDA se capturan aquí después de cargar el Excel y se conservan en las semanas siguientes.', extra:'<span id="mgEstado" style="font-weight:700;font-size:12.5px"></span>', body: barraTabs + '<div id="opsContent"></div>' }) +
     WK.card({ ico:'👤', titulo:'Pipeline activo por Key Account Manager', body:tablaV }) +
     WK.band('bitacora', 'Bitácora semanal', 'Haz clic en una semana para ver el dashboard completo tal como se veía entonces') +
     WK.card({ ico:'📅', titulo:'Cortes guardados', count:historial.length, body:bitacora }) +
@@ -539,10 +559,40 @@ function setTabOps(cual){
   const cont = document.getElementById('opsContent');
   cont.innerHTML = tablaOportunidades(listas[cual] || []);
   WK.sortable(cont);
+  recalcMarg();
 }
+function recalcMarg(){
+  const L = window.__listaMarg || []; let sd = 0, wd = 0, sb = 0, wb = 0, se = 0, hay = false;
+  L.forEach(o => { const m = MARG[llaveDeal(o)]; if(!m) return; const t = Number(o.total) || 0;
+    if(m.md != null){ sd += m.md * t; wd += t; } if(m.mb != null){ sb += m.mb * t; wb += t; } if(m.ebitda != null){ se += m.ebitda; hay = true; } });
+  const set = (id, txt) => { const e = document.getElementById(id); if(e) e.textContent = txt; };
+  set('mgPromD', wd ? fmtN(sd / wd, 1) + '%' : ''); set('mgPromB', wb ? fmtN(sb / wb, 1) + '%' : ''); set('mgSumE', hay ? '$' + fmtN(se, 0) : '');
+}
+const parseMarg = t => { t = String(t||'').replace(/[\s$%]/g,'').replace(/,/g,''); if(t === '') return null; const n = Number(t); return isFinite(n) ? n : NaN; };
+let __mgT = null;
+function avisoMarg(txt, mal){ const e = document.getElementById('mgEstado'); if(!e) return; e.textContent = txt; e.style.color = mal ? '#B23A3A' : '#1F8A4C'; clearTimeout(__mgT); __mgT = setTimeout(() => { e.textContent = ''; }, 3500); }
+document.addEventListener('change', async ev => {
+  const inp = ev.target.closest && ev.target.closest('.mg-in'); if(!inp) return;
+  const key = inp.dataset.key, campo = inp.dataset.f, val = parseMarg(inp.value);
+  const prev = MARG[key] ? MARG[key][campo] : null;
+  if(Number.isNaN(val) || (campo !== 'ebitda' && val !== null && Math.abs(val) > 1000)){ inp.value = fmtN(prev, campo === 'ebitda' ? 0 : 1); avisoMarg('Escribe solo un número.', true); return; }
+  const cur = Object.assign({ md:null, mb:null, ebitda:null }, MARG[key] || {}); cur[campo] = val;
+  inp.disabled = true;
+  try{
+    const r = await fetch('/api/wbr-ventas-margenes', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key, md:cur.md, mb:cur.mb, ebitda:cur.ebitda }) });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok || !d.ok) throw new Error(r.status === 403 ? 'No tienes permiso para editar.' : (d.error || 'No se pudo guardar.'));
+    if(d.entrada) MARG[key] = d.entrada; else delete MARG[key];
+    inp.value = fmtN(val, campo === 'ebitda' ? 0 : 1);
+    const td = inp.closest('td'); if(td) td.setAttribute('data-v', val == null ? '' : val);
+    recalcMarg(); avisoMarg('Guardado ✓');
+  }catch(e){ inp.value = fmtN(prev, campo === 'ebitda' ? 0 : 1); avisoMarg(e.message || 'No se pudo guardar.', true); }
+  inp.disabled = false;
+});
+document.addEventListener('keydown', ev => { if(ev.key === 'Enter' && ev.target.classList && ev.target.classList.contains('mg-in')) ev.target.blur(); });
 
 async function init(){
-  await cargarHistorial();
+  await Promise.all([cargarHistorial(), cargarMargenes()]);
   render();
   if(actual) pedirInsight(historial.length > 1 ? historial[historial.length-2] : null);
 }

@@ -508,6 +508,7 @@ const RUTAS_PERMISO = {
   '/api/forecast-semanal': { modo:'datos', paginas:['forecast-semanal','forecast-semanal-ae'], escritura:['forecast-semanal','forecast-semanal-ae'] }, // el detalle (Sales Ops vs AE propio) se valida dentro
   '/api/wbr-finanzas': { modo:'datos', paginas:['wbr-finanzas'] },
   '/api/wbr-ventas': { modo:'datos', paginas:['wbr-ventas'] },
+  '/api/wbr-ventas-margenes': { modo:'datos', paginas:['wbr-ventas'], escritura:['wbr-ventas'] }, // margen directo, margen bruto y EBITDA por deal (se editan después de cargar el Excel)
   '/api/wbr-cultura-talento': { modo:'datos', paginas:['wbr-cultura-talento'], escritura:['wbr-cultura-talento'] },
   '/api/wbr-operaciones': { modo:'datos', paginas:['wbr-operaciones'] },
   '/api/wbr-operaciones-b1': { modo:'datos', paginas:['wbr-operaciones-b1'] },
@@ -2102,6 +2103,27 @@ ${JSON.stringify(checklist || [])}`;
       } catch (e) {
         return new Response(JSON.stringify({ ok: false, error: String(e.message || e) }), { status: 502, headers: { 'Content-Type': 'application/json' } });
       }
+    }
+
+    // Margen directo / margen bruto / EBITDA por deal (WBR Ventas). Se guardan aparte del Excel semanal, por llave
+    // cliente|línea, para que sobrevivan a las cargas siguientes. El permiso (lectura/escritura) lo valida RUTAS_PERMISO.
+    if (url.pathname === '/api/wbr-ventas-margenes') {
+      const JH = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
+      const j = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: JH });
+      let mg = {}; try { const r = await env.PM_KV.get('wbr_ventas_margenes'); if (r) mg = JSON.parse(r) || {}; } catch (e) { mg = {}; }
+      if (request.method === 'GET') return j({ ok: true, margenes: mg });
+      if (request.method !== 'POST') return j({ ok: false, error: 'Método no permitido' }, 405);
+      let body; try { body = await request.json(); } catch (e) { return j({ ok: false, error: 'JSON inválido' }, 400); }
+      const key = String(body.key || '').trim().slice(0, 240);
+      if (!key) return j({ ok: false, error: 'Falta la llave del deal.' }, 400);
+      const num = (v, min, max) => { if (v === null || v === undefined || v === '') return null; const n = Number(v); if (!isFinite(n) || n < min || n > max) return NaN; return Math.round(n * 100) / 100; };
+      const md = num(body.md, -1000, 1000), mb = num(body.mb, -1000, 1000), eb = num(body.ebitda, -1e12, 1e12);
+      if ([md, mb, eb].some(x => Number.isNaN(x))) return j({ ok: false, error: 'Valor fuera de rango o no numérico.' }, 400);
+      if (md === null && mb === null && eb === null) delete mg[key];
+      else mg[key] = { md, mb, ebitda: eb, por: (request.headers.get('Cf-Access-Authenticated-User-Email') || '').toLowerCase(), en: new Date().toISOString() };
+      if (Object.keys(mg).length > 4000) return j({ ok: false, error: 'Demasiados registros guardados.' }, 413);
+      await env.PM_KV.put('wbr_ventas_margenes', JSON.stringify(mg));
+      return j({ ok: true, entrada: mg[key] || null });
     }
 
     if (url.pathname === '/api/wbr-ventas' && request.method === 'GET') {
