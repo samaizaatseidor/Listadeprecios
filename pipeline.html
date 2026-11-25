@@ -63,6 +63,7 @@
   .card.stage-scoping{background:#F6F3FC;}
   .card.stage-implementacion{background:#F1FAF4;}
   .card.stage-pausado{background:#FAF7F0;}
+  .card.stage-entregado{background:#EEF8F6;}
   .card.stage-no_go{background:#FEF6F6;}
   .card[draggable="true"]{cursor:grab;}
   .card.dragging{opacity:0.4;}
@@ -323,6 +324,7 @@ const STAGES = [
   {id:'scoping', label:'Scoping / SOW'},
   {id:'implementacion', label:'Implementación'},
   {id:'pausado', label:'Pausado'},
+  {id:'entregado', label:'Entregado'},
   {id:'no_go', label:'No-Go'}
 ];
 const GONOGO = ['Go', 'No-Go'];
@@ -441,7 +443,7 @@ function render(){
       const gonogoTag = p.goNoGo === 'Go' ? `<span class="gonogo-tag go"><span class="gonogo-dot go"></span>Go</span>`
         : p.goNoGo === 'No-Go' ? `<span class="gonogo-tag nogo"><span class="gonogo-dot nogo"></span>No-Go</span>` : '';
       const daysSinceMove = daysInCurrentStage(p);
-      const isStale = daysSinceMove !== null && daysSinceMove >= STALE_DAYS && st.id !== 'pausado' && st.id !== 'no_go';
+      const isStale = daysSinceMove !== null && daysSinceMove >= STALE_DAYS && st.id !== 'pausado' && st.id !== 'entregado' && st.id !== 'no_go';
       const card = document.createElement('div');
       card.className = 'card stage-'+st.id+' '+riskClass+(isStale?' stale':'');
       card.draggable = true;
@@ -921,7 +923,7 @@ const SE_EMAILS = {
   'veronica.pang@seidor.com':'Verónica Pang', 'samuel.aiza@seidor.com':'Samuel Aiza'
 };
 const REVIEW_DIAS = 7;                       // días sin tocar el próximo paso para considerarlo desactualizado
-const REVIEW_EXCLUIR = ['no_go', 'pausado'];  // etapas que no se repasan
+const REVIEW_EXCLUIR = ['no_go', 'pausado', 'entregado'];  // etapas que no se repasan
 let reviewQueue = [];
 let reviewPos = 0;
 let reviewFor = '';

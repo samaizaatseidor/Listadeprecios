@@ -229,6 +229,7 @@ const ETAPAS = [
   { id:'scoping', label:'Scoping / SOW', color:'#FF9F6B' },
   { id:'implementacion', label:'Implementación', color:'#2FE29B' },
   { id:'pausado', label:'Pausado', color:'#7D8FAE' },
+  { id:'entregado', label:'Entregado', color:'#2BB5A0' },
   { id:'no_go', label:'No-Go', color:'#FF5C7A' }
 ];
 /* Implementación = oportunidad ya cerrada (ganada): no cuenta como activa ni entra a los KPIs del pipeline abierto */
@@ -301,7 +302,7 @@ function render(){
   const act = P.filter(p => ACTIVAS.includes(p.stage));
   const pausadas = P.filter(p => p.stage === 'pausado'), nogo = P.filter(p => p.stage === 'no_go');
   const porEtapa = id => P.filter(p => p.stage === id);
-  const PB = P.filter(p => p.stage !== 'implementacion'), cerradas = P.filter(p => p.stage === 'implementacion');
+  const PB = P.filter(p => p.stage !== 'implementacion' && p.stage !== 'entregado'), cerradas = P.filter(p => p.stage === 'implementacion');
   const conGNG = PB.filter(p => p.goNoGo === 'Go' || p.goNoGo === 'No-Go');
   const pctGNG = PB.length ? conGNG.length / PB.length : 0;
   const impl = P.filter(p => p.stage === 'implementacion'), implHO = impl.filter(p => p.handoverFormal === 'Sí');
@@ -356,7 +357,7 @@ function render(){
 
   // Embudo por etapa (conteo)
   const embudo = WK.card({ id:'embudo', ico:'🔻', titulo:'Embudo por etapa', sub:'Oportunidades en cada etapa · pasa el mouse para ver cuáles', count:P.length,
-    body: WK.columns(ETAPAS.map(e => ({ prospeccion:'Prospección', asignada_preventa:'Asignada', propuesta:'Propuesta', scoping:'Scoping', implementacion:'Implement.', pausado:'Pausado', no_go:'No-Go' })[e.id]), [{ nombre:'Oportunidades', color:'#3DD6FF', valores:ETAPAS.map(e => porEtapa(e.id).length),
+    body: WK.columns(ETAPAS.map(e => ({ prospeccion:'Prospección', asignada_preventa:'Asignada', propuesta:'Propuesta', scoping:'Scoping', implementacion:'Implement.', pausado:'Pausado', entregado:'Entregado', no_go:'No-Go' })[e.id]), [{ nombre:'Oportunidades', color:'#3DD6FF', valores:ETAPAS.map(e => porEtapa(e.id).length),
       extra:ETAPAS.map(e => lista(porEtapa(e.id))) }], { fmt:v => String(Math.round(v)), id:'emb', h:300 }) });
 
   // Carga por Solution Engineer (todo el equipo; si hay filtro, se resalta en el título)

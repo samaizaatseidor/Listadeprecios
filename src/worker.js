@@ -35,6 +35,7 @@ const STAGE_LABELS = {
   scoping: 'Scoping / SOW',
   implementacion: 'Implementación',
   pausado: 'Pausado',
+  entregado: 'Entregado',
   no_go: 'No-Go'
 };
 
@@ -46,7 +47,7 @@ function buildWeeklySummaryHtml(projects) {
 
   const estancadas = projects.filter(p => {
     if (!p.stageHistory || !p.stageHistory.length) return false;
-    if (p.stage === 'pausado' || p.stage === 'no_go') return false;
+    if (p.stage === 'pausado' || p.stage === 'entregado' || p.stage === 'no_go') return false;
     const last = p.stageHistory[p.stageHistory.length - 1];
     const days = (now - new Date(last.at)) / (1000 * 60 * 60 * 24);
     return days >= 14;

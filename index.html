@@ -312,7 +312,7 @@ if ('serviceWorker' in navigator) {
 (function(){
   var SE = { 'gustavo.najar@seidor.com':'Gustavo Najar', 'rocio.anaya@seidor.com':'Rocío Anaya',
              'veronica.pang@seidor.com':'Verónica Pang', 'samuel.aiza@seidor.com':'Samuel Aiza' };
-  var DIAS = 7, EXCLUIR = ['no_go','pausado'];
+  var DIAS = 7, EXCLUIR = ['no_go','pausado','entregado'];
   fetch('/api/whoami').then(function(r){ return r.json(); }).then(function(w){
     var nombre = SE[String(w.email||'').toLowerCase()];
     if(!nombre) return;
