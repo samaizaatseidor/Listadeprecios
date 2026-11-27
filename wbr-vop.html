@@ -367,7 +367,7 @@ const RISK_DEF = [
 class Component {
   constructor() {
     this.data = {};
-    this.state = { mode: 'proj', tgt: { proj: 37.9, ams: 37.9 }, dev: 0, dso: 1, deal: { acv: 0, tcv: 0, ccf: 10 }, risk: [1, 1, 1, 1, 1, 1, 1], pct: { proj: [], ams: [] }, fte: '', ebm: { on: false, pct: 5 }, hp: 0, pt: 0, th: { ind: 15, bd: 0.5, sga: 22.4, obj: 0 } };
+    this.state = { mode: 'proj', tgt: { proj: 42, ams: 42 }, dev: 0, dso: 1, deal: { acv: 0, tcv: 0, ccf: 10 }, risk: [1, 1, 1, 1, 1, 1, 1], pct: { proj: [], ams: [] }, fte: '', ebm: { on: false, pct: 5 }, hp: 0, pt: 0, th: { ind: 15, bd: 0.5, sga: 22.4, obj: 0 } };
     this.onChange = null;
   }
   load(type, data) {
@@ -375,11 +375,11 @@ class Component {
     const s = this.state;
     if (type === 'proj') {
       const n = data.n;
-      s.pct.proj = [20].concat(new Array(n).fill(80 / n), [0, 0]); s.tgt.proj = Math.round((s.th.ind + s.th.bd + s.th.sga + s.th.obj) * 10) / 10;
+      s.pct.proj = [20].concat(new Array(n).fill(80 / n), [0, 0]); s.tgt.proj = 42;
       s.deal = { acv: data.acv || 0, tcv: data.tcv || 0, ccf: data.ccf };
     } else {
       const v = data.vig;
-      s.pct.ams = [20].concat(new Array(v).fill(80 / v)); s.tgt.ams = Math.round((s.th.ind + s.th.bd + s.th.sga + s.th.obj) * 10) / 10;
+      s.pct.ams = [20].concat(new Array(v).fill(80 / v)); s.tgt.ams = 42;
     }
     if (type === 'ams') s.hp = 0;
     s.mode = type; s.dev = 0; s.risk = [1, 1, 1, 1, 1, 1, 1];
@@ -465,7 +465,7 @@ class Component {
       : 'La contingencia sale solo de los criterios de tipo Costo y se resta del EBITDA.';
 
     // ---- niveles de aprobación (sobre margen directo, % del VA total) ----
-    const T = isAms ? [0.40, 0.35, 0.30] : [0.35, 0.30, 0.25];
+    const T = [0.46, 0.42, 0.38];   // Deal Desk (margen directo): Ideal / Aceptable / Piso, igual para proyecto y AMS
     const lvOf = (b) => (b >= T[0] ? 0 : b >= T[1] ? 1 : b >= T[2] ? 2 : 3);
     const bp = Math.round(mddP * 1000) / 1000;
     const li = lvOf(bp), L = LV[li];
@@ -656,7 +656,7 @@ class Component {
     ] : [
       chk('PM sobre horas del equipo', AD.pmH / Math.max(1e-9, AD.hm), 0.05, 0.15, p1),
       flag('Contingencia de la hoja vs. sugerida', pc(fileRate), 'sugerida ' + pc(rrate), fileRate >= rrate),
-      flag('Margen directo vs. política Deal Desk AMS', pc(mddP), '≥ 30% para evitar Nivel 3', mddP >= 0.30),
+      flag('Margen directo vs. política Deal Desk', pc(mddP), '≥ ' + tp(T[2]) + ' para evitar Nivel 3', mddP >= T[2]),
       flag('Costos adicionales capturados', money(AD.extra), 'licencias, terceros, viáticos', AD.extra > 0)
     ];
 
@@ -667,7 +667,7 @@ class Component {
     const risk = { score, band, contLabel: isAms ? 'Contingencia de la hoja' : 'Contingencia (solo Costo)', rate: pc(contRate), cont, bruto: va > 0 ? mddAdj / va : 0, oper: va > 0 ? ebitAdj / va : 0, cmp: riskCmp, alerts: alertMsgs };
 
     // ---- sensibilidad desviación × objetivo (margen directo) ----
-    const sOpts = [0.30, 0.35, 0.40, 0.45];
+    const sOpts = [0.38, 0.42, 0.46, 0.50];
     const sensCols = sOpts.map((o) => 'Obj. ' + Math.round(o * 100) + '%');
     const sens = devs.map((dv, di) => ({
       label: dv === 0 ? 'Según estimación' : (isProj ? 'Jornadas +' : 'Horas +') + Math.round(dv * 100) + '%',
